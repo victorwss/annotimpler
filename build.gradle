@@ -1,0 +1,344 @@
+plugins {
+    id("com.github.spotbugs") version "6.0.22"
+    id("java-library")
+    id("maven-publish")
+    id("checkstyle")
+    id("signing")
+    id("jacoco")
+    id("pmd")
+    id("project-report")
+}
+
+allprojects {
+    group = "ninja.javahacker.sqlplus"
+    version = "1.0.0-2025.12.21"
+}
+
+def repoVar = System.getenv("maven.repo.local")
+def localRepo = repoVar == null ? new File("${rootDir}/.maven-repo").absolutePath : repoVar
+def repoUrl = "file:///${localRepo}".replace("\\", "/")
+
+def versionJavaCompiler = "25"
+def doclint = false
+
+def versionApiguardian  = "1.1.2"
+def versionAsm          = "9.9.1"
+def versionCheckstyle   = "12.3.0"
+def versionFindSecBugs  = "1.14.0"
+def versionJackson      = "2.19.2"
+def versionJaCoCo       = "0.8.14"
+def versionJcip         = "1.0-1"
+def versionJunit        = "6.0.0"
+def versionLombok       = "1.18.43"
+def versionPmd          = "7.19.0"
+def versionSbContrib    = "7.7.2"
+def versionSpotBugs     = "4.9.8"
+def versionSlf4j        = "2.0.17"
+
+println("Using Java " + org.gradle.api.JavaVersion.current() + ".")
+println("Local repo: ${repoUrl}")
+
+allprojects {
+    configurations {
+        scm
+        doc {
+            transitive = false
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs("../libs")
+        }
+        maven {
+            url = repoUrl
+        }
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url = "https://maven.cleanroommc.com/"
+        }
+        if ("edge" in versionLombok) {
+            maven {
+                url("https://projectlombok.org/edge-releases")
+            }
+        }
+    }
+
+    task delombok {
+    }
+}
+
+subprojects {
+    apply(plugin: "com.github.spotbugs")
+    apply(plugin: "java-library")
+    apply(plugin: "maven-publish")
+    //apply(plugin: "checkstyle")
+    apply(plugin: "signing")
+    apply(plugin: "jacoco")
+    apply(plugin: "pmd")
+    apply(plugin: "project-report")
+
+    dependencies {
+
+        // JUnit.
+        testImplementation("org.junit.platform:junit-platform-launcher:" + versionJunit)
+        testImplementation("org.junit.jupiter:junit-jupiter-api:"        + versionJunit)
+        testImplementation("org.junit.jupiter:junit-jupiter-params:"     + versionJunit)
+        testImplementation("org.junit.jupiter:junit-jupiter-engine:"     + versionJunit)
+        testImplementation("org.apiguardian:apiguardian-api:" + versionApiguardian)
+
+        // Lombok.
+        annotationProcessor    ("org.projectlombok:lombok:" + versionLombok)
+        compileOnlyApi         ("org.projectlombok:lombok:" + versionLombok)
+        testAnnotationProcessor("org.projectlombok:lombok:" + versionLombok)
+        testCompileOnly        ("org.projectlombok:lombok:" + versionLombok)
+
+        // Reified-Generics.
+        //api("ninja.javahacker:reified-generic:" + versionReifiedGenerics)
+
+        // SLF4J.
+        implementation("org.slf4j:slf4j-api:"    + versionSlf4j)
+        implementation("org.slf4j:slf4j-simple:" + versionSlf4j)
+
+        // SpotBugs + plugins + dependencies.
+        compileOnlyApi ("com.github.stephenc.jcip:jcip-annotations:${versionJcip}")
+        compileOnlyApi ("com.github.spotbugs:spotbugs-annotations:${versionSpotBugs}")
+        spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:${versionFindSecBugs}")
+        spotbugsPlugins("com.mebigfatguy.sb-contrib:sb-contrib:${versionSbContrib}")
+        spotbugs       ("com.github.spotbugs:spotbugs:${versionSpotBugs}")
+        spotbugs       ("org.slf4j:slf4j-api:"    + versionSlf4j)
+        spotbugs       ("org.slf4j:slf4j-simple:" + versionSlf4j)
+        spotbugs       ("org.ow2.asm:asm:${versionAsm}")
+        spotbugs       (configurations.spotbugsPlugins.dependencies)
+        spotbugs       (configurations.apiElements    .dependencies)
+    }
+
+    delombok {
+        description = "Delomboks the source code."
+        doFirst {
+            configurations {
+                delombokAll {
+                    extendsFrom(compileClasspath)
+                    canBeResolved = true
+                }
+            }
+            def justDelombok = "${configurations.annotationProcessor.asPath};"
+            def delombokPath = "${configurations.delombokAll.asPath};"
+            ant.mkdir(dir: "build/src-delomboked")
+            ant.taskdef(name: "delombok", classname: "lombok.delombok.ant.Tasks\$Delombok", classpath: justDelombok)
+            ant.delombok(verbose: "false", encoding: "UTF-8", to: "build/src-delomboked", from: "src/main/java", modulepath: delombokPath)
+        }
+    }
+
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+        options.debug = true
+        options.fork = true
+        options.compilerArgs << "-parameters"
+        options.compilerArgs << "-Xlint:all,-processing"
+        options.compilerArgs << "-Xmaxwarns" << "1000"
+        options.compilerArgs << "-Xmaxerrs" << "1000"
+        doFirst {
+            options.compilerArgs += [
+                "--module-path", classpath.asPath
+            ]
+            classpath = files()
+            println("Args for ${name} are ${options.allCompilerArgs}")
+        }
+    }
+
+    compileJava {
+        dependsOn(delombok)
+        source = ["build/src-delomboked"]
+        sourceCompatibility = versionJavaCompiler
+        targetCompatibility = versionJavaCompiler
+        if (doclint) {
+            options.compilerArgs << "-Xdoclint:all/protected"
+        } else {
+            options.compilerArgs << "-Xdoclint:none"
+        }
+    }
+
+    compileTestJava {
+        dependsOn(compileJava)
+        sourceCompatibility = org.gradle.api.JavaVersion.current()
+        targetCompatibility = org.gradle.api.JavaVersion.current()
+        options.compilerArgs << "-Xdoclint:none"
+    }
+
+    javadoc {
+        dependsOn(delombok)
+        source = ["build/src-delomboked"]
+        options.encoding = "UTF-8"
+        options.charSet = "UTF-8"
+        options.docEncoding = "UTF-8"
+        options.docTitle = "${project.name} API"
+        options.windowTitle = "${project.name} API"
+        options.header = "<b>${project.name}</b>"
+        options.addBooleanOption("html5", true)
+        options.tags = ["apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:"]
+        if (doclint) {
+            options.addBooleanOption("Xdoclint:all", true)
+        } else {
+            options.addBooleanOption("Xdoclint:none", true)
+        }
+        options.addStringOption("Xmaxerrs", "1000")
+        options.addStringOption("Xmaxwarns", "1000")
+        doFirst {
+            options.modulePath += classpath
+            classpath = files()
+        }
+    }
+
+    checkstyleMain {
+        configFile = rootProject.file("${rootDir}/config/checkstyle/main.xml")
+    }
+
+    checkstyleTest {
+        configFile = rootProject.file("${rootDir}/config/checkstyle/test.xml")
+    }
+
+    checkstyle {
+        toolVersion = versionCheckstyle
+        configProperties = [
+            "checkstyle.cache.file": "${buildDir}/checkstyle.cache",
+        ]
+        ignoreFailures = false
+        showViolations = true
+    }
+
+    pmd {
+        toolVersion = versionPmd
+        ignoreFailures = true
+    }
+
+    spotbugs {
+        toolVersion = versionSpotBugs
+        effort = com.github.spotbugs.snom.Effort.MAX
+        reportLevel = com.github.spotbugs.snom.Confidence.valueOf("LOW")
+        omitVisitors = ["WeakExceptionMessaging", "OverlyPermissiveMethod"]
+        ignoreFailures = true
+        excludeFilter = file("$rootDir/config/spotbugs-exclude.xml")
+    }
+
+    tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
+        reports {
+            xml.required = false
+            html.required = true
+        }
+    }
+
+    jar {
+        dependsOn(compileJava)
+        duplicatesStrategy = "exclude"
+    }
+
+    task sourcesJar(type: Jar) {
+        from(sourceSets.main.allSource)
+        archiveClassifier = "sources"
+    }
+
+    task javadocJar(type: Jar) {
+        dependsOn(javadoc)
+        dependsOn(sourcesJar)
+        archiveClassifier = "javadoc"
+    }
+
+    test {
+        useJUnitPlatform()
+        finalizedBy(jacocoTestReport)
+        ignoreFailures = false
+        defaultCharacterEncoding = "UTF-8"
+        testLogging.showStandardStreams = true
+    }
+
+    jacoco {
+        toolVersion = versionJaCoCo
+    }
+
+    jacocoTestReport {
+        dependsOn(test)
+        reports {
+            xml.required = false
+            csv.required = false
+            html.required = true
+        }
+    }
+
+    /*jacocoTestCoverageVerification {
+        violationRules {
+            rule {
+                element = 'METHOD'
+                excludes = ['*.newAssertionError(*)']
+            }
+        }
+    }*/
+
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from(components.java)
+                artifact(sourcesJar)
+                artifact(javadocJar)
+                pom {
+                    developers {
+                        developer {
+                            name = "Victor Williams Stafusa da Silva"
+                            email = "victorwssilva@gmail.com"
+                        }
+                    }
+                }
+            }
+        }
+        repositories {
+            maven {
+                url = repoUrl
+            }
+        }
+    }
+
+    spotbugsTest.enabled = false
+    pmdTest.enabled = false
+    test.enabled = true
+}
+
+/*task mergedJavadoc(type: Javadoc) {
+    dependsOn(":backend:delombok")
+
+    description = "Creates Javadoc from all the projects."
+    title = "All modules"
+    destinationDir = new File(project.buildDir, "merged-javadoc")
+
+    // Note: The closures below are executed lazily.
+    source {
+       subprojects*.sourceSets*.main*.delombokAll
+    }
+    classpath.from {
+        subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
+    }
+}*/
+
+project(":sqlplus") {
+    def moduleName = "ninja.javahacker.sqlplus"
+    description = "SQL+"
+
+    jar {
+        archiveBaseName = "sqlplus"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        // Jackson.
+        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
+        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
+    }
+
+    compileJava {
+        dependsOn(":sqlplus:delombok")
+    }
+}

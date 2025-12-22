@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FindBugsFilter>
+    <Match>
+        <!-- Não funciona bem com o Lombok. -->
+        <Bug pattern="US_USELESS_SUPPRESSION_ON_METHOD" />
+    </Match>
+    <Match>
+        <!-- Não funciona bem com o Lombok. -->
+        <Bug pattern="US_USELESS_SUPPRESSION_ON_CLASS" />
+    </Match>
+    <Match>
+        <!-- @NonNull deveria ser obrigatório, e não ser evitado em Optionals e similares. -->
+        <Bug pattern="OI_OPTIONAL_ISSUES_CHECKING_REFERENCE" />
+    </Match>
+</FindBugsFilter>
