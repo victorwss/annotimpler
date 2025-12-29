@@ -1,4 +1,4 @@
-rootProject.name = "SQL+"
+rootProject.name = "Annotimpler"
 def subDirs = rootDir.listFiles(new FileFilter() {
     @Override
     public boolean accept(File file) {

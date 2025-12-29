@@ -10,8 +10,8 @@ plugins {
 }
 
 allprojects {
-    group = "ninja.javahacker.sqlplus"
-    version = "1.0.0-2025.12.21"
+    group = "ninja.javahacker.annotimpler"
+    version = "1.0.0-2025.12.28"
 }
 
 def repoVar = System.getenv("maven.repo.local")
@@ -319,12 +319,12 @@ subprojects {
     }
 }*/
 
-project(":sqlplus") {
-    def moduleName = "ninja.javahacker.sqlplus"
-    description = "SQL+"
+project(":annotimpler") {
+    def moduleName = "ninja.javahacker.annotimpler"
+    description = "Annotimpler"
 
     jar {
-        archiveBaseName = "sqlplus"
+        archiveBaseName = "annotimpler"
         inputs.property("moduleName", moduleName)
     }
 
@@ -339,6 +339,6 @@ project(":sqlplus") {
     }
 
     compileJava {
-        dependsOn(":sqlplus:delombok")
+        dependsOn(":annotimpler:delombok")
     }
 }

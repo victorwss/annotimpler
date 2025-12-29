@@ -1,4 +1,4 @@
 /build
-/sqlplus/build
+/annotimpler/build
 .gradle
 .maven-repo
