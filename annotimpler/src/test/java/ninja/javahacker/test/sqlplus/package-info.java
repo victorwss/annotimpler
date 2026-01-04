@@ -1,1 +1,0 @@
-package ninja.javahacker.test.sqlplus;

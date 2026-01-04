@@ -1,4 +1,6 @@
 /build
-/annotimpler/build
+/core/build
+/magicfactory/build
+/sql/build
 .gradle
 .maven-repo

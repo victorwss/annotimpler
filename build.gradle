@@ -319,12 +319,12 @@ subprojects {
     }
 }*/
 
-project(":annotimpler") {
-    def moduleName = "ninja.javahacker.annotimpler"
-    description = "Annotimpler"
+project(":magicfactory") {
+    def moduleName = "ninja.javahacker.annotimpler.magicfactory"
+    description = "Annotimpler Magic Factory"
 
     jar {
-        archiveBaseName = "annotimpler"
+        archiveBaseName = "annotimpler.magicfactory"
         inputs.property("moduleName", moduleName)
     }
 
@@ -339,6 +339,68 @@ project(":annotimpler") {
     }
 
     compileJava {
-        dependsOn(":annotimpler:delombok")
+        dependsOn(":magicfactory:delombok")
+    }
+}
+
+project(":core") {
+    def moduleName = "ninja.javahacker.annotimpler.core"
+    description = "Annotimpler Core"
+
+    jar {
+        archiveBaseName = "annotimpler.core"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":magicfactory"))
+
+        // Jackson.
+        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
+        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
+    }
+
+    compileJava {
+        dependsOn(":core:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+    }
+}
+
+project(":sql") {
+    def moduleName = "ninja.javahacker.annotimpler.sql"
+    description = "Annotimpler SQL"
+
+    jar {
+        archiveBaseName = "annotimpler.sql"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":magicfactory"))
+        api(project(":core"))
+
+        // Jackson.
+        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
+        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
+        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
+    }
+
+    compileJava {
+        dependsOn(":sql:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":core:jar")
     }
 }
