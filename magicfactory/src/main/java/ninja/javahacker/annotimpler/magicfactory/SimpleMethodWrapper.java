@@ -1,10 +1,11 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
-import module lombok;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.annotation.Annotation;
+import lombok.NonNull;
+import lombok.experimental.PackagePrivate;
+
+import module java.base;
 
 @PackagePrivate
 class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {

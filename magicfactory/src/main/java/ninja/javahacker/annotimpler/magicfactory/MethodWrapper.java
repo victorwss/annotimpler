@@ -1,10 +1,10 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.annotation.Annotation;
 import lombok.NonNull;
+
+import module java.base;
 
 public interface MethodWrapper<E, U> {
 

@@ -1,9 +1,10 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
+import lombok.NonNull;
+
 import module com.fasterxml.jackson.annotation;
 import module java.base;
 import module java.sql;
-import lombok.NonNull;
 
 @ConnectorJsonKey("url")
 public record UrlConnector(

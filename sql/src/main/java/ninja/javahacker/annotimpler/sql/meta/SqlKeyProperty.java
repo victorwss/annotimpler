@@ -1,7 +1,7 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
-import ninja.javahacker.annotimpler.core.KeyProperty;
-import ninja.javahacker.annotimpler.sql.ConnectionFactory;
+import module ninja.javahacker.annotimpler.core;
+import module ninja.javahacker.annotimpler.sql;
 
 public enum SqlKeyProperty implements KeyProperty<ConnectionFactory> {
     INSTANCE;

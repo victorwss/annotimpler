@@ -1,11 +1,10 @@
 package ninja.javahacker.annotimpler.sql.stmt;
 
-import java.sql.PreparedStatement;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
+
+import module java.base;
+import module java.sql;
 
 final class InternalNamedParameterStatement implements NamedParameterStatement {
 

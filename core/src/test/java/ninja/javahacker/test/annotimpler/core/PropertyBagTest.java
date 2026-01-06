@@ -1,12 +1,9 @@
 package ninja.javahacker.test.annotimpler.core;
 
-import ninja.javahacker.annotimpler.core.KeyProperty;
-import ninja.javahacker.annotimpler.core.PropertyBag;
+import ninja.javahacker.test.ForTests;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
-import ninja.javahacker.test.ForTests;
-
 import module org.junit.jupiter.api;
 
 public class PropertyBagTest {

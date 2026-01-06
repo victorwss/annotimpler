@@ -1,10 +1,10 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
-import ninja.javahacker.test.ForTests;
-
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
+
+import ninja.javahacker.test.ForTests;
 
 public class MethodsSimpleTest {
 

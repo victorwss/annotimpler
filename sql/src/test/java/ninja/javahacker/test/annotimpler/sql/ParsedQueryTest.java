@@ -1,10 +1,9 @@
 package ninja.javahacker.test.annotimpler.sql;
 
-import java.util.List;
-import java.util.Map;
-import ninja.javahacker.annotimpler.sql.meta.ParsedQuery;
 import ninja.javahacker.test.ForTests;
 
+import module java.base;
+import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
 public class ParsedQueryTest {

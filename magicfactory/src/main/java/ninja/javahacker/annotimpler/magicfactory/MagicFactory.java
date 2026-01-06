@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
-
 import lombok.NonNull;
 import lombok.experimental.Delegate;
+
+import module java.base;
 
 public final class MagicFactory<E> {
 

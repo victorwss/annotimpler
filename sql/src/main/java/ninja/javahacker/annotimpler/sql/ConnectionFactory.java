@@ -1,9 +1,8 @@
 package ninja.javahacker.annotimpler.sql;
 
-import module java.base;
-import module ninja.javahacker.annotimpler.core;
-import module ninja.javahacker.annotimpler.sql;
 import lombok.NonNull;
+
+import module ninja.javahacker.annotimpler.sql;
 
 @FunctionalInterface
 public interface ConnectionFactory {

@@ -1,26 +1,12 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
-import java.util.Set;
-import java.util.stream.IntStream;
 import lombok.Getter;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.ConstructionException;
-import ninja.javahacker.annotimpler.sql.Flat;
-import ninja.javahacker.annotimpler.sql.stmt.NamedParameterStatement;
-import ninja.javahacker.annotimpler.sql.stmt.SmartResultSet;
+
+import module java.base;
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
 
 public final class ParameterSet {
 

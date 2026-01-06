@@ -1,11 +1,11 @@
 package ninja.javahacker.annotimpler.core;
 
-import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.reflect.Proxy;
 import lombok.NonNull;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 public final class AnnotationsImplementor {
 
@@ -101,7 +101,7 @@ public final class AnnotationsImplementor {
         private static final long serialVersionUID = 1L;
 
         public ImplementationFailedException(@NonNull Throwable cause) {
-            //List.of(cause); // Force lombok put the null-checks before the constructor call.
+            List.of(cause); // Force lombok put the null-checks before the constructor call.
             super(cause);
         }
     }

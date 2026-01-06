@@ -1,17 +1,12 @@
 package ninja.javahacker.test.annotimpler.core;
 
-import ninja.javahacker.annotimpler.core.KeyProperty;
-import ninja.javahacker.annotimpler.core.ImplementedBy;
-import ninja.javahacker.annotimpler.core.PropertyBag;
-import ninja.javahacker.annotimpler.core.Implementation;
-import ninja.javahacker.annotimpler.core.AnnotationsImplementor;
-
-import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
-import module org.junit.jupiter.api;
-
 import lombok.NonNull;
 import ninja.javahacker.test.ForTests;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.core;
+import module ninja.javahacker.annotimpler.magicfactory;
+import module org.junit.jupiter.api;
 
 public class AnnotimplerTest {
 

@@ -1,34 +1,12 @@
 package ninja.javahacker.annotimpler.sql.stmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.io.InputStream;
-import java.io.Reader;
-import java.math.BigDecimal;
-import java.net.URL;
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.Connection;
-import java.sql.NClob;
-import java.sql.PreparedStatement;
-import java.sql.Ref;
-import java.sql.RowId;
-import java.sql.SQLException;
-import java.sql.SQLType;
-import java.sql.SQLXML;
 import java.sql.Timestamp;
-import java.sql.Types;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Calendar;
-import java.util.List;
-import java.util.Map;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.sql.meta.ParsedQuery;
+
+import module java.base;
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
 
 @SuppressWarnings({"PMD.ReplaceJavaUtilCalendar", "PMD.ReplaceJavaUtilDate"})
 public interface NamedParameterStatement extends PreparedStatement {

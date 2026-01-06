@@ -1,6 +1,6 @@
 package ninja.javahacker.annotimpler.core;
 
-import java.io.Serializable;
+import module java.base;
 
 public interface KeyProperty<V> extends Serializable {
     public Class<V> valueType();

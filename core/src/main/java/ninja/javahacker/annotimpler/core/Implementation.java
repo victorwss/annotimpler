@@ -1,9 +1,10 @@
 package ninja.javahacker.annotimpler.core;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.lang.reflect.Method;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.ConstructionException;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 @FunctionalInterface
 public interface Implementation {

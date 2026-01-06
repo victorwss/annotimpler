@@ -1,11 +1,10 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import lombok.NonNull;
+
+import module java.base;
 
 public final class MagicConverter {
 

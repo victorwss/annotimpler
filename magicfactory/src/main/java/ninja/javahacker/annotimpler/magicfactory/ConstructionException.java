@@ -1,7 +1,8 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
 import lombok.NonNull;
+
+import module java.base;
 
 public class ConstructionException extends Exception {
 

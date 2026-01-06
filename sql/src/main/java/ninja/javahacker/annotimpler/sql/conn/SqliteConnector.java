@@ -1,8 +1,9 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
+import lombok.NonNull;
+
 import module com.fasterxml.jackson.annotation;
 import module java.base;
-import lombok.NonNull;
 
 @ConnectorJsonKey("sqlite")
 public record SqliteConnector(

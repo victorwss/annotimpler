@@ -1,13 +1,10 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
-import java.sql.SQLException;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.sql.SqlFromResource;
-import ninja.javahacker.annotimpler.sql.meta.SqlFactory;
-import ninja.javahacker.annotimpler.sql.meta.SqlSupplier;
+
+import module java.base;
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
 
 public enum ResourceSqlFactory implements SqlFactory {
     INSTANCE;

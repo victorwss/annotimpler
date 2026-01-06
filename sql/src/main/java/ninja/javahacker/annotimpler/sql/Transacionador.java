@@ -1,11 +1,10 @@
 package ninja.javahacker.annotimpler.sql;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
-import java.sql.Connection;
-import java.util.function.Supplier;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.Methods;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 public final class Transacionador {
 

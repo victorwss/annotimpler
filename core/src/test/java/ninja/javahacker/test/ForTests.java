@@ -1,8 +1,9 @@
 package ninja.javahacker.test;
 
+import org.junit.jupiter.api.function.Executable;
+
 import module java.base;
 import module org.junit.jupiter.api;
-import org.junit.jupiter.api.function.Executable;
 
 public final class ForTests {
 

@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.NonNull;
 
 import module java.base;
-import lombok.NonNull;
 
 public final class NameDictionary {
     private static final NameDictionary GLOBAL_INSTANCE = new NameDictionary();

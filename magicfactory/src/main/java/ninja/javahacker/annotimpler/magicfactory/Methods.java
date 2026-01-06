@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
-import module java.base;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
+
+import module java.base;
 
 public final class Methods {
 

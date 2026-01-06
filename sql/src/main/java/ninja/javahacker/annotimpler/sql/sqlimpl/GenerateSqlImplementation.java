@@ -1,12 +1,12 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.NonNull;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
-
-import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.NonNull;
 
 public final class GenerateSqlImplementation implements Implementation {
 

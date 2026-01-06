@@ -1,8 +1,9 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
-import module java.base;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
+
+import module java.base;
 
 @SuppressFBWarnings("EI_EXPOSE_REP")
 public record ParsedQuery(

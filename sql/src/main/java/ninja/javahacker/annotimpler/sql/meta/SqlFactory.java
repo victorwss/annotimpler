@@ -1,13 +1,10 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
-import java.lang.reflect.Method;
-import java.sql.SQLException;
-import java.util.stream.Stream;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.ConstructionException;
-import ninja.javahacker.annotimpler.magicfactory.MagicFactory;
-import ninja.javahacker.annotimpler.magicfactory.NameDictionary;
 import ninja.javahacker.annotimpler.sql.meta.ParameterSet.MethodParameterSet;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 @FunctionalInterface
 public interface SqlFactory {

@@ -1,12 +1,13 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.NonNull;
+import lombok.experimental.Delegate;
+import lombok.experimental.PackagePrivate;
+
 import module com.fasterxml.jackson.core;
 import module com.fasterxml.jackson.databind;
 import module java.base;
-import module lombok;
-import lombok.NonNull;
-import lombok.experimental.Delegate;
 
 @JsonDeserialize(using = JsonConnector.Deserializer.class)
 @JsonSerialize(using = JsonConnector.Serializer.class)

@@ -1,22 +1,11 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
-import java.math.BigDecimal;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Map;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.OptionalInt;
-import java.util.OptionalLong;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.sql.stmt.NamedParameterStatement;
+
+import module java.base;
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
 
 @SuppressWarnings({"checkstyle:ParenPad"})
 public record SqlNamedParameter(@NonNull Type type, boolean flat) {

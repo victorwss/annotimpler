@@ -1,10 +1,9 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
-import java.lang.reflect.Method;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.sql.Sql;
-import ninja.javahacker.annotimpler.sql.meta.SqlFactory;
-import ninja.javahacker.annotimpler.sql.meta.SqlSupplier;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.sql;
 
 public enum StringSqlFactory implements SqlFactory {
     INSTANCE;

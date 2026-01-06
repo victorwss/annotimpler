@@ -4,8 +4,6 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
 
-import ninja.javahacker.annotimpler.magicfactory.ConstructionException;
-
 public class RecordMapperTest {
 
     public static enum Color {

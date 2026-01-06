@@ -1,11 +1,11 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
+import ninja.javahacker.test.ForTests;
+import org.junit.jupiter.api.function.Executable;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
-import ninja.javahacker.test.ForTests;
-
 import module org.junit.jupiter.api;
-import org.junit.jupiter.api.function.Executable;
 
 public class ConnectionCreatorTest {
 

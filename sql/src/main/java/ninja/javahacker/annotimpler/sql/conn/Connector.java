@@ -1,11 +1,10 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
+import lombok.NonNull;
+
 import module java.base;
 import module java.sql;
-import module ninja.javahacker.annotimpler.core;
-import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
-import lombok.NonNull;
 
 public interface Connector extends ConnectionFactory {
 
