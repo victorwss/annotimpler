@@ -1,7 +1,6 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import lombok.NonNull;
-import lombok.experimental.Delegate;
 
 import module java.base;
 
@@ -9,7 +8,6 @@ public final class MagicFactory<E> {
 
     private final Class<E> klass;
 
-    @Delegate(types = DelegatedMethods.class)
     private final MethodWrapper<E, Object> wrapper;
 
     private MagicFactory(@NonNull Class<E> klass) throws ConstructionException {
@@ -129,14 +127,17 @@ public final class MagicFactory<E> {
         return klass;
     }
 
-    private static interface DelegatedMethods {
+    @NonNull
+    public List<Type> getParameterTypes() {
+        return wrapper.getParameterTypes();
+    }
 
-        @NonNull
-        public List<Type> getParameterTypes();
+    @NonNull
+    public List<Parameter> getParameters() {
+        return wrapper.getParameters();
+    }
 
-        @NonNull
-        public List<Parameter> getParameters();
-
-        public int arity();
+    public int arity() {
+        return wrapper.arity();
     }
 }

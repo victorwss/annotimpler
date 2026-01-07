@@ -14,10 +14,12 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     public static final List<Type> EMPTY2 = List.of();
 
-    public static final Annotator NULL_ANNOTATOR = new Annotator() {
+    @PackagePrivate
+    static final Annotator NULL_ANNOTATOR = new Annotator() {
         @Nullable
         @Override
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass) {
+            if (annoClass == null) throw new AssertionError();
             return null;
         }
     };
@@ -45,7 +47,8 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass);
     }
 
-    public SimpleMethodWrapper(
+    @PackagePrivate
+    SimpleMethodWrapper(
             @NonNull U what,
             @NonNull List<Parameter> params,
             @NonNull List<Type> types,
@@ -58,6 +61,13 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
             @NonNull Annotator annotator
     )
     {
+        if (what == null) throw new AssertionError();
+        if (params == null) throw new AssertionError();
+        if (types == null) throw new AssertionError();
+        if (rt == null) throw new AssertionError();
+        if (str == null) throw new AssertionError();
+        if (caller == null) throw new AssertionError();
+        if (annotator == null) throw new AssertionError();
         this.what = what;
         this.params = List.copyOf(params);
         this.types = List.copyOf(types);

@@ -136,6 +136,8 @@ public class AnnotimplerTest {
     }
 
     public static class TestImpl3 implements Implementation {
+        public static boolean CALLED = false;
+
         @NonNull
         @Override
         public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
@@ -149,6 +151,7 @@ public class AnnotimplerTest {
                         () -> Assertions.assertTrue(iface.isInstance(e)),
                         () -> Assertions.assertEquals(0, a.length)
                 );
+                CALLED = true;
                 return null;
             };
         }
@@ -194,13 +197,16 @@ public class AnnotimplerTest {
 
     @Test
     public void testParamImpl() {
+        TestImpl3.CALLED = false;
         var impl = AnnotationsImplementor.implement(TestIface2.class);
+        Assertions.assertFalse(TestImpl3.CALLED);
         Assertions.assertAll(
                 () -> Assertions.assertEquals("foo2-test", impl.foo(5, "wha")),
                 () -> Assertions.assertEquals(42, impl.bar("pa", "pe", "pi", 12, 13.0f)),
                 () -> Assertions.assertDoesNotThrow(impl::baz),
                 () -> Assertions.assertThrows(FooException.class, impl::oops)
         );
+        Assertions.assertTrue(TestImpl3.CALLED);
     }
 
     @Test

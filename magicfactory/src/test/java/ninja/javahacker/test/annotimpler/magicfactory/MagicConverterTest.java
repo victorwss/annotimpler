@@ -255,53 +255,80 @@ public class MagicConverterTest {
 
         var bigi = "123456789101112131415161718192021222324252627282930";
         var bigd = bigi + ".313233";
-        var ex = List
-                .of(
-                    new Parts<>("false", boolean.class, false),
-                    new Parts<>("false", boolean.class, false),
-                    new Parts<>("true", Boolean.class, true),
-                    new Parts<>("true", Boolean.class, true),
-                    new Parts<>("0", byte.class, (byte) 0),
-                    new Parts<>("0", Byte.class, (byte) 0),
-                    new Parts<>("55", byte.class, (byte) 55),
-                    new Parts<>("55", Byte.class, (byte) 55),
-                    new Parts<>("-120", byte.class, (byte) -120),
-                    new Parts<>("-120", Byte.class, (byte) -120),
-                    new Parts<>("0", char.class, '0'),
-                    new Parts<>("a", char.class, 'a'),
-                    new Parts<>("\n", char.class, '\n'),
-                    new Parts<>("123", int.class, 123),
-                    new Parts<>("-123", int.class, -123),
-                    new Parts<>("123", Integer.class, 123),
-                    new Parts<>("-123", Integer.class, -123),
-                    new Parts<>("123", long.class, 123L),
-                    new Parts<>("-123", long.class, -123L),
-                    new Parts<>("123", Long.class, 123L),
-                    new Parts<>("-123", Long.class, -123L),
-                    new Parts<>("123", float.class, 123.0F),
-                    new Parts<>("-123", float.class, -123.0F),
-                    new Parts<>("123", Float.class, 123.0F),
-                    new Parts<>("-123", Float.class, -123.0F),
-                    new Parts<>("123", double.class, 123.0),
-                    new Parts<>("-123", double.class, -123.0),
-                    new Parts<>("123", Double.class, 123.0),
-                    new Parts<>("-123", Double.class, -123.0),
-                    new Parts<>(bigi, BigInteger.class, new BigInteger(bigi)),
-                    new Parts<>(bigi, BigDecimal.class, new BigDecimal(bigi)),
-                    new Parts<>(bigd, BigDecimal.class, new BigDecimal(bigd))
-                )
-                .stream()
-                .map(e -> {
-                    Executable x = () -> {
-                        Assertions.assertEquals(
-                                e.output(),
-                                MagicConverter.unstringify(e.input(), e.type()),
-                                e.input() + "-" + e.type().getName()
-                        );
-                    };
-                    return x;
-                })
-                .toList();
-        Assertions.assertAll(ex);
+        var parts = List.of(
+                new Parts<>("", boolean.class, false),
+                new Parts<>("", byte.class, (byte) 0),
+                new Parts<>("", char.class, (char) 0),
+                new Parts<>("", short.class, (short) 0),
+                new Parts<>("", int.class, 0),
+                new Parts<>("", long.class, 0L),
+                new Parts<>("", float.class, 0.0F),
+                new Parts<>("", double.class, 0.0),
+
+                new Parts<>("", Boolean.class, null),
+                new Parts<>("", Byte.class, null),
+                new Parts<>("", Character.class, null),
+                new Parts<>("", Short.class, null),
+                new Parts<>("", Integer.class, null),
+                new Parts<>("", Long.class, null),
+                new Parts<>("", Float.class, null),
+                new Parts<>("", Double.class, null),
+                new Parts<>("", BigInteger.class, null),
+                new Parts<>("", BigDecimal.class, null),
+                new Parts<>("", OptionalDouble.class, OptionalDouble.empty()),
+                new Parts<>("", OptionalLong.class, OptionalLong.empty()),
+                new Parts<>("", OptionalInt.class, OptionalInt.empty()),
+
+                new Parts<>("false", boolean.class, false),
+                new Parts<>("false", Boolean.class, false),
+                new Parts<>("true", boolean.class, true),
+                new Parts<>("true", Boolean.class, true),
+                new Parts<>("0", byte.class, (byte) 0),
+                new Parts<>("0", Byte.class, (byte) 0),
+                new Parts<>("55", byte.class, (byte) 55),
+                new Parts<>("55", Byte.class, (byte) 55),
+                new Parts<>("-120", byte.class, (byte) -120),
+                new Parts<>("-120", Byte.class, (byte) -120),
+                new Parts<>("0", char.class, '0'),
+                new Parts<>("a", char.class, 'a'),
+                new Parts<>("\n", char.class, '\n'),
+                new Parts<>("55", short.class, (short) 55),
+                new Parts<>("55", Short.class, (short) 55),
+                new Parts<>("-120", short.class, (short) -120),
+                new Parts<>("-120", Short.class, (short) -120),
+                new Parts<>("123", int.class, 123),
+                new Parts<>("-123", int.class, -123),
+                new Parts<>("123", Integer.class, 123),
+                new Parts<>("-123", Integer.class, -123),
+                new Parts<>("123", long.class, 123L),
+                new Parts<>("-123", long.class, -123L),
+                new Parts<>("123", Long.class, 123L),
+                new Parts<>("-123", Long.class, -123L),
+                new Parts<>("123", float.class, 123.0F),
+                new Parts<>("-123", float.class, -123.0F),
+                new Parts<>("123", Float.class, 123.0F),
+                new Parts<>("-123", Float.class, -123.0F),
+                new Parts<>("123", double.class, 123.0),
+                new Parts<>("-123", double.class, -123.0),
+                new Parts<>("123", Double.class, 123.0),
+                new Parts<>("-123", Double.class, -123.0),
+                new Parts<>(bigi, BigInteger.class, new BigInteger(bigi)),
+                new Parts<>(bigi, BigDecimal.class, new BigDecimal(bigi)),
+                new Parts<>(bigd, BigDecimal.class, new BigDecimal(bigd)),
+                new Parts<>("123", OptionalDouble.class, OptionalDouble.of(123.0)),
+                new Parts<>("-123", OptionalDouble.class, OptionalDouble.of(-123.0)),
+                new Parts<>("123", OptionalLong.class, OptionalLong.of(123)),
+                new Parts<>("-123", OptionalLong.class, OptionalLong.of(-123)),
+                new Parts<>("123", OptionalInt.class, OptionalInt.of(123)),
+                new Parts<>("-123", OptionalInt.class, OptionalInt.of(-123))
+        );
+        var ex = parts.stream().flatMap(e -> {
+            var out = e.output();
+            var n = e.input() + "-" + e.type().getName();
+            Executable x = () -> Assertions.assertEquals(out, MagicConverter.unstringify(e.input(), e.type()), n);
+            Executable y = () -> Assertions.assertEquals(out, MagicConverter.forValue(e.input(), e.type()), n);
+            return Stream.of(x, y);
+        });
+        Assertions.assertAll(ex.toList());
     }
 }

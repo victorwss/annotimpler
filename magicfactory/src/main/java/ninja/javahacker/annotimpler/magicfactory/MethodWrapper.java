@@ -2,6 +2,7 @@ package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.annotation.Annotation;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -99,11 +100,12 @@ public interface MethodWrapper<E, U> {
     }
 
     @NonNull
+    @Generated
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, ?> of(@NonNull Executable what) {
         if (what instanceof Method m) return MethodWrapper.<E>of(m);
         if (what instanceof Constructor<?> c) return of((Constructor<E>) c);
-        throw new IllegalArgumentException();
+        throw new AssertionError();
     }
 
     @NonNull

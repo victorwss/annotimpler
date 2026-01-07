@@ -27,6 +27,14 @@ public class MethodsSimpleTest {
             throw new AssertionError();
         }
 
+        public boolean equals() {
+            throw new AssertionError();
+        }
+
+        public boolean equals(Object other, Object another) {
+            throw new AssertionError();
+        }
+
         @Override
         public String toString() {
             throw new AssertionError();
@@ -103,6 +111,8 @@ public class MethodsSimpleTest {
         );
         var isFalse = List.of(
             Sample.class.getMethod("equals", Sample.class),
+            Sample.class.getMethod("equals"),
+            Sample.class.getMethod("equals", Object.class, Object.class),
             String.class.getMethod("hashCode"),
             Integer.class.getMethod("toString")
         );
@@ -224,6 +234,7 @@ public class MethodsSimpleTest {
     @Test
     @SuppressWarnings("null")
     public void testNulls() throws Exception {
+        var cloneCrazy = Sample.class.getMethod("clone", int.class);
         Assertions.assertAll(
             () -> ForTests.testNull("m", () -> Methods.isClone(null), "isClone"),
             () -> ForTests.testNull("m", () -> Methods.isToString(null), "isToString"),
@@ -235,10 +246,7 @@ public class MethodsSimpleTest {
             () -> ForTests.testNull("what", () -> Methods.getReturnType((Method) null), "getReturnType-Method"),
             () -> ForTests.testNull("field", () -> Methods.getReturnType((Field) null), "getReturnType-Field"),
             () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12), "paramMap-Exectuable"),
-            () -> ForTests.testNull(
-                    "args",
-                    () -> Methods.paramMap(Sample.class.getMethod("clone", int.class), (Object[]) null), "paramMap-NPE"
-            )
+            () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null), "paramMap-NPE")
         );
     }
 

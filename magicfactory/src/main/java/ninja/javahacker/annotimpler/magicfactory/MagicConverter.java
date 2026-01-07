@@ -58,26 +58,27 @@ public final class MagicConverter {
             java.sql.Date.class, LocalDate.class
     );
 
+    private static final Set<Class<? extends Date>> BAD_INHERITS = Set.of(
+            java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class
+    );
+
     private static final Set<Class<?>> UNSTRINGFIABLES = Set.of(
             Boolean.class, Byte.class, Short.class, Character.class, Integer.class, Long.class, Float.class, Double.class,
             boolean.class, byte.class, short.class, char.class, int.class, long.class, float.class, double.class,
             BigInteger.class, BigDecimal.class,
             OptionalInt.class, OptionalLong.class, OptionalDouble.class,
 
-            java.util.Date.class, java.sql.Date.class, Timestamp.class, Calendar.class, GregorianCalendar.class,
-            LocalDate.class, LocalDateTime.class, Instant.class, OffsetDateTime.class, ZonedDateTime.class,
+            java.util.Date.class, Timestamp.class, Calendar.class, GregorianCalendar.class,
+            LocalDateTime.class, Instant.class, OffsetDateTime.class, ZonedDateTime.class,
 
-            LocalTime.class, java.sql.Time.class, String.class
+            LocalDate.class, java.sql.Date.class, LocalTime.class, java.sql.Time.class,
+            String.class
     );
 
     private static final ThreadLocal<Set<Type>> onStack = new ThreadLocal<>();
 
     private MagicConverter() {
         throw new UnsupportedOperationException();
-    }
-
-    private static AssertionError newAssertionError() {
-        throw new AssertionError();
     }
 
     @NonNull
@@ -116,11 +117,20 @@ public final class MagicConverter {
 
     @Nullable
     private static <E extends Enum<E>> E valueToEnum(@NonNull Object value, @NonNull Class<E> enumClass) throws ConstructionException {
+        if (value == null) throw new AssertionError();
+        if (enumClass == null) throw new AssertionError();
         if ("".equals(value)) return null;
         if (enumClass.isInstance(value)) return enumClass.cast(value);
-        if (NUMBERS_IN.contains(value.getClass())) return enumClass.getEnumConstants()[convertNumber(value, Integer.class)];
+        var consts = enumClass.getEnumConstants();
         if (value instanceof String v2) {
-            return Stream.of(enumClass.getEnumConstants()).filter(e -> Objects.equals(v2, e.name())).findAny().orElseThrow();
+            return Stream.of(consts)
+                    .filter(e -> Objects.equals(v2, e.name()))
+                    .findAny()
+                    .orElseThrow(() -> new ConstructionException("Can't read value as enum class.", enumClass));
+        }
+        if (NUMBERS_IN.contains(value.getClass())) {
+            var n = convertNumber(value, Integer.class);
+            if (n >= 0 && n < consts.length) return consts[n];
         }
         throw new ConstructionException("Can't read value as enum class.", enumClass);
     }
@@ -149,48 +159,55 @@ public final class MagicConverter {
     @Nullable
     @SuppressWarnings("unchecked")
     public static <T> T forValue(@Nullable Object value, @NonNull Class<T> target) throws ConstructionException {
-        if (value == null) return target.cast(zero(target));
+        if (value == null) return zero(target);
+        Class<T> target2 = (Class<T>) wrap(target);
         var from = value.getClass();
 
-        // Se o tipo já é compatível, retorna direto.
-        if (target.isInstance(value)) return target.cast(value);
+        // Se o tipo já é compatível, retorna direto, exceto se for subclasse de Date.
+        if (target2.isInstance(value)) {
+            if (target2 == Date.class && BAD_INHERITS.stream().anyMatch(k -> k.isInstance(value))) return convertTemporal(value, target2);
+            return target2.cast(value);
+        }
 
-        if (target.isArray()) {
-            var comp = target.getComponentType();
+        if ("".equals(value)) return zero(target);
+
+        if (target2.isArray()) {
+            var comp = target2.getComponentType();
             var out = forValue(value, comp);
             var array = (Object[]) Array.newInstance(comp, 1);
             Array.set(array, 0, out);
             return target.cast(array);
         }
 
-        if (target.isRecord()) return target.cast(valueToRecord(value, target.asSubclass(Record.class)));
-        if ("".equals(value)) return target.cast(zero(target));
-        if (target == Optional.class) return target.cast(Optional.of(value));
-        if (target.isAssignableFrom(Collection.class)) {
-            return target.cast(singleton(value, target.asSubclass(Collection.class)));
+        if (target2.isRecord()) return target2.cast(valueToRecord(value, target2.asSubclass(Record.class)));
+        if (target2 == Optional.class) return target2.cast(Optional.of(value));
+        if (target2.isAssignableFrom(Collection.class)) {
+            return target2.cast(singleton(value, target2.asSubclass(Collection.class)));
         }
 
         // Records e enums.
-        if (target.isEnum()) return target.cast(valueToEnum(value, target.asSubclass(Enum.class)));
+        if (target2.isEnum()) return target2.cast(valueToEnum(value, target2.asSubclass(Enum.class)));
 
         // Se o valor é String, mas o tipo é outra coisa, tenta converter.
-        if (value instanceof String vs) return target.cast(unstringify(vs, target));
+        if (value instanceof String vs) return target2.cast(unstringify(vs, target2));
 
         // Tenta ajustar se forem tipos numéricos diferentes.
-        if (NUMBERS_OUT.contains(target) && NUMBERS_IN.contains(from)) return convertNumber(value, target);
+        if (NUMBERS_OUT.contains(target2) && NUMBERS_IN.contains(from)) return convertNumber(value, target2);
 
         // Tenta ajustar se forem tipos temporais diferentes.
-        if (TEMPORALS.contains(target) && TEMPORALS.contains(from)) return convertTemporal(value, target);
+        if (TEMPORALS.contains(target2) && TEMPORALS.contains(from)) return convertTemporal(value, target2);
 
         // Tenta ajustar se forem tipos de horários diferentes.
-        if (CLOCKS.contains(target) && CLOCKS.contains(from)) return convertClock(value, target);
+        if (CLOCKS.contains(target2)) {
+            if (CLOCKS.contains(from)) return convertClock(value, target2);
 
-        // Tenta ajustar se for extrair as horas de uma data e horário.
-        if (CLOCKS.contains(target) && TEMPORALS.contains(from) && !NO_CLOCKS.contains(from)) {
-            return convertClock(LocalTime.ofInstant(convertTemporal(value, Instant.class), ZoneOffset.UTC), target);
+            // Tenta ajustar se for extrair as horas de uma data e horário.
+            if (TEMPORALS.contains(from) && !NO_CLOCKS.contains(from)) {
+                return convertClock(LocalTime.ofInstant(convertTemporal(value, Instant.class), ZoneOffset.UTC), target2);
+            }
         }
 
-        throw new ConstructionException("Can't convert " + value + " to " + target.getSimpleName(), target);
+        throw new ConstructionException("Can't convert " + value + " to " + target2.getSimpleName(), target2);
     }
 
     private static char charValueExact(BigDecimal bd) {
@@ -222,7 +239,7 @@ public final class MagicConverter {
             case Double v -> BigDecimal.valueOf(v);
             case BigInteger v -> new BigDecimal(v);
             case BigDecimal v -> v;
-            default -> throw newAssertionError();
+            default -> throw new AssertionError();
         };
         if (target == Boolean.class) return v2.signum() != 0;
         if (target == Byte.class) return v2.byteValueExact();
@@ -237,7 +254,7 @@ public final class MagicConverter {
         if (target == OptionalInt.class) return OptionalInt.of(v2.intValueExact());
         if (target == OptionalLong.class) return OptionalLong.of(v2.longValueExact());
         if (target == OptionalDouble.class) return OptionalDouble.of(v2.doubleValue());
-        throw newAssertionError();
+        throw new AssertionError();
     }
 
     @NonNull
@@ -250,6 +267,8 @@ public final class MagicConverter {
 
     @NonNull
     private static Object convertTemporal2(@NonNull Object value, @NonNull Class<?> target) {
+        if (value == null) throw new AssertionError();
+        if (target == null) throw new AssertionError();
         if (target == value.getClass()) return value;
         Instant v2 = switch (value) {
             case LocalDate v -> v.atTime(LocalTime.MIDNIGHT).atZone(ZoneOffset.UTC).toInstant();
@@ -259,7 +278,7 @@ public final class MagicConverter {
             case java.util.Date v -> v.toInstant();
             case Calendar v -> v.toInstant();
             case Instant v -> v;
-            default -> throw newAssertionError();
+            default -> throw new AssertionError();
         };
         if (target == LocalDate.class) return LocalDate.ofInstant(v2, ZoneOffset.UTC);
         if (target == LocalDateTime.class) return LocalDateTime.ofInstant(v2, ZoneOffset.UTC);
@@ -271,32 +290,28 @@ public final class MagicConverter {
         if (target == GregorianCalendar.class) return GregorianCalendar.from(ZonedDateTime.ofInstant(v2, ZoneOffset.UTC));
         if (target == Calendar.class) return GregorianCalendar.from(ZonedDateTime.ofInstant(v2, ZoneOffset.UTC));
         if (target == Instant.class) return v2;
-        throw newAssertionError();
+        throw new AssertionError();
     }
 
     @NonNull
-    public static <E> E convertClock(@NonNull Object value, @NonNull Class<E> target) {
-        if (!CLOCKS.contains(target) || !CLOCKS.contains(value.getClass())) {
-            throw new IllegalArgumentException("Can't convert " + value + " to " + target.getSimpleName());
+    private static <E> E convertClock(@NonNull Object value, @NonNull Class<E> target) {
+        if (value == null) throw new AssertionError();
+        if (target == null) throw new AssertionError();
+        if (target == value.getClass()) return target.cast(value);
+        if (target == LocalTime.class) {
+            if (value instanceof java.sql.Time v2) return target.cast(v2.toLocalTime());
+            if (value instanceof LocalTime) return target.cast(value);
         }
-        return target.cast(convertClock2(value, target));
-    }
-
-    @NonNull
-    private static Object convertClock2(@NonNull Object value, @NonNull Class<?> target) {
-        if (target == value.getClass()) return value;
-        LocalTime v2 = switch (value) {
-            case LocalTime v -> v;
-            case java.sql.Time v -> v.toLocalTime();
-            default -> throw newAssertionError();
-        };
-        if (target == LocalTime.class) return v2;
-        if (target == java.sql.Time.class) return java.sql.Time.valueOf(v2);
-        throw newAssertionError();
+        if (target == java.sql.Time.class) {
+            if (value instanceof java.sql.Time) return target.cast(value);
+            if (value instanceof LocalTime v2) return target.cast(java.sql.Time.valueOf(v2));
+        }
+        throw new IllegalArgumentException("Can't convert " + value + " to " + target.getSimpleName());
     }
 
     @NonNull
     private static Class<?> wrap(@NonNull Class<?> target) {
+        if (target == null) throw new AssertionError();
         return WRAPPERS.getOrDefault(target, target);
     }
 
@@ -306,17 +321,26 @@ public final class MagicConverter {
         if (!UNSTRINGFIABLES.contains(target)) {
             throw new IllegalArgumentException("Can't convert " + value + " to " + target.getSimpleName());
         }
-        if (value.isEmpty()) return null;
+        var neverNull = target.isPrimitive()
+                || target == OptionalInt.class
+                || target == OptionalLong.class
+                || target == OptionalDouble.class;
+        if (value == null) return neverNull ? zero(target) : null;
+        if (value.isEmpty()) return neverNull ? zero(target) : target == String.class ? target.cast("") : null;
         return (E) unstringify2(value, wrap(target));
     }
 
     @NonNull
     private static <E> E unstringify2(@NonNull String value, @NonNull Class<E> target) {
+        if (value == null) throw new AssertionError();
+        if (target == null) throw new AssertionError();
         return target.cast(unstringify3(value, target));
     }
 
     @NonNull
     private static Object unstringify3(@NonNull String value, @NonNull Class<?> target) {
+        if (value == null) throw new AssertionError();
+        if (target == null) throw new AssertionError();
         Supplier<IllegalArgumentException> xxx = () ->
                 new IllegalArgumentException("Can't convert " + value + " to " + target.getSimpleName());
         try {
@@ -357,7 +381,13 @@ public final class MagicConverter {
     }
 
     @Nullable
-    public static Object zero(@NonNull Class<?> target) {
+    @SuppressWarnings("unchecked")
+    public static <T> T zero(@NonNull Class<T> target) {
+        return (T) zero2(target);
+    }
+
+    @Nullable
+    private static Object zero2(@NonNull Class<?> target) {
         if (target.isArray()) {
             var comp = target.getComponentType();
             var array = Array.newInstance(comp, 0);

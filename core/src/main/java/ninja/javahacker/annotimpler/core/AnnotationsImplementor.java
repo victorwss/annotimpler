@@ -20,6 +20,20 @@ public final class AnnotationsImplementor {
         throw new UnsupportedOperationException();
     }
 
+    private static <E> int hashCode(E instance, Object... a) {
+        if (instance == null) throw new AssertionError();
+        if (a == null) throw new AssertionError();
+        if (a.length != 0) throw new AssertionError();
+        return System.identityHashCode(instance);
+    }
+
+    private static <E> boolean equals(E instance, Object... a) {
+        if (instance == null) throw new AssertionError();
+        if (a == null) throw new AssertionError();
+        if (a.length != 1) throw new AssertionError();
+        return a[0] == instance;
+    }
+
     private enum DefaultImplementation implements Implementation {
         INSTANCE;
 
@@ -31,19 +45,25 @@ public final class AnnotationsImplementor {
             if (m == null) throw new AssertionError();
             if (props == null) throw new AssertionError();
 
-            if (!Methods.isSimple(m) && !m.isDefault()) {
-                var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
-                throw new ConstructionException(msg, iface);
+            if (Methods.isHashCode(m)) return AnnotationsImplementor::hashCode;
+            if (Methods.isEquals(m)) return AnnotationsImplementor::equals;
+            if (Methods.isToString(m)) {
+                return (E instance, Object... a) -> {
+                    if (instance == null) throw new AssertionError();
+                    if (a == null) throw new AssertionError();
+                    if (a.length != 0) throw new AssertionError();
+                    return "impl[" + iface.getName() + "]-" + System.identityHashCode(instance);
+                };
             }
-            return (E instance, Object... a) -> {
-                if (instance == null) throw new AssertionError();
-                if (a == null) throw new AssertionError();
-                if (Methods.isToString(m)) return "impl[" + iface.getName() + "]-" + System.identityHashCode(instance);
-                if (Methods.isHashCode(m)) return System.identityHashCode(instance);
-                if (Methods.isEquals(m)) return a[0] == instance;
-                if (m.isDefault()) return InvocationHandler.invokeDefault(instance, m, a);
-                throw new AssertionError();
-            };
+            if (m.isDefault()) {
+                return (E instance, Object... a) -> {
+                    if (instance == null) throw new AssertionError();
+                    if (a == null) throw new AssertionError();
+                    return InvocationHandler.invokeDefault(instance, m, a);
+                };
+            }
+            var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
+            throw new ConstructionException(msg, iface);
         }
     }
 

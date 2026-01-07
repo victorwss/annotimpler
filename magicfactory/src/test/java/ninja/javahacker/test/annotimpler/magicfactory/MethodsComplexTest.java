@@ -72,7 +72,25 @@ public class MethodsComplexTest {
 
     @Test
     public void testReturnTypeMethod() throws NoSuchMethodException {
-        Function<Method, Executable> func = m -> () -> Assertions.assertEquals(m.getGenericReturnType(), Methods.getReturnType(m));
+        Function<Method, Executable> func = m -> () -> Assertions.assertEquals(
+                m.getGenericReturnType(),
+                Methods.getReturnType(m)
+        );
+        var all = List.of(
+            Object.class.getMethod("toString"),
+            Map.class.getMethod("get", Object.class),
+            Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class),
+            Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class)
+        );
+        Assertions.assertAll(all.stream().map(func).toList());
+    }
+
+    @Test
+    public void testReturnTypeMethodExec() throws NoSuchMethodException {
+        Function<Method, Executable> func = m -> () -> Assertions.assertEquals(
+                m.getGenericReturnType(),
+                Methods.getReturnType((java.lang.reflect.Executable) m)
+        );
         var all = List.of(
             Object.class.getMethod("toString"),
             Map.class.getMethod("get", Object.class),
@@ -84,7 +102,25 @@ public class MethodsComplexTest {
 
     @Test
     public void testReturnTypeConstructor() throws NoSuchMethodException {
-        Function<Constructor<?>, Executable> func = c -> () -> Assertions.assertEquals(c.getDeclaringClass(), Methods.getReturnType(c));
+        Function<Constructor<?>, Executable> func = c -> () -> Assertions.assertEquals(
+                c.getDeclaringClass(),
+                Methods.getReturnType(c)
+        );
+        var all = List.of(
+            Object.class.getConstructor(),
+            Something.class.getConstructor(),
+            Something.class.getConstructor(int.class, double.class),
+            String.class.getConstructor(byte[].class)
+        );
+        Assertions.assertAll(all.stream().map(func).toList());
+    }
+
+    @Test
+    public void testReturnTypeConstructorExec() throws NoSuchMethodException {
+        Function<Constructor<?>, Executable> func = c -> () -> Assertions.assertEquals(
+                c.getDeclaringClass(),
+                Methods.getReturnType((java.lang.reflect.Executable) c)
+        );
         var all = List.of(
             Object.class.getConstructor(),
             Something.class.getConstructor(),
@@ -110,7 +146,7 @@ public class MethodsComplexTest {
 
     @Test
     public void testReturnTypeField() throws NoSuchFieldException {
-        Function<Field, Executable> func = c -> () -> Assertions.assertEquals(c.getGenericType(), Methods.getReturnType(c));
+        Function<Field, Executable> func = f -> () -> Assertions.assertEquals(f.getGenericType(), Methods.getReturnType(f));
         var all = List.of(
             SomeEnum.class.getField("RED"),
             SomeEnum.class.getField("GREEN"),

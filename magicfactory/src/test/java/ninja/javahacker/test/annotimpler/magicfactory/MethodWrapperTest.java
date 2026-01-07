@@ -1,5 +1,7 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import ninja.javahacker.test.ForTests;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
@@ -67,10 +69,13 @@ public class MethodWrapperTest {
                 );
             },
             () -> Assertions.assertTrue(w.isAnnotationPresent(Foo.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertEquals("bar", w.getAnnotation(Foo.class).orElseThrow(AssertionError::new).value()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Bar.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Bar.class).isEmpty()),
             () -> Assertions.assertEquals(Map.of("xpto", 5), w.paramMap(5)),
+            () -> ForTests.testNull("args", () -> w.paramMap((Object[]) null), "paramMap-args"),
             () -> {
                 var u = w.call(777);
                 Assertions.assertEquals(777, u.x);
@@ -78,6 +83,7 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call()),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call("xxx")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(777, "xxx")),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("constructor Something(int)", w.toString()),
             () -> Assertions.assertEquals("Constructor Something(int)", w.toStringUp())
         );
@@ -105,10 +111,13 @@ public class MethodWrapperTest {
                 );
             },
             () -> Assertions.assertTrue(w.isAnnotationPresent(Foo.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertEquals("bar", w.getAnnotation(Foo.class).orElseThrow(AssertionError::new).value()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Bar.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Bar.class).isEmpty()),
             () -> Assertions.assertEquals(Map.of("v", 1, "x", 2), w.paramMap(1, 2)),
+            () -> ForTests.testNull("args", () -> w.paramMap((Object[]) null), "paramMap-args"),
             () -> {
                 var u = w.call(3, 4);
                 Assertions.assertEquals(12, u);
@@ -119,6 +128,7 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(777)),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(777, "xxx")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(777, 888, 999)),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("method int Something.foo(int, int)", w.toString()),
             () -> Assertions.assertEquals("Method int Something.foo(int, int)", w.toStringUp())
         );
@@ -147,10 +157,13 @@ public class MethodWrapperTest {
                 );
             },
             () -> Assertions.assertTrue(w.isAnnotationPresent(Bar.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertEquals("foo", w.getAnnotation(Bar.class).orElseThrow(AssertionError::new).value()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Foo.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Foo.class).isEmpty()),
             () -> Assertions.assertEquals(Map.of("v", 1, "y", 2.0, "z", "kkk"), w.paramMap(1, 2.0, "kkk")),
+            () -> ForTests.testNull("args", () -> w.paramMap((Object[]) null), "paramMap-args"),
             () -> {
                 var u = w.call(new Something(16), 3, 4.0, "ttt");
                 Assertions.assertEquals("ttt52.0", u);
@@ -164,6 +177,7 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(NullPointerException.class, () -> w.call((Object) null)),
             () -> Assertions.assertThrows(NullPointerException.class, () -> w.call(null, 777, 888.0, "xxx")),
             () -> Assertions.assertThrows(NullPointerException.class, () -> w.call(null, "xxx")),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("method String Something.bar(int, double, String)", w.toString()),
             () -> Assertions.assertEquals("Method String Something.bar(int, double, String)", w.toStringUp())
         );
@@ -184,10 +198,13 @@ public class MethodWrapperTest {
             () -> Assertions.assertEquals(List.of(), w.getParameterTypes()),
             () -> Assertions.assertEquals(0, w.getParameters().size()),
             () -> Assertions.assertTrue(w.isAnnotationPresent(Bar.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertEquals("doo", w.getAnnotation(Bar.class).orElseThrow(AssertionError::new).value()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Foo.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Foo.class).isEmpty()),
             () -> Assertions.assertEquals(Map.of(), w.paramMap()),
+            () -> ForTests.testNull("args", () -> w.paramMap((Object[]) null), "paramMap-args"),
             () -> {
                 var u = w.call(new Something(16));
                 Assertions.assertEquals(16, u);
@@ -196,6 +213,7 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call("x")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(new Something(16), 777)),
             () -> Assertions.assertThrows(NullPointerException.class, () -> w.call((Object) null)),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("field int Something.x", w.toString()),
             () -> Assertions.assertEquals("Field int Something.x", w.toStringUp())
         );
@@ -216,10 +234,13 @@ public class MethodWrapperTest {
             () -> Assertions.assertEquals(List.of(), w.getParameterTypes()),
             () -> Assertions.assertEquals(0, w.getParameters().size()),
             () -> Assertions.assertTrue(w.isAnnotationPresent(Bar.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertEquals("hoo", w.getAnnotation(Bar.class).orElseThrow(AssertionError::new).value()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Foo.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Foo.class).isEmpty()),
             () -> Assertions.assertEquals(Map.of(), w.paramMap()),
+            () -> ForTests.testNull("args", () -> w.paramMap((Object[]) null), "paramMap-args"),
             () -> {
                 var u = w.call();
                 Assertions.assertEquals(44L, u);
@@ -227,10 +248,12 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call((Object) null)),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call("x")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(new Something(16))),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("field long Something.XXX", w.toString()),
             () -> Assertions.assertEquals("Field long Something.XXX", w.toStringUp())
         );
     }
+
     @Test
     public void testValueWrapper() throws Exception {
         var w = MethodWrapper.value("alohomora");
@@ -245,6 +268,8 @@ public class MethodWrapperTest {
             () -> Assertions.assertEquals(List.of(), w.getParameterTypes()),
             () -> Assertions.assertEquals(0, w.getParameters().size()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Bar.class)),
+            () -> ForTests.testNull("annoClass", () -> w.isAnnotationPresent(null), "isAnnotationPresent"),
+            () -> ForTests.testNull("annoClass", () -> w.getAnnotation(null), "getAnnotation"),
             () -> Assertions.assertTrue(w.getAnnotation(Bar.class).isEmpty()),
             () -> Assertions.assertFalse(w.isAnnotationPresent(Foo.class)),
             () -> Assertions.assertTrue(w.getAnnotation(Foo.class).isEmpty()),
@@ -256,8 +281,30 @@ public class MethodWrapperTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call((Object) null)),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call("x")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(new Something(16))),
+            () -> ForTests.testNull("params", () -> w.call((Object[]) null), "call"),
             () -> Assertions.assertEquals("alohomora", w.toString()),
             () -> Assertions.assertEquals("alohomora", w.toStringUp())
+        );
+    }
+
+    @Test
+    public void testNulls() throws Exception {
+        Assertions.assertAll(
+            () -> ForTests.testNull("what", () -> {
+                MethodWrapper.of((Method) null);
+            }, "method"),
+            () -> ForTests.testNull("what", () -> {
+                MethodWrapper.of((Constructor<?>) null);
+            }, "constructor"),
+            () -> ForTests.testNull("what", () -> {
+                MethodWrapper.of((java.lang.reflect.Executable) null);
+            }, "executable"),
+            () -> ForTests.testNull("what", () -> {
+                MethodWrapper.getter(null);
+            }, "getter"),
+            () -> ForTests.testNull("what", () -> {
+                MethodWrapper.value(null);
+            }, "value")
         );
     }
 }

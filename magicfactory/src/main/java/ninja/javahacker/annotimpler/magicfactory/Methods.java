@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -63,10 +64,21 @@ public final class Methods {
     }
 
     @NonNull
+    @Generated
     public static Type getReturnType(@NonNull Executable what) {
-        if (what instanceof Method m) return m.getGenericReturnType();
-        if (what instanceof Constructor<?> c) return c.getDeclaringClass();
-        throw new IllegalArgumentException();
+        if (what instanceof Method m) return getReturnType(m);
+        if (what instanceof Constructor<?> c) return getReturnType(c);
+        throw new AssertionError();
+    }
+
+    @NonNull
+    public static <E> Class<E> getReturnType(@NonNull Constructor<E> what) {
+        return what.getDeclaringClass();
+    }
+
+    @NonNull
+    public static Type getReturnType(@NonNull Method what) {
+        return what.getGenericReturnType();
     }
 
     @NonNull
@@ -75,17 +87,30 @@ public final class Methods {
     }
 
     @Nullable
+    @Generated
     public static Object invoke(@NonNull Executable what, @NonNull Object... args)
             throws IllegalAccessException, InvocationTargetException, InstantiationException
     {
-        if (what instanceof Constructor<?> c) return c.newInstance(args);
-        if (what instanceof Method m) {
-            if (Modifier.isStatic(m.getModifiers()) || args.length == 0) return m.invoke(null, args);
-            var inst = args[0];
-            var rest = new Object[args.length - 1];
-            System.arraycopy(args, 1, rest, 0, rest.length);
-            return m.invoke(inst, rest);
-        }
+        if (what instanceof Method m) return invoke(m, args);
+        if (what instanceof Constructor<?> c) return invoke(c, args);
         throw new AssertionError();
+    }
+
+    @NonNull
+    public static <E> E invoke(@NonNull Constructor<E> what, @NonNull Object... args)
+            throws IllegalAccessException, InvocationTargetException, InstantiationException
+    {
+        return what.newInstance(args);
+    }
+
+    @Nullable
+    public static Object invoke(@NonNull Method what, @NonNull Object... args)
+            throws IllegalAccessException, InvocationTargetException, InstantiationException
+    {
+        if (Modifier.isStatic(what.getModifiers()) || args.length == 0) return what.invoke(null, args);
+        var inst = args[0];
+        var rest = new Object[args.length - 1];
+        System.arraycopy(args, 1, rest, 0, rest.length);
+        return what.invoke(inst, rest);
     }
 }
