@@ -310,7 +310,7 @@ public final class MagicConverter {
     }
 
     @NonNull
-    private static Class<?> wrap(@NonNull Class<?> target) {
+    public static Class<?> wrap(@NonNull Class<?> target) {
         if (target == null) throw new AssertionError();
         return WRAPPERS.getOrDefault(target, target);
     }

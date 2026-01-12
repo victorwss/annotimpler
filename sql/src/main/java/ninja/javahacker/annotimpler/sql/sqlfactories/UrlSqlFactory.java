@@ -10,7 +10,7 @@ public enum UrlSqlFactory implements SqlFactory {
     INSTANCE;
 
     @Override
-    public SqlSupplier prepare(@NonNull Class<?> iface, @NonNull Method m) {
+    public SqlSupplier prepare(@NonNull Method m) {
         var anno = m.getAnnotation(SqlFromUrl.class);
         if (anno == null) throw new UnsupportedOperationException();
         var value = anno.value();
@@ -30,7 +30,6 @@ public enum UrlSqlFactory implements SqlFactory {
             if (response.statusCode() >= 200 && response.statusCode() < 300) return response.body();
             throw new IOException("HTTP Error: " + response.statusCode());
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
             throw new IOException("Download was interrupted.", e);
         }
     }

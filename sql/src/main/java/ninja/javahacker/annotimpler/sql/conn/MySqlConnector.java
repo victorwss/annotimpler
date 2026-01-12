@@ -18,10 +18,12 @@ public record MySqlConnector(
 
     private static final MySqlConnector STD = new MySqlConnector("localhost", STD_PORT, "admin", "admin", "");
 
+    @NonNull
     public static MySqlConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static MySqlConnector create(
             @NonNull Optional<String> host,
@@ -39,30 +41,36 @@ public record MySqlConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:mysql://" + host + ":" + port + "/" + database;
     }
 
+    @NonNull
     @Override
     public MySqlConnector withHost(@NonNull String host) {
         return new MySqlConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MySqlConnector withUser(@NonNull String user) {
         return new MySqlConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MySqlConnector withPassword(@NonNull String password) {
         return new MySqlConnector(host, port, user, password, database);
     }
 
+    @NonNull
     public MySqlConnector withDatabase(@NonNull String database) {
         return new MySqlConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MySqlConnector withPort(int port) {
         return new MySqlConnector(host, port, user, password, database);

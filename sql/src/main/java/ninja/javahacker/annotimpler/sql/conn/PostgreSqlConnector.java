@@ -19,10 +19,12 @@ public record PostgreSqlConnector(
 
     private static final PostgreSqlConnector STD = new PostgreSqlConnector("localhost", STD_PORT, "admin", "admin", "", true);
 
+    @NonNull
     public static PostgreSqlConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static PostgreSqlConnector create(
         @NonNull Optional<String> host,
@@ -42,35 +44,42 @@ public record PostgreSqlConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:postgresql://" + host + ":" + port + "/" + database + (ssl ? "?ssl=true" : "");
     }
 
+    @NonNull
     @Override
     public PostgreSqlConnector withHost(@NonNull String host) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }
 
+    @NonNull
     @Override
     public PostgreSqlConnector withUser(@NonNull String user) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }
 
+    @NonNull
     @Override
     public PostgreSqlConnector withPassword(@NonNull String password) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }
 
+    @NonNull
     public PostgreSqlConnector withDatabase(@NonNull String database) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }
 
+    @NonNull
     @Override
     public PostgreSqlConnector withPort(int port) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }
 
+    @NonNull
     public PostgreSqlConnector withSsl(boolean ssl) {
         return new PostgreSqlConnector(host, port, user, password, database, ssl);
     }

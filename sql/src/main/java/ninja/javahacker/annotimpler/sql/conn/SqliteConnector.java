@@ -12,10 +12,12 @@ public record SqliteConnector(
 {
     private static final SqliteConnector STD = new SqliteConnector("");
 
+    @NonNull
     public static SqliteConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static SqliteConnector create(
             @NonNull Optional<String> filename)
@@ -25,11 +27,13 @@ public record SqliteConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:sqlite:" + filename;
     }
 
+    @NonNull
     public SqliteConnector withFilename(@NonNull String filename) {
         return new SqliteConnector(filename);
     }

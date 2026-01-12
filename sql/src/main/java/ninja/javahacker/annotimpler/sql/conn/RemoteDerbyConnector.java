@@ -17,10 +17,12 @@ public record RemoteDerbyConnector(
 
     private static final RemoteDerbyConnector STD = new RemoteDerbyConnector("localhost", STD_PORT, "", false);
 
+    @NonNull
     public static RemoteDerbyConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static RemoteDerbyConnector create(
             @NonNull Optional<String> host,
@@ -36,25 +38,30 @@ public record RemoteDerbyConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:derby://" + host + ":" + port + "/" + directory + (create ? "?create=true" : "");
     }
 
+    @NonNull
     @Override
     public RemoteDerbyConnector withHost(@NonNull String host) {
         return new RemoteDerbyConnector(host, port, directory, create);
     }
 
+    @NonNull
     @Override
     public RemoteDerbyConnector withPort(int port) {
         return new RemoteDerbyConnector(host, port, directory, create);
     }
 
+    @NonNull
     public RemoteDerbyConnector withDirectory(@NonNull String directory) {
         return new RemoteDerbyConnector(host, port, directory, create);
     }
 
+    @NonNull
     public RemoteDerbyConnector withCreate(boolean create) {
         return new RemoteDerbyConnector(host, port, directory, create);
     }

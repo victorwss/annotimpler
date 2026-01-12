@@ -232,6 +232,13 @@ public class ConnectionCreatorTest {
     }
 
     @Test
+    public void sqliteMemoryCreatorTest() {
+        Destructure<SqliteMemoryConnector> dest = a -> new Object[0];
+        var replaces = new Object[0];
+        testAll(SqliteMemoryConnector.class, replaces, dest);
+    }
+
+    @Test
     public void urlCreatorTest1() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url()};
         var replaces = new Object[] {"jdbc:test:test"};
@@ -263,5 +270,76 @@ public class ConnectionCreatorTest {
         var d = testAll(u.getConstructor(String.class, String.class, String.class), new Object[] {url, "X", "Y"});
         var e = Stream.of(a, b, c, d).flatMap(List::stream).toList();
         Assertions.assertAll(e);
+    }
+
+    private void connectionTest(ConnectionFactory confac) throws Exception {
+        try (var con = confac.get()) {
+            try (var ps = con.prepareStatement("CREATE TABLE foo(pk INT PRIMARY KEY, blah TEXT);")) {
+                ps.executeUpdate();
+            }
+            try (var ps = con.prepareStatement("INSERT INTO foo(pk, blah) VALUES (1, 'whoa');")) {
+                ps.executeUpdate();
+            }
+            try (var ps = con.prepareStatement("INSERT INTO foo(pk, blah) VALUES (2, 'lol');")) {
+                ps.executeUpdate();
+            }
+            try (
+                    var ps = con.prepareStatement("SELECT pk, blah FROM foo;");
+                    var rs = ps.executeQuery())
+            {
+                rs.next();
+                var a = rs.getInt("pk");
+                var b = rs.getString("blah");
+                rs.next();
+                var c = rs.getInt("pk");
+                var d = rs.getString("blah");
+                Assertions.assertAll(
+                        () -> Assertions.assertEquals(a, 1),
+                        () -> Assertions.assertEquals(b, "whoa"),
+                        () -> Assertions.assertEquals(c, 2),
+                        () -> Assertions.assertEquals(d, "lol")
+                );
+            }
+        }
+    }
+
+    @Test
+    public void simpleConnectionTest() throws Exception {
+        var sqlm = "{\"type\":\"sqlite-memory\"}";
+        Assertions.assertAll(
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(SqliteMemoryConnector.std())),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(SqliteMemoryConnector.std().asUrl()::get)),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(SqliteMemoryConnector.std().url()))),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(SqliteMemoryConnector.std().url())::get)),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(JsonConnector.read(sqlm)))
+                // TODO: Connect with auth.
+        );
+    }
+
+    @Test
+    public void urlsTests() {
+        var maria1 = MariaDbConnector.std();
+        var maria2 = maria1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var mysql1 = MySqlConnector.std();
+        var mysql2 = mysql1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var fire1 = FirebirdConnector.std();
+        var fire2 = fire1.withFilename("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass")
+                .withEncoding("UTF16");
+        var fire3 = fire1.withFilename("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass").withEncoding("");
+        var hTwo1 = H2Connector.std();
+        var hTwo2 = hTwo1.withFilename("foo").withUser("lol").withPassword("pass");
+        var sqliteMem = SqliteMemoryConnector.std();
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("jdbc:sqlite::memory:", sqliteMem.url()),
+                () -> Assertions.assertEquals("jdbc:mariadb://localhost:3306/", maria1.url()),
+                () -> Assertions.assertEquals("jdbc:mariadb://10.10.10.10:12345/foo", maria2.url()),
+                () -> Assertions.assertEquals("jdbc:mysql://localhost:3306/", mysql1.url()),
+                () -> Assertions.assertEquals("jdbc:mysql://10.10.10.10:12345/foo", mysql2.url()),
+                () -> Assertions.assertEquals("jdbc:firebird://localhost:3050/?encoding=UTF8", fire1.url()),
+                () -> Assertions.assertEquals("jdbc:firebird://10.10.10.10:12345/foo?encoding=UTF16", fire2.url()),
+                () -> Assertions.assertEquals("jdbc:firebird://10.11.12.13:44444/bar", fire3.url()),
+                () -> Assertions.assertEquals("jdbc:h2:~/", hTwo1.url()),
+                () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url())
+        );
     }
 }

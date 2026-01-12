@@ -18,10 +18,12 @@ public record SqlServerConnector(
 
     private static final SqlServerConnector STD = new SqlServerConnector("localhost", STD_PORT, "admin", "admin", "");
 
+    @NonNull
     public static SqlServerConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static SqlServerConnector create(
             @NonNull Optional<String> host,
@@ -39,30 +41,36 @@ public record SqlServerConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:hyperion:sqlserver://" + host + ":" + port + ";DatabaseName=" + database;
     }
 
+    @NonNull
     @Override
     public SqlServerConnector withHost(@NonNull String host) {
         return new SqlServerConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public SqlServerConnector withUser(@NonNull String user) {
         return new SqlServerConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public SqlServerConnector withPassword(@NonNull String password) {
         return new SqlServerConnector(host, port, user, password, database);
     }
 
+    @NonNull
     public SqlServerConnector withDatabase(@NonNull String database) {
         return new SqlServerConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public SqlServerConnector withPort(int port) {
         return new SqlServerConnector(host, port, user, password, database);

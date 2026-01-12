@@ -14,10 +14,12 @@ public record UrlConnector(
 {
     private static final UrlConnector STD = new UrlConnector("", Optional.empty());
 
+    @NonNull
     public static UrlConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static UrlConnector create(
             @NonNull Optional<String> url)
@@ -27,6 +29,7 @@ public record UrlConnector(
         return r[0];
     }
 
+    @NonNull
     @JsonCreator
     public static UrlConnector create(
             @NonNull Optional<String> url,
@@ -38,6 +41,7 @@ public record UrlConnector(
         return r[0];
     }
 
+    @NonNull
     @JsonCreator
     public static UrlConnector create(
             @NonNull Optional<String> url,
@@ -64,12 +68,14 @@ public record UrlConnector(
         this(url, Optional.of(new Auth(user, password)));
     }
 
+    @NonNull
     private Connection makeConnection() throws SQLException {
         if (optAuth.isEmpty()) return DriverManager.getConnection(url);
         var a = optAuth.get();
         return DriverManager.getConnection(url, a.user(), a.password());
     }
 
+    @NonNull
     @Override
     public Connection get() throws SQLException {
         var con = makeConnection();
@@ -78,22 +84,27 @@ public record UrlConnector(
         return con;
     }
 
+    @NonNull
     public UrlConnector withUrl(@NonNull String url) {
         return new UrlConnector(url, optAuth());
     }
 
+    @NonNull
     public UrlConnector withAuth(@NonNull String user, @NonNull String password) {
         return withOptAuth(Optional.of(new Auth(user, password)));
     }
 
+    @NonNull
     public UrlConnector withNoAuth() {
         return withOptAuth(Optional.empty());
     }
 
+    @NonNull
     public UrlConnector withAuth(@NonNull Auth auth) {
         return withOptAuth(Optional.of(auth));
     }
 
+    @NonNull
     public UrlConnector withOptAuth(@NonNull Optional<Auth> optAuth) {
         return new UrlConnector(url(), optAuth);
     }

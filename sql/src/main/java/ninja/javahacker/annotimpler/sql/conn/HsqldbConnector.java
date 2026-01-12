@@ -14,10 +14,12 @@ public record HsqldbConnector(
 {
     private static final HsqldbConnector STD = new HsqldbConnector("SA", "password", "");
 
+    @NonNull
     public static HsqldbConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static HsqldbConnector create(
             @NonNull Optional<String> user,
@@ -31,21 +33,25 @@ public record HsqldbConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:hsqldb:file://" + filename;
     }
 
+    @NonNull
     @Override
     public HsqldbConnector withUser(@NonNull String user) {
         return new HsqldbConnector(user, password, filename);
     }
 
+    @NonNull
     @Override
     public HsqldbConnector withPassword(@NonNull String password) {
         return new HsqldbConnector(user, password, filename);
     }
 
+    @NonNull
     public HsqldbConnector withFilename(@NonNull String filename) {
         return new HsqldbConnector(user, password, filename);
     }

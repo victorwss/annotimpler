@@ -20,14 +20,14 @@ public final class AnnotationsImplementor {
         throw new UnsupportedOperationException();
     }
 
-    private static <E> int hashCode(E instance, Object... a) {
+    private static <E> int hashCode(@NonNull E instance, @NonNull Object... a) {
         if (instance == null) throw new AssertionError();
         if (a == null) throw new AssertionError();
         if (a.length != 0) throw new AssertionError();
         return System.identityHashCode(instance);
     }
 
-    private static <E> boolean equals(E instance, Object... a) {
+    private static <E> boolean equals(@NonNull E instance, @NonNull Object... a) {
         if (instance == null) throw new AssertionError();
         if (a == null) throw new AssertionError();
         if (a.length != 1) throw new AssertionError();
@@ -40,8 +40,7 @@ public final class AnnotationsImplementor {
         @NonNull
         @Override
         @SuppressWarnings("PMD.CompareObjectsWithEquals")
-        public <E> ImplementationExecutor<E> prepare(Class<E> iface, Method m, PropertyBag props) throws ConstructionException {
-            if (iface == null) throw new AssertionError();
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
             if (m == null) throw new AssertionError();
             if (props == null) throw new AssertionError();
 
@@ -52,6 +51,9 @@ public final class AnnotationsImplementor {
                     if (instance == null) throw new AssertionError();
                     if (a == null) throw new AssertionError();
                     if (a.length != 0) throw new AssertionError();
+                    var ifaces = instance.getClass().getInterfaces();
+                    if (ifaces.length == 0) throw new AssertionError();
+                    var iface = ifaces[0];
                     return "impl[" + iface.getName() + "]-" + System.identityHashCode(instance);
                 };
             }
@@ -63,25 +65,23 @@ public final class AnnotationsImplementor {
                 };
             }
             var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
-            throw new ConstructionException(msg, iface);
+            throw new ConstructionException(msg, m.getDeclaringClass());
         }
     }
 
     @NonNull
-    private static <E> Implementation.ImplementationExecutor<E> findImplementation(
-            Class<E> iface,
-            Method m,
-            PropertyBag props)
+    private static Implementation.ImplementationExecutor<Object> findImplementation(
+            @NonNull Method m,
+            @NonNull PropertyBag props)
             throws ConstructionException
     {
-        if (iface == null) throw new AssertionError();
         if (m == null) throw new AssertionError();
         if (props == null) throw new AssertionError();
 
         var impls = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(ImplementedBy.class)).toList();
         if (impls.size() > 1) {
             var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
-            throw new ConstructionException("Annotations on: " + nome, iface);
+            throw new ConstructionException("Annotations on: " + nome, m.getDeclaringClass());
         }
         Implementation impl;
 
@@ -92,10 +92,10 @@ public final class AnnotationsImplementor {
             var magic = MagicFactory.of(implClass);
             impl = magic.create();
         }
-        var c = impl.prepare(iface, m, props);
+        var c = impl.prepare(m, props);
         if (c == null) {
             var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
-            throw new ConstructionException("Implementation was null on: " + nome, iface);
+            throw new ConstructionException("Implementation was null on: " + nome, m.getDeclaringClass());
         }
         return c;
     }
@@ -105,7 +105,8 @@ public final class AnnotationsImplementor {
         public E get() throws Throwable;
 
         @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingThrowable"})
-        public static <E> Supplier<E> wrap(XSupplier<E> x) {
+        public static <E> Supplier<E> wrap(@NonNull XSupplier<E> x) {
+            if (x == null) throw new AssertionError();
             return () -> {
                 try {
                     return x.get();
@@ -141,7 +142,7 @@ public final class AnnotationsImplementor {
         var ifaceMeths = Stream.of(iface.getMethods());
 
         var meths = Stream.concat(OBJECT_DEFAULT.stream(), ifaceMeths)
-                .collect(Collectors.toMap(m -> m, m -> XSupplier.wrap(() -> findImplementation(iface, m, props2)).get()));
+                .collect(Collectors.toMap(m -> m, m -> XSupplier.wrap(() -> findImplementation(m, props2)).get()));
 
         InvocationHandler ih = (p, m, a) -> {
             var impl = meths.get(m);

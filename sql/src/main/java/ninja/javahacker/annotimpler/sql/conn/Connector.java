@@ -24,6 +24,7 @@ public interface Connector extends ConnectionFactory {
         return optAuth().map(Auth::password);
     }
 
+    @NonNull
     public default UrlConnector asUrl() {
         return this instanceof UrlConnector me
                 ? me

@@ -1,5 +1,7 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
+import ninja.javahacker.test.ForTests;
+
 import module com.fasterxml.jackson.core;
 import module com.fasterxml.jackson.databind;
 import module com.fasterxml.jackson.datatype.jdk8;
@@ -20,11 +22,14 @@ public class ConnJsonTest {
             }""";
 
     public static ObjectMapper mapper() {
-        return new ObjectMapper().registerModule(new Jdk8Module()).registerModule(new ParameterNamesModule());
+        return new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+            .registerModule(new Jdk8Module())
+            .registerModule(new ParameterNamesModule());
     }
 
     @Test
-    public void testReadJson() throws JsonProcessingException {
+    public void testReadJson1() throws IOException {
         var con = mapper().readValue(JSON, JsonConnector.class);
         var delegate = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         Assertions.assertAll(
@@ -34,13 +39,26 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testWriteJson() throws JsonProcessingException {
+    public void testReadJson2() throws IOException {
+        var con = JsonConnector.read(JSON);
+        var delegate = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(new JsonConnector(delegate), con),
+                () -> Assertions.assertEquals(delegate, con.delegate())
+        );
+    }
+
+    @Test
+    public void testWriteJson() throws IOException {
         var inJson = JSON.replace(" ", "").replace("\r", "").replace("\n", "");
         var delegate = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var jsc = new JsonConnector(delegate);
         var mapper = new ObjectMapper();
         var outJson = mapper.writeValueAsString(jsc);
-        Assertions.assertEquals(inJson, outJson);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(inJson, outJson),
+                () -> Assertions.assertEquals(inJson, jsc.toJson())
+        );
     }
 
     @Test
@@ -90,12 +108,10 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReadBadJson() throws JsonProcessingException {
+    public void testReadBadJson1() throws JsonProcessingException {
+        var bad = JSON.replace("mariadb", "bad");
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
-        var ex = Assertions.assertThrows(
-                JsonMappingException.class,
-                () -> mapper().readValue(JSON.replace("mariadb", "bad"), JsonConnector.class)
-        );
+        var ex = Assertions.assertThrows(JsonMappingException.class, () -> mapper().readValue(bad, JsonConnector.class));
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
@@ -106,14 +122,80 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testWriteBadJson() throws JsonProcessingException {
+    public void testReadBadJson2() throws JsonProcessingException {
+        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(""));
+    }
+
+    @Test
+    public void testReadBadJson3() throws JsonProcessingException {
+        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read("{["));
+    }
+
+    @Test
+    public void testReadBadJson4() throws JsonProcessingException {
+        var bad = "{\"blah\":46,\"wha\":[]}";
+        var name1 = JsonConnector.UnknownConnectorException.class.getName();
+        var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
+        Assertions.assertAll(
+                //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
+                //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
+                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
+                () -> Assertions.assertTrue(ex.getMessage().contains("JSON has no type field."))
+        );
+    }
+
+    @Test
+    public void testReadBadJson5() throws JsonProcessingException {
+        var bad2 = JSON.substring(0, JSON.length() - 1) + ",\"wtf\":\"oops\"}";
+        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(bad2));
+    }
+
+    @Test
+    public void testReadBadJson6() throws JsonProcessingException {
+        var bad = "[1,2,3]";
+        var name1 = JsonConnector.UnknownConnectorException.class.getName();
+        var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
+        Assertions.assertAll(
+                //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
+                //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
+                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
+                () -> Assertions.assertTrue(ex.getMessage().contains("JSON does not contain a connector."))
+        );
+    }
+
+    @Test
+    public void testReadBadJson7() throws JsonProcessingException {
+        Assertions.assertThrows(IOException.class, () -> JsonConnector.read("null"), "No connector found.");
+    }
+
+    @Test
+    public void testReadBadJsonNull() throws JsonProcessingException {
+        ForTests.testNull("json", () -> JsonConnector.read(null), "json");
+    }
+
+    @Test
+    public void testWriteBadJson2() throws JsonProcessingException {
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var name2 = BadConnector.class.getName();
         var jsc = new JsonConnector(new BadConnector());
-        var ex = Assertions.assertThrows(
-                JsonMappingException.class,
-                () -> mapper().writeValueAsString(jsc)
+        var ex = Assertions.assertThrows(JsonMappingException.class, () -> mapper().writeValueAsString(jsc));
+        Assertions.assertAll(
+                //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
+                //() -> Assertions.assertEquals("Untyped connector \"bad\".", ex.getCause().getMessage()),
+                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
+                () -> Assertions.assertTrue(ex.getMessage().contains("Untyped connector: \"" + name2 + "\"."))
         );
+    }
+
+    @Test
+    public void testWriteBadJson3() throws JsonProcessingException {
+        var name1 = JsonConnector.UnknownConnectorException.class.getName();
+        var name2 = BadConnector.class.getName();
+        var jsc = new JsonConnector(new BadConnector());
+        var ex = Assertions.assertThrows(JsonMappingException.class, () -> jsc.toJson());
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Untyped connector \"bad\".", ex.getCause().getMessage()),

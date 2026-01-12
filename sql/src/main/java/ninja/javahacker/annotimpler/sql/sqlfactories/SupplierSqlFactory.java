@@ -10,7 +10,7 @@ public enum SupplierSqlFactory implements SqlFactory {
     INSTANCE;
 
     @Override
-    public SqlSupplier prepare(@NonNull Class<?> iface, @NonNull Method m) throws ConstructionException {
+    public SqlSupplier prepare(@NonNull Method m) throws ConstructionException {
         var anno = m.getAnnotation(SqlFromClass.class);
         if (anno == null) throw new UnsupportedOperationException();
         var implClass = MagicFactory.of(anno.value());

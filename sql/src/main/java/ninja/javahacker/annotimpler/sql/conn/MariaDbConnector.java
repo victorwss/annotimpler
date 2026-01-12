@@ -18,10 +18,12 @@ public record MariaDbConnector(
 
     private static final MariaDbConnector STD = new MariaDbConnector("localhost", STD_PORT, "admin", "admin", "");
 
+    @NonNull
     public static MariaDbConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static MariaDbConnector create(
             @NonNull Optional<String> host,
@@ -39,30 +41,36 @@ public record MariaDbConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:mariadb://" + host + ":" + port + "/" + database;
     }
 
+    @NonNull
     @Override
     public MariaDbConnector withHost(@NonNull String host) {
         return new MariaDbConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MariaDbConnector withUser(@NonNull String user) {
         return new MariaDbConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MariaDbConnector withPassword(@NonNull String password) {
         return new MariaDbConnector(host, port, user, password, database);
     }
 
+    @NonNull
     public MariaDbConnector withDatabase(@NonNull String database) {
         return new MariaDbConnector(host, port, user, password, database);
     }
 
+    @NonNull
     @Override
     public MariaDbConnector withPort(int port) {
         return new MariaDbConnector(host, port, user, password, database);

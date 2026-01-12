@@ -2,18 +2,11 @@ package ninja.javahacker.annotimpler.sql.stmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.IntStream;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
-import ninja.javahacker.annotimpler.magicfactory.ConstructionException;
-import ninja.javahacker.annotimpler.magicfactory.RecordMapper;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {
@@ -58,6 +51,16 @@ public final class SmartResultSet implements ResultSet {
         return row;
     }
 
+    @Nullable
+    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
+    public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws ConstructionException, SQLException {
+        var raw = getTypedValue(columnIndex);
+        return MagicConverter.forValue(raw, target);
+    }
+
+    // Pode retornar null, Long, Integer, Byte, Short, Float, Double, Boolean,
+    // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime,
+    // Clob, Blob, Array, Ref, SQLXML ou RowId.
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(int columnIndex) throws SQLException {

@@ -2,25 +2,42 @@ package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
+import lombok.Getter;
 
 import module java.base;
 import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
-@SuppressWarnings({"checkstyle:ParenPad"})
-public record SqlNamedParameter(@NonNull Type type, boolean flat) {
+public final class SqlNamedParameter<T> {
 
     @FunctionalInterface
-    public static interface NameHandler<T> {
+    @SuppressWarnings({"checkstyle:ParenPad"})
+    interface Handler<T> {
+
         public void handle(@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable T value) throws SQLException;
+
+        public default NamedHandler<T> named(@NonNull String name) {
+            return (ps, value) -> handle(ps, name, value);
+        }
     }
 
     @FunctionalInterface
-    public static interface NameChecker {
-        public void check(@NonNull String name);
+    private interface NamedHandler<T> {
+        public void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException;
     }
 
-    private static final Map<@NonNull Class<?>, @NonNull NameHandler<?>> ENTRIES = Map.ofEntries(
+    private record NameHandlerStrategy<T>(NamedHandler<T> h, Predicate<Object> p) {
+        public void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException {
+            if (!test(value)) throw new IllegalArgumentException();
+            h.handle(ps, value);
+        }
+
+        public boolean test(@Nullable Object value) {
+            return p.test(value);
+        }
+    }
+
+    private static final Map<Class<?>, Handler<?>> ENTRIES = Map.ofEntries(
             entry(boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
             entry(Boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
             entry(byte          .class, NamedParameterStatement::setByte      , Types.TINYINT ),
@@ -45,9 +62,38 @@ public record SqlNamedParameter(@NonNull Type type, boolean flat) {
             entry(OptionalDouble.class, NamedParameterStatement::setDouble                    )
     );
 
+    @Getter
+    private final int index;
+
+    @Getter
     @NonNull
-    private static <E> Map.Entry<Class<?>, NameHandler<?>> entry(@NonNull Class<E> k, @NonNull NameHandler<E> h, int type) {
-        return Map.entry(k, (NamedParameterStatement ps, String name, E value) -> {
+    private final Type type;
+
+    @Getter
+    @NonNull
+    private final String name;
+
+    @Getter
+    private final boolean flat;
+
+    private final NameHandlerStrategy<T> strategy;
+
+    @SuppressWarnings("unchecked")
+    private SqlNamedParameter(int index, @NonNull Type type, @NonNull String name, boolean flat) {
+        if (type == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+        this.index = index;
+        this.type = type;
+        this.name = name;
+        this.flat = flat;
+        this.strategy = (NameHandlerStrategy<T>) makeStrategy(type, name, flat);
+    }
+
+    @NonNull
+    private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h, int type) {
+        if (k == null) throw new AssertionError();
+        if (h == null) throw new AssertionError();
+        return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
             if (value == null) {
                 ps.setNull(name, type);
             } else {
@@ -57,99 +103,181 @@ public record SqlNamedParameter(@NonNull Type type, boolean flat) {
     }
 
     @NonNull
-    private static <E> Map.Entry<Class<?>, NameHandler<?>> entry(@NonNull Class<E> k, @NonNull NameHandler<E> h) {
+    private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h) {
+        if (k == null) throw new AssertionError();
+        if (h == null) throw new AssertionError();
         return Map.entry(k, h);
     }
 
-    public record SqlNamedParameterWithValue(@NonNull Type type, @Nullable Object value, boolean flat) {
+    private void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException {
+        strategy.handle(ps, value);
+    }
 
-        @NonNull
-        private static <E extends Record> NameHandler<E> forRecordHandler(@NonNull Class<E> k, boolean flat) {
-            var rcs = k.getRecordComponents();
-            var single = rcs.length == 1;
-            return (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
-                for (var rc : rcs) {
-                    var rct = rc.getType();
-                    Object cmp;
-                    try {
-                        cmp = rc.getAccessor().invoke(value);
-                    } catch (IllegalAccessException | InvocationTargetException x) {
-                        throw new AssertionError(x);
-                    }
-                    var paramName = single ? name : flat ? rc.getName() : name + "::" + rc.getName();
-                    new SqlNamedParameterWithValue(rct, cmp, flat).handle(ps, paramName);
-                }
-            };
-        }
-
-        @NonNull
-        private static <E extends Enum<E>> NameHandler<E> forEnum(@NonNull Class<E> k) {
-            return (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
-                if (value == null) {
-                    ps.setNull(name, Types.INTEGER);
-                } else {
-                    ps.setInt(name, value.ordinal());
-                }
-            };
-        }
-
-        @SuppressWarnings("unchecked")
-        public void handle(@NonNull NamedParameterStatement ps, @NonNull String name) throws SQLException {
-            switch (type) {
-                case Class<?> c -> {
-                    NameHandler<?> h = Record.class.isAssignableFrom(c) ? forRecordHandler(c.asSubclass(Record.class), flat)
-                            : Enum.class.isAssignableFrom(c) ? forEnum(c.asSubclass(Enum.class))
-                            : ENTRIES.get(c);
-                    if (h == null) throw new UnsupportedOperationException("" + c.getName());
-                    ((NameHandler<Object>) h).handle(ps, name, value);
-                }
-                case ParameterizedType p -> {
-                    if (p.getRawType() != Optional.class) throw new UnsupportedOperationException();
-                    var innerValue = value == null ? null : ((Optional<?>) value).orElse(null);
-                    new SqlNamedParameterWithValue(p.getActualTypeArguments()[0], innerValue, flat).handle(ps, name);
-                }
-                default -> throw new UnsupportedOperationException("" + type);
-            }
-        }
+    public boolean accept(@Nullable Object value) {
+        return strategy.test(value);
     }
 
     @NonNull
-    private static NameChecker forRecordChecker(@NonNull Class<?> k, boolean flat) {
+    private static <E extends Record> NamedHandler<E> forRecord(@NonNull Class<E> k, @NonNull String name, boolean flat) {
+        if (k == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+
         var rcs = k.getRecordComponents();
         var single = rcs.length == 1;
-        return (@NonNull String name) -> {
-            for (var rc : rcs) {
-                var rct = rc.getType();
-                var paramName = single ? name : flat ? rc.getName() : name + "::" + rc.getName();
-                new SqlNamedParameter(rct, flat).check(paramName);
+        var all = Stream.of(rcs).map(rc -> forComponent(rc, name, single, flat)).toList();
+        return (@NonNull NamedParameterStatement ps, @Nullable E value) -> {
+            for (var each : all) {
+                each.handle(ps, value);
             }
         };
     }
 
     @NonNull
-    public void check(@NonNull String name) {
-        switch (type) {
-            case Class<?> c -> {
-                NameChecker h = Record.class.isAssignableFrom(c) ? forRecordChecker(c.asSubclass(Record.class), flat)
-                        : (Enum.class.isAssignableFrom(c) || ENTRIES.containsKey(c) ? x -> {} : null);
-                if (h == null) throw new UnsupportedOperationException("" + c.getName());
-                h.check(name);
+    private static NamedHandler<Object> forComponent(@NonNull RecordComponent rc, @NonNull String name, boolean single, boolean flat) {
+        if (rc == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+
+        var rct = rc.getGenericType();
+
+        var paramName = single ? name
+                : flat ? rc.getName()
+                : name + "::" + rc.getName();
+
+        @SuppressWarnings("unchecked")
+        var inner = (NameHandlerStrategy<Object>) makeStrategy(rct, paramName, flat);
+
+        return (@NonNull NamedParameterStatement ps, @Nullable Object value) -> {
+            Object innerValue;
+            try {
+                innerValue = rc.getAccessor().invoke(value);
+            } catch (IllegalAccessException | InvocationTargetException x) {
+                throw new AssertionError(x);
             }
-            case ParameterizedType p -> {
-                if (p.getRawType() != Optional.class) throw new UnsupportedOperationException();
-                new SqlNamedParameter(p.getActualTypeArguments()[0], flat).check(name);
+            inner.handle(ps, innerValue);
+        };
+    }
+
+    @NonNull
+    private static <E extends Enum<E>> NamedHandler<E> forEnum(@NonNull Class<E> k, @NonNull String name) {
+        if (k == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+
+        return (@NonNull NamedParameterStatement ps, @Nullable E value) -> {
+            if (value == null) {
+                ps.setNull(name, Types.INTEGER);
+            } else {
+                ps.setInt(name, value.ordinal());
             }
-            default -> throw new UnsupportedOperationException("" + type);
+        };
+    }
+
+    @NonNull
+    private static <E> NamedHandler<Optional<E>> forOptional(@NonNull Class<E> k, @NonNull String name, boolean flat) {
+        if (k == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+        var in = forClass(k, name, flat);
+        return (@NonNull NamedParameterStatement ps, @Nullable Optional<E> value) -> in.handle(ps, value == null ? null : value.get());
+    }
+
+    @NonNull
+    private static NamedHandler<Void> forNull(@NonNull String name) {
+        if (name == null) throw new AssertionError();
+
+        return (@NonNull NamedParameterStatement ps, @Nullable Void value) -> {
+            ps.setNull(name, Types.NULL);
+        };
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E> NamedHandler<E> forClass(@NonNull Class<E> k, @NonNull String name, boolean flat) {
+        if (k == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+
+        if (k == void.class || k == Void.class) return (NamedHandler<E>) forNull(name);
+        if (k.isRecord()) return (NamedHandler<E>) forRecord(k.asSubclass(Record.class), name, flat);
+        if (k.isEnum()) return (NamedHandler<E>) forEnum(k.asSubclass(Enum.class), name);
+
+        var h = ENTRIES.get(k);
+        if (h == null) throw new UnsupportedOperationException();
+        return (NamedHandler<E>) h.named(name);
+    }
+
+    private static Predicate<Object> acceptor(@NonNull Class<?> k) {
+        if (k == null) throw new AssertionError();
+        if (k == void.class || k == Void.class) return v -> v == null;
+        if (k.isPrimitive()) {
+            var wrapper = MagicConverter.wrap(k);
+            return wrapper::isInstance;
+        }
+        if (ENTRIES.keySet().contains(k) || k.isRecord() || k.isEnum()) return v -> v == null || k.isInstance(v);
+        throw new IllegalArgumentException();
+    }
+
+    private static NameHandlerStrategy<?> makeStrategy(@NonNull Type type, @NonNull String name, boolean flat) {
+        if (type == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+
+        if (type instanceof Class<?> kk) return new NameHandlerStrategy<>(forClass(kk, name, flat), acceptor(kk));
+        if (type instanceof ParameterizedType pt && pt.getRawType() == Optional.class) {
+            var ptt = pt.getActualTypeArguments();
+            if (ptt.length == 1 && ptt[0] instanceof Class<?> ok) {
+                var in = forOptional(ok, name, flat);
+                Predicate<Object> p = v -> v == null || (v instanceof Optional<?> opt && (opt.isEmpty() || ok.isInstance(opt.get())));
+                return new NameHandlerStrategy<>(in, p);
+            }
+        }
+        throw new UnsupportedOperationException("" + type);
+    }
+
+    private static SqlNamedParameter<?> forParam(int index, @NonNull Parameter p) {
+        return new SqlNamedParameter<>(index, p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
+    }
+
+    public static List<? extends SqlNamedParameter<?>> forMethod(@NonNull Method m) {
+        var pp = m.getParameters();
+        return IntStream.range(0, pp.length).mapToObj(i -> SqlNamedParameter.forParam(i, pp[i])).toList();
+    }
+
+    public static final class SqlNamedParameterWithValue<T> {
+        @NonNull
+        private final SqlNamedParameter<T> inner;
+
+        @Getter
+        @Nullable
+        private final T value;
+
+        private SqlNamedParameterWithValue(@NonNull SqlNamedParameter<T> inner, @Nullable T value) {
+            if (inner == null) throw new AssertionError();
+            if (!inner.accept(value)) throw new IllegalArgumentException();
+            this.inner = inner;
+            this.value = value;
+        }
+
+        public void handle(@NonNull NamedParameterStatement ps) throws SQLException {
+            inner.handle(ps, value);
+        }
+
+        public int getIndex() {
+            return inner.getIndex();
+        }
+
+        @NonNull
+        public Type getType() {
+            return inner.getType();
+        }
+
+        @NonNull
+        public String getName() {
+            return inner.getName();
+        }
+
+        public boolean isFlat() {
+            return inner.isFlat();
         }
     }
 
     @NonNull
-    public SqlNamedParameterWithValue withValue(@Nullable Object valor) {
-        return new SqlNamedParameterWithValue(type, valor, flat);
-    }
-
-    @NonNull
-    public static SqlNamedParameter forClass(@NonNull Class<?> type, boolean flat) {
-        return new SqlNamedParameter(type, flat);
+    public SqlNamedParameterWithValue<T> withValue(@Nullable T value) {
+        return new SqlNamedParameterWithValue<>(this, value);
     }
 }

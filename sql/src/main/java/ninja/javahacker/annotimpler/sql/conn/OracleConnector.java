@@ -19,6 +19,7 @@ public record OracleConnector(
 
     private static final OracleConnector STD = new OracleConnector("localhost", STD_PORT, "admin", "admin", "", false);
 
+    @NonNull
     public static OracleConnector std() {
         return STD;
     }
@@ -42,6 +43,7 @@ public record OracleConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return rac
@@ -49,30 +51,36 @@ public record OracleConnector(
                 : "jdbc:oracle:thin:@" + host + ":" + port + ":" + database;
     }
 
+    @NonNull
     @Override
     public OracleConnector withHost(@NonNull String host) {
         return new OracleConnector(host, port, user, password, database, rac);
     }
 
+    @NonNull
     @Override
     public OracleConnector withUser(@NonNull String user) {
         return new OracleConnector(host, port, user, password, database, rac);
     }
 
+    @NonNull
     @Override
     public OracleConnector withPassword(@NonNull String password) {
         return new OracleConnector(host, port, user, password, database, rac);
     }
 
+    @NonNull
     public OracleConnector withDatabase(@NonNull String database) {
         return new OracleConnector(host, port, user, password, database, rac);
     }
 
+    @NonNull
     @Override
     public OracleConnector withPort(int port) {
         return new OracleConnector(host, port, user, password, database, rac);
     }
 
+    @NonNull
     public OracleConnector withRac(boolean rac) {
         return new OracleConnector(host, port, user, password, database, rac);
     }

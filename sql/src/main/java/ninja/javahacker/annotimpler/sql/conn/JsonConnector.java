@@ -7,11 +7,18 @@ import lombok.experimental.PackagePrivate;
 
 import module com.fasterxml.jackson.core;
 import module com.fasterxml.jackson.databind;
+import module com.fasterxml.jackson.datatype.jdk8;
+import module com.fasterxml.jackson.module.paramnames;
 import module java.base;
 
 @JsonDeserialize(using = JsonConnector.Deserializer.class)
 @JsonSerialize(using = JsonConnector.Serializer.class)
 public final class JsonConnector implements Connector {
+
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+            .registerModule(new Jdk8Module())
+            .registerModule(new ParameterNamesModule());
 
     private static final Map<String, Class<? extends Connector>> CLASSES = new HashMap<>(20);
 
@@ -32,6 +39,7 @@ public final class JsonConnector implements Connector {
                 PostgreSqlConnector.class,
                 SqlServerConnector.class,
                 SqliteConnector.class,
+                SqliteMemoryConnector.class,
                 UrlConnector.class
         );
     }
@@ -77,9 +85,12 @@ public final class JsonConnector implements Connector {
         @Override
         public JsonConnector deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
             var tree = jp.readValueAsTree();
+            if (!(tree instanceof ObjectNode)) throw new UnknownConnectorException("JSON does not contain a connector.");
             var copy = ((ObjectNode) tree).deepCopy();
             var mapper = (ObjectMapper) jp.getCodec();
-            var type = copy.get("type").asText();
+            var node = copy.get("type");
+            if (node == null) throw new UnknownConnectorException("JSON has no type field.");
+            var type = node.asText();
             copy.remove("type");
             var targetClass = find(type).orElseThrow(() -> new UnknownConnectorException("Unknown connector: \"" + type + "\"."));
             var delegate = mapper.readValue(copy + "", targetClass);
@@ -118,6 +129,7 @@ public final class JsonConnector implements Connector {
         }
     }
 
+    @NonNull
     @Override
     public String toString() {
         return "JSON Connector: [" + delegate.toString() + "]";
@@ -131,5 +143,17 @@ public final class JsonConnector implements Connector {
     @Override
     public int hashCode() {
         return delegate.hashCode();
+    }
+
+    @NonNull
+    public static JsonConnector read(@NonNull String json) throws IOException {
+        var r = MAPPER.readValue(json, JsonConnector.class);
+        if (r == null) throw new IOException("No connector found.");
+        return r;
+    }
+
+    @NonNull
+    public String toJson() throws IOException {
+        return MAPPER.writeValueAsString(this);
     }
 }

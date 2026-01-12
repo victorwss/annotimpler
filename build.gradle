@@ -34,6 +34,7 @@ def versionPmd          = "7.19.0"
 def versionSbContrib    = "7.7.2"
 def versionSpotBugs     = "4.9.8"
 def versionSlf4j        = "2.0.17"
+def versionSqlite       = "3.51.1.0"
 
 println("Using Java " + org.gradle.api.JavaVersion.current() + ".")
 println("Local repo: ${repoUrl}")
@@ -135,16 +136,28 @@ subprojects {
         options.encoding = "UTF-8"
         options.debug = true
         options.fork = true
-        options.compilerArgs << "-parameters"
-        options.compilerArgs << "-Xlint:all,-processing"
-        options.compilerArgs << "-Xmaxwarns" << "1000"
-        options.compilerArgs << "-Xmaxerrs" << "1000"
+        options.compilerArgs += "-parameters"
+        options.compilerArgs += "-Xlint:all,-processing"
+        options.compilerArgs += ["-Xmaxwarns", "1000"]
+        options.compilerArgs += ["-Xmaxerrs", "1000"]
         doFirst {
             options.compilerArgs += [
                 "--module-path", classpath.asPath
             ]
             classpath = files()
-            println("Args for ${name} are ${options.allCompilerArgs}")
+            println("Compiler Args for ${name}:")
+            options.compilerArgs.each {
+                println "  ${it}"
+            }
+        }
+    }
+
+    tasks.withType(Test).configureEach {
+        doFirst {
+            println "JVM args for ${name}:"
+            jvmArgs.each {
+                println "  ${it}"
+            }
         }
     }
 
@@ -154,9 +167,9 @@ subprojects {
         sourceCompatibility = versionJavaCompiler
         targetCompatibility = versionJavaCompiler
         if (doclint) {
-            options.compilerArgs << "-Xdoclint:all/protected"
+            options.compilerArgs += "-Xdoclint:all/protected"
         } else {
-            options.compilerArgs << "-Xdoclint:none"
+            options.compilerArgs += "-Xdoclint:none"
         }
     }
 
@@ -164,7 +177,7 @@ subprojects {
         dependsOn(compileJava)
         sourceCompatibility = org.gradle.api.JavaVersion.current()
         targetCompatibility = org.gradle.api.JavaVersion.current()
-        options.compilerArgs << "-Xdoclint:none"
+        options.compilerArgs += "-Xdoclint:none"
     }
 
     javadoc {
@@ -393,10 +406,17 @@ project(":sql") {
         implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
         implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
+
+        // SQLite.
+        testImplementation("org.xerial:sqlite-jdbc:" + versionSqlite)
     }
 
     compileJava {
         dependsOn(":sql:delombok")
+    }
+
+    test {
+        jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
     }
 
     delombok {

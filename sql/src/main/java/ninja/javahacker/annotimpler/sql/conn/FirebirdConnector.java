@@ -19,10 +19,12 @@ public record FirebirdConnector(
 
     private static final FirebirdConnector STD = new FirebirdConnector("localhost", STD_PORT, "SYSDBA", "masterkey", "", "UTF8");
 
+    @NonNull
     public static FirebirdConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static FirebirdConnector create(
             @NonNull Optional<String> host,
@@ -42,35 +44,42 @@ public record FirebirdConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:firebird://" + host + ":" + port + "/" + filename + (encoding.isEmpty() ? "" : "?encoding=" + encoding);
     }
 
+    @NonNull
     @Override
     public FirebirdConnector withHost(@NonNull String host) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }
 
+    @NonNull
     @Override
     public FirebirdConnector withUser(@NonNull String user) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }
 
+    @NonNull
     @Override
     public FirebirdConnector withPassword(@NonNull String password) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }
 
+    @NonNull
     public FirebirdConnector withFilename(@NonNull String filename) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }
 
+    @NonNull
     @Override
     public FirebirdConnector withPort(int port) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }
 
+    @NonNull
     public FirebirdConnector withEncoding(@NonNull String encoding) {
         return new FirebirdConnector(host, port, user, password, filename, encoding);
     }

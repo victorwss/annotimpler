@@ -10,4 +10,5 @@ import module ninja.javahacker.annotimpler.sql;
 @Target(ElementType.METHOD)
 public @interface SqlFromResource {
     public String value();
+    public Class<?> fromClass() default void.class;
 }

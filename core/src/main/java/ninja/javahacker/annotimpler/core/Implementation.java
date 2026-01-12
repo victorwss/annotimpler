@@ -10,8 +10,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public interface Implementation {
 
     @NonNull
-    public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props)
-            throws ConstructionException;
+    public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException;
 
     @FunctionalInterface
     public static interface ImplementationExecutor<E> {

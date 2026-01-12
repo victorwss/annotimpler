@@ -12,10 +12,12 @@ public record AccessConnector(
 {
     private static final AccessConnector STD = new AccessConnector("");
 
+    @NonNull
     public static AccessConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static AccessConnector create(
             @NonNull Optional<String> filename)
@@ -25,11 +27,13 @@ public record AccessConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:ucanaccess:" + filename;
     }
 
+    @NonNull
     public AccessConnector withFilename(@NonNull String filename) {
         return new AccessConnector(filename);
     }

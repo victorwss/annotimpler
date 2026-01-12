@@ -23,7 +23,8 @@ public class AnnotimplerTest {
     public static class TestImpl1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface1.class, iface),
                     () -> Assertions.assertEquals(TestIface1.class.getMethod("foo"), m),
@@ -105,7 +106,8 @@ public class AnnotimplerTest {
     public static class TestImpl2 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
                     () -> Assertions.assertTrue(List.of("foo", "bar").contains(m.getName()))
@@ -140,7 +142,8 @@ public class AnnotimplerTest {
 
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
                     () -> Assertions.assertEquals(TestIface2.class.getMethod("baz"), m),
@@ -160,7 +163,8 @@ public class AnnotimplerTest {
     public static class TestImpl4 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
                     () -> Assertions.assertEquals(TestIface2.class.getMethod("oops"), m),
@@ -179,7 +183,8 @@ public class AnnotimplerTest {
     public static class TestImpl5 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
                     () -> Assertions.assertEquals(TestIface2.class.getMethod("wtf"), m),
@@ -237,7 +242,8 @@ public class AnnotimplerTest {
     public static class TestBadImpl1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestBadIface1.class, iface),
                     () -> Assertions.assertEquals(TestBadIface1.class.getMethod("foo"), m),
@@ -252,9 +258,10 @@ public class AnnotimplerTest {
     public static class TestBadImpl2 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props)
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props)
                 throws ConstructionException
         {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestBadIface1.class, iface),
                     () -> Assertions.assertEquals(TestBadIface1.class.getMethod("crash"), m),
@@ -278,7 +285,8 @@ public class AnnotimplerTest {
     public static class TestBadImpl3 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestBadIface3.class, iface),
                     () -> Assertions.assertEquals(TestBadIface3.class.getMethod("crash"), m),
@@ -352,7 +360,8 @@ public class AnnotimplerTest {
     public static class TestImpl6 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestStdIface6.class, iface),
                     () -> Assertions.assertEquals(TestStdIface6.class.getMethod("wtf"), m),
@@ -386,7 +395,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl7 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             throw new AssertionError();
         }
     }
@@ -399,7 +408,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl8 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             throw new AssertionError();
         }
     }
@@ -491,7 +500,8 @@ public class AnnotimplerTest {
     public static class TestImplKeys1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props) {
+        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIfaceKeys1.class, iface),
                     () -> Assertions.assertEquals(TestIfaceKeys1.class.getMethod("foo"), m),

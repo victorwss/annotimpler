@@ -24,7 +24,8 @@ public class ConnectionStartConfigTest {
                 new Config(OracleConnector::std, 1521, "oracle"),
                 new Config(PostgreSqlConnector::std, 5432, "postgresql"),
                 new Config(SqlServerConnector::std, 1433, "sqlserver"),
-                new Config(SqliteConnector::std, 0, "sqlite")
+                new Config(SqliteConnector::std, 0, "sqlite"),
+                new Config(SqliteMemoryConnector::std, 0, "sqlite-memory")
         );
     }
 

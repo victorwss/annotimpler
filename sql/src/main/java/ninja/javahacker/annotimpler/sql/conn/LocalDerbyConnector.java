@@ -14,10 +14,12 @@ public record LocalDerbyConnector(
 {
     private static final LocalDerbyConnector STD = new LocalDerbyConnector("", DerbyType.DEFAULT, false);
 
+    @NonNull
     public static LocalDerbyConnector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static LocalDerbyConnector create(
             @NonNull Optional<String> directory,
@@ -31,6 +33,7 @@ public record LocalDerbyConnector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:derby:" + subsubprotocol.part + directory + (create ? "?create=true" : "");
@@ -39,6 +42,7 @@ public record LocalDerbyConnector(
     public static enum DerbyType {
         DEFAULT, DIRECTORY, MEMORY, CLASSPATH, JAR;
 
+        @NonNull
         private final String part;
 
         private DerbyType() {
@@ -46,14 +50,17 @@ public record LocalDerbyConnector(
         }
     }
 
+    @NonNull
     public LocalDerbyConnector withDirectory(@NonNull String directory) {
         return new LocalDerbyConnector(directory, subsubprotocol, create);
     }
 
+    @NonNull
     public LocalDerbyConnector withSubsubprotocol(@NonNull DerbyType subsubprotocol) {
         return new LocalDerbyConnector(directory, subsubprotocol, create);
     }
 
+    @NonNull
     public LocalDerbyConnector withCreate(boolean create) {
         return new LocalDerbyConnector(directory, subsubprotocol, create);
     }

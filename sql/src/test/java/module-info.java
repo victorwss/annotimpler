@@ -10,6 +10,7 @@ open module ninja.javahacker.test.annotimpler.sql {
     requires com.fasterxml.jackson.datatype.jdk8;
     requires com.fasterxml.jackson.datatype.jsr310;
     requires com.fasterxml.jackson.module.paramnames;
+    requires org.xerial.sqlitejdbc;
     requires static lombok;
     requires static com.github.spotbugs.annotations;
 }

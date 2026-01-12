@@ -14,10 +14,12 @@ public record H2Connector(
 {
     private static final H2Connector STD = new H2Connector("sa", "password", "");
 
+    @NonNull
     public static H2Connector std() {
         return STD;
     }
 
+    @NonNull
     @JsonCreator
     public static H2Connector create(
             @NonNull Optional<String> user,
@@ -31,21 +33,25 @@ public record H2Connector(
         return r[0];
     }
 
+    @NonNull
     @Override
     public String url() {
         return "jdbc:h2:~/" + filename;
     }
 
+    @NonNull
     @Override
     public H2Connector withUser(@NonNull String user) {
         return new H2Connector(user, password, filename);
     }
 
+    @NonNull
     @Override
     public H2Connector withPassword(@NonNull String password) {
         return new H2Connector(user, password, filename);
     }
 
+    @NonNull
     public H2Connector withFilename(@NonNull String filename) {
         return new H2Connector(user, password, filename);
     }

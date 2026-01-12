@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
 
 import module java.base;
@@ -19,61 +20,83 @@ public final class QuerySqlImplementation implements Implementation {
         return connect.get();
     }
 
-    @NonNull
-    @Override
-    public <E> ImplementationExecutor<E> prepare(@NonNull Class<E> iface, @NonNull Method m, @NonNull PropertyBag props)
-            throws ConstructionException
-    {
-        var q = m.getAnnotation(QuerySql.class);
-        if (q == null) throw new IllegalArgumentException();
-        var rt = relevantType(m);
+    private static String nome(@NonNull Method m) {
+        return NameDictionary.global().getSimplifiedGenericString(m, true);
+    }
+
+    @FunctionalInterface
+    interface SpecialFunc {
+        public Object operate(SqlWorker work) throws SQLException, ConstructionException;
+    }
+
+    private static SpecialFunc findWork(@NonNull Method m, @NonNull QuerySql q) throws ConstructionException {
+        if (m == null) throw new AssertionError();
+        if (q == null) throw new AssertionError();
+
         var campos = q.campos();
-        var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
+        var rtb = m.getGenericReturnType();
+
+        Class<?> rt;
+        if (rtb instanceof ParameterizedType pt) {
+            var base = pt.getRawType();
+            if (base != List.class && base != Optional.class) {
+                throw new UnsupportedOperationException(nome(m) + " - " + base);
+            }
+            if (!(pt.getActualTypeArguments()[0] instanceof Class<?> rtb2)) {
+                throw new ConstructionException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
+            }
+            rt = rtb2;
+        } else if (rtb instanceof Class<?> rtb2) {
+            rt = rtb2;
+        } else {
+            throw new ConstructionException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
+        }
+
         if (rt.isRecord()) {
             if (campos.length != 0 && campos.length != rt.getRecordComponents().length) {
-                throw new ConstructionException("Mismatch multi-field return @Query record on: " + nome, iface);
+                throw new ConstructionException("Mismatch multi-field return @Query record on: " + nome(m), m.getDeclaringClass());
             }
         } else if (campos.length > 1) {
-            throw new ConstructionException("Mismatch single-field return @Query record on: " + nome, iface);
+            throw new ConstructionException("Mismatch single-field return @Query record on: " + nome(m), m.getDeclaringClass());
         }
-        var supplier = SqlFactory.find(iface, m);
-
-        return (@NonNull E instance, @NonNull Object... a) -> {
-            var mps = supplier.get();
-            var sql = mps.getQuery().parsed();
-            var params = mps.associar(a);
-            var rtb = m.getReturnType();
-            java.lang.Class<?> rt1 = relevantType(m);
-            if (rtb == List.class) {
-                return params.listar(getConnection(), rt1, sql, q.campos());
-            }
-            java.util.Optional<?> opt = params.ler(getConnection(), rt1, sql, q.campos());
-            if (rtb == Optional.class) return opt;
-            if (rtb == OptionalInt.class) return opt.isEmpty() ? OptionalInt.empty() : OptionalInt.of((int) opt.get());
-            if (rtb == OptionalLong.class) return opt.isEmpty() ? OptionalLong.empty() : OptionalLong.of((long) opt.get());
-            if (rtb == OptionalDouble.class) return opt.isEmpty() ? OptionalDouble.empty() : OptionalDouble.of((double) opt.get());
-            return opt.orElse(null);
-        };
+        if (rtb == List.class) return work -> work.listar(rt, campos);
+        if (rtb == Optional.class) return work -> work.ler(rt, campos);
+        if (rtb == OptionalInt.class) return work -> asInt(work.ler(Integer.class, campos));
+        if (rtb == OptionalLong.class) return work -> asLong(work.ler(Long.class, campos));
+        if (rtb == OptionalDouble.class) return work -> asDouble(work.ler(Double.class, campos));
+        return work -> work.ler(rt, campos).orElse(null);
     }
 
     @NonNull
-    private static Class<?> relevantType(@NonNull Method m) {
-        Type t = switch (m.getGenericReturnType()) {
-            case Class<?> c -> c;
-            case ParameterizedType p -> {
-                var base = p.getRawType();
-                if (base != List.class && base != Optional.class) {
-                    throw new UnsupportedOperationException(NameDictionary.global().getSimplifiedGenericString(m, true) + " - " + base);
-                }
-                yield p.getActualTypeArguments()[0];
-            }
-            default -> throw new UnsupportedOperationException(NameDictionary.global().getSimplifiedGenericString(m, true));
+    @Override
+    public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+        var q = m.getAnnotation(QuerySql.class);
+        if (q == null) throw new IllegalArgumentException();
+        var ret = findWork(m, q);
+        var supplier = SqlFactory.find(m);
+
+        return (@NonNull E instance, @NonNull Object... a) -> {
+            var params = supplier.get().associar(a);
+            var work = new SqlWorker(getConnection(), params);
+            return ret.operate(work);
         };
-        if (t == null) throw new AssertionError();
-        if (t == OptionalInt.class) return Integer.class;
-        if (t == OptionalLong.class) return Long.class;
-        if (t == OptionalDouble.class) return Double.class;
-        if (t instanceof Class<?> r) return r;
-        throw new UnsupportedOperationException(t.getTypeName());
+    }
+
+    @Nullable
+    private static OptionalInt asInt(@NonNull Optional<Integer> opt) {
+        if (opt == null) throw new AssertionError();
+        return opt.isEmpty() ? OptionalInt.empty() : OptionalInt.of(opt.get());
+    }
+
+    @Nullable
+    private static OptionalLong asLong(@NonNull Optional<Long> opt) {
+        if (opt == null) throw new AssertionError();
+        return opt.isEmpty() ? OptionalLong.empty() : OptionalLong.of(opt.get());
+    }
+
+    @Nullable
+    private static OptionalDouble asDouble(@NonNull Optional<Double> opt) {
+        if (opt == null) throw new AssertionError();
+        return opt.isEmpty() ? OptionalDouble.empty() : OptionalDouble.of(opt.get());
     }
 }
