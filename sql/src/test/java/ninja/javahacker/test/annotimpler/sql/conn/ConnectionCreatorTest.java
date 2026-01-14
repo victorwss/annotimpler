@@ -212,8 +212,8 @@ public class ConnectionCreatorTest {
 
     @Test
     public void h2CreatorTest() {
-        Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename()};
-        var replaces = new Object[] {"master", "pa$$", "test"};
+        Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
+        var replaces = new Object[] {"master", "pa$$", "test", true};
         testAll(H2Connector.class, replaces, dest, replaces);
     }
 
@@ -304,15 +304,26 @@ public class ConnectionCreatorTest {
     }
 
     @Test
-    public void simpleConnectionTest() throws Exception {
-        var sqlm = "{\"type\":\"sqlite-memory\"}";
+    public void simpleConnectionTestSqlite() throws Exception {
+        var json = "{\"type\":\"sqlite-memory\"}";
         Assertions.assertAll(
                 () -> Assertions.assertDoesNotThrow(() -> connectionTest(SqliteMemoryConnector.std())),
                 () -> Assertions.assertDoesNotThrow(() -> connectionTest(SqliteMemoryConnector.std().asUrl()::get)),
                 () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(SqliteMemoryConnector.std().url()))),
                 () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(SqliteMemoryConnector.std().url())::get)),
-                () -> Assertions.assertDoesNotThrow(() -> connectionTest(JsonConnector.read(sqlm)))
-                // TODO: Connect with auth.
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(JsonConnector.read(json)))
+        );
+    }
+
+    @Test
+    public void simpleConnectionTestH2() throws Exception {
+        var json = "{\"type\":\"h2\",\"memory\":true}";
+        Assertions.assertAll(
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(H2Connector.std().withMemory(true))),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(H2Connector.std().withMemory(true).asUrl()::get)),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(H2Connector.std().withMemory(true).url()))),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(H2Connector.std().withMemory(true).url())::get)),
+                () -> Assertions.assertDoesNotThrow(() -> connectionTest(JsonConnector.read(json)))
         );
     }
 
