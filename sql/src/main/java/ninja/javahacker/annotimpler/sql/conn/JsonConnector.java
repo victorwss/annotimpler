@@ -20,7 +20,8 @@ public final class JsonConnector implements Connector {
             .registerModule(new Jdk8Module())
             .registerModule(new ParameterNamesModule());
 
-    private static final Map<String, Class<? extends Connector>> CLASSES = new HashMap<>(20);
+    private static final Map<String, Class<? extends Connector>> REGISTERED_CLASSES = new HashMap<>(20);
+    private static final Map<String, Class<? extends Connector>> STD_REGISTERED_CLASSES;
 
     @Delegate(types = Connector.class)
     private final Connector delegate;
@@ -40,6 +41,7 @@ public final class JsonConnector implements Connector {
                 SqliteMemoryConnector.class,
                 UrlConnector.class
         );
+        STD_REGISTERED_CLASSES = Map.copyOf(REGISTERED_CLASSES);
     }
 
     public JsonConnector(@NonNull Connector delegate) {
@@ -51,26 +53,32 @@ public final class JsonConnector implements Connector {
     }
 
     @SafeVarargs
-    public static void register(@NonNull Class<? extends Connector>... klasses) {
-        for (var k : klasses) {
-            if (k == JsonConnector.class) throw new IllegalArgumentException();
+    public static void register(@NonNull Class<? extends Connector>... classes) {
+        for (var k : classes) {
+            if (k == null || k == JsonConnector.class) throw new IllegalArgumentException();
             var key = k.getAnnotation(ConnectorJsonKey.class);
             if (key == null) throw new UnsupportedOperationException();
         }
 
-        for (var k : klasses) {
-            var key = k.getAnnotation(ConnectorJsonKey.class);
-            var kv = key.value();
-
-            synchronized (CLASSES) {
-                CLASSES.put(kv, k);
+        synchronized (REGISTERED_CLASSES) {
+            for (var k : classes) {
+                var key = k.getAnnotation(ConnectorJsonKey.class);
+                var kv = key.value();
+                REGISTERED_CLASSES.put(kv, k);
             }
         }
     }
 
+    public static void resetRegister() {
+        synchronized (REGISTERED_CLASSES) {
+            REGISTERED_CLASSES.clear();
+            REGISTERED_CLASSES.putAll(STD_REGISTERED_CLASSES);
+        }
+    }
+
     public static Optional<Class<? extends Connector>> find(@NonNull String key) {
-        synchronized (CLASSES) {
-            return Optional.ofNullable(CLASSES.get(key));
+        synchronized (REGISTERED_CLASSES) {
+            return Optional.ofNullable(REGISTERED_CLASSES.get(key));
         }
     }
 
