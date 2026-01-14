@@ -165,15 +165,6 @@ public class ConnectionPropertyTests {
         return (E) set(conn, "withCreate", boolean.class, value);
     }
 
-    private static LocalDerbyConnector.DerbyType subsubprotocol(Object conn) throws Exception {
-        return (LocalDerbyConnector.DerbyType) get(conn, "subsubprotocol");
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <E> E withSubsubprotocol(E conn, LocalDerbyConnector.DerbyType value) throws Exception {
-        return (E) set(conn, "withSubsubprotocol", LocalDerbyConnector.DerbyType.class, value);
-    }
-
     private static void addTestsConnector(
             @NonNull String ident,
             @NonNull List<Executable> tests,
@@ -321,13 +312,6 @@ public class ConnectionPropertyTests {
             tests.add(() -> Assertions.assertEquals(createv, create(conn), id + "create"));
             tests.add(() -> Assertions.assertEquals(true, create(withCreate(conn, true)), id + "createTrue"));
             tests.add(() -> Assertions.assertEquals(false, create(withCreate(conn, false)), id + "createFalse"));
-        }
-        if (subsubprotocol != null) {
-            var subs = LocalDerbyConnector.DerbyType.valueOf(subsubprotocol);
-            var other = LocalDerbyConnector.DerbyType.values()[(subs.ordinal() + 2) % 5];
-            tests.add(() -> Assertions.assertEquals(subs, subsubprotocol(conn), id + "subsubprotocol"));
-            tests.add(() -> Assertions.assertEquals(other, subsubprotocol(withSubsubprotocol(conn, other)), id + "withSubsubprotocol"));
-            tests.add(() -> ForTests.testNullReflective("subsubprotocol", () -> withSubsubprotocol(conn, null), "withSubsubprotocol-null"));
         }
         if (hashCode != null) {
             var hash = Integer.parseInt(hashCode);
@@ -579,48 +563,6 @@ public class ConnectionPropertyTests {
         var maps = Map.of("user", "sa", "password", "password", "filename", "", "url", urls);
 
         addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(maps, std));
-    }
-
-    @Test
-    public void testLocalDerbyProps() throws Exception {
-        var url1 = "jdbc:derby:directory:C:\\test?create=true";
-        Supplier<Connector> obj1 = () -> new LocalDerbyConnector("C:\\test", LocalDerbyConnector.DerbyType.DIRECTORY, true);
-        var map1 = Map.of("directory", "C:\\test", "subsubprotocol", "DIRECTORY", "create", "true", "url", url1);
-
-        var url2 = "jdbc:derby:jar:sample";
-        Supplier<Connector> obj2 = () -> new LocalDerbyConnector("sample", LocalDerbyConnector.DerbyType.JAR, false);
-        var map2 = Map.of("directory", "sample", "subsubprotocol", "JAR", "create", "false", "url", url2);
-
-        var url3 = "jdbc:derby:memory:sketch?create=true";
-        Supplier<Connector> obj3 = () -> new LocalDerbyConnector("sketch", LocalDerbyConnector.DerbyType.MEMORY, true);
-        var map3 = Map.of("directory", "sketch", "subsubprotocol", "MEMORY", "create", "true", "url", url3);
-
-        var url4 = "jdbc:derby:classpath:/foo";
-        Supplier<Connector> obj4 = () -> new LocalDerbyConnector("/foo", LocalDerbyConnector.DerbyType.CLASSPATH, false);
-        var map4 = Map.of("directory", "/foo", "subsubprotocol", "CLASSPATH", "create", "false", "url", url4);
-
-        Supplier<Connector> std = () -> LocalDerbyConnector.std();
-        var urls = "jdbc:derby:";
-        var maps = Map.of("directory", "", "subsubprotocol", "DEFAULT", "create", "false", "url", urls);
-
-        addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(maps, std));
-    }
-
-    @Test
-    public void testRemoteDerbyProps() throws Exception {
-        var url1 = "jdbc:derby://localhost:1527/test?create=true";
-        Supplier<Connector> obj1 = () -> new RemoteDerbyConnector("localhost", 1527, "test", true);
-        var map1 = Map.of("host", "localhost", "port", "1527", "directory", "test", "create", "true", "url", url1);
-
-        var url2 = "jdbc:derby://10.0.0.1:5555/sample";
-        Supplier<Connector> obj2 = () -> new RemoteDerbyConnector("10.0.0.1", 5555, "sample", false);
-        var map2 = Map.of("host", "10.0.0.1", "port", "5555", "directory", "sample", "create", "false", "url", url2);
-
-        Supplier<Connector> std = () -> RemoteDerbyConnector.std();
-        var urls = "jdbc:derby://localhost:1527/";
-        var maps = Map.of("host", "localhost", "port", "1527", "directory", "", "create", "false", "url", urls);
-
-        addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
     @Test

@@ -31,8 +31,6 @@ public final class JsonConnector implements Connector {
                 FirebirdConnector.class,
                 H2Connector.class,
                 HsqldbConnector.class,
-                LocalDerbyConnector.class,
-                RemoteDerbyConnector.class,
                 MariaDbConnector.class,
                 MySqlConnector.class,
                 OracleConnector.class,

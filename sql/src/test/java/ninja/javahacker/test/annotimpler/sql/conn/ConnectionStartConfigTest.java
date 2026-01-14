@@ -17,8 +17,6 @@ public class ConnectionStartConfigTest {
                 new Config(FirebirdConnector::std, 3050, "firebird"),
                 new Config(H2Connector::std, 0, "h2"),
                 new Config(HsqldbConnector::std, 0, "hsqldb"),
-                new Config(LocalDerbyConnector::std, 0, "local-derby"),
-                new Config(RemoteDerbyConnector::std, 1527, "remote-derby"),
                 new Config(MariaDbConnector::std, 3306, "mariadb"),
                 new Config(MySqlConnector::std, 3306, "mysql"),
                 new Config(OracleConnector::std, 1521, "oracle"),

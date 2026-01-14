@@ -190,20 +190,6 @@ public class ConnectionCreatorTest {
     }
 
     @Test
-    public void localDebyCreatorTest() {
-        Destructure<LocalDerbyConnector> dest = a -> new Object[] {a.directory(), a.subsubprotocol(), a.create()};
-        var replaces = new Object[] {"test", LocalDerbyConnector.DerbyType.JAR, true};
-        testAll(LocalDerbyConnector.class, replaces, dest, replaces);
-    }
-
-    @Test
-    public void remoteDebyCreatorTest() {
-        Destructure<RemoteDerbyConnector> dest = a -> new Object[] {a.host(), a.port(), a.directory(), a.create()};
-        var replaces = new Object[] {"10.0.0.1", 5555, "test", true};
-        testAll(RemoteDerbyConnector.class, replaces, dest, replaces);
-    }
-
-    @Test
     public void hsqldbCreatorTest() {
         Destructure<HsqldbConnector> dest = a -> new Object[] {a.user(), a.password(), a.filename()};
         var replaces = new Object[] {"master", "pa$$", "test"};
