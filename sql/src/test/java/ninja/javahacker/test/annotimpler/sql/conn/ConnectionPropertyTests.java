@@ -526,18 +526,26 @@ public class ConnectionPropertyTests {
     @Test
     public void testHsqldbProps() throws Exception {
         var url1 = "jdbc:hsqldb:file://test.db";
-        Supplier<Connector> obj1 = () -> new HsqldbConnector("admin", "secret", "test.db");
+        Supplier<Connector> obj1 = () -> new HsqldbConnector("admin", "secret", "test.db", false);
         var map1 = Map.of("user", "admin", "password", "secret", "filename", "test.db", "url", url1);
 
         var url2 = "jdbc:hsqldb:file://sample.db";
-        Supplier<Connector> obj2 = () -> new HsqldbConnector("master", "pa$$", "sample.db");
+        Supplier<Connector> obj2 = () -> new HsqldbConnector("master", "pa$$", "sample.db", false);
         var map2 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url2);
+
+        var url3 = "jdbc:hsqldb:mem:sample";
+        Supplier<Connector> obj3 = () -> new HsqldbConnector("master", "pa$$", "sample", true);
+        var map3 = Map.of("user", "master", "password", "pa$$", "filename", "sample", "url", url3);
+
+        var url4 = "jdbc:hsqldb:mem:";
+        Supplier<Connector> obj4 = () -> new HsqldbConnector("master", "pa$$", "", true);
+        var map4 = Map.of("user", "master", "password", "pa$$", "filename", "", "url", url4);
 
         Supplier<Connector> std = () -> HsqldbConnector.std();
         var urls = "jdbc:hsqldb:file://";
         var maps = Map.of("user", "SA", "password", "password", "filename", "", "url", urls);
 
-        addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
+        addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(maps, std));
     }
 
     @Test

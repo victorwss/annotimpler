@@ -191,8 +191,8 @@ public class ConnectionCreatorTest {
 
     @Test
     public void hsqldbCreatorTest() {
-        Destructure<HsqldbConnector> dest = a -> new Object[] {a.user(), a.password(), a.filename()};
-        var replaces = new Object[] {"master", "pa$$", "test"};
+        Destructure<HsqldbConnector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
+        var replaces = new Object[] {"master", "pa$$", "test", true};
         testAll(HsqldbConnector.class, replaces, dest, replaces);
     }
 
