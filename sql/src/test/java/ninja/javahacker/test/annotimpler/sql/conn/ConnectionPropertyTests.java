@@ -464,6 +464,29 @@ public class ConnectionPropertyTests {
     }
 
     @Test
+    public void testDb2Props() throws Exception {
+        var url1 = "jdbc:db2://localhost:50000/test";
+        Supplier<Connector> obj1 = () -> new Db2Connector("localhost", 50000, "admin", "secret", "test");
+        var map1 = Map.of(
+                "host", "localhost", "port", "50000", "user", "admin", "password", "secret", "database", "test", "url", url1
+        );
+
+        var url2 = "jdbc:db2://10.0.0.1:5555/sample";
+        Supplier<Connector> obj2 = () -> new Db2Connector("10.0.0.1", 5555, "master", "pa$$", "sample");
+        var map2 = Map.of(
+                "host", "10.0.0.1", "port", "5555", "user", "master", "password", "pa$$", "database", "sample", "url", url2
+        );
+
+        Supplier<Connector> std = () -> Db2Connector.std();
+        var urls = "jdbc:db2://localhost:50000/";
+        var maps = Map.of(
+                "host", "localhost", "port", "50000", "user", "admin", "password", "admin", "database", "", "url", urls
+        );
+
+        addTestsConnectors(of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
+    }
+
+    @Test
     public void testFirebirdProps() throws Exception {
         var url1 = "jdbc:firebird://localhost:3050/test";
         Supplier<Connector> obj1 = () -> new FirebirdConnector("localhost", 3050, "admin", "secret", "test", "");

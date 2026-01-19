@@ -10,6 +10,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "ThrowableResultIgnored"})
 public class ConnJsonTest {
     private static final String JSON = """
             {
@@ -170,6 +171,7 @@ public class ConnJsonTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     public void testReadBadJsonNull() throws JsonProcessingException {
         ForTests.testNull("json", () -> JsonConnector.read(null), "json");
     }
@@ -272,6 +274,7 @@ public class ConnJsonTest {
     private static void testStd() {
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Optional.of(AccessConnector.class), JsonConnector.find("access")),
+                () -> Assertions.assertEquals(Optional.of(Db2Connector.class), JsonConnector.find("db2")),
                 () -> Assertions.assertEquals(Optional.of(FirebirdConnector.class), JsonConnector.find("firebird")),
                 () -> Assertions.assertEquals(Optional.of(H2Connector.class), JsonConnector.find("h2")),
                 () -> Assertions.assertEquals(Optional.of(HsqldbConnector.class), JsonConnector.find("hsqldb")),

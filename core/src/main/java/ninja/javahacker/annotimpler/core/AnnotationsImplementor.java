@@ -9,122 +9,33 @@ import module ninja.javahacker.annotimpler.magicfactory;
 
 public final class AnnotationsImplementor {
 
-    private static final List<Method> OBJECT_DEFAULT = XSupplier.wrap(() -> {
-        var a = Object.class.getMethod("hashCode");
-        var b = Object.class.getMethod("toString");
-        var c = Object.class.getMethod("equals", Object.class);
-        return List.of(a, b, c);
-    }).get();
-
     private AnnotationsImplementor() {
         throw new UnsupportedOperationException();
     }
 
-    private static <E> int hashCode(@NonNull E instance, @NonNull Object... a) {
-        if (instance == null) throw new AssertionError();
-        if (a == null) throw new AssertionError();
-        if (a.length != 0) throw new AssertionError();
-        return System.identityHashCode(instance);
-    }
-
-    private static <E> boolean equals(@NonNull E instance, @NonNull Object... a) {
-        if (instance == null) throw new AssertionError();
-        if (a == null) throw new AssertionError();
-        if (a.length != 1) throw new AssertionError();
-        return a[0] == instance;
-    }
-
-    private enum DefaultImplementation implements Implementation {
-        INSTANCE;
-
-        @NonNull
-        @Override
-        @SuppressWarnings("PMD.CompareObjectsWithEquals")
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
-            if (m == null) throw new AssertionError();
-            if (props == null) throw new AssertionError();
-
-            if (Methods.isHashCode(m)) return AnnotationsImplementor::hashCode;
-            if (Methods.isEquals(m)) return AnnotationsImplementor::equals;
-            if (Methods.isToString(m)) {
-                return (E instance, Object... a) -> {
-                    if (instance == null) throw new AssertionError();
-                    if (a == null) throw new AssertionError();
-                    if (a.length != 0) throw new AssertionError();
-                    var ifaces = instance.getClass().getInterfaces();
-                    if (ifaces.length == 0) throw new AssertionError();
-                    var iface = ifaces[0];
-                    return "impl[" + iface.getName() + "]-" + System.identityHashCode(instance);
-                };
-            }
-            if (m.isDefault()) {
-                return (E instance, Object... a) -> {
-                    if (instance == null) throw new AssertionError();
-                    if (a == null) throw new AssertionError();
-                    return InvocationHandler.invokeDefault(instance, m, a);
-                };
-            }
-            var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
-            throw new ConstructionException(msg, m.getDeclaringClass());
-        }
+    private static String name(@NonNull Method m) {
+        return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
     @NonNull
-    private static Implementation.ImplementationExecutor<Object> findImplementation(
-            @NonNull Method m,
-            @NonNull PropertyBag props)
-            throws ConstructionException
-    {
+    private static CallContext<Object> findImplementation(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
         if (m == null) throw new AssertionError();
         if (props == null) throw new AssertionError();
 
         var impls = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(ImplementedBy.class)).toList();
         if (impls.size() > 1) {
-            var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
-            throw new ConstructionException("Annotations on: " + nome, m.getDeclaringClass());
+            throw new ConstructionException("Too many implementations by annotations on: " + name(m), m.getDeclaringClass());
         }
-        Implementation impl;
-
         if (impls.isEmpty()) {
-            impl = DefaultImplementation.INSTANCE;
-        } else {
-            var implClass = impls.getFirst().annotationType().getAnnotation(ImplementedBy.class).value();
-            var magic = MagicFactory.of(implClass);
-            impl = magic.create();
+            return DefaultImplementation.of(m).orElseThrow(() -> {
+                var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
+                return new ConstructionException(msg, m.getDeclaringClass());
+            });
         }
-        var c = impl.prepare(m, props);
-        if (c == null) {
-            var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
-            throw new ConstructionException("Implementation was null on: " + nome, m.getDeclaringClass());
-        }
+        var implClass = impls.getFirst().annotationType().getAnnotation(ImplementedBy.class).value();
+        var c = MagicFactory.of(implClass).create().prepare(m, props);
+        if (c == null) throw new ConstructionException("Implementation was null on: " + name(m), m.getDeclaringClass());
         return c;
-    }
-
-    @FunctionalInterface
-    private static interface XSupplier<E> {
-        public E get() throws Throwable;
-
-        @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingThrowable"})
-        public static <E> Supplier<E> wrap(@NonNull XSupplier<E> x) {
-            if (x == null) throw new AssertionError();
-            return () -> {
-                try {
-                    return x.get();
-                } catch (Throwable t) {
-                    throw new ImplementationFailedException(t);
-                }
-            };
-        }
-    }
-
-    public static class ImplementationFailedException extends RuntimeException {
-        @Serial
-        private static final long serialVersionUID = 1L;
-
-        public ImplementationFailedException(@NonNull Throwable cause) {
-            List.of(cause); // Force lombok put the null-checks before the constructor call.
-            super(cause);
-        }
     }
 
     @NonNull
@@ -141,7 +52,7 @@ public final class AnnotationsImplementor {
 
         var ifaceMeths = Stream.of(iface.getMethods());
 
-        var meths = Stream.concat(OBJECT_DEFAULT.stream(), ifaceMeths)
+        var meths = Stream.concat(DefaultImplementation.OBJECT_DEFAULT.stream(), ifaceMeths)
                 .collect(Collectors.toMap(m -> m, m -> XSupplier.wrap(() -> findImplementation(m, props2)).get()));
 
         InvocationHandler ih = (p, m, a) -> {

@@ -37,7 +37,7 @@ public final class ExecuteSqlImplementation implements Implementation {
     }
 
     @Override
-    public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
         var e = m.getAnnotation(ExecuteSql.class);
         if (e == null) throw new IllegalArgumentException();
 

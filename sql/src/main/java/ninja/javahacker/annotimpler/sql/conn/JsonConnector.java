@@ -29,6 +29,7 @@ public final class JsonConnector implements Connector {
     static {
         register(
                 AccessConnector.class,
+                Db2Connector.class,
                 FirebirdConnector.class,
                 H2Connector.class,
                 HsqldbConnector.class,

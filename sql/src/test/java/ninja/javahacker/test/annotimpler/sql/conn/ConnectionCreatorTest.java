@@ -176,6 +176,13 @@ public class ConnectionCreatorTest {
     }
 
     @Test
+    public void db2CreatorTest() {
+        Destructure<Db2Connector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
+        var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
+        testAll(Db2Connector.class, replaces, dest, replaces);
+    }
+
+    @Test
     public void sqlServerCreatorTest() {
         Destructure<SqlServerConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};

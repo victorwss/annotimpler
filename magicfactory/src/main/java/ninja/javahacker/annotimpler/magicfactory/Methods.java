@@ -47,6 +47,10 @@ public final class Methods {
         return m.getParameterCount() == 1 && "equals".equals(m.getName()) && m.getParameterTypes()[0] == Object.class;
     }
 
+    public static boolean isOverride(@NonNull Method m) {
+        return m.getParameterCount() == 1 && "equals".equals(m.getName()) && m.getParameterTypes()[0] == Object.class;
+    }
+
     public static boolean isSimple(@NonNull Method m) {
         var mods = m.getModifiers();
         return m.isSynthetic()
@@ -112,5 +116,71 @@ public final class Methods {
         var rest = new Object[args.length - 1];
         System.arraycopy(args, 1, rest, 0, rest.length);
         return what.invoke(inst, rest);
+    }
+
+    @NonNull
+    public static Optional<Method> findDefaultImplementation(@NonNull Method m) {
+        var declaring = m.getDeclaringClass();
+        if (!declaring.isInterface()) {
+            return Optional.empty();
+        }
+
+        var name = m.getName();
+        var params = m.getParameterTypes();
+
+        // 1. Coleta todos os métodos default compatíveis
+        List<Method> candidates = new ArrayList<>();
+
+        for (var iface : getAllInterfaces(declaring)) {
+            for (var im : iface.getMethods()) {
+                if (im.isDefault() && im.getName().equals(name) && Arrays.equals(im.getParameterTypes(), params)) {
+                    candidates.add(im);
+                }
+            }
+        }
+
+        if (candidates.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // 2. Mantém apenas os métodos default mais específicos
+        Set<Method> mostSpecific = new HashSet<>(candidates);
+
+        for (var m2 : candidates) {
+            if (!mostSpecific.contains(m2)) continue;
+            for (var m1 : candidates) {
+                if (!mostSpecific.contains(m1)) continue;
+                if (m1 != m2 && m1.getDeclaringClass().isAssignableFrom(m2.getDeclaringClass())) {
+                    mostSpecific.remove(m1);
+                    break;
+                }
+            }
+        }
+
+        // 3. Diamante real ou inexistência
+        if (mostSpecific.size() != 1) {
+            return Optional.empty();
+        }
+
+        return Optional.of(mostSpecific.iterator().next());
+    }
+
+    @NonNull
+    public static Set<Class<?>> getAllInterfaces(@NonNull Class<?> iface) {
+        Set<Class<?>> result = new LinkedHashSet<>();
+        Deque<Class<?>> stack = new ArrayDeque<>();
+
+        stack.push(iface);
+
+        while (!stack.isEmpty()) {
+            var current = stack.pop();
+            if (current.isInterface() && result.add(current)) {
+                for (var parent : current.getInterfaces()) {
+                    stack.push(parent);
+                }
+            }
+        }
+
+        return result;
     }
 }

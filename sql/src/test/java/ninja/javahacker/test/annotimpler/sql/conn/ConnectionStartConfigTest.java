@@ -14,6 +14,7 @@ public class ConnectionStartConfigTest {
     private static List<Config> stds() {
         return List.of(
                 new Config(AccessConnector::std, 0, "access"),
+                new Config(Db2Connector::std, 50000, "db2"),
                 new Config(FirebirdConnector::std, 3050, "firebird"),
                 new Config(H2Connector::std, 0, "h2"),
                 new Config(HsqldbConnector::std, 0, "hsqldb"),

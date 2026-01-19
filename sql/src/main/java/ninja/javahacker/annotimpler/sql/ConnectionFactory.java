@@ -10,7 +10,7 @@ public interface ConnectionFactory {
     @NonNull
     public Connection get() throws SQLException;
 
-    public default <E> E create(@NonNull Class<E> iface) throws AnnotationsImplementor.ImplementationFailedException {
+    public default <E> E create(@NonNull Class<E> iface) throws XSupplier.ImplementationFailedException {
         var m = PropertyBag.root().add(SqlKeyProperty.INSTANCE, this);
         return AnnotationsImplementor.implement(iface, m);
     }

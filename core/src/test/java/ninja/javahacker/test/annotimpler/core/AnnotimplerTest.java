@@ -8,6 +8,7 @@ import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings({"missing-explicit-ctor", "AssertEqualsBetweenInconvertibleTypes"})
 public class AnnotimplerTest {
 
     @ImplementedBy(TestImpl1.class)
@@ -23,7 +24,7 @@ public class AnnotimplerTest {
     public static class TestImpl1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface1.class, iface),
@@ -106,7 +107,7 @@ public class AnnotimplerTest {
     public static class TestImpl2 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
@@ -142,7 +143,7 @@ public class AnnotimplerTest {
 
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
@@ -163,7 +164,7 @@ public class AnnotimplerTest {
     public static class TestImpl4 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
@@ -183,7 +184,7 @@ public class AnnotimplerTest {
     public static class TestImpl5 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIface2.class, iface),
@@ -242,7 +243,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestBadIface1.class, iface),
@@ -258,7 +259,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl2 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props)
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props)
                 throws ConstructionException
         {
             var iface = m.getDeclaringClass();
@@ -273,7 +274,7 @@ public class AnnotimplerTest {
 
     @Test
     public void testBadImpl1And2() {
-        var c = AnnotationsImplementor.ImplementationFailedException.class;
+        var c = XSupplier.ImplementationFailedException.class;
         var ex = Assertions.assertThrows(c, () -> AnnotationsImplementor.implement(TestBadIface1.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(ConstructionException.class, ex.getCause().getClass()),
@@ -285,7 +286,8 @@ public class AnnotimplerTest {
     public static class TestBadImpl3 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        @SuppressWarnings("null")
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestBadIface3.class, iface),
@@ -308,7 +310,7 @@ public class AnnotimplerTest {
 
     @Test
     public void testBadImpl3() {
-        var c = AnnotationsImplementor.ImplementationFailedException.class;
+        var c = XSupplier.ImplementationFailedException.class;
         var msg = "Implementation was null on: TestBadIface3/String TestBadIface3.crash()";
         var ex = Assertions.assertThrows(c, () -> AnnotationsImplementor.implement(TestBadIface3.class));
         Assertions.assertAll(
@@ -324,7 +326,7 @@ public class AnnotimplerTest {
 
     @Test
     public void testBadImpl4() {
-        var c = AnnotationsImplementor.ImplementationFailedException.class;
+        var c = XSupplier.ImplementationFailedException.class;
         var msg = "Method String TestBadIface4.crash() lacks annotation-defined implementation.";
         var ex = Assertions.assertThrows(c, () -> AnnotationsImplementor.implement(TestBadIface4.class));
         Assertions.assertAll(
@@ -360,7 +362,7 @@ public class AnnotimplerTest {
     public static class TestImpl6 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestStdIface6.class, iface),
@@ -395,7 +397,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl7 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             throw new AssertionError();
         }
     }
@@ -408,7 +410,7 @@ public class AnnotimplerTest {
     public static class TestBadImpl8 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             throw new AssertionError();
         }
     }
@@ -421,8 +423,8 @@ public class AnnotimplerTest {
 
     @Test
     public void testBadImpl7() {
-        var c = AnnotationsImplementor.ImplementationFailedException.class;
-        var msg = "Annotations on: TestBadIface7/String TestBadIface7.crash()";
+        var c = XSupplier.ImplementationFailedException.class;
+        var msg = "Too many implementations by annotations on: TestBadIface7/String TestBadIface7.crash()";
         var ex = Assertions.assertThrows(c, () -> AnnotationsImplementor.implement(TestBadIface7.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(ConstructionException.class, ex.getCause().getClass()),
@@ -456,19 +458,20 @@ public class AnnotimplerTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     public void testNulls() {
         Assertions.assertAll(
                 () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null), "simple-null"),
                 () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, null), "double-null"),
                 () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, PropertyBag.root()), "simple-null-2"),
-                () -> ForTests.testNull("cause", () -> new AnnotationsImplementor.ImplementationFailedException(null), "ex")
+                () -> ForTests.testNull("cause", () -> new XSupplier.ImplementationFailedException(null), "ex")
         );
     }
 
     @Test
     public void testEx() {
         var a = new Exception();
-        Assertions.assertEquals(a, new AnnotationsImplementor.ImplementationFailedException(a).getCause());
+        Assertions.assertEquals(a, new XSupplier.ImplementationFailedException(a).getCause());
     }
 
     @Test
@@ -500,7 +503,7 @@ public class AnnotimplerTest {
     public static class TestImplKeys1 implements Implementation {
         @NonNull
         @Override
-        public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
                     () -> Assertions.assertEquals(TestIfaceKeys1.class, iface),

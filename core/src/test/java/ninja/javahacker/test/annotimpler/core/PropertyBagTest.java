@@ -6,6 +6,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings("missing-explicit-ctor")
 public class PropertyBagTest {
 
     public static record TestKey1(int x, String a, int b) implements KeyProperty<String> {

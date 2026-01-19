@@ -69,7 +69,7 @@ public final class QuerySqlImplementation implements Implementation {
 
     @NonNull
     @Override
-    public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
         var q = m.getAnnotation(QuerySql.class);
         if (q == null) throw new IllegalArgumentException();
         var ret = findWork(m, q);

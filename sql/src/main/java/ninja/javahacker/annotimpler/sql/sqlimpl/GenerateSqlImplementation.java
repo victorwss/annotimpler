@@ -57,7 +57,7 @@ public final class GenerateSqlImplementation implements Implementation {
     }
 
     @Override
-    public <E> ImplementationExecutor<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
         var g = m.getAnnotation(GenerateSql.class);
         if (g == null) throw new IllegalArgumentException();
         var ret = findWork(m);
