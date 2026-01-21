@@ -27,7 +27,7 @@ public record ParsedQuery(
     }
 
     @NonNull
-    private static <A, B> Map<A, List<B>> deepCopy2(Map<A, List<B>> input) {
+    private static <A, B> Map<A, List<B>> deepCopy2(@NonNull Map<A, List<B>> input) {
         if (input == null) throw new AssertionError();
         var sketch = new LinkedHashMap<A, List<B>>(input);
         sketch.replaceAll((k, v) -> List.copyOf(v));
@@ -35,7 +35,7 @@ public record ParsedQuery(
     }
 
     @NonNull
-    private static Optional<String> readName(String original, int i) {
+    private static Optional<String> readName(@NonNull String original, int i) {
         if (original == null) throw new AssertionError();
         var c = original.charAt(i);
         if (c != COLON) return Optional.empty();

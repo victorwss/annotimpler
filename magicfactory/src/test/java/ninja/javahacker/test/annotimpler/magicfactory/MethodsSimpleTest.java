@@ -1,10 +1,11 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import ninja.javahacker.test.ForTests;
+import java.lang.reflect.Executable;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
-
-import ninja.javahacker.test.ForTests;
 
 public class MethodsSimpleTest {
 
@@ -244,6 +245,8 @@ public class MethodsSimpleTest {
             () -> ForTests.testNull("m", () -> Methods.isObjectIntrinsic(null), "isObjectIntrinsic"),
             () -> ForTests.testNull("m", () -> Methods.isFinalize(null), "isFinalize"),
             () -> ForTests.testNull("what", () -> Methods.getReturnType((Method) null), "getReturnType-Method"),
+            () -> ForTests.testNull("what", () -> Methods.getReturnType((Constructor<?>) null), "getReturnType-Constructor"),
+            () -> ForTests.testNull("what", () -> Methods.getReturnType((Executable) null), "getReturnType-Executable"),
             () -> ForTests.testNull("field", () -> Methods.getReturnType((Field) null), "getReturnType-Field"),
             () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12), "paramMap-Exectuable"),
             () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null), "paramMap-NPE")

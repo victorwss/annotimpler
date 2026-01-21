@@ -7,6 +7,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "unused"})
 public class MethodsInvokeTest {
 
     public static class LameException extends RuntimeException {
@@ -59,6 +60,14 @@ public class MethodsInvokeTest {
         private void foo4() {
             throw new AssertionError();
         }
+
+        public static int foo5() {
+            return 42;
+        }
+
+        public int foo6() {
+            return 42;
+        }
     }
 
     @Test
@@ -69,6 +78,7 @@ public class MethodsInvokeTest {
     }
 
     @Test
+    @SuppressWarnings("null")
     public void testInvokeConstructorExec() throws Exception {
         Executable ctor = RunMe.class.getConstructor(String.class);
         var r = (RunMe) Methods.invoke(ctor, "xoom");
@@ -79,6 +89,12 @@ public class MethodsInvokeTest {
     public void testInvokeStatic() throws Exception {
         var m = RunMe.class.getMethod("valueY", String.class);
         Assertions.assertEquals("foofoo", Methods.invoke(m, "foo"));
+    }
+
+    @Test
+    public void testInvokeStatic2() throws Exception {
+        var m = RunMe.class.getMethod("foo5");
+        Assertions.assertEquals(42, Methods.invoke(m));
     }
 
     @Test
@@ -147,6 +163,19 @@ public class MethodsInvokeTest {
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> Methods.invoke((Executable) e7, r, "x")),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> Methods.invoke((Executable) e7, r)),
             () -> Assertions.assertThrows(IllegalArgumentException.class, () -> Methods.invoke((Executable) e7, "c", 5))
+        );
+    }
+
+    @Test
+    public void testInvokeNullPointerException() throws Exception {
+        var e8 = RunMe.class.getMethod("foo6");
+        Assertions.assertAll(
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke(e8)),
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke((Executable) e8)),
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke(e8, new Object[0])),
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke((Executable) e8, new Object[0])),
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke(e8, (Object) null)),
+            () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke((Executable) e8, (Object) null))
         );
     }
 

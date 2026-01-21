@@ -21,6 +21,11 @@ public final class Transacionador {
     public static record Transacao(@NonNull Connection conexao, @NonNull String id) {
     }
 
+    @FunctionalInterface
+    public static interface XSupplier<E> {
+        public E get() throws Throwable;
+    }
+
     public <T> XSupplier<T> transacionar(@NonNull XSupplier<T> operacao) {
         return () -> {
             var jaTem = local.get() != null;
@@ -44,38 +49,6 @@ public final class Transacionador {
                 local.remove();
             }
         };
-    }
-
-    private static record It<E>(Method m, Transacionador t, E delegate) implements CallContext<E> {
-
-        @Override
-        public Object execute(@NonNull E instance, @NonNull Object... args) throws Throwable {
-            return t.transacionar(() -> m.invoke(delegate, args));
-        }
-    }
-
-    @NonNull
-    private <E> CallContext<E> findImplementation(@NonNull Method m, @NonNull E delegate) throws ConstructionException {
-        if (m == null) throw new AssertionError();
-        return DefaultImplementation.<E>of(m).orElse(new It<>(m, this, delegate));
-    }
-
-    public <E> E transacionar(@NonNull Class<E> iface, @NonNull E delegate) {
-        if (!iface.isInterface()) throw new UnsupportedOperationException();
-
-        var ifaceMeths = Stream.of(iface.getMethods());
-
-        var meths = Stream.concat(DefaultImplementation.OBJECT_DEFAULT.stream(), ifaceMeths)
-                .collect(Collectors.toMap(m -> m, m -> XSupplier.wrap(() -> findImplementation(m, delegate)).get()));
-
-        InvocationHandler ih = (p, m, a) -> {
-            var impl = meths.get(m);
-            if (impl == null) throw new AssertionError();
-            return impl.execute(iface.cast(p), a == null ? new Object[0] : a);
-        };
-
-        var obj = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { iface }, ih);
-        return iface.cast(obj);
     }
 
     @SuppressWarnings("unchecked")

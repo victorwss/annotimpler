@@ -164,7 +164,6 @@ subprojects {
 
     compileJava {
         dependsOn(delombok)
-        source = ["build/src-delomboked"]
         sourceCompatibility = versionJavaCompiler
         targetCompatibility = versionJavaCompiler
         if (doclint) {

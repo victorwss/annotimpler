@@ -62,6 +62,7 @@ public class ConnJsonTest {
     }
 
     @Test
+    @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public void testEqualsHashCodeToString() {
         var delegate1 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var delegate2 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
@@ -71,13 +72,19 @@ public class ConnJsonTest {
         var delegate3 = new MySqlConnector("10.0.0.1", 4444, "dba", "$$$$", "sample");
         var jsc4 = new JsonConnector(delegate3);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(jsc1, jsc2),
+                () -> Assertions.assertTrue(jsc1.equals(jsc2)),
+                () -> Assertions.assertTrue(jsc2.equals(jsc1)),
                 () -> Assertions.assertEquals(jsc1.delegate(), jsc2.delegate()),
-                () -> Assertions.assertEquals(jsc1, jsc3),
+                () -> Assertions.assertTrue(jsc1.equals(jsc3)),
                 () -> Assertions.assertEquals(jsc1.delegate(), jsc3.delegate()),
                 () -> Assertions.assertEquals(delegate1.hashCode(), jsc1.hashCode()),
-                () -> Assertions.assertNotEquals(jsc1, jsc4),
+                () -> Assertions.assertNotEquals(jsc1.hashCode(), jsc4.hashCode()),
+                () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode()),
+                () -> Assertions.assertFalse(jsc1.equals(jsc4)),
+                () -> Assertions.assertFalse(jsc4.equals(jsc1)),
                 () -> Assertions.assertNotEquals(jsc1.delegate(), jsc4.delegate()),
+                () -> Assertions.assertFalse(jsc1.equals("x")),
+                () -> Assertions.assertFalse(jsc1.equals(null)),
                 () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode()),
                 () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc1.toString()),
                 () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc2.toString()),
@@ -357,7 +364,12 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testRegisterBad4() throws JsonProcessingException {
-        ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null), "classes");
+    public void testNulls() throws JsonProcessingException {
+        Assertions.assertAll(
+                () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null), "classes"),
+                () -> ForTests.testNull("key", () -> JsonConnector.find(null), "key"),
+                () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null), "message"),
+                () -> ForTests.testNull("delegate", () -> new JsonConnector(null), "delegate")
+        );
     }
 }

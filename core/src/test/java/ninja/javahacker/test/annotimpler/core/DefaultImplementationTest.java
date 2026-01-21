@@ -39,144 +39,191 @@ public class DefaultImplementationTest {
         public int hashCode();
     }
 
+    private static Runnable r() {
+        InvocationHandler ih = (i, m, a) -> {
+            throw new AssertionError();
+        };
+        var cl = Thread.currentThread().getContextClassLoader();
+        return (Runnable) Proxy.newProxyInstance(cl, new Class<?>[] {Runnable.class}, ih);
+    }
+
+    private static Bar t() {
+        InvocationHandler ih = (i, m, a) -> {
+            throw new AssertionError();
+        };
+        var cl = Thread.currentThread().getContextClassLoader();
+        return (Bar) Proxy.newProxyInstance(cl, new Class<?>[] {Bar.class}, ih);
+    }
+
     @Test
     @SuppressWarnings("null")
     public void testHashCodeBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), DefaultImplementation.HASH_CODE);
+        var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), Methods.HASH_CODE);
+        var inst = r();
+        Runnable s = () -> {};
         var a = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "instance",
-                () -> DefaultImplementation.of(m).get().execute(null, new Object[0]),
+                () -> DefaultImplementation.forHashCode().execute(null, new Object[0]),
                 "hashCode-instance-" + m.getDeclaringClass().getSimpleName()
         ));
         var b = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "args",
-                () -> DefaultImplementation.of(m).get().execute(new Object(), (Object[]) null),
+                () -> DefaultImplementation.forHashCode().execute(inst, (Object[]) null),
                 "hashCode-args" + m.getDeclaringClass().getSimpleName()
         ));
         var c = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> DefaultImplementation.of(m).get().execute(new Object(), (Integer) null)
+                () -> DefaultImplementation.forHashCode().execute(s),
+                "Should be a proxy."
         ));
-        var all = Stream.of(a, b, c).flatMap(x -> x).toList();
+        var d = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> DefaultImplementation.forHashCode().execute(inst, "a"),
+                "Bad arity."
+        ));
+        var all = Stream.of(a, b, c, d).flatMap(x -> x).toList();
         Assertions.assertAll(all);
     }
 
     @Test
     @SuppressWarnings("null")
     public void testToStringBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("toString"), Bar.class.getMethod("toString"), DefaultImplementation.TO_STRING);
+        var mtds = List.of(Foo.class.getMethod("toString"), Bar.class.getMethod("toString"), Methods.TO_STRING);
+        var inst = r();
         var a = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "instance",
-                () -> DefaultImplementation.of(m).get().execute(null, new Object[0]),
+                () -> DefaultImplementation.forToString(Runnable.class).execute(null, new Object[0]),
                 "toString-instance-" + m.getDeclaringClass().getSimpleName()
         ));
         var b = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "args",
-                () -> DefaultImplementation.of(m).get().execute(new Object(), (Object[]) null),
+                () -> DefaultImplementation.forToString(Runnable.class).execute(inst, (Object[]) null),
                 "toString-args" + m.getDeclaringClass().getSimpleName()
         ));
         var c = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> DefaultImplementation.of(m).get().execute(new Object(), (Integer) null)
+                () -> DefaultImplementation.forToString(Runnable.class).execute(() -> {}),
+                "Should be a proxy."
         ));
-        var all = Stream.of(a, b, c).flatMap(x -> x).toList();
+        var d = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> DefaultImplementation.forToString(Runnable.class).execute(inst, "a"),
+                "Bad arity."
+        ));
+        var all = Stream.of(a, b, c, d).flatMap(x -> x).toList();
         Assertions.assertAll(all);
     }
 
     @Test
     @SuppressWarnings("null")
     public void testEqualsBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("equals", Object.class), Bar.class.getMethod("equals", Object.class), DefaultImplementation.EQUALS);
+        var mtds = List.of(Foo.class.getMethod("equals", Object.class), Bar.class.getMethod("equals", Object.class), Methods.EQUALS);
+        var inst = r();
+        Runnable s = () -> {};
         var a = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "instance",
-                () -> DefaultImplementation.of(m).get().execute(null, 42),
+                () -> DefaultImplementation.forEquals().execute(null, 42),
                 "equals-instance-" + m.getDeclaringClass().getSimpleName()
         ));
         var b = mtds.stream().map(m -> (Executable) () -> ForTests.testNull(
                 "args",
-                () -> DefaultImplementation.of(m).get().execute(new Object(), (Object[]) null),
+                () -> DefaultImplementation.forEquals().execute(inst, (Object[]) null),
                 "equals-args" + m.getDeclaringClass().getSimpleName()
         ));
         var c = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> DefaultImplementation.of(m).get().execute(new Object(), new Object[0])
+                () -> DefaultImplementation.forEquals().execute(s),
+                "Should be a proxy."
         ));
         var d = mtds.stream().map(m -> (Executable) () -> Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> DefaultImplementation.of(m).get().execute(new Object(), 42, 63)
+                () -> DefaultImplementation.forEquals().execute(inst, 42, 63),
+                "Bad arity."
         ));
         var all = Stream.of(a, b, c, d).flatMap(x -> x).toList();
         Assertions.assertAll(all);
     }
 
-    private static interface Bottom {
-        public int foo();
-
-        public int bar();
-    }
-
-    private static interface Low extends Bottom {
-        @Override
-        public default int foo() {
-            return 42;
-        }
-
-        @Override
-        public default int bar() {
-            return 50;
-        }
-    }
-
-    private static interface Mid extends Low {
-        @Override
-        public int foo();
-
-        @Override
-        public int bar();
-    }
-
-    private static interface High extends Mid {
-        @Override
-        public default int foo() {
-            return 36;
-        }
-
-        @Override
-        public default int bar() {
-            return 13;
-        }
-    }
-
-    private static interface Top extends High {
+    @Test
+    public void testNonInstantiable() throws Exception {
+        ForTests.testNonInstantiable(DefaultImplementation.class);
     }
 
     @Test
-    @SuppressWarnings("null")
-    public void testDefaultImpl() throws Exception {
-        var th = Thread.currentThread().getContextClassLoader();
-        InvocationHandler ih = (i, n, a) -> {
-            throw new AssertionError();
-        };
-        var b = Proxy.newProxyInstance(th, new Class<?>[] {Bottom.class}, ih);
-        var m = Proxy.newProxyInstance(th, new Class<?>[] {Mid.class}, ih);
-        var t = Proxy.newProxyInstance(th, new Class<?>[] {Top.class}, ih);
-        var tfoo = Top.class.getMethod("foo");
-        var tbar = Top.class.getMethod("bar");
-        var bfoo = Bottom.class.getMethod("foo");
-        var bbar = Bottom.class.getMethod("bar");
+    @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
+    public void testHashCode() throws Throwable {
+        var a = r();
+        var b = r();
+        var c = t();
+        var ha1 = DefaultImplementation.forHashCode().execute(a);
+        var ha2 = DefaultImplementation.forHashCode().execute(a);
+        var hb = DefaultImplementation.forHashCode().execute(b);
+        var hc = DefaultImplementation.forHashCode().execute(c);
         Assertions.assertAll(
-                () -> Assertions.assertEquals(30, DefaultImplementation.of(tfoo).get().execute(t)),
-                () -> Assertions.assertEquals(13, DefaultImplementation.of(tbar).get().execute(t)),
-                () -> Assertions.assertEquals(36, DefaultImplementation.of(tfoo).get().execute(m)),
-                () -> Assertions.assertEquals(13, DefaultImplementation.of(tbar).get().execute(m)),
-                () -> Assertions.assertEquals(42, DefaultImplementation.of(tfoo).get().execute(b)),
-                () -> Assertions.assertEquals(50, DefaultImplementation.of(tbar).get().execute(b)),
-                () -> Assertions.assertEquals(30, DefaultImplementation.of(bfoo).get().execute(t)),
-                () -> Assertions.assertEquals(13, DefaultImplementation.of(bbar).get().execute(t)),
-                () -> Assertions.assertEquals(36, DefaultImplementation.of(bfoo).get().execute(m)),
-                () -> Assertions.assertEquals(13, DefaultImplementation.of(bbar).get().execute(m)),
-                () -> Assertions.assertEquals(42, DefaultImplementation.of(bfoo).get().execute(b)),
-                () -> Assertions.assertEquals(50, DefaultImplementation.of(bbar).get().execute(b))
+                () -> Assertions.assertEquals(Integer.class, ha1.getClass()),
+                () -> Assertions.assertEquals(Integer.class, ha2.getClass()),
+                () -> Assertions.assertEquals(Integer.class, hb.getClass()),
+                () -> Assertions.assertEquals(Integer.class, hc.getClass()),
+                () -> Assertions.assertEquals(ha1, ha2)
+        );
+    }
+
+    @Test
+    @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
+    public void testToString() throws Throwable {
+        var a = r();
+        var b = r();
+        var c = t();
+        var ha = System.identityHashCode(a);
+        var hb = System.identityHashCode(b);
+        var hc = System.identityHashCode(c);
+        var s1a = DefaultImplementation.forToString(Runnable.class).execute(a);
+        var s1b = DefaultImplementation.forToString(Runnable.class).execute(a);
+        var s2 = DefaultImplementation.forToString(Runnable.class).execute(b);
+        var s3 = DefaultImplementation.forToString(Bar.class).execute(c);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("impl[" + Runnable.class.getName() + "]-" + ha, s1a),
+                () -> Assertions.assertEquals("impl[" + Runnable.class.getName() + "]-" + ha, s1b),
+                () -> Assertions.assertEquals("impl[" + Runnable.class.getName() + "]-" + hb, s2),
+                () -> Assertions.assertEquals("impl[" + Bar.class.getName() + "]-" + hc, s3)
+        );
+    }
+
+    @Test
+    @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
+    public void testEquals() throws Throwable {
+        var a = r();
+        var b = r();
+        var c = t();
+        var eq1 = DefaultImplementation.forEquals().execute(a, a);
+        var eq2 = DefaultImplementation.forEquals().execute(b, b);
+        var eq3 = DefaultImplementation.forEquals().execute(c, c);
+        var eq4 = DefaultImplementation.forEquals().execute(a, b);
+        var eq5 = DefaultImplementation.forEquals().execute(b, a);
+        var eq6 = DefaultImplementation.forEquals().execute(a, c);
+        var eq7 = DefaultImplementation.forEquals().execute(c, a);
+        var eq8 = DefaultImplementation.forEquals().execute(b, c);
+        var eq9 = DefaultImplementation.forEquals().execute(a, (Object) null);
+        var eq10 = DefaultImplementation.forEquals().execute(b, (Object) null);
+        var eq11 = DefaultImplementation.forEquals().execute(c, (Object) null);
+        var eq12 = DefaultImplementation.forEquals().execute(a, "x");
+        var eq13 = DefaultImplementation.forEquals().execute(b, "y");
+        var eq14 = DefaultImplementation.forEquals().execute(c, "z");
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(Boolean.TRUE, eq1),
+                () -> Assertions.assertEquals(Boolean.TRUE, eq2),
+                () -> Assertions.assertEquals(Boolean.TRUE, eq3),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq4),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq5),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq6),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq7),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq8),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq9),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq10),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq11),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq12),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq13),
+                () -> Assertions.assertEquals(Boolean.FALSE, eq14)
         );
     }
 }
