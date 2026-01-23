@@ -1,6 +1,8 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
 import ninja.javahacker.test.ForTests;
+import ninja.javahacker.test.NamedTest;
+import org.junit.jupiter.api.function.Executable;
 
 import module com.fasterxml.jackson.core;
 import module com.fasterxml.jackson.databind;
@@ -9,9 +11,11 @@ import module com.fasterxml.jackson.module.paramnames;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "ThrowableResultIgnored"})
 public class ConnJsonTest {
+
     private static final String JSON = """
             {
                 "type": "mariadb",
@@ -21,6 +25,10 @@ public class ConnJsonTest {
                 "password": "secret",
                 "database": "test"
             }""";
+
+    private static NamedTest n(String name, Executable ctx) {
+        return new NamedTest(name, ctx);
+    }
 
     public static ObjectMapper mapper() {
         return new ObjectMapper()
@@ -61,9 +69,8 @@ public class ConnJsonTest {
         );
     }
 
-    @Test
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
-    public void testEqualsHashCodeToString() {
+    private static Stream<Arguments> testEqualsHashCodeToString() {
         var delegate1 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var delegate2 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var jsc1 = new JsonConnector(delegate1);
@@ -71,35 +78,42 @@ public class ConnJsonTest {
         var jsc3 = new JsonConnector(delegate1);
         var delegate3 = new MySqlConnector("10.0.0.1", 4444, "dba", "$$$$", "sample");
         var jsc4 = new JsonConnector(delegate3);
-        Assertions.assertAll(
-                () -> Assertions.assertTrue(jsc1.equals(jsc2)),
-                () -> Assertions.assertTrue(jsc2.equals(jsc1)),
-                () -> Assertions.assertEquals(jsc1.delegate(), jsc2.delegate()),
-                () -> Assertions.assertTrue(jsc1.equals(jsc3)),
-                () -> Assertions.assertEquals(jsc1.delegate(), jsc3.delegate()),
-                () -> Assertions.assertEquals(delegate1.hashCode(), jsc1.hashCode()),
-                () -> Assertions.assertNotEquals(jsc1.hashCode(), jsc4.hashCode()),
-                () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode()),
-                () -> Assertions.assertFalse(jsc1.equals(jsc4)),
-                () -> Assertions.assertFalse(jsc4.equals(jsc1)),
-                () -> Assertions.assertNotEquals(jsc1.delegate(), jsc4.delegate()),
-                () -> Assertions.assertFalse(jsc1.equals("x")),
-                () -> Assertions.assertFalse(jsc1.equals(null)),
-                () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode()),
-                () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc1.toString()),
-                () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc2.toString()),
-                () -> Assertions.assertEquals("JSON Connector: [" + delegate3.toString() + "]", jsc4.toString()),
-                () -> Assertions.assertEquals(delegate1.url(), jsc1.url()),
-                () -> Assertions.assertEquals(delegate1.optUser(), jsc1.optUser()),
-                () -> Assertions.assertEquals(delegate1.optPassword(), jsc1.optPassword()),
-                () -> Assertions.assertEquals(delegate1.optAuth(), jsc1.optAuth()),
-                () -> Assertions.assertEquals(delegate1.asUrl(), jsc1.asUrl()),
-                () -> Assertions.assertEquals(delegate3.url(), jsc4.url()),
-                () -> Assertions.assertEquals(delegate3.optUser(), jsc4.optUser()),
-                () -> Assertions.assertEquals(delegate3.optPassword(), jsc4.optPassword()),
-                () -> Assertions.assertEquals(delegate3.optAuth(), jsc4.optAuth()),
-                () -> Assertions.assertEquals(delegate3.asUrl(), jsc4.asUrl())
-        );
+        return Stream.of(
+                n("equals to self"             , () -> Assertions.assertTrue(jsc1.equals(jsc1))),
+                n("equals to shallow copy"     , () -> Assertions.assertTrue(jsc1.equals(jsc3))),
+                n("equals reflexive shallow"   , () -> Assertions.assertTrue(jsc3.equals(jsc1))),
+                n("equals to deep copy"        , () -> Assertions.assertTrue(jsc1.equals(jsc2))),
+                n("equals reflexive deep"      , () -> Assertions.assertTrue(jsc2.equals(jsc1))),
+                n("delegate is same"           , () -> Assertions.assertEquals(jsc1.delegate(), jsc2.delegate())),
+                n("delegates are equals"       , () -> Assertions.assertEquals(jsc1.delegate(), jsc3.delegate())),
+                n("same delegate hashCode"     , () -> Assertions.assertEquals(delegate1.hashCode(), jsc1.hashCode())),
+                n("distinct hashCode"          , () -> Assertions.assertNotEquals(jsc1.hashCode(), jsc4.hashCode())),
+                n("equals has same hashCode"   , () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode())),
+                n("not equals"                 , () -> Assertions.assertFalse(jsc1.equals(jsc4))),
+                n("not equals reflexive"       , () -> Assertions.assertFalse(jsc4.equals(jsc1))),
+                n("not equals delegates"       , () -> Assertions.assertNotEquals(jsc1.delegate(), jsc4.delegate())),
+                n("not equals to unrelated"    , () -> Assertions.assertFalse(jsc1.equals("x"))),
+                n("not equals to null"         , () -> Assertions.assertFalse(jsc1.equals(null))),
+                n("toString 1"                 , () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc1.toString())),
+                n("toString 2"                 , () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc2.toString())),
+                n("toString 3"                 , () -> Assertions.assertEquals("JSON Connector: [" + delegate3.toString() + "]", jsc4.toString())),
+                n("same url as delegate 1"     , () -> Assertions.assertEquals(delegate1.url(), jsc1.url())),
+                n("same user as delegate 1"    , () -> Assertions.assertEquals(delegate1.optUser(), jsc1.optUser())),
+                n("same password as delegate 1", () -> Assertions.assertEquals(delegate1.optPassword(), jsc1.optPassword())),
+                n("same auth as delegate 1"    , () -> Assertions.assertEquals(delegate1.optAuth(), jsc1.optAuth())),
+                n("same urlconn as delegate 1" , () -> Assertions.assertEquals(delegate1.asUrl(), jsc1.asUrl())),
+                n("same url as delegate 2"     , () -> Assertions.assertEquals(delegate3.url(), jsc4.url())),
+                n("same user as delegate 2"    , () -> Assertions.assertEquals(delegate3.optUser(), jsc4.optUser())),
+                n("same password as delegate 2", () -> Assertions.assertEquals(delegate3.optPassword(), jsc4.optPassword())),
+                n("same auth as delegate 2"    , () -> Assertions.assertEquals(delegate3.optAuth(), jsc4.optAuth())),
+                n("same urlconn as delegate 2" , () -> Assertions.assertEquals(delegate3.asUrl(), jsc4.asUrl()))
+        ).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testEqualsHashCodeToString {0}")
+    public void testEqualsHashCodeToString(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
     private static class BadConnector implements Connector {
@@ -363,13 +377,19 @@ public class ConnJsonTest {
         Assertions.assertEquals(Optional.empty(), JsonConnector.find("goo"));
     }
 
-    @Test
-    public void testNulls() throws JsonProcessingException {
-        Assertions.assertAll(
-                () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null), "classes"),
-                () -> ForTests.testNull("key", () -> JsonConnector.find(null), "key"),
-                () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null), "message"),
-                () -> ForTests.testNull("delegate", () -> new JsonConnector(null), "delegate")
-        );
+    @SuppressWarnings("null")
+    private static Stream<Arguments> testNulls() throws JsonProcessingException {
+        return Stream.of(
+                n("register", () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null))),
+                n("find",     () -> ForTests.testNull("key", () -> JsonConnector.find(null), "key")),
+                n("UCE",      () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null), "message")),
+                n("ctor",     () -> ForTests.testNull("delegate", () -> new JsonConnector(null), "delegate"))
+        ).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

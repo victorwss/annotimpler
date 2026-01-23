@@ -1,12 +1,19 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import ninja.javahacker.test.NamedTest;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 import org.junit.jupiter.api.function.Executable;
 
 public class MethodsComplexTest {
+
+    private static NamedTest n(String name, Executable ctx) {
+        return new NamedTest(name, ctx);
+    }
 
     public static class Something {
 
@@ -38,96 +45,44 @@ public class MethodsComplexTest {
         public <U extends Thread> Map<A, Map<C[], Map<String, ? extends List<? super E>>>> crazy(D param, F foo, U uh);
     }
 
-    @Test
-    public void testParamMap() throws NoSuchMethodException {
+    private static Stream<Arguments> testParamMap() throws NoSuchMethodException {
         var c3poR2d2 = Something.class.getMethod("staticMethod2", int.class, String.class);
         var some = new Something();
         var simpsonsKids = Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class);
         var simpsonsParents = Something.class.getConstructor(int.class, double.class);
 
-        Assertions.assertAll(
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(String.class.getMethod("toString"))),
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(System.class.getMethod("nanoTime"))),
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(List.class.getMethod("of"))),
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("staticMethod1"))),
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("instanceMethod1"))),
-            () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getConstructor())),
+        return Stream.of(
+            n("a", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(String.class.getMethod("toString")))),
+            n("b", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(System.class.getMethod("nanoTime")))),
+            n("c", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(List.class.getMethod("of")))),
+            n("d", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("staticMethod1")))),
+            n("e", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("instanceMethod1")))),
+            n("f", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getConstructor()))),
 
-            () -> Assertions.assertEquals(
+            n("g", () -> Assertions.assertEquals(
                     Map.of("c3po", 5, "r2d2", "bla"),
                     Methods.paramMap(c3poR2d2, 5, "bla", 2, 1)
-            ),
+            )),
 
-            () -> Assertions.assertEquals(
+            n("h", () -> Assertions.assertEquals(
                     Map.of("bart", "santa claus", "lisa", 999, "meggie", some),
                     Methods.paramMap(simpsonsKids, "santa claus", 999, some)
-            ),
+            )),
 
-            () -> Assertions.assertEquals(
+            n("i", () -> Assertions.assertEquals(
                     Map.of("homer", 35, "marge", 33.0),
                     Methods.paramMap(simpsonsParents, 35, 33.0)
-            )
-        );
+            ))
+        ).map(NamedTest::args);
     }
 
-    @Test
-    public void testReturnTypeMethod() throws NoSuchMethodException {
-        Function<Method, Executable> func = m -> () -> Assertions.assertEquals(
-                m.getGenericReturnType(),
-                Methods.getReturnType(m)
-        );
-        var all = List.of(
-            Object.class.getMethod("toString"),
-            Map.class.getMethod("get", Object.class),
-            Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class),
-            Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class)
-        );
-        Assertions.assertAll(all.stream().map(func).toList());
+    @MethodSource
+    @ParameterizedTest(name = "testParamMap {0}")
+    public void testParamMap(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
-    @Test
-    public void testReturnTypeMethodExec() throws NoSuchMethodException {
-        Function<Method, Executable> func = m -> () -> Assertions.assertEquals(
-                m.getGenericReturnType(),
-                Methods.getReturnType((java.lang.reflect.Executable) m)
-        );
-        var all = List.of(
-            Object.class.getMethod("toString"),
-            Map.class.getMethod("get", Object.class),
-            Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class),
-            Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class)
-        );
-        Assertions.assertAll(all.stream().map(func).toList());
-    }
-
-    @Test
-    public void testReturnTypeConstructor() throws NoSuchMethodException {
-        Function<Constructor<?>, Executable> func = c -> () -> Assertions.assertEquals(
-                c.getDeclaringClass(),
-                Methods.getReturnType(c)
-        );
-        var all = List.of(
-            Object.class.getConstructor(),
-            Something.class.getConstructor(),
-            Something.class.getConstructor(int.class, double.class),
-            String.class.getConstructor(byte[].class)
-        );
-        Assertions.assertAll(all.stream().map(func).toList());
-    }
-
-    @Test
-    public void testReturnTypeConstructorExec() throws NoSuchMethodException {
-        Function<Constructor<?>, Executable> func = c -> () -> Assertions.assertEquals(
-                c.getDeclaringClass(),
-                Methods.getReturnType((java.lang.reflect.Executable) c)
-        );
-        var all = List.of(
-            Object.class.getConstructor(),
-            Something.class.getConstructor(),
-            Something.class.getConstructor(int.class, double.class),
-            String.class.getConstructor(byte[].class)
-        );
-        Assertions.assertAll(all.stream().map(func).toList());
+    public record SomeRecord(String wendy, int butters, double mrGarrison) {
     }
 
     public enum SomeEnum {
@@ -141,13 +96,40 @@ public class MethodsComplexTest {
         private Thread kenny;
     }
 
-    public record SomeRecord(String wendy, int butters, double mrGarrison) {
-    }
-
-    @Test
-    public void testReturnTypeField() throws NoSuchFieldException {
-        Function<Field, Executable> func = f -> () -> Assertions.assertEquals(f.getGenericType(), Methods.getReturnType(f));
-        var all = List.of(
+    private static Stream<Arguments> testReturnType() throws Exception {
+        Function<Constructor<?>, NamedTest> func1 = c -> n("Exec " + c.getName(), () -> Assertions.assertEquals(
+                c.getDeclaringClass(),
+                Methods.getReturnType((java.lang.reflect.Executable) c)
+        ));
+        Function<Constructor<?>, NamedTest> func2 = c -> n("Ctor " + c.getName(), () -> Assertions.assertEquals(
+                c.getDeclaringClass(),
+                Methods.getReturnType(c)
+        ));
+        Function<Method, NamedTest> func3 = m -> n("Exec " + m.getName(), () -> Assertions.assertEquals(
+                m.getGenericReturnType(),
+                Methods.getReturnType((java.lang.reflect.Executable) m)
+        ));
+        Function<Method, NamedTest> func4 = m -> n("Meth " + m.getName(), () -> Assertions.assertEquals(
+                m.getGenericReturnType(),
+                Methods.getReturnType(m)
+        ));
+        Function<Field, NamedTest> func5 = f -> n(
+                f.getName(),
+                () -> Assertions.assertEquals(f.getGenericType(), Methods.getReturnType(f))
+        );
+        var ctors = List.of(
+            Object.class.getConstructor(),
+            Something.class.getConstructor(),
+            Something.class.getConstructor(int.class, double.class),
+            String.class.getConstructor(byte[].class)
+        );
+        var meths = List.of(
+            Object.class.getMethod("toString"),
+            Map.class.getMethod("get", Object.class),
+            Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class),
+            Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class)
+        );
+        var fields = List.of(
             SomeEnum.class.getField("RED"),
             SomeEnum.class.getField("GREEN"),
             SomeEnum.class.getField("YELLOW"),
@@ -160,6 +142,17 @@ public class MethodsComplexTest {
             SomeRecord.class.getDeclaredField("butters"),
             SomeRecord.class.getDeclaredField("mrGarrison")
         );
-        Assertions.assertAll(all.stream().map(func).toList());
+        var t1 = ctors.stream().map(func1);
+        var t2 = ctors.stream().map(func2);
+        var t3 = meths.stream().map(func3);
+        var t4 = meths.stream().map(func4);
+        var t5 = fields.stream().map(func5);
+        return Stream.of(t1, t2, t3, t4, t5).flatMap(x -> x).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testReturnType {0}")
+    public void testReturnType(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

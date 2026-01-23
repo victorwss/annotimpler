@@ -31,6 +31,11 @@ public final class ForTests {
         return () -> Assertions.assertEquals(b, func.apply(a));
     }
 
+    public static void testNull(String paramName, Executable runIt) {
+        var ex = Assertions.assertThrows(IllegalArgumentException.class, runIt);
+        Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getMessage());
+    }
+
     public static void testNull(String paramName, Executable runIt, String testName) {
         var ex = Assertions.assertThrows(IllegalArgumentException.class, runIt, testName);
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getMessage(), testName);

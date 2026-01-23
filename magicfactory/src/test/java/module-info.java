@@ -5,6 +5,7 @@ open module ninja.javahacker.test.annotimpler.magicfactory {
     requires ninja.javahacker.annotimpler.magicfactory;
 
     requires org.junit.jupiter.api;
+    requires org.junit.jupiter.params;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jdk8;
