@@ -19,9 +19,10 @@ public final class NameDictionary {
     private static final class ClassDictionary<T> {
         private final Class<T> klass;
         private final Map<Class<?>, String> map1;
-        private Map<String, Class<?>> map2;
+        private final Map<String, Class<?>> map2;
 
         private ClassDictionary(@NonNull Class<T> k) {
+            if (k == null) throw new AssertionError();
             this.klass = k;
             this.map1 = new HashMap<>(20);
             this.map2 = new HashMap<>(20);
@@ -50,20 +51,25 @@ public final class NameDictionary {
         }
 
         private void add(@NonNull Type[] ts) {
+            if (ts == null) throw new AssertionError();
             add(new HashSet<>(10), ts);
         }
 
         private void add(@NonNull Type t) {
+            if (t == null) throw new AssertionError();
             add(new HashSet<>(10), t);
         }
 
         private void add(@NonNull Set<Type> partial, @NonNull Type[] ts) {
+            if (partial == null) throw new AssertionError();
+            if (ts == null) throw new AssertionError();
             for (var t : ts) {
                 add(partial, t);
             }
         }
 
         private void add(@NonNull Set<Type> partial, @Nullable Type t) {
+            if (partial == null) throw new AssertionError();
             if (t == null || partial.contains(t)) return;
             partial.add(t);
             try {
@@ -90,6 +96,8 @@ public final class NameDictionary {
         }
 
         private void addClass(@NonNull Set<Type> partial, @NonNull Class<?> klass) {
+            if (partial == null) throw new AssertionError();
+            if (klass == null) throw new AssertionError();
             if (klass.isArray()) {
                 add(partial, klass.getComponentType());
                 return;
@@ -132,12 +140,15 @@ public final class NameDictionary {
 
         @NonNull
         public Optional<String> getNameFor(@NonNull Class<?> otherClass) {
+            if (otherClass == null) throw new AssertionError();
             var name = map1.get(otherClass);
             return Optional.ofNullable(name);
         }
 
         @NonNull
         private void formatParameterTypes(@NonNull Executable method, @NonNull StringBuilder sb) {
+            if (method == null) throw new AssertionError();
+            if (sb == null) throw new AssertionError();
             var paramTypes = method.getGenericParameterTypes();
             for (var i = 0; i < paramTypes.length; i++) {
                 if (i > 0) sb.append(", ");
@@ -147,6 +158,8 @@ public final class NameDictionary {
 
         @NonNull
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
+            if (type == null) throw new AssertionError();
+            if (sb == null) throw new AssertionError();
             switch (type) {
                 case Class<?> clazz -> {
                     if (clazz.isArray()) {
@@ -199,6 +212,7 @@ public final class NameDictionary {
 
         @NonNull
         public String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
+            if (what == null) throw new AssertionError();
             if (what.getDeclaringClass() != klass) throw new IllegalArgumentException();
             var sb = new StringBuilder(256);
 
@@ -273,6 +287,7 @@ public final class NameDictionary {
 
         @NonNull
         public String getSimplifiedClassName(@NonNull Class<?> what) {
+            if (what == null) throw new AssertionError();
             var sb = new StringBuilder(256);
             formatType(what, sb);
             return sb.toString();
@@ -281,6 +296,7 @@ public final class NameDictionary {
 
     @SuppressWarnings("unchecked")
     private <T> ClassDictionary<T> getFor(@NonNull Class<T> klass) {
+        if (klass == null) throw new AssertionError();
         synchronized (lock) {
             var d = (ClassDictionary<T>) map.get(klass);
             if (d != null) return d;
@@ -302,6 +318,7 @@ public final class NameDictionary {
         return cl.getSimplifiedGenericString(field, withClassName);
     }
 
+    @NonNull
     public static NameDictionary global() {
         return GLOBAL_INSTANCE;
     }

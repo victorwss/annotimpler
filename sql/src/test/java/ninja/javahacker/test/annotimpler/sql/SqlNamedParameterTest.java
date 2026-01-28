@@ -1,12 +1,16 @@
 package ninja.javahacker.test.annotimpler.sql;
 
 import ninja.javahacker.test.ForTests;
+import ninja.javahacker.test.NamedTest;
+import org.junit.jupiter.api.function.Executable;
+import static ninja.javahacker.annotimpler.sql.meta.SqlNamedParameter.*;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
-@SuppressWarnings("unused")
+@SuppressWarnings({"unused", "unchecked"})
 public class SqlNamedParameterTest {
 
     private static final Method TEST_METHOD_1 = find("testMethod1");
@@ -17,6 +21,36 @@ public class SqlNamedParameterTest {
     private static final Method BAD_METHOD_2 = find("badMethod2");
     private static final Method BAD_METHOD_3 = find("badMethod3");
     private static final Method BAD_METHOD_4 = find("badMethod4");
+
+    private static final BigDecimal FIVE = new BigDecimal(5);
+    private static final List<? extends SqlNamedParameter<?>> S1 = SqlNamedParameter.forMethod(TEST_METHOD_1);
+    private static final SqlNamedParameter<String> X0 = (SqlNamedParameter<String>) S1.get(0);
+    private static final SqlNamedParameter<Integer> Y0 = (SqlNamedParameter<Integer>) S1.get(1);
+    private static final SqlNamedParameter<Double> Z0 = (SqlNamedParameter<Double>) S1.get(2);
+    private static final List<? extends SqlNamedParameter<?>> S2 = SqlNamedParameter.forMethod(TEST_METHOD_2);
+    private static final Type OPT_BD = TEST_METHOD_2.getParameters()[0].getParameterizedType();
+    private static final SqlNamedParameter<Optional<BigDecimal>> A0 = (SqlNamedParameter<Optional<BigDecimal>>) S2.get(0);
+    private static final SqlNamedParameter<OptionalInt> B0 = (SqlNamedParameter<OptionalInt>) S2.get(1);
+    private static final SqlNamedParameterWithValue<String> X1 = X0.withValue("a");
+    private static final SqlNamedParameterWithValue<String> X2 = X0.withValue("");
+    private static final SqlNamedParameterWithValue<String> X3 = X0.withValue("whoa");
+    private static final SqlNamedParameterWithValue<String> X4 = X0.withValue(null);
+    private static final SqlNamedParameterWithValue<Integer> Y1 = Y0.withValue(42);
+    private static final SqlNamedParameterWithValue<Integer> Y2 = Y0.withValue(73);
+    private static final SqlNamedParameterWithValue<Integer> Y3 = Y0.withValue(null);
+    private static final SqlNamedParameterWithValue<Double> Z1 = Z0.withValue(55.0);
+    private static final SqlNamedParameterWithValue<Double> Z2 = Z0.withValue(-787.75);
+    private static final SqlNamedParameterWithValue<Double> Z3 = Z0.withValue(Double.NaN);
+    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A1 = A0.withValue(Optional.of(FIVE));
+    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A2 = A0.withValue(Optional.empty());
+    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A3 = A0.withValue(null);
+    private static final SqlNamedParameterWithValue<OptionalInt> B1 = B0.withValue(OptionalInt.of(6));
+    private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
+    private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
+
+    private static NamedTest n(String name, Executable ctx) {
+        return new NamedTest(name, ctx);
+    }
 
     private static Method find(String name) {
         return Stream.of(SqlNamedParameterTest.class.getDeclaredMethods()).filter(m -> m.getName().equals(name)).findFirst().orElseThrow();
@@ -74,162 +108,301 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testSimpleSqlNamedParameterProperties() throws Exception {
-        var five = new BigDecimal(5);
-        var s1 = SqlNamedParameter.forMethod(TEST_METHOD_1);
-        var x0 = (SqlNamedParameter<String>) s1.get(0);
-        var y0 = (SqlNamedParameter<Integer>) s1.get(1);
-        var z0 = (SqlNamedParameter<Double>) s1.get(2);
-        var s2 = SqlNamedParameter.forMethod(TEST_METHOD_2);
-        var optBd = TEST_METHOD_2.getParameters()[0].getParameterizedType();
-        var a0 = (SqlNamedParameter<Optional<BigDecimal>>) s2.get(0);
-        var b0 = (SqlNamedParameter<OptionalInt>) s2.get(1);
-        var x1 = x0.withValue("a");
-        var x2 = x0.withValue("");
-        var x3 = x0.withValue("whoa");
-        var x4 = x0.withValue(null);
-        var y1 = y0.withValue(42);
-        var y2 = y0.withValue(73);
-        var y3 = y0.withValue(null);
-        var z1 = z0.withValue(55.0);
-        var z2 = z0.withValue(-787.75);
-        var z3 = z0.withValue(Double.NaN);
-        var a1 = a0.withValue(Optional.of(five));
-        var a2 = a0.withValue(Optional.empty());
-        var a3 = a0.withValue(null);
-        var b1 = b0.withValue(OptionalInt.of(6));
-        var b2 = b0.withValue(OptionalInt.empty());
-        var b3 = b0.withValue(null);
+    private static Stream<SqlNamedParameter<?>> params() {
+        return Stream.of(X0, Y0, Z0, A0, B0);
+    }
 
-        Assertions.assertAll(
-                () -> Assertions.assertEquals(String.class, x0.getType()),
-                () -> Assertions.assertFalse(x0.isFlat()),
-                () -> Assertions.assertEquals("x", x0.getName()),
-                () -> Assertions.assertEquals(0, x0.getIndex()),
-                () -> Assertions.assertTrue(x0.accept(null)),
-                () -> Assertions.assertTrue(x0.accept("")),
-                () -> Assertions.assertTrue(x0.accept("abc")),
-                () -> Assertions.assertFalse(x0.accept(this)),
-                () -> Assertions.assertFalse(x0.accept(42)),
-                () -> Assertions.assertFalse(x0.accept(55.0)),
-                () -> Assertions.assertFalse(x0.accept(five)),
-                () -> Assertions.assertFalse(x0.accept(Optional.of(five))),
-                () -> Assertions.assertFalse(x0.accept(Optional.empty())),
-                () -> Assertions.assertFalse(x0.accept(OptionalInt.of(6))),
-                () -> Assertions.assertFalse(x0.accept(OptionalInt.empty())),
-                () -> Assertions.assertFalse(x0.accept(Thread.currentThread())),
+    private static Stream<SqlNamedParameterWithValue<?>> values() {
+        return Stream.of(X1, X2, X3, X4, Y1, Y2, Y3, Z1, Z2, Z3, A1, A2, A3, B1, B2, B3);
+    }
 
-                () -> Assertions.assertEquals(Integer.class, y0.getType()),
-                () -> Assertions.assertTrue(y0.isFlat()),
-                () -> Assertions.assertEquals("y", y0.getName()),
-                () -> Assertions.assertEquals(1, y0.getIndex()),
-                () -> Assertions.assertTrue(y0.accept(null)),
-                () -> Assertions.assertFalse(y0.accept("")),
-                () -> Assertions.assertFalse(y0.accept("abc")),
-                () -> Assertions.assertFalse(y0.accept(this)),
-                () -> Assertions.assertTrue(y0.accept(42)),
-                () -> Assertions.assertFalse(y0.accept(55.0)),
-                () -> Assertions.assertFalse(y0.accept(five)),
-                () -> Assertions.assertFalse(y0.accept(Optional.of(five))),
-                () -> Assertions.assertFalse(y0.accept(Optional.empty())),
-                () -> Assertions.assertFalse(y0.accept(OptionalInt.of(6))),
-                () -> Assertions.assertFalse(y0.accept(OptionalInt.empty())),
-                () -> Assertions.assertFalse(y0.accept(Thread.currentThread())),
+    private static String name(SqlNamedParameter<?> obj) {
+        if (obj == X0) return "testMethod1(0) - String";
+        if (obj == Y0) return "testMethod1(1) - @Flat Integer";
+        if (obj == Z0) return "testMethod1(2) - double";
+        if (obj == A0) return "Optional<BigDecimal> parameter";
+        if (obj == B0) return "OptionalInt parameter";
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(double.class, z0.getType()),
-                () -> Assertions.assertFalse(z0.isFlat()),
-                () -> Assertions.assertEquals("z", z0.getName()),
-                () -> Assertions.assertEquals(2, z0.getIndex()),
-                () -> Assertions.assertFalse(z0.accept(null)),
-                () -> Assertions.assertFalse(z0.accept("")),
-                () -> Assertions.assertFalse(z0.accept("abc")),
-                () -> Assertions.assertFalse(z0.accept(this)),
-                () -> Assertions.assertFalse(z0.accept(42)),
-                () -> Assertions.assertTrue(z0.accept(55.0)),
-                () -> Assertions.assertFalse(z0.accept(five)),
-                () -> Assertions.assertFalse(z0.accept(Optional.of(five))),
-                () -> Assertions.assertFalse(z0.accept(Optional.empty())),
-                () -> Assertions.assertFalse(z0.accept(OptionalInt.of(6))),
-                () -> Assertions.assertFalse(z0.accept(OptionalInt.empty())),
-                () -> Assertions.assertFalse(z0.accept(Thread.currentThread())),
+    private static String name(SqlNamedParameterWithValue<?> obj) {
+        if (obj == X1) return "a";
+        if (obj == X2) return "empty";
+        if (obj == X3) return "whoa";
+        if (obj == X4) return "null String";
+        if (obj == Y1) return "42";
+        if (obj == Y2) return "73";
+        if (obj == Y3) return "null integer";
+        if (obj == Z1) return "55.0";
+        if (obj == Z2) return "-787.75";
+        if (obj == Z3) return "NaN";
+        if (obj == A1) return "Optional.of(BigDecimal 5)";
+        if (obj == A2) return "Optional.empty()";
+        if (obj == A3) return "Optional null";
+        if (obj == B1) return "OptionalInt.of(6)";
+        if (obj == B2) return "OptionalInt.empty()";
+        if (obj == B3) return "OptionalInt null";
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(optBd, a0.getType()),
-                () -> Assertions.assertFalse(a0.isFlat()),
-                () -> Assertions.assertEquals("a", a0.getName()),
-                () -> Assertions.assertEquals(0, a0.getIndex()),
-                () -> Assertions.assertTrue(a0.accept(null)),
-                () -> Assertions.assertFalse(a0.accept("")),
-                () -> Assertions.assertFalse(a0.accept("abc")),
-                () -> Assertions.assertFalse(a0.accept(this)),
-                () -> Assertions.assertFalse(a0.accept(42)),
-                () -> Assertions.assertFalse(a0.accept(55.0)),
-                () -> Assertions.assertFalse(a0.accept(five)),
-                () -> Assertions.assertTrue(a0.accept(Optional.of(five))),
-                () -> Assertions.assertTrue(a0.accept(Optional.empty())),
-                () -> Assertions.assertFalse(a0.accept(OptionalInt.of(6))),
-                () -> Assertions.assertFalse(a0.accept(OptionalInt.empty())),
-                () -> Assertions.assertFalse(a0.accept(Thread.currentThread())),
+    private static String paramName(SqlNamedParameter<?> obj) {
+        if (obj == X0) return "x";
+        if (obj == Y0) return "y";
+        if (obj == Z0) return "z";
+        if (obj == A0) return "a";
+        if (obj == B0) return "b";
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(OptionalInt.class, b0.getType()),
-                () -> Assertions.assertFalse(b0.isFlat()),
-                () -> Assertions.assertEquals("b", b0.getName()),
-                () -> Assertions.assertEquals(1, b0.getIndex()),
-                () -> Assertions.assertTrue(b0.accept(null)),
-                () -> Assertions.assertFalse(b0.accept("")),
-                () -> Assertions.assertFalse(b0.accept("abc")),
-                () -> Assertions.assertFalse(b0.accept(this)),
-                () -> Assertions.assertFalse(b0.accept(42)),
-                () -> Assertions.assertFalse(b0.accept(55.0)),
-                () -> Assertions.assertFalse(b0.accept(five)),
-                () -> Assertions.assertFalse(b0.accept(Optional.of(five))),
-                () -> Assertions.assertFalse(b0.accept(Optional.empty())),
-                () -> Assertions.assertTrue(b0.accept(OptionalInt.of(6))),
-                () -> Assertions.assertTrue(b0.accept(OptionalInt.empty())),
-                () -> Assertions.assertFalse(b0.accept(Thread.currentThread())),
+    @SuppressWarnings("element-type-mismatch")
+    private static String paramName(SqlNamedParameterWithValue<?> obj) {
+        if (List.of(X1, X2, X3, X4).contains(obj)) return "x";
+        if (List.of(Y1, Y2, Y3).contains(obj)) return "y";
+        if (List.of(Z1, Z2, Z3).contains(obj)) return "z";
+        if (List.of(A1, A2, A3).contains(obj)) return "a";
+        if (List.of(B1, B2, B3).contains(obj)) return "b";
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(String.class, x1.getType()),
-                () -> Assertions.assertFalse(x1.isFlat()),
-                () -> Assertions.assertEquals("x", x1.getName()),
-                () -> Assertions.assertEquals(0, x1.getIndex()),
-                () -> Assertions.assertEquals("a", x1.getValue()),
-                () -> Assertions.assertEquals("", x2.getValue()),
-                () -> Assertions.assertEquals("whoa", x3.getValue()),
-                () -> Assertions.assertEquals(null, x4.getValue()),
+    private static boolean shouldBeFlat(SqlNamedParameter<?> obj) {
+        return name(obj).contains("@Flat");
+    }
 
-                () -> Assertions.assertEquals(Integer.class, y1.getType()),
-                () -> Assertions.assertTrue(y1.isFlat()),
-                () -> Assertions.assertEquals("y", y1.getName()),
-                () -> Assertions.assertEquals(1, y1.getIndex()),
-                () -> Assertions.assertEquals(42, y1.getValue()),
-                () -> Assertions.assertEquals(73, y2.getValue()),
-                () -> Assertions.assertEquals(null, y3.getValue()),
+    @SuppressWarnings("element-type-mismatch")
+    private static boolean shouldBeFlat(SqlNamedParameterWithValue<?> obj) {
+        if (!List.of(X1, X2, X3, X4, Y1, Y2, Y3, Z1, Z2, Z3, A1, A2, A3, B1, B2, B3).contains(obj)) throw new AssertionError();
+        return List.of(Y1, Y2, Y3).contains(obj);
+    }
 
-                () -> Assertions.assertEquals(double.class, z1.getType()),
-                () -> Assertions.assertFalse(z1.isFlat()),
-                () -> Assertions.assertEquals("z", z1.getName()),
-                () -> Assertions.assertEquals(2, z1.getIndex()),
-                () -> Assertions.assertEquals(55.0, z1.getValue()),
-                () -> Assertions.assertEquals(-787.75, z2.getValue()),
-                () -> Assertions.assertTrue(Double.isNaN(z3.getValue())),
+    private static Type type(SqlNamedParameter<?> obj) {
+        if (obj == X0) return String.class;
+        if (obj == Y0) return Integer.class;
+        if (obj == Z0) return double.class;
+        if (obj == A0) return OPT_BD;
+        if (obj == B0) return OptionalInt.class;
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(optBd, a1.getType()),
-                () -> Assertions.assertFalse(a1.isFlat()),
-                () -> Assertions.assertEquals("a", a1.getName()),
-                () -> Assertions.assertEquals(0, a1.getIndex()),
-                () -> Assertions.assertEquals(Optional.of(five), a1.getValue()),
-                () -> Assertions.assertEquals(Optional.empty(), a2.getValue()),
-                () -> Assertions.assertEquals(null, a3.getValue()),
+    @SuppressWarnings("element-type-mismatch")
+    private static Type type(SqlNamedParameterWithValue<?> obj) {
+        if (List.of(X1, X2, X3, X4).contains(obj)) return String.class;
+        if (List.of(Y1, Y2, Y3).contains(obj)) return Integer.class;
+        if (List.of(Z1, Z2, Z3).contains(obj)) return double.class;
+        if (List.of(A1, A2, A3).contains(obj)) return OPT_BD;
+        if (List.of(B1, B2, B3).contains(obj)) return OptionalInt.class;
+        throw new AssertionError();
+    }
 
-                () -> Assertions.assertEquals(OptionalInt.class, b1.getType()),
-                () -> Assertions.assertFalse(b1.isFlat()),
-                () -> Assertions.assertEquals("b", b1.getName()),
-                () -> Assertions.assertEquals(1, b1.getIndex()),
-                () -> Assertions.assertEquals(OptionalInt.of(6), b1.getValue()),
-                () -> Assertions.assertEquals(OptionalInt.empty(), b2.getValue()),
-                () -> Assertions.assertEquals(null, b3.getValue())
+    private static int index(SqlNamedParameter<?> obj) {
+        if (obj == X0) return 0;
+        if (obj == Y0) return 1;
+        if (obj == Z0) return 2;
+        if (obj == A0) return 0;
+        if (obj == B0) return 1;
+        throw new AssertionError();
+    }
+
+    @SuppressWarnings("element-type-mismatch")
+    private static int index(SqlNamedParameterWithValue<?> obj) {
+        if (List.of(X1, X2, X3, X4).contains(obj)) return 0;
+        if (List.of(Y1, Y2, Y3).contains(obj)) return 1;
+        if (List.of(Z1, Z2, Z3).contains(obj)) return 2;
+        if (List.of(A1, A2, A3).contains(obj)) return 0;
+        if (List.of(B1, B2, B3).contains(obj)) return 1;
+        throw new AssertionError();
+    }
+
+    private static boolean shouldAcceptNull(SqlNamedParameter<?> obj) {
+        if (!List.of(X0, Y0, Z0, A0, B0).contains(obj)) throw new AssertionError();
+        return obj != Z0;
+    }
+
+    @SuppressWarnings("element-type-mismatch")
+    private static boolean shouldAccept(SqlNamedParameter<?> obj, Object target) {
+        if (obj == X0) return List.of("", "abc").contains(target);
+        if (obj == Y0) return List.of(42).contains(target);
+        if (obj == Z0) return List.of(55.0).contains(target);
+        if (obj == A0) return List.of(Optional.of(FIVE), Optional.empty()).contains(target);
+        if (obj == B0) return List.of(OptionalInt.of(6), OptionalInt.empty()).contains(target);
+        throw new AssertionError();
+    }
+
+    private static Object value(SqlNamedParameterWithValue<?> obj) {
+        if (obj == X1) return "a";
+        if (obj == X2) return "";
+        if (obj == X3) return "whoa";
+        if (obj == X4) return null;
+        if (obj == Y1) return 42;
+        if (obj == Y2) return 73;
+        if (obj == Y3) return null;
+        if (obj == Z1) return 55.0;
+        if (obj == Z2) return -787.75;
+        if (obj == Z3) return Double.NaN;
+        if (obj == A1) return Optional.of(FIVE);
+        if (obj == A2) return Optional.empty();
+        if (obj == A3) return null;
+        if (obj == B1) return OptionalInt.of(6);
+        if (obj == B2) return OptionalInt.empty();
+        if (obj == B3) return null;
+        throw new AssertionError();
+    }
+
+    private static Stream<Arguments> testFlat() {
+        return params().map(x -> n(
+                name(x) + " flat = " + shouldBeFlat(x),
+                () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testFlat {0}")
+    public void testFlat(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testFlatValue() {
+        return values().map(x -> n(
+                name(x) + " flat = " + shouldBeFlat(x),
+                () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testFlatValue {0}")
+    public void testFlatValue(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testType() {
+        return params().map(x -> n(
+                name(x) + " type = " + type(x),
+                () -> Assertions.assertEquals(type(x), x.getType())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testType {0}")
+    public void testType(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testValueType() {
+        return values().map(x -> n(
+                name(x) + " type = " + type(x),
+                () -> Assertions.assertEquals(type(x), x.getType())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testType {0}")
+    public void testValueType(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testName() {
+        return params().map(x -> n(
+                name(x) + " name = " + paramName(x),
+                () -> Assertions.assertEquals(paramName(x), x.getName())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testName {0}")
+    public void testName(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testNameValue() {
+        return values().map(x -> n(
+                name(x) + " name = " + paramName(x),
+                () -> Assertions.assertEquals(paramName(x), x.getName())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNameValue {0}")
+    public void testNameValue(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testIndex() {
+        return params().map(x -> n(
+                name(x) + " index = " + index(x),
+                () -> Assertions.assertEquals(index(x), x.getIndex())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testIndex {0}")
+    public void testIndex(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testIndexValue() {
+        return values().map(x -> n(
+                name(x) + " index = " + index(x),
+                () -> Assertions.assertEquals(index(x), x.getIndex())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testIndexValue {0}")
+    public void testIndexValue(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testAcceptNull() {
+        return params().map(x -> n(
+                name(x) + " accept null = " + shouldAcceptNull(x),
+                () -> Assertions.assertEquals(shouldAcceptNull(x), x.accept(null))
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testAcceptNull {0}")
+    public void testAcceptNull(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testAccepts() {
+        class Foo {
+            @Override
+            public String toString() {
+                return "a foo";
+            }
+        }
+        var stuff = List.of(
+                42, 55.0, FIVE, Optional.of(FIVE), Optional.empty(), OptionalInt.of(6), OptionalInt.empty(), "", "abc",
+                Thread.currentThread(), Foo.class, new Foo(), Optional.of(new Foo())
         );
+        Function<Object, String> vn = obj -> {
+            if (obj instanceof Thread) return "a Thread";
+            if (obj instanceof Class<?> c) return c.getSimpleName();
+            return obj.toString();
+        };
+        return params().flatMap(x -> stuff.stream().map(s -> n(
+                name(x) + " accepts " + vn.apply(s) + " = " + shouldAccept(x, s),
+                () -> Assertions.assertEquals(shouldAccept(x, s), x.accept(s))
+        ))).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testAccepts {0}")
+    public void testAccepts(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testValue() {
+        return values().map(x -> n(
+                name(x) + " value = " + value(x),
+                () -> Assertions.assertEquals(value(x), x.getValue())
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testValue {0}")
+    public void testValue(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
     /*@Test
@@ -238,19 +411,24 @@ public class SqlNamedParameterTest {
         //var n = ParameterSet.parameters(ParsedQuery.parse(":x and :y"), m).associar("a", 42);
     }*/
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testBadSqlNamedParameter() throws Exception {
+    @SuppressWarnings({"unchecked", "null"})
+    private static Stream<Arguments> testBadSqlNamedParameter() throws Exception {
         var ex = UnsupportedOperationException.class;
         var optThread = "" + BAD_METHOD_2.getParameters()[0].getParameterizedType();
         var listBool = "" + BAD_METHOD_3.getParameters()[1].getParameterizedType();
-        Assertions.assertAll(
-                () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_1), "" + Thread.class),
-                () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_2), optThread),
-                () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_3), listBool),
-                () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_4), "" + String[].class),
-                () -> ForTests.testNull("m", () -> SqlNamedParameter.forMethod(null), "null")
-        );
+        return Stream.of(
+                n("Thread", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_1), "" + Thread.class)),
+                n("Optional<Thread>", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_2), optThread)),
+                n("List<Boolean>", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_3), listBool)),
+                n("String[]", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_4), "" + String[].class)),
+                n("null", () -> ForTests.testNull("m", () -> SqlNamedParameter.forMethod(null), "null"))
+        ).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testBadSqlNamedParameter {0}")
+    public void testBadSqlNamedParameter(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
     /*@Test

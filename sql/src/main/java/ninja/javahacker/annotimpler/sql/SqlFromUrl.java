@@ -1,7 +1,5 @@
 package ninja.javahacker.annotimpler.sql;
 
-import ninja.javahacker.annotimpler.sql.sqlfactories.UrlSqlFactory;
-
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 

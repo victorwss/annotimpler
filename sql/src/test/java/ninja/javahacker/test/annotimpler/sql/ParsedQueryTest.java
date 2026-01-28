@@ -1,12 +1,20 @@
 package ninja.javahacker.test.annotimpler.sql;
 
 import ninja.javahacker.test.ForTests;
+import ninja.javahacker.test.NamedTest;
+import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 public class ParsedQueryTest {
+
+    private static NamedTest n(String name, Executable ctx) {
+        return new NamedTest(name, ctx);
+    }
+
     @Test
     public void testSimple() {
         var a = "SELECT * FROM foo WHERE :a = :b + :c";
@@ -187,48 +195,69 @@ public class ParsedQueryTest {
         );
     }
 
-    @Test
-    public void testEqualsHashCodeToString() {
+    @SuppressWarnings("ObjectEqualsNull")
+    private static Stream<Arguments> testEqualsHashCodeToString() {
         var a = "SELECT * FROM foo WHERE :a = 'banana ? banana' AND :b = \"melon ? melon\"";
         var pq1 = ParsedQuery.parse(a);
         var pq2 = ParsedQuery.parse(a);
         var b = "SELECT * FROM foo WHERE :simple = ?";
         var pq3 = ParsedQuery.parse(b);
-        Assertions.assertAll(
-                () -> Assertions.assertEquals(pq1, pq2),
-                () -> Assertions.assertEquals(pq1.hashCode(), pq2.hashCode()),
-                () -> Assertions.assertEquals(pq1.toString(), pq2.toString()),
-                () -> Assertions.assertNotEquals(pq1, pq3),
-                () -> Assertions.assertNotEquals(pq1.toString(), pq3.toString()),
-                () -> Assertions.assertFalse(pq1.equals(null)),
-                () -> Assertions.assertTrue(pq1.equals(pq1))
-        );
+        return Stream.of(
+                n("copy is equals", () -> Assertions.assertTrue(pq1.equals(pq2))),
+                n("copy equals is simmetric", () -> Assertions.assertTrue(pq2.equals(pq1))),
+                n("equals hashCode", () -> Assertions.assertEquals(pq1.hashCode(), pq2.hashCode())),
+                n("equals toString", () -> Assertions.assertEquals(pq1.toString(), pq2.toString())),
+                n("different is not equals", () -> Assertions.assertFalse(pq1.equals(pq3))),
+                n("different toString", () -> Assertions.assertNotEquals(pq1.toString(), pq3.toString())),
+                n("different hashCode", () -> Assertions.assertNotEquals(pq1.hashCode(), pq3.hashCode())),
+                n("not equals null", () -> Assertions.assertFalse(pq1.equals(null))),
+                n("not equals unrelated", () -> Assertions.assertFalse(pq1.equals("x"))),
+                n("equals reflexive", () -> Assertions.assertTrue(pq1.equals(pq1)))
+        ).map(NamedTest::args);
     }
 
-    @Test
-    public void testParamsUnmodifiable() {
+    @MethodSource
+    @ParameterizedTest(name = "testEqualsHashCodeToString {0}")
+    public void testEqualsHashCodeToString(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    @SuppressWarnings("ThrowableResultIgnored")
+    private static Stream<Arguments> testParamsUnmodifiable() {
         var a = "SELECT * FROM foo WHERE :a = 'banana ? banana' AND :b = \"melon ? melon\"";
         var pq1 = ParsedQuery.parse(a);
         var pq2 = ParsedQuery.parse(a);
-        Assertions.assertAll(
-                () -> {
+        return Stream.of(
+                n("a", () -> {
                     Assertions.assertThrows(UnsupportedOperationException.class, () -> pq1.params().put("foo", List.of(5)));
                     Assertions.assertEquals(pq1, pq2);
-                },
-                () -> {
+                }),
+                n("b", () -> {
                     Assertions.assertThrows(UnsupportedOperationException.class, () -> pq1.params().get("a").add(72));
                     Assertions.assertEquals(pq1, pq2);
-                }
-        );
+                })
+        ).map(NamedTest::args);
     }
 
-    @Test
-    public void testNulls() {
-        Assertions.assertAll(
-                () -> ForTests.testNull("original", () -> ParsedQuery.parse(null), "parse"),
-                () -> ForTests.testNull("original", () -> new ParsedQuery(null, "x", Map.of(), 0, false, false, false), "original-new"),
-                () -> ForTests.testNull("parsed", () -> new ParsedQuery("x", null, Map.of(), 0, false, false, false), "original-parsed"),
-                () -> ForTests.testNull("params", () -> new ParsedQuery("x", "x", null, 0, false, false, false), "original-params")
-        );
+    @MethodSource
+    @ParameterizedTest(name = "testParamsUnmodifiable {0}")
+    public void testParamsUnmodifiable(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    @SuppressWarnings("null")
+    private static Stream<Arguments> testNulls() {
+        return Stream.of(
+                n("parse", () -> ForTests.testNull("original", () -> ParsedQuery.parse(null))),
+                n("original-new", () -> ForTests.testNull("original", () -> new ParsedQuery(null, "x", Map.of(), 0, false, false, false))),
+                n("original-parsed", () -> ForTests.testNull("parsed", () -> new ParsedQuery("x", null, Map.of(), 0, false, false, false))),
+                n("original-params", () -> ForTests.testNull("params", () -> new ParsedQuery("x", "x", null, 0, false, false, false)))
+        ).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

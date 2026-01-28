@@ -6,11 +6,14 @@ import module java.base;
 
 public final class MagicFactory<E> {
 
+    @NonNull
     private final Class<E> klass;
 
+    @NonNull
     private final MethodWrapper<E, Object> wrapper;
 
     private MagicFactory(@NonNull Class<E> klass) throws ConstructionException {
+        if (klass == null) throw new AssertionError();
         this.klass = klass;
         this.wrapper = creatorFor(klass);
     }
@@ -20,6 +23,7 @@ public final class MagicFactory<E> {
     }
 
     private <W extends MethodWrapper<?, ?>> W checkOk(@NonNull W wrapper) throws ConstructionException {
+        if (wrapper == null) throw new AssertionError();
         if (!wrapper.isStatic()) {
             var msg = "Instance " + wrapper + " can't have @Creator.";
             throw new ConstructionException(msg, klass);
@@ -54,6 +58,7 @@ public final class MagicFactory<E> {
     @NonNull
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     private <E> MethodWrapper<E, Object> creatorFor(@NonNull Class<E> klass) throws ConstructionException {
+        if (klass == null) throw new AssertionError();
         var methods = klass.getDeclaredMethods();
         var fields = klass.getDeclaredFields();
         var constructors = klass.getDeclaredConstructors();

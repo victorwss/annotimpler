@@ -1,12 +1,18 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
+import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 public class ConnectionStartConfigTest {
+
+    private static NamedTest n(String name, Executable ctx) {
+        return new NamedTest(name, ctx);
+    }
 
     private static record Config(Supplier<? extends Connector> conn, int port, String key) {
     }
@@ -28,37 +34,52 @@ public class ConnectionStartConfigTest {
         );
     }
 
-    private static Executable testSame(Config x) {
-        return () -> Assertions.assertSame(x.conn(), x.conn());
+    private static Arguments testSame(Config x) {
+        return n(x.key(), () -> Assertions.assertSame(x.conn(), x.conn())).args();
     }
 
-    @Test
-    public void stdFixedTest() {
-        Assertions.assertAll(stds().stream().map(ConnectionStartConfigTest::testSame));
+    private static Stream<Arguments> stdFixedTest() {
+        return stds().stream().map(ConnectionStartConfigTest::testSame);
     }
 
-    private static Executable testPort(Config x) {
-        return () -> {
+    @MethodSource
+    @ParameterizedTest(name = "stdFixedTest {0}")
+    public void stdFixedTest(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Arguments testPort(Config x) {
+        return n(x.key(), () -> {
             var conn = x.conn().get();
             var port = (Integer) conn.getClass().getMethod("port").invoke(conn);
             Assertions.assertEquals(x.port(), port);
-        };
+        }).args();
     }
 
-    @Test
-    public void stdPortTest() {
-        Assertions.assertAll(stds().stream().filter(e -> e.port() != 0).map(ConnectionStartConfigTest::testPort));
+    private static Stream<Arguments> stdPortTest() {
+        return stds().stream().filter(e -> e.port() != 0).map(ConnectionStartConfigTest::testPort);
     }
 
-    private static Executable testString(Config x) {
-        return () -> {
+    @MethodSource
+    @ParameterizedTest(name = "stdPortTest {0}")
+    public void stdPortTest(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Arguments testString(Config x) {
+        return n(x.key(), () -> {
             var key = x.conn().get().getClass().getAnnotation(ConnectorJsonKey.class).value();
             Assertions.assertEquals(x.key(), key);
-        };
+        }).args();
     }
 
-    @Test
-    public void stdStringTest() {
-        Assertions.assertAll(stds().stream().map(ConnectionStartConfigTest::testString));
+    private static Stream<Arguments> stdStringTest() {
+        return stds().stream().map(ConnectionStartConfigTest::testString);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "stdPortTest {0}")
+    public void stdStringTest(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

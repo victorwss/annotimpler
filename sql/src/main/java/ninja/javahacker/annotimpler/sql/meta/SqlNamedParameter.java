@@ -10,6 +10,42 @@ import module ninja.javahacker.annotimpler.sql;
 
 public final class SqlNamedParameter<T> {
 
+    @Getter
+    private final int index;
+
+    @Getter
+    @NonNull
+    private final Type type;
+
+    @Getter
+    @NonNull
+    private final String name;
+
+    @Getter
+    private final boolean flat;
+
+    private final NameHandlerStrategy<T> strategy;
+
+    @SuppressWarnings("unchecked")
+    private SqlNamedParameter(int index, @NonNull Type type, @NonNull String name, boolean flat) {
+        if (type == null) throw new AssertionError();
+        if (name == null) throw new AssertionError();
+        this.index = index;
+        this.type = type;
+        this.name = name;
+        this.flat = flat;
+        this.strategy = (NameHandlerStrategy<T>) makeStrategy(type, name, flat);
+    }
+
+    private static SqlNamedParameter<?> forParam(int index, @NonNull Parameter p) {
+        return new SqlNamedParameter<>(index, p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
+    }
+
+    public static List<? extends SqlNamedParameter<?>> forMethod(@NonNull Method m) {
+        var pp = m.getParameters();
+        return IntStream.range(0, pp.length).mapToObj(i -> SqlNamedParameter.forParam(i, pp[i])).toList();
+    }
+
     @FunctionalInterface
     @SuppressWarnings({"checkstyle:ParenPad"})
     interface Handler<T> {
@@ -61,33 +97,6 @@ public final class SqlNamedParameter<T> {
             entry(OptionalLong  .class, NamedParameterStatement::setLong                      ),
             entry(OptionalDouble.class, NamedParameterStatement::setDouble                    )
     );
-
-    @Getter
-    private final int index;
-
-    @Getter
-    @NonNull
-    private final Type type;
-
-    @Getter
-    @NonNull
-    private final String name;
-
-    @Getter
-    private final boolean flat;
-
-    private final NameHandlerStrategy<T> strategy;
-
-    @SuppressWarnings("unchecked")
-    private SqlNamedParameter(int index, @NonNull Type type, @NonNull String name, boolean flat) {
-        if (type == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
-        this.index = index;
-        this.type = type;
-        this.name = name;
-        this.flat = flat;
-        this.strategy = (NameHandlerStrategy<T>) makeStrategy(type, name, flat);
-    }
 
     @NonNull
     private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h, int type) {
@@ -227,15 +236,6 @@ public final class SqlNamedParameter<T> {
             }
         }
         throw new UnsupportedOperationException("" + type);
-    }
-
-    private static SqlNamedParameter<?> forParam(int index, @NonNull Parameter p) {
-        return new SqlNamedParameter<>(index, p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
-    }
-
-    public static List<? extends SqlNamedParameter<?>> forMethod(@NonNull Method m) {
-        var pp = m.getParameters();
-        return IntStream.range(0, pp.length).mapToObj(i -> SqlNamedParameter.forParam(i, pp[i])).toList();
     }
 
     public static final class SqlNamedParameterWithValue<T> {

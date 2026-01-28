@@ -347,7 +347,12 @@ public class ConnectionCreatorTest {
         var fire3 = fire1.withFilename("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass").withEncoding("");
         var hTwo1 = H2Connector.std();
         var hTwo2 = hTwo1.withFilename("foo").withUser("lol").withPassword("pass");
+        var hTwo3 = hTwo2.withMemory(true);
+        var hsql1 = HsqldbConnector.std();
+        var hsql2 = hsql1.withFilename("foo").withUser("lol").withPassword("pass");
+        var hsql3 = hsql2.withMemory(true);
         var sqliteMem = SqliteMemoryConnector.std();
+        // TODO: Access, DB2, Oracle, PostgreSQL, SQL Server, SQLite file.
         return Stream.of(
                 n("sqlite 1"  , () -> Assertions.assertEquals("jdbc:sqlite::memory:", sqliteMem.url())),
                 n("mariadb 1" , () -> Assertions.assertEquals("jdbc:mariadb://localhost:3306/", maria1.url())),
@@ -358,7 +363,11 @@ public class ConnectionCreatorTest {
                 n("firebird 2", () -> Assertions.assertEquals("jdbc:firebird://10.10.10.10:12345/foo?encoding=UTF16", fire2.url())),
                 n("firebird 3", () -> Assertions.assertEquals("jdbc:firebird://10.11.12.13:44444/bar", fire3.url())),
                 n("h2 1"      , () -> Assertions.assertEquals("jdbc:h2:~/", hTwo1.url())),
-                n("h2 2"      , () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url()))
+                n("h2 2"      , () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url())),
+                n("h2 3"      , () -> Assertions.assertEquals("jdbc:h2:mem:foo", hTwo3.url())),
+                n("hsqldb 1"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://", hsql1.url())),
+                n("hsqldb 2"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
+                n("hsqldb 3"  , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url()))
         ).map(NamedTest::args);
     }
 

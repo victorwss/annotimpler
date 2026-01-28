@@ -83,6 +83,8 @@ public final class MagicConverter {
 
     @NonNull
     private static <T extends Record> T valueToRecord(@NonNull Object value, @NonNull Class<T> recordClass) throws ConstructionException {
+        if (value == null) throw new AssertionError();
+        if (recordClass == null) throw new AssertionError();
         // Protege contra StackOverflowError.
         var gots = onStack.get();
         var wasNull = false;
@@ -227,6 +229,7 @@ public final class MagicConverter {
 
     @NonNull
     private static Object convertNumber2(@NonNull Object value, @NonNull Class<?> target) {
+        if (target == null) throw new AssertionError();
         if (target == value.getClass()) return value;
         BigDecimal v2 = switch (value) {
             case Boolean v -> v ? BigDecimal.ONE : BigDecimal.ZERO;
@@ -311,7 +314,6 @@ public final class MagicConverter {
 
     @NonNull
     public static Class<?> wrap(@NonNull Class<?> target) {
-        if (target == null) throw new AssertionError();
         return WRAPPERS.getOrDefault(target, target);
     }
 
@@ -325,7 +327,6 @@ public final class MagicConverter {
                 || target == OptionalInt.class
                 || target == OptionalLong.class
                 || target == OptionalDouble.class;
-        if (value == null) return neverNull ? zero(target) : null;
         if (value.isEmpty()) return neverNull ? zero(target) : target == String.class ? target.cast("") : null;
         return (E) unstringify2(value, wrap(target));
     }
@@ -388,6 +389,7 @@ public final class MagicConverter {
 
     @Nullable
     private static Object zero2(@NonNull Class<?> target) {
+        if (target == null) throw new AssertionError();
         if (target.isArray()) {
             var comp = target.getComponentType();
             var array = Array.newInstance(comp, 0);
@@ -410,11 +412,11 @@ public final class MagicConverter {
         if (target == Collection    .class) return List.of();
         if (target == SortedSet     .class) return Collections.emptySortedSet();
         if (target == NavigableSet  .class) return Collections.emptyNavigableSet();
-        if (target == ArrayList     .class) return new ArrayList<Object>(0);
-        if (target == LinkedList    .class) return new LinkedList<Object>();
-        if (target == HashSet       .class) return new HashSet<Object>(0);
-        if (target == LinkedHashSet .class) return new LinkedHashSet<Object>(0);
-        if (target == TreeSet       .class) return new TreeSet<Object>();
+        if (target == ArrayList     .class) return new ArrayList<>(0);
+        if (target == LinkedList    .class) return new LinkedList<>();
+        if (target == HashSet       .class) return new HashSet<>(0);
+        if (target == LinkedHashSet .class) return new LinkedHashSet<>(0);
+        if (target == TreeSet       .class) return new TreeSet<>();
         return null;
     }
 

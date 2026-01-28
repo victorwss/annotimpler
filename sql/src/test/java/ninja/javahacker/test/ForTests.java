@@ -41,6 +41,12 @@ public final class ForTests {
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getMessage(), testName);
     }
 
+    public static void testNullReflective(String paramName, Executable runIt) {
+        var ex = Assertions.assertThrows(InvocationTargetException.class, runIt);
+        Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
+        Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getCause().getMessage());
+    }
+
     public static void testNullReflective(String paramName, Executable runIt, String testName) {
         var ex = Assertions.assertThrows(InvocationTargetException.class, runIt, testName);
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass(), testName);
