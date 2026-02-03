@@ -145,9 +145,9 @@ public final class MagicConverter {
                 return Optional.ofNullable(forValue(value, p1));
             }
             if (r.isAssignableFrom(Collection.class)) {
+                var s = r.asSubclass(Collection.class);
                 var e = forValue(value, p1);
-                if (e == null) return zero(r);
-                return singleton(e, r.asSubclass(Collection.class));
+                return e == null ? emptyCollection(s) : singleton(e, s);
             }
         }
 
@@ -187,11 +187,11 @@ public final class MagicConverter {
             return target2.cast(singleton(value, target2.asSubclass(Collection.class)));
         }
 
-        // Records e enums.
-        if (target2.isEnum()) return target2.cast(valueToEnum(value, target2.asSubclass(Enum.class)));
-
         // Se o valor é String, mas o tipo é outra coisa, tenta converter.
         if (value instanceof String vs) return target2.cast(unstringify(vs, target2));
+
+        // Records e enums.
+        if (target2.isEnum()) return target2.cast(valueToEnum(value, target2.asSubclass(Enum.class)));
 
         // Tenta ajustar se forem tipos numéricos diferentes.
         if (NUMBERS_OUT.contains(target2) && NUMBERS_IN.contains(from)) return convertNumber(value, target2);
@@ -359,13 +359,18 @@ public final class MagicConverter {
             if (target == LocalDate     .class) return LocalDate    .parse(value, FORMATTER_D );
             if (target == LocalDateTime .class) return LocalDateTime.parse(value, FORMATTER_DT);
             if (target == LocalTime     .class) return LocalTime    .parse(value, FORMATTER_T );
-            if (target == java.sql.Date .class) return java.sql.Date .valueOf(unstringify2(value, LocalDate.class));
-            if (target == Timestamp     .class) return Timestamp     .valueOf(unstringify2(value, LocalDateTime.class));
-            if (target == java.util.Date.class) return java.util.Date.from(unstringify2(value, Instant.class));
-            if (target == Instant       .class) return unstringify2(value, LocalDateTime.class).atZone(ZoneOffset.UTC).toInstant();
+            if (target == java.sql.Date .class) return java.sql.Date .valueOf(LocalDate    .parse(value, FORMATTER_D ));
+            if (target == Timestamp     .class) return Timestamp     .valueOf(LocalDateTime.parse(value, FORMATTER_DT));
+            if (target == java.sql.Time .class) return java.sql.Time .valueOf(LocalTime    .parse(value, FORMATTER_T ));
+            if (target == ZonedDateTime .class) return LocalDateTime.parse(value, FORMATTER_DT).atZone(ZoneOffset.UTC);
+            if (target == OffsetDateTime.class) return LocalDateTime.parse(value, FORMATTER_DT).atZone(ZoneOffset.UTC).toOffsetDateTime();
+            if (target == Instant       .class) return LocalDateTime.parse(value, FORMATTER_DT).atZone(ZoneOffset.UTC).toInstant();
+            if (target == java.util.Date.class) {
+                return java.util.Date.from(LocalDateTime.parse(value, FORMATTER_DT).atZone(ZoneOffset.UTC).toInstant());
+            }
             if (target == Calendar      .class || target == GregorianCalendar.class) {
-                var ins = unstringify2(value, Instant.class);
-                return GregorianCalendar.from(ZonedDateTime.ofInstant(ins, ZoneOffset.UTC));
+                var ins = LocalDateTime.parse(value, FORMATTER_DT).atZone(ZoneOffset.UTC);
+                return GregorianCalendar.from(ins);
             }
             if (target == Boolean       .class && "true" .equals(value)) return Boolean.TRUE;
             if (target == Boolean       .class && "false".equals(value)) return Boolean.FALSE;
@@ -374,6 +379,13 @@ public final class MagicConverter {
                 var b = String.valueOf(c);
                 if (!Objects.equals(value, b)) throw xxx.get();
                 return c;
+            }
+            if (target.isEnum()) {
+                var c = target.getEnumConstants();
+                for (var cc : c) {
+                    if (((Enum<?>) cc).name().equals(value)) return cc;
+                }
+                return c[Integer.parseInt(value)];
             }
         } catch (NumberFormatException | IndexOutOfBoundsException | DateTimeParseException x) {
             throw new IllegalArgumentException(xxx.get().getMessage(), x);
@@ -403,10 +415,22 @@ public final class MagicConverter {
         if (target == long          .class) return 0L;
         if (target == float         .class) return 0.0f;
         if (target == double        .class) return 0.0;
+        if (target == String        .class) return "";
         if (target == OptionalInt   .class) return OptionalInt.empty();
         if (target == OptionalLong  .class) return OptionalLong.empty();
         if (target == OptionalDouble.class) return OptionalDouble.empty();
         if (target == Optional      .class) return Optional.empty();
+        return null;
+    }
+
+    @NonNull
+    public static <E extends Collection<?>> E emptyCollection(@NonNull Class<E> target) {
+        return target.cast(emptyCollection2(target));
+    }
+
+    @NonNull
+    private static Collection<?> emptyCollection2(@NonNull Class<?> target) {
+        if (target == null) throw new AssertionError();
         if (target == List          .class) return List.of();
         if (target == Set           .class) return Set.of();
         if (target == Collection    .class) return List.of();
@@ -417,22 +441,21 @@ public final class MagicConverter {
         if (target == HashSet       .class) return new HashSet<>(0);
         if (target == LinkedHashSet .class) return new LinkedHashSet<>(0);
         if (target == TreeSet       .class) return new TreeSet<>();
-        return null;
+        throw new IllegalArgumentException("Can't use " + target.getName() + " as a empty collection.");
     }
 
     @NonNull
     public static <E> Collection<E> singleton(@NonNull E element, @NonNull Class<?> target) {
-        Class<?> t = target;
-        if (t == List          .class) return List.of(element);
-        if (t == Set           .class) return Set.of(element);
-        if (t == Collection    .class) return List.of(element);
-        if (t == SortedSet     .class) return new TreeSet<>(List.of(element));
-        if (t == NavigableSet  .class) return new TreeSet<>(List.of(element));
-        if (t == ArrayList     .class) return new ArrayList<>(List.of(element));
-        if (t == LinkedList    .class) return new LinkedList<>(List.of(element));
-        if (t == HashSet       .class) return new HashSet<>(List.of(element));
-        if (t == LinkedHashSet .class) return new LinkedHashSet<>(List.of(element));
-        if (t == TreeSet       .class) return new TreeSet<>(List.of(element));
+        if (target == List          .class) return List.of(element);
+        if (target == Set           .class) return Set.of(element);
+        if (target == Collection    .class) return List.of(element);
+        if (target == SortedSet     .class) return new TreeSet<>(List.of(element));
+        if (target == NavigableSet  .class) return new TreeSet<>(List.of(element));
+        if (target == ArrayList     .class) return new ArrayList<>(List.of(element));
+        if (target == LinkedList    .class) return new LinkedList<>(List.of(element));
+        if (target == HashSet       .class) return new HashSet<>(List.of(element));
+        if (target == LinkedHashSet .class) return new LinkedHashSet<>(List.of(element));
+        if (target == TreeSet       .class) return new TreeSet<>(List.of(element));
         throw new IllegalArgumentException("Can't use " + target.getName() + " as a singleton collection.");
     }
 }
