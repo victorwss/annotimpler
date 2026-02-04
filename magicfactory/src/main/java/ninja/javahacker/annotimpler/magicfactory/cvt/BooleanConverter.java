@@ -1,8 +1,9 @@
-package ninja.javahacker.annotimpler.magicfactory;
+package ninja.javahacker.annotimpler.magicfactory.cvt;
 
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 public final class BooleanConverter implements Converter<Boolean> {
 

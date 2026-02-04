@@ -83,19 +83,19 @@ public interface Converter<E> {
         throw new UnsupportedOperationException();
     }
 
-    public default E from(@NonNull java.sql.Array in) {
-        throw new UnsupportedOperationException();
-    }
-
-    public default E from(@NonNull Ref in) {
-        throw new UnsupportedOperationException();
-    }
-
     public default E from(@NonNull SQLXML in) {
         throw new UnsupportedOperationException();
     }
 
     public default E from(@NonNull RowId in) {
+        throw new UnsupportedOperationException();
+    }
+
+    public default E from(@NonNull java.sql.Array in) {
+        throw new UnsupportedOperationException();
+    }
+
+    public default E from(@NonNull Ref in) {
         throw new UnsupportedOperationException();
     }
 }
