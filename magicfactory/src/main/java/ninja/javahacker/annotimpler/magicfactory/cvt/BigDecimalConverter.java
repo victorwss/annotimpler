@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class BigDecimalConverter implements Converter<BigDecimal> {
-
-    public BigDecimalConverter() {
-    }
+public enum BigDecimalConverter implements Converter<BigDecimal> {
+    INSTANCE;
 
     @Override
     public BigDecimal from(boolean in) {

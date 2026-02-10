@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class BigIntegerConverter implements Converter<BigInteger> {
-
-    public BigIntegerConverter() {
-    }
+public enum BigIntegerConverter implements Converter<BigInteger> {
+    INSTANCE;
 
     @Override
     public BigInteger from(boolean in) {

@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class LongConverter implements Converter<Long> {
-
-    public LongConverter() {
-    }
+public enum LongConverter implements Converter<Long> {
+    INSTANCE;
 
     @Override
     public Long from(boolean in) {

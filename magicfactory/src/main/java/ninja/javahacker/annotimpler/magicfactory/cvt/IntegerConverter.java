@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class IntegerConverter implements Converter<Integer> {
-
-    public IntegerConverter() {
-    }
+public enum IntegerConverter implements Converter<Integer> {
+    INSTANCE;
 
     @Override
     public Integer from(boolean in) {

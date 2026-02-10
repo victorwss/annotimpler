@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class BooleanConverter implements Converter<Boolean> {
-
-    public BooleanConverter() {
-    }
+public enum BooleanConverter implements Converter<Boolean> {
+    INSTANCE;
 
     @Override
     public Boolean from(boolean in) {

@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class ByteConverter implements Converter<Byte> {
-
-    public ByteConverter() {
-    }
+public enum ByteConverter implements Converter<Byte> {
+    INSTANCE;
 
     @Override
     public Byte from(boolean in) {

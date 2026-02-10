@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class FloatConverter implements Converter<Float> {
-
-    public FloatConverter() {
-    }
+public enum FloatConverter implements Converter<Float> {
+    INSTANCE;
 
     @Override
     public Float from(boolean in) {

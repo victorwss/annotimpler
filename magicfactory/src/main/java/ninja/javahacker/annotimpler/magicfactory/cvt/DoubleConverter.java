@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class DoubleConverter implements Converter<Double> {
-
-    public DoubleConverter() {
-    }
+public enum DoubleConverter implements Converter<Double> {
+    INSTANCE;
 
     @Override
     public Double from(boolean in) {

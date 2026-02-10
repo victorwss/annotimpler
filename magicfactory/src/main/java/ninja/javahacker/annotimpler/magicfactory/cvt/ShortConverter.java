@@ -5,10 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class ShortConverter implements Converter<Short> {
-
-    public ShortConverter() {
-    }
+public enum ShortConverter implements Converter<Short> {
+    INSTANCE;
 
     @Override
     public Short from(boolean in) {

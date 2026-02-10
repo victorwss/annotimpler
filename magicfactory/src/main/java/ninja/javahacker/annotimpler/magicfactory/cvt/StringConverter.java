@@ -5,7 +5,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-public final class StringConverter implements Converter<String> {
+public enum StringConverter implements Converter<String> {
+    INSTANCE;
 
     private static final DateTimeFormatter FORMATTER_DT = DateTimeFormatter
             .ofPattern("uuuu-MM-dd HH:mm:ss")
@@ -26,9 +27,6 @@ public final class StringConverter implements Converter<String> {
     private static final DateTimeFormatter FORMATTER_TZ = DateTimeFormatter
             .ofPattern("HH:mm:ss xxxxx")
             .withResolverStyle(ResolverStyle.STRICT);
-
-    public StringConverter() {
-    }
 
     @Override
     public String from(boolean in) {
