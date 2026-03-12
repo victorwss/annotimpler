@@ -9,22 +9,22 @@ public enum CalendarConverter implements Converter<Calendar> {
     INSTANCE;
 
     @Override
-    public Calendar from(@NonNull LocalDate in) {
-        return GregorianCalendarConverter.INSTANCE.from(in);
+    public Optional<Calendar> from(@NonNull LocalDate in) {
+        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
     }
 
     @Override
-    public Calendar from(@NonNull LocalDateTime in) {
-        return GregorianCalendarConverter.INSTANCE.from(in);
+    public Optional<Calendar> from(@NonNull LocalDateTime in) {
+        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
     }
 
     @Override
-    public Calendar from(@NonNull OffsetDateTime in) {
-        return GregorianCalendarConverter.INSTANCE.from(in);
+    public Optional<Calendar> from(@NonNull OffsetDateTime in) {
+        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
     }
 
     @Override
-    public Calendar from(@NonNull String in) {
-        return GregorianCalendarConverter.INSTANCE.from(in);
+    public Optional<Calendar> from(@NonNull String in) throws ConvertionException {
+        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
     }
 }

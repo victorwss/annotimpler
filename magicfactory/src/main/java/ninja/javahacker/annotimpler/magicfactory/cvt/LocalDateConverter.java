@@ -8,27 +8,37 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public enum LocalDateConverter implements Converter<LocalDate> {
     INSTANCE;
 
+    @NonNull
     public static final DateTimeFormatter FORMATTER_D = DateTimeFormatter
             .ofPattern("uuuu-MM-dd")
             .withResolverStyle(ResolverStyle.STRICT);
 
+    @NonNull
     @Override
-    public LocalDate from(@NonNull LocalDate in) {
-        return in;
+    public Optional<LocalDate> from(@NonNull LocalDate in) {
+        return Optional.of(in);
     }
 
+    @NonNull
     @Override
-    public LocalDate from(@NonNull LocalDateTime in) {
-        return in.toLocalDate();
+    public Optional<LocalDate> from(@NonNull LocalDateTime in) {
+        return Optional.of(in.toLocalDate());
     }
 
+    @NonNull
     @Override
-    public LocalDate from(@NonNull OffsetDateTime in) {
-        return in.toLocalDate();
+    public Optional<LocalDate> from(@NonNull OffsetDateTime in) {
+        return Optional.of(in.toLocalDate());
     }
 
+    @NonNull
     @Override
-    public LocalDate from(@NonNull String in) {
-        return LocalDate.parse(in, FORMATTER_D);
+    public Optional<LocalDate> from(@NonNull String in) throws ConvertionException {
+        if (in.isEmpty()) return Optional.empty();
+        try {
+            return Optional.of(LocalDate.parse(in, FORMATTER_D));
+        } catch (DateTimeParseException e) {
+            throw new ConvertionException("String inconvertible to LocalDate.", e, LocalDate.class);
+        }
     }
 }

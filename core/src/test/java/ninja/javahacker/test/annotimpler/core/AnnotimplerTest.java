@@ -42,19 +42,19 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testSingleImpl1() throws ConstructionException {
+    public void testSingleImpl1() throws Exception {
         var impl = AnnotationsImplementor.implement(TestIface1.class);
         Assertions.assertEquals("foo-test", impl.foo());
     }
 
     @Test
-    public void testSingleImpl2() throws ConstructionException {
+    public void testSingleImpl2() throws Exception {
         var impl = AnnotationsImplementor.implement(TestIface1.class, null);
         Assertions.assertEquals("foo-test", impl.foo());
     }
 
     @Test
-    public void testSingleImpl3() throws ConstructionException {
+    public void testSingleImpl3() throws Exception {
         var impl = AnnotationsImplementor.implement(TestIface1.class, PropertyBag.root());
         Assertions.assertEquals("foo-test", impl.foo());
     }
@@ -202,7 +202,7 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testParamImpl() throws ConstructionException {
+    public void testParamImpl() throws Exception {
         TestImpl3.CALLED = false;
         var impl = AnnotationsImplementor.implement(TestIface2.class);
         Assertions.assertFalse(TestImpl3.CALLED);
@@ -216,7 +216,7 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testParamImplWtf() throws ConstructionException {
+    public void testParamImplWtf() throws Exception {
         var impl = AnnotationsImplementor.implement(TestIface2.class);
         var ex = Assertions.assertThrows(UndeclaredThrowableException.class, impl::wtf);
         Assertions.assertEquals(WtfException.class, ex.getCause().getClass());
@@ -260,7 +260,7 @@ public class AnnotimplerTest {
         @NonNull
         @Override
         public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props)
-                throws ConstructionException
+                throws BadImplementationException
         {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
@@ -268,13 +268,13 @@ public class AnnotimplerTest {
                     () -> Assertions.assertEquals(TestBadIface1.class.getMethod("crash"), m),
                     () -> Assertions.assertEquals(PropertyBag.root(), props)
             );
-            throw new ConstructionException("bad", iface);
+            throw new BadImplementationException("bad", iface);
         }
     }
 
     @Test
     public void testBadImpl1And2() {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> AnnotationsImplementor.implement(TestBadIface1.class));
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface1.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(TestBadIface1.class, ex.getRoot()),
                 () -> Assertions.assertEquals("bad", ex.getMessage())
@@ -309,7 +309,7 @@ public class AnnotimplerTest {
     @Test
     public void testBadImpl3() {
         var msg = "Implementation was null on: TestBadIface3/String TestBadIface3.crash()";
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> AnnotationsImplementor.implement(TestBadIface3.class));
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface3.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(TestBadIface3.class, ex.getRoot()),
                 () -> Assertions.assertEquals(msg, ex.getMessage())
@@ -323,7 +323,7 @@ public class AnnotimplerTest {
     @Test
     public void testBadImpl4() {
         var msg = "Method String TestBadIface4.crash() lacks annotation-defined implementation.";
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> AnnotationsImplementor.implement(TestBadIface4.class));
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface4.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(TestBadIface4.class, ex.getRoot()),
                 () -> Assertions.assertEquals(msg, ex.getMessage())
@@ -374,12 +374,12 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testStdImpl6() throws ConstructionException {
+    public void testStdImpl6() throws Exception {
         Assertions.assertEquals(92, AnnotationsImplementor.implement(TestStdIface6.class).foo(55));
     }
 
     @Test
-    public void testStdImpl6Override() throws ConstructionException {
+    public void testStdImpl6Override() throws Exception {
         Assertions.assertEquals("whoot", AnnotationsImplementor.implement(TestStdIface6.class).wtf());
     }
 
@@ -418,7 +418,7 @@ public class AnnotimplerTest {
     @Test
     public void testBadImpl7() {
         var msg = "Too many implementations by annotations on: TestBadIface7/String TestBadIface7.crash()";
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> AnnotationsImplementor.implement(TestBadIface7.class));
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface7.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(TestBadIface7.class, ex.getRoot()),
                 () -> Assertions.assertEquals(msg, ex.getMessage())
@@ -426,7 +426,7 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testSingleImplEqualsHashCodeToString() throws ConstructionException {
+    public void testSingleImplEqualsHashCodeToString() throws Exception {
         var a = AnnotationsImplementor.implement(TestIface1.class);
         var b = AnnotationsImplementor.implement(TestIface1.class);
         var c = AnnotationsImplementor.implement(TestIface2.class);
@@ -507,7 +507,7 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testKeys() throws ConstructionException {
+    public void testKeys() throws Exception {
         var props = PropertyBag.root().add(KEY_A, "a").add(KEY_B, "b");
         Assertions.assertEquals("foo-test", AnnotationsImplementor.implement(TestIfaceKeys1.class, props).foo());
     }

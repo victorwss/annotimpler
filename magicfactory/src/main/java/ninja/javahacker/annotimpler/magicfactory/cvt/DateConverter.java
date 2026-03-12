@@ -9,23 +9,27 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public enum DateConverter implements Converter<Date> {
     INSTANCE;
 
+    @NonNull
     @Override
-    public Date from(@NonNull LocalDate in) {
-        return Date.from(InstantConverter.INSTANCE.from(in));
+    public Optional<Date> from(@NonNull LocalDate in) {
+        return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    @NonNull
     @Override
-    public Date from(@NonNull LocalDateTime in) {
-        return Date.from(InstantConverter.INSTANCE.from(in));
+    public Optional<Date> from(@NonNull LocalDateTime in) {
+        return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    @NonNull
     @Override
-    public Date from(@NonNull OffsetDateTime in) {
-        return Date.from(InstantConverter.INSTANCE.from(in));
+    public Optional<Date> from(@NonNull OffsetDateTime in) {
+        return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    @NonNull
     @Override
-    public Date from(@NonNull String in) {
-        return Date.from(InstantConverter.INSTANCE.from(in));
+    public Optional<Date> from(@NonNull String in) throws ConvertionException {
+        return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 }

@@ -8,4 +8,5 @@ import module ninja.javahacker.annotimpler.sql;
 @Target(ElementType.METHOD)
 public @interface SqlFromUrl {
     public String value();
+    public ReadPolicy policy() default ReadPolicy.EVERY_TIME;
 }

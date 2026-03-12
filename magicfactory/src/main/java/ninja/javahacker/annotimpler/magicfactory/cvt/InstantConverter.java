@@ -8,23 +8,27 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public enum InstantConverter implements Converter<Instant> {
     INSTANCE;
 
+    @NonNull
     @Override
-    public Instant from(@NonNull LocalDate in) {
-        return OffsetDateTimeConverter.INSTANCE.from(in).toInstant();
+    public Optional<Instant> from(@NonNull LocalDate in) {
+        return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    @NonNull
     @Override
-    public Instant from(@NonNull LocalDateTime in) {
-        return OffsetDateTimeConverter.INSTANCE.from(in).toInstant();
+    public Optional<Instant> from(@NonNull LocalDateTime in) {
+        return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    @NonNull
     @Override
-    public Instant from(@NonNull OffsetDateTime in) {
-        return OffsetDateTimeConverter.INSTANCE.from(in).toInstant();
+    public Optional<Instant> from(@NonNull OffsetDateTime in) {
+        return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    @NonNull
     @Override
-    public Instant from(@NonNull String in) {
-        return OffsetDateTimeConverter.INSTANCE.from(in).toInstant();
+    public Optional<Instant> from(@NonNull String in) throws ConvertionException {
+        return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 }

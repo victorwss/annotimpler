@@ -12,31 +12,33 @@ public final class MagicFactory<E> {
     @NonNull
     private final MethodWrapper<E, Object> wrapper;
 
-    private MagicFactory(@NonNull Class<E> klass) throws ConstructionException {
+    private MagicFactory(@NonNull Class<E> klass) throws CreatorSelectionException {
         if (klass == null) throw new AssertionError();
         this.klass = klass;
         this.wrapper = creatorFor(klass);
     }
 
-    public static <E> MagicFactory<E> of(@NonNull Class<E> klass) throws ConstructionException {
+    @NonNull
+    public static <E> MagicFactory<E> of(@NonNull Class<E> klass) throws CreatorSelectionException {
         return new MagicFactory<>(klass);
     }
 
-    private <W extends MethodWrapper<?, ?>> W checkOk(@NonNull W wrapper) throws ConstructionException {
+    @NonNull
+    private <W extends MethodWrapper<?, ?>> W checkOk(@NonNull W wrapper) throws CreatorSelectionException {
         if (wrapper == null) throw new AssertionError();
         if (!wrapper.isStatic()) {
             var msg = "Instance " + wrapper + " can't have @Creator.";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
         if (!wrapper.isPublic()) {
             var msg = "The " + wrapper + " can't have @Creator, it isn't public.";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
         if (wrapper.isAbstract()) { // Abstract class constructor.
             var msg = wrapper.isAnnotationPresent(Creator.class)
                     ? "The " + wrapper + " can't have @Creator, the class is abstract."
                     : "The " + wrapper + " can't be a creator, the class is abstract.";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
 
         var rt = wrapper.getReturnType();
@@ -45,19 +47,19 @@ public final class MagicFactory<E> {
             if (!(rt instanceof Class<?>)) throw new AssertionError();
         } else if (!(rt instanceof Class<?>)) {
             var msg = "Bad type for " + wrapper + ". Should be " + klass.getSimpleName() + ".";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
         var rtt = (Class<?>) rt;
         if (!klass.isAssignableFrom(rtt)) {
             var msg = "Bad type for " + wrapper + ". Should be " + klass.getSimpleName() + ".";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
         return wrapper;
     }
 
     @NonNull
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
-    private <E> MethodWrapper<E, Object> creatorFor(@NonNull Class<E> klass) throws ConstructionException {
+    private <E> MethodWrapper<E, Object> creatorFor(@NonNull Class<E> klass) throws CreatorSelectionException {
         if (klass == null) throw new AssertionError();
         var methods = klass.getDeclaredMethods();
         var fields = klass.getDeclaredFields();
@@ -71,7 +73,8 @@ public final class MagicFactory<E> {
         var annotated = s.filter(x -> x.isAnnotationPresent(Creator.class)).distinct().toList();
 
         if (annotated.size() > 1) {
-            throw new ConstructionException("Can't have @Creator more than once in class " + klass.getSimpleName() + ".", klass);
+            var msg = "Can't have @Creator more than once in class " + klass.getSimpleName() + ".";
+            throw new CreatorSelectionException(msg, klass);
         }
         if (annotated.size() == 1) {
             return checkOk(annotated.getFirst()).eraseU();
@@ -84,7 +87,7 @@ public final class MagicFactory<E> {
                 return checkOk(MethodWrapper.value(constant)).eraseU();
             }
             var msg = "No preferred enum value for class " + klass.getSimpleName() + ".";
-            throw new ConstructionException(msg, klass);
+            throw new CreatorSelectionException(msg, klass);
         }
 
         // Para Records e beans, normalmente há apenas um construtor canônico.
@@ -102,7 +105,7 @@ public final class MagicFactory<E> {
                 var ctor = klass.getDeclaredConstructor(componentTypes);
                 return checkOk(MethodWrapper.of(ctor)).eraseU();
             } catch (NoSuchMethodException e) {
-                throw new ConstructionException("Failed to determine canonical constructor for record.", e, klass);
+                throw new CreatorSelectionException("Failed to determine canonical constructor for record.", e, klass);
             }
         }
 
@@ -111,23 +114,25 @@ public final class MagicFactory<E> {
             var wrap = MethodWrapper.of(klass.getDeclaredConstructor());
             return checkOk(wrap).eraseU();
         } catch (NoSuchMethodException e) {
-            throw new ConstructionException("Failed to determine how to create an instance of " + klass.getSimpleName() + ".", klass);
+            var msg = "Failed to determine how to create an instance of " + klass.getSimpleName() + ".";
+            throw new CreatorSelectionException(msg, klass);
         }
     }
 
     @NonNull
-    public E create(@NonNull Object... args) throws ConstructionException {
+    public E create(@NonNull Object... args) throws CreationException {
         try {
             var ret = wrapper.call(args);
-            if (ret == null) throw new ConstructionException("Creator of " + klass.getSimpleName() + " produced null.", klass);
+            if (ret == null) throw new CreationException("Creator of " + klass.getSimpleName() + " produced null.", klass);
             return ret;
         } catch (IllegalAccessException | InstantiationException | IllegalArgumentException e) {
-            throw new ConstructionException("Creator of " + klass.getSimpleName() + " doesn't work.", e, klass);
+            throw new CreationException("Creator of " + klass.getSimpleName() + " doesn't work.", e, klass);
         } catch (InvocationTargetException e) {
-            throw new ConstructionException("The instantiation of " + klass.getSimpleName() + " threw an exception.", e.getCause(), klass);
+            throw new CreationException("The instantiation of " + klass.getSimpleName() + " threw an exception.", e.getCause(), klass);
         }
     }
 
+    @NonNull
     public Class<E> getReturnType() {
         return klass;
     }
@@ -142,7 +147,60 @@ public final class MagicFactory<E> {
         return wrapper.getParameters();
     }
 
+    @NonNull
     public int arity() {
         return wrapper.arity();
+    }
+
+    public static class CreatorSelectionException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        @NonNull
+        private final Class<?> root;
+
+        public CreatorSelectionException(@NonNull String message, @NonNull Class<?> root) {
+            List.of(message, root); // Force lombok put the null-checks before the constructor call.
+            super(message);
+            this.root = root;
+        }
+
+        public CreatorSelectionException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> root) {
+            List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
+            super(message, cause);
+            this.root = root;
+        }
+
+        @NonNull
+        public Class<?> getRoot() {
+            return root;
+        }
+    }
+
+    public static class CreationException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        @NonNull
+        private final Class<?> root;
+
+        public CreationException(@NonNull String message, @NonNull Class<?> root) {
+            List.of(message, root); // Force lombok put the null-checks before the constructor call.
+            super(message);
+            this.root = root;
+        }
+
+        public CreationException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> root) {
+            List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
+            super(message, cause);
+            this.root = root;
+        }
+
+        @NonNull
+        public Class<?> getRoot() {
+            return root;
+        }
     }
 }

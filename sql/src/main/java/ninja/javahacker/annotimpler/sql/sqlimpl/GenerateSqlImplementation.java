@@ -29,14 +29,14 @@ public final class GenerateSqlImplementation implements Implementation {
         public Object operate(SqlWorker work) throws SQLException;
     }
 
-    private static SpecialFunc findWork(@NonNull Method m) throws ConstructionException {
+    private static SpecialFunc findWork(@NonNull Method m) throws BadImplementationException {
         if (m == null) throw new AssertionError();
 
         var rtb = m.getGenericReturnType();
         var raw = m.getReturnType();
 
         if (Methods.isSimple(m)) {
-            throw new ConstructionException("Unsupported annotation @Generate on method: " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Unsupported annotation @Generate on method: " + nome(m), m.getDeclaringClass());
         }
         if (rtb == long.class) return work -> work.gerarLong().getAsLong();
         if (rtb == Long.class) return work -> getOrNull(work.gerarLong());
@@ -48,26 +48,30 @@ public final class GenerateSqlImplementation implements Implementation {
             var p2 = pt.getActualTypeArguments()[0];
             if (p2 == Integer.class) return work -> work.gerarLista();
             if (p2 == Long.class) return work -> work.gerarListaLong();
-            throw new ConstructionException("Unsupported return @Generate list type on: " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Unsupported return @Generate list type on: " + nome(m), m.getDeclaringClass());
         }
         if (raw == List.class) {
-            throw new ConstructionException("Incomplete return @Generate list type on: " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Incomplete return @Generate list type on: " + nome(m), m.getDeclaringClass());
         }
-        throw new ConstructionException("Unsupported return @Generate type on: " + nome(m), m.getDeclaringClass());
+        throw new BadImplementationException("Unsupported return @Generate type on: " + nome(m), m.getDeclaringClass());
     }
 
     @Override
-    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
         var g = m.getAnnotation(GenerateSql.class);
         if (g == null) throw new IllegalArgumentException();
         var ret = findWork(m);
-        var supplier = SqlFactory.find(m);
+        try {
+            var supplier = SqlFactory.find(m);
 
-        return (@NonNull E instance, @NonNull Object... a) -> {
-            var params = supplier.get().associar(a);
-            var work = new SqlWorker(getConnection(), params);
-            return ret.operate(work);
-        };
+            return (@NonNull E instance, @NonNull Object... a) -> {
+                var params = supplier.get().associar(a);
+                var work = new SqlWorker(getConnection(), params);
+                return ret.operate(work);
+            };
+        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
+            throw new BadImplementationException("", e, QuerySqlImplementation.class);
+        }
     }
 
     @Nullable

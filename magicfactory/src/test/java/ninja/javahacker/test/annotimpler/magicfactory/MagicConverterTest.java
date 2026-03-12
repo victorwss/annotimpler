@@ -12,6 +12,31 @@ import module org.junit.jupiter.params;
 
 public class MagicConverterTest {
 
+    private static final Type COLLECTION_DATE;
+    private static final Type LIST_STRING;
+    private static final Type SET_COLOR;
+    private static final Type OPTIONAL_COLOR;
+    private static final Type POINTLESS;
+    private static final Type MAP_STRING_STRING;
+
+    static {
+        try {
+            var mtd = MagicConverterTest.class.getDeclaredMethod("noop", Collection.class, List.class, Set.class, Optional.class, Pointless.class, Map.class);
+            COLLECTION_DATE = mtd.getParameters()[0].getParameterizedType();
+            LIST_STRING = mtd.getParameters()[1].getParameterizedType();
+            SET_COLOR = mtd.getParameters()[2].getParameterizedType();
+            OPTIONAL_COLOR = mtd.getParameters()[3].getParameterizedType();
+            POINTLESS = mtd.getParameters()[4].getParameterizedType();
+            MAP_STRING_STRING = mtd.getParameters()[5].getParameterizedType();
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static void noop(Collection<LocalDate> a, List<String> b, Set<Color> c, Optional<Color> d, Pointless<String> e, Map<String, String> g) {
+        throw new AssertionError();
+    }
+
     private static NamedTest n(String name, Executable ctx) {
         return new NamedTest(name, ctx);
     }
@@ -22,20 +47,26 @@ public class MagicConverterTest {
 
     public static record Wrapper(int value) {}
 
-    public static interface Pointless<X> extends Collection<X> {}
+    public static interface Pointless<X> extends List<X> {}
 
-    private static Stream<Arguments> testSimpleValueMapping() throws ConstructionException {
+    private static Stream<Arguments> testSimpleValueMapping() throws Exception {
         return Stream.of(
-                n("basic int", () -> Assertions.assertEquals(42, MagicConverter.forValue(42, Integer.class))),
-                n("basic long", () -> Assertions.assertEquals(42L, MagicConverter.forValue(42L, Long.class))),
-                n("enum from itself", () -> Assertions.assertEquals(Color.PINK, MagicConverter.forValue(Color.PINK, Color.class))),
-                n("enum from int", () -> Assertions.assertEquals(Color.YELLOW, MagicConverter.forValue(3, Color.class))),
-                n("enum from long", () -> Assertions.assertEquals(Color.BLUE, MagicConverter.forValue(5L, Color.class))),
+                n("basic int", () -> Assertions.assertEquals(42, ConverterFactory.STD.get(Integer.class).from(42).get())),
+                n("basic long", () -> Assertions.assertEquals(42L, ConverterFactory.STD.get(Long.class).from(42L).get())),
+                n("enum from int", () -> Assertions.assertEquals(Color.YELLOW, ConverterFactory.STD.get(Color.class).from(3).get())),
+                n("enum from long", () -> Assertions.assertEquals(Color.BLUE, ConverterFactory.STD.get(Color.class).from(5L).get())),
                 n("enum from BigDecimal", () -> Assertions.assertEquals(
                         Color.BLACK,
-                        MagicConverter.forValue(BigDecimal.valueOf(7), Color.class))
+                        ConverterFactory.STD.get(Color.class).from(BigDecimal.valueOf(7)).get())
                 ),
-                n("simple record", () -> Assertions.assertEquals(new Wrapper(25), MagicConverter.forValue(25, Wrapper.class)))
+                n("simple record", () -> Assertions.assertEquals(
+                        new Wrapper(25),
+                        ConverterFactory.STD.get(Wrapper.class).from(25).get()
+                )),
+                n("simple record converts", () -> Assertions.assertEquals(
+                        new Wrapper(25),
+                        ConverterFactory.STD.get(Wrapper.class).from(25.0).get()
+                ))
         ).map(NamedTest::args);
     }
 
@@ -45,7 +76,7 @@ public class MagicConverterTest {
         exec.execute();
     }
 
-    private static Stream<Arguments> testConvertsMapping() throws ConstructionException {
+    private static Stream<Arguments> testConvertsMapping() throws Exception {
         var ts = List.of(
                 byte.class, Byte.class,
                 short.class, Short.class,
@@ -65,13 +96,13 @@ public class MagicConverterTest {
                 double.class, Double.class,
                 char.class, Character.class
         );
-        var vals = List.of((byte) 52, (short) 52, 52, 52L, 52.0, 52.0f, BigInteger.valueOf(52L), BigDecimal.valueOf(52L), (char) 52);
-        List<NamedTest> execs = new ArrayList<>(100);
+        var vals = List.of((byte) 52, (short) 52, 52, 52L, 52.0, 52.0f, BigDecimal.valueOf(52L));
+        List<NamedTest> execs = new ArrayList<>(vals.size() * ts.size());
         for (var t : ts) {
             var w = t.isPrimitive() ? wrapper.get(t) : t;
             for (var v : vals) {
                 Executable x = () -> {
-                    var c = MagicConverter.forValue(v, t);
+                    var c = ConverterFactory.STD.get(t).from(v).get();
                     Assertions.assertEquals(w, c.getClass());
                     Assertions.assertEquals(52, c.intValue());
                 };
@@ -90,61 +121,80 @@ public class MagicConverterTest {
     public static record Recursive(Recursive r) {}
 
     @Test
-    public void testRecursiveRecord() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicConverter.forValue("x", Recursive.class));
+    public void testRecursiveRecord() throws Exception {
+        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Recursive.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Recursive.class, ex.getRoot()),
-                () -> Assertions.assertEquals("Recursive record class.", ex.getMessage())
+                () -> Assertions.assertEquals("Recursive record class: " + Recursive.class.getName(), ex.getMessage()),
+                () -> Assertions.assertEquals(Converter.ConvertionException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals("Recursive record class: " + Recursive.class.getName(), ex.getCause().getMessage())
         );
     }
 
     public static record Verbose(String bla, String blu) {}
 
     @Test
-    public void testVerboseRecord() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicConverter.forValue("x", Verbose.class));
+    public void testVerboseRecord() throws Exception {
+        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Verbose.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Verbose.class, ex.getRoot()),
-                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected.", ex.getMessage())
+                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected: " + Verbose.class.getName(), ex.getMessage()),
+                () -> Assertions.assertEquals(Converter.ConvertionException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected: " + Verbose.class.getName(), ex.getCause().getMessage())
         );
     }
 
-    private static void testBadEnum(Object in, Class<? extends Enum<?>> out) {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicConverter.forValue(in, out));
+    @Test
+    public void testBadEnum1() {
+        var in = new Wrapper(5);
+        var ex = Assertions.assertThrows(Converter.ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).from(in));
         Assertions.assertAll(
-                () -> Assertions.assertEquals(out, ex.getRoot()),
-                () -> Assertions.assertEquals("Can't read value as enum class.", ex.getMessage())
+                () -> Assertions.assertEquals(Wrapper.class, ex.getRoot()),
+                () -> Assertions.assertEquals("Unsupported Type: " + Wrapper.class.getName(), ex.getMessage())
         );
     }
 
-    private static Stream<Arguments> testBadEnumConversion() throws ConstructionException {
-        return Stream.of(
-                n("record to enum", () -> testBadEnum(new Wrapper(5), Color.class)),
-                n("bad name to enum", () -> testBadEnum("bla", Color.class))
-        ).map(NamedTest::args);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testBadEnumConversion {0}")
-    public void testBadEnumConversion(String name, Executable exec) throws Throwable {
-        exec.execute();
+    @Test
+    public void testBadEnum2() {
+        var ex = Assertions.assertThrows(Converter.ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).from("bla"));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(Color.class, ex.getRoot()),
+                () -> Assertions.assertEquals("Can't read value as an enum object.", ex.getMessage())
+        );
     }
 
     private static Stream<Arguments> testSingleton() {
-        Verbose[] arr = {
-            new Verbose("tchu", "tcha"), new Verbose("tche", "tcho"), new Verbose("abcd", "efgh"), new Verbose("ijkl", "mnop")
-        };
+        var bla = "blabla";
+        var blu = LocalDate.of(2000, 1, 1);
         return Stream.of(
-                n("List", () -> Assertions.assertEquals(List.of(arr[0]), MagicConverter.singleton(arr[0], List.class))),
-                n("Collection", () -> Assertions.assertEquals(List.of(arr[1]), MagicConverter.singleton(arr[1], Collection.class))),
-                n("ArrayList", () -> Assertions.assertEquals(List.of(arr[2]), MagicConverter.singleton(arr[2], ArrayList.class))),
-                n("LinkedList", () -> Assertions.assertEquals(List.of(arr[3]), MagicConverter.singleton(arr[3], LinkedList.class))),
-                n("Set", () -> Assertions.assertEquals(Set.of(Color.YELLOW), MagicConverter.singleton(Color.YELLOW, Set.class))),
-                n("HashSet", () -> Assertions.assertEquals(Set.of(Color.PURPLE), MagicConverter.singleton(Color.PURPLE, HashSet.class))),
-                n("LinkedHashSet", () -> Assertions.assertEquals(Set.of(Color.ORANGE), MagicConverter.singleton(Color.ORANGE, LinkedHashSet.class))),
-                n("TreeSet", () -> Assertions.assertEquals(Set.of(Color.PINK), MagicConverter.singleton(Color.PINK, TreeSet.class))),
-                n("SortedSet", () -> Assertions.assertEquals(Set.of(Color.BLACK), MagicConverter.singleton(Color.BLACK, SortedSet.class))),
-                n("NavigableSet", () -> Assertions.assertEquals(Set.of(Color.WHITE), MagicConverter.singleton(Color.WHITE, NavigableSet.class)))
+                n("List<String> from String", () -> Assertions.assertEquals(
+                        List.of(bla),
+                        ConverterFactory.STD.get(LIST_STRING).from(bla).get()
+                )),
+                n("Collection<LocalDate> from LocalDate", () -> Assertions.assertEquals(
+                        List.of(blu),
+                        ConverterFactory.STD.get(COLLECTION_DATE).from(blu).get()
+                )),
+                n("Set<Enum> from ordinal", () -> Assertions.assertEquals(
+                        Set.of(Color.YELLOW),
+                        ConverterFactory.STD.get(SET_COLOR).from(Color.YELLOW.ordinal()).get()
+                )),
+                n("Set<Enum> from ordinal as String", () -> Assertions.assertEquals(
+                        Set.of(Color.BLUE),
+                        ConverterFactory.STD.get(SET_COLOR).from(String.valueOf(Color.BLUE.ordinal())).get()
+                )),
+                n("Optional<Enum> from name", () -> Assertions.assertEquals(
+                        Optional.of(Color.PINK),
+                        ConverterFactory.STD.get(OPTIONAL_COLOR).from(Color.PINK.name()).get()
+                )),
+                n("Optional<Enum> from ordinal as long", () -> Assertions.assertEquals(
+                        Optional.of(Color.BLACK),
+                        ConverterFactory.STD.get(OPTIONAL_COLOR).from((long) Color.BLACK.ordinal()).get()
+                )),
+                n("Optional<Enum> from ordinal as BigDecimal", () -> Assertions.assertEquals(
+                        Optional.of(Color.GREEN),
+                        ConverterFactory.STD.get(OPTIONAL_COLOR).from(BigDecimal.valueOf(Color.GREEN.ordinal())).get()
+                ))
         ).map(NamedTest::args);
     }
 
@@ -154,22 +204,44 @@ public class MagicConverterTest {
         exec.execute();
     }
 
-    private static void testSingletonBad(Class<?> k) {
-        var ex = Assertions.assertThrows(IllegalArgumentException.class, () -> MagicConverter.singleton("x", k));
-        Assertions.assertEquals("Can't use " + k.getName() + " as a singleton collection.", ex.getMessage());
+    private static void testNoConverter(Type k) {
+        var msg = (k instanceof Class<?> kk && kk.isArray()) ? "No converter for multidimensional arrays." : "No converter for " + k.getTypeName();
+        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(k));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(msg, ex.getMessage()),
+                () -> Assertions.assertEquals(k, ex.getRoot())
+        );
     }
 
     @SuppressWarnings("null")
-    private static Stream<Arguments> testBads() {
-        return Stream.of(
-                n("unknown collectiom singleton", () -> testSingletonBad(Pointless.class)),
-                n("not collection singleton", () -> testSingletonBad(String.class)),
-                n("primitive singleton", () -> testSingletonBad(int.class)),
-                n("array singleton", () -> testSingletonBad(Object[].class)),
-                n("MagicConverter.zero-target", () -> ForTests.testNull("target", () -> MagicConverter.zero(null))),
-                n("MagicConverter.singleton-element", () -> ForTests.testNull("element", () -> MagicConverter.singleton(null, List.class))),
-                n("MagicConverter.singleton-target", () -> ForTests.testNull("target", () -> MagicConverter.singleton("xxx", null)))
-        ).map(NamedTest::args);
+    private static Stream<Arguments> testBads() throws Exception {
+        interface Foo<E> {
+            void a(
+                    E a,
+                    List<E> b,
+                    List<? extends Serializable> c,
+                    Set<E> d,
+                    Set<? extends Serializable> e,
+                    Collection<E> f,
+                    Collection<? extends Serializable> g,
+                    Optional<E> h,
+                    Optional<? extends Serializable> i,
+                    List<E[]> j,
+                    E[] k,
+                    int[][] m,
+                    boolean[][][] n,
+                    String[][] o
+            );
+
+            public static Arguments args(Type t) {
+                return n(t.getTypeName(), () -> testNoConverter(t)).args();
+            }
+        }
+
+        var mt = Stream.of(Foo.class.getMethods()).filter(m -> "a".equals(m.getName())).findFirst().get();
+        var p = Stream.of(mt.getParameters()).map(java.lang.reflect.Parameter::getParameterizedType);
+        var q = Stream.of(List.class, Collection.class, Set.class, Optional.class, Map.class, Pointless.class, POINTLESS, MAP_STRING_STRING);
+        return Stream.concat(p, q).map(Foo::args);
     }
 
     @MethodSource
@@ -178,7 +250,7 @@ public class MagicConverterTest {
         exec.execute();
     }
 
-    private static Stream<Arguments> testZero() {
+    private static Stream<Arguments> testNullOverride() {
         return Map.ofEntries(
                 Map.entry(boolean.class, false),
                 Map.entry(byte.class, (byte) 0),
@@ -188,64 +260,60 @@ public class MagicConverterTest {
                 Map.entry(long.class, 0L),
                 Map.entry(float.class, 0f),
                 Map.entry(double.class, 0.0),
-                Map.entry(Optional.class, Optional.empty()),
+                Map.entry(OPTIONAL_COLOR, Optional.empty()),
                 Map.entry(OptionalInt.class, OptionalInt.empty()),
                 Map.entry(OptionalLong.class, OptionalLong.empty()),
                 Map.entry(OptionalDouble.class, OptionalDouble.empty()),
-                Map.entry(Collection.class, List.of()),
-                Map.entry(List.class, List.of()),
-                Map.entry(ArrayList.class, List.of()),
-                Map.entry(LinkedList.class, List.of()),
-                Map.entry(Set.class, Set.of()),
-                Map.entry(SortedSet.class, Set.of()),
-                Map.entry(NavigableSet.class, Set.of()),
-                Map.entry(HashSet.class, Set.of()),
-                Map.entry(LinkedHashSet.class, Set.of()),
-                Map.entry(TreeSet.class, Set.of())
+                Map.entry(COLLECTION_DATE, List.of()),
+                Map.entry(LIST_STRING, List.of()),
+                Map.entry(SET_COLOR, Set.of())
         )
         .entrySet()
         .stream()
         .map(e -> n(
-                "zero(" + e.getKey().getSimpleName() + ")",
-                () -> Assertions.assertEquals(e.getValue(), MagicConverter.zero(e.getKey()), e.getKey().getName())
+                "zero(" + e.getKey().getTypeName() + ")",
+                () -> Assertions.assertEquals(e.getValue(), ConverterFactory.STD.get(e.getKey()).fromNull().get(), e.getKey().getTypeName())
         ))
         .map(NamedTest::args);
     }
 
     @MethodSource
-    @ParameterizedTest(name = "testZero {0}")
-    public void testZero(String name, Executable exec) throws Throwable {
+    @ParameterizedTest(name = "testNullOverride {0}")
+    public void testNullOverride(String name, Executable exec) throws Throwable {
         exec.execute();
     }
 
-    private static Stream<Arguments> testZeroNulls() {
+    private static Stream<Arguments> testDefaultNulls() {
         return Stream.of(
-                Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Class.class,
-                BigInteger.class, BigDecimal.class, Color.class, String.class, Pointless.class, MagicConverter.class, Test.class
+                Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+                BigInteger.class, BigDecimal.class, Color.class, String.class, Wrapper.class,
+                LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetTime.class, OffsetDateTime.class, ZonedDateTime.class,
+                java.util.Date.class, java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
+                Calendar.class, GregorianCalendar.class, Instant.class,
+                java.sql.Ref.class, java.sql.RowId.class, java.sql.Array.class
         ).map(e -> n(
                 e.getSimpleName(),
-                () -> Assertions.assertEquals(null, MagicConverter.zero(e))
+                () -> Assertions.assertTrue(ConverterFactory.STD.get(e).fromNull().isEmpty(), e.getTypeName())
         )).map(NamedTest::args);
     }
 
     @MethodSource
-    @ParameterizedTest(name = "testZeroNulls {0}")
-    public void testZeroNulls(String name, Executable exec) throws Throwable {
+    @ParameterizedTest(name = "testDefaultNulls {0}")
+    public void testDefaultNulls(String name, Executable exec) throws Throwable {
         exec.execute();
     }
 
-    private static Stream<Arguments> testZeroArrays() {
+    private static Stream<Arguments> testZeroLengthArrays() {
         return Stream.of(
                 boolean[].class, byte[].class, char[].class, short[].class, int[].class, long[].class, float[].class, double[].class,
                 Boolean[].class, Byte[].class, Character[].class, Short[].class,
                 Integer[].class, Long[].class, Float[].class, Double[].class,
                 BigInteger[].class, BigDecimal[].class,
-                Color[].class, String[].class, Pointless[].class, MagicConverter[].class, Test[].class
+                Color[].class, String[].class, Wrapper[].class, LocalDate[].class, GregorianCalendar[].class
         ).map(e -> n(
-                "",
+                e.getCanonicalName(),
                 () -> {
-                    Assertions.assertTrue(e.isArray());
-                    var s = MagicConverter.zero(e);
+                    var s = ConverterFactory.STD.get(e).fromNull().get();
                     Assertions.assertEquals(e, s.getClass());
                     Assertions.assertEquals(0, Array.getLength(s));
                 }
@@ -253,8 +321,8 @@ public class MagicConverterTest {
     }
 
     @MethodSource
-    @ParameterizedTest(name = "testZeroArrays {0}")
-    public void testZeroArrays(String name, Executable exec) throws Throwable {
+    @ParameterizedTest(name = "testZeroLengthArrays {0}")
+    public void testZeroLengthArrays(String name, Executable exec) throws Throwable {
         exec.execute();
     }
 
@@ -274,7 +342,7 @@ public class MagicConverterTest {
         record Parts<E>(String input, Class<E> type, E output) {
             public String name() {
                 var x = type.getSimpleName();
-                return "Date".equals(x) ? type.getName() : x;
+                return List.of("Date", "Time", "Timestamp").contains(x) ? type.getName() : x;
             }
         }
 
@@ -283,7 +351,7 @@ public class MagicConverterTest {
         var parts = List.of(
                 new Parts<>("", boolean.class, false),
                 new Parts<>("", byte.class, (byte) 0),
-                new Parts<>("", char.class, (char) 0),
+                new Parts<>("", char.class, '\0'),
                 new Parts<>("", short.class, (short) 0),
                 new Parts<>("", int.class, 0),
                 new Parts<>("", long.class, 0L),
@@ -303,8 +371,24 @@ public class MagicConverterTest {
                 new Parts<>("", OptionalDouble.class, OptionalDouble.empty()),
                 new Parts<>("", OptionalLong.class, OptionalLong.empty()),
                 new Parts<>("", OptionalInt.class, OptionalInt.empty()),
+
+                new Parts<>("", String.class, ""),
+                new Parts<>("", byte[].class, new byte[0]),
                 new Parts<>("", Color.class, null),
+                new Parts<>("", Wrapper.class, new Wrapper(0)),
+
                 new Parts<>("", LocalDate.class, null),
+                new Parts<>("", LocalTime.class, null),
+                new Parts<>("", LocalDateTime.class, null),
+                new Parts<>("", ZonedDateTime.class, null),
+                new Parts<>("", OffsetDateTime.class, null),
+                new Parts<>("", Instant.class, null),
+                new Parts<>("", Calendar.class, null),
+                new Parts<>("", GregorianCalendar.class, null),
+                new Parts<>("", java.util.Date.class, null),
+                new Parts<>("", java.sql.Date.class, null),
+                new Parts<>("", java.sql.Time.class, null),
+                new Parts<>("", java.sql.Timestamp.class, null),
 
                 new Parts<>("false", boolean.class, false),
                 new Parts<>("false", Boolean.class, false),
@@ -349,8 +433,8 @@ public class MagicConverterTest {
                 new Parts<>("123", OptionalInt.class, OptionalInt.of(123)),
                 new Parts<>("-123", OptionalInt.class, OptionalInt.of(-123)),
 
-                new Parts<>("", String.class, ""),
                 new Parts<>("foo", String.class, "foo"),
+                new Parts<>("foo", byte[].class, "foo".getBytes()),
                 new Parts<>("GREEN", Color.class, Color.GREEN),
                 new Parts<>("5", Wrapper.class, new Wrapper(5)),
 
@@ -368,11 +452,20 @@ public class MagicConverterTest {
                 new Parts<>(timestamp, java.sql.Timestamp.class, java.sql.Timestamp.valueOf(ldt))
         );
         return parts.stream().flatMap(e -> {
+            var in = e.input();
             var out = e.output();
-            var name = e.input() + " as " + e.name();
-            var x = n("unstringify " + name, () -> Assertions.assertEquals(out, MagicConverter.unstringify(e.input(), e.type())));
-            var y = n("forValue " + name, () -> Assertions.assertEquals(out, MagicConverter.forValue(e.input(), e.type())));
-            return Stream.of(x, y);
+            var name = "from " + ("".equals(in) ? "<empty>" : in) + " as " + e.name();
+            var y = n(name, () -> {
+                var opt = ConverterFactory.STD.get(e.type()).from(in);
+                if (out == null) {
+                    Assertions.assertTrue(opt.isEmpty());
+                } else if (out instanceof byte[] b) {
+                    Assertions.assertArrayEquals(b, (byte[]) opt.get());
+                } else {
+                    Assertions.assertEquals(out, opt.get());
+                }
+            });
+            return Stream.of(y);
         }).map(NamedTest::args);
     }
 

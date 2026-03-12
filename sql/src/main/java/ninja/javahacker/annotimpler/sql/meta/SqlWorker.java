@@ -34,7 +34,7 @@ public final class SqlWorker {
 
     @NonNull
     private <R extends Record> Optional<R> lerRecord(@NonNull Class<R> k, @NonNull int... campos)
-            throws SQLException, ConstructionException
+            throws SQLException
     {
         try (var ps = open()) {
             args.preencher(ps);
@@ -46,7 +46,7 @@ public final class SqlWorker {
     }
 
     @NonNull
-    private <R> Optional<R> lerSimples(@NonNull Class<R> k, int campo) throws SQLException, ConstructionException {
+    private <R> Optional<R> lerSimples(@NonNull Class<R> k, int campo) throws SQLException {
         try (var ps = open()) {
             args.preencher(ps);
             try (var rs = new SmartResultSet(ps.executeQuery())) {
@@ -57,7 +57,7 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public <R> Optional<R> ler(@NonNull Class<R> k, @NonNull int... campos) throws SQLException, ConstructionException {
+    public <R> Optional<R> ler(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
         var camposFinal = campos.length == 0 ? defaultRange(k) : campos;
         if (k.isRecord()) return lerRecord(k.asSubclass(Record.class), camposFinal).map(k::cast);
         if (camposFinal.length != 1) throw new UnsupportedOperationException();
@@ -65,13 +65,13 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public <R> Optional<R> ler(@NonNull Class<R> k) throws SQLException, ConstructionException {
+    public <R> Optional<R> ler(@NonNull Class<R> k) throws SQLException {
         return ler(k, defaultRange(k));
     }
 
     @NonNull
     private <R extends Record> List<R> listarRecord(@NonNull Class<R> k, @NonNull int... campos)
-            throws SQLException, ConstructionException
+            throws SQLException
     {
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
@@ -86,7 +86,7 @@ public final class SqlWorker {
     }
 
     @NonNull
-    private <R> List<R> listarSimples(@NonNull Class<R> k, int campo) throws SQLException, ConstructionException {
+    private <R> List<R> listarSimples(@NonNull Class<R> k, int campo) throws SQLException {
         try (var ps = open()) {
             args.preencher(ps);
             try (var rs = new SmartResultSet(ps.executeQuery())) {
@@ -101,7 +101,7 @@ public final class SqlWorker {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public <R> List<R> listar(@NonNull Class<R> k, @NonNull int... campos) throws SQLException, ConstructionException {
+    public <R> List<R> listar(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
         var camposFinal = campos.length == 0 ? defaultRange(k) : campos;
         if (k.isRecord()) return (List<R>) listarRecord(k.asSubclass(Record.class), camposFinal);
         if (camposFinal.length != 1) throw new UnsupportedOperationException();
@@ -109,7 +109,7 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public <R> List<R> listar(@NonNull Class<R> k) throws SQLException, ConstructionException {
+    public <R> List<R> listar(@NonNull Class<R> k) throws SQLException {
         return listar(k, defaultRange(k));
     }
 

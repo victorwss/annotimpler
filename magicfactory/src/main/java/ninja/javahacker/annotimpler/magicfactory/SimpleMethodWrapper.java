@@ -10,10 +10,13 @@ import module java.base;
 @PackagePrivate
 class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
+    @NonNull
     public static final List<Parameter> EMPTY1 = List.of();
 
+    @NonNull
     public static final List<Type> EMPTY2 = List.of();
 
+    @NonNull
     @PackagePrivate
     static final Annotator NULL_ANNOTATOR = new Annotator() {
         @Nullable
@@ -24,15 +27,29 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         }
     };
 
+    @NonNull
     private final U what;
+
+    @NonNull
     private final List<Parameter> params;
+
+    @NonNull
     private final List<Type> types;
+
+    @NonNull
     private final Type rt;
+
+    @NonNull
     private final String str;
+
     private final boolean staticModifier;
     private final boolean abstractModifier;
     private final boolean publicModifier;
+
+    @NonNull
     private final Call<E> caller;
+
+    @NonNull
     private final Annotator annotator;
 
     @FunctionalInterface

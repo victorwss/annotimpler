@@ -8,89 +8,113 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public enum ByteArrayConverter implements Converter<byte[]> {
     INSTANCE;
 
+    @NonNull
+    private static final String BAD = "Can't read value as byte array.";
+
+    @NonNull
     @Override
-    public byte[] from(boolean in) {
-        return new byte[] {in ? (byte) 1 : (byte) 0};
+    @SuppressWarnings("unchecked")
+    public Optional<byte[]> fromNull() {
+        return Optional.of(new byte[0]);
     }
 
+    @NonNull
     @Override
-    public byte[] from(byte in) {
-        return new byte[] {in};
+    public Optional<byte[]> from(boolean in) {
+        return Optional.of(new byte[] {in ? (byte) 1 : (byte) 0});
     }
 
+    @NonNull
     @Override
-    public byte[] from(short in) {
-        return ByteBuffer.allocate(2).putShort(in).array();
+    public Optional<byte[]> from(byte in) {
+        return Optional.of(new byte[] {in});
     }
 
+    @NonNull
     @Override
-    public byte[] from(int in) {
-        return ByteBuffer.allocate(4).putInt(in).array();
+    public Optional<byte[]> from(short in) {
+        return Optional.of(ByteBuffer.allocate(2).putShort(in).array());
     }
 
+    @NonNull
     @Override
-    public byte[] from(long in) {
-        return ByteBuffer.allocate(8).putLong(in).array();
+    public Optional<byte[]> from(int in) {
+        return Optional.of(ByteBuffer.allocate(4).putInt(in).array());
     }
 
+    @NonNull
     @Override
-    public byte[] from(float in) {
-        return ByteBuffer.allocate(4).putFloat(in).array();
+    public Optional<byte[]> from(long in) {
+        return Optional.of(ByteBuffer.allocate(8).putLong(in).array());
     }
 
+    @NonNull
     @Override
-    public byte[] from(double in) {
-        return ByteBuffer.allocate(8).putDouble(in).array();
+    public Optional<byte[]> from(float in) {
+        return Optional.of(ByteBuffer.allocate(4).putFloat(in).array());
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull String in) {
-        return in.getBytes(StandardCharsets.UTF_8);
+    public Optional<byte[]> from(double in) {
+        return Optional.of(ByteBuffer.allocate(8).putDouble(in).array());
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull byte[] in) {
-        return in;
+    public Optional<byte[]> from(@NonNull String in) {
+        return Optional.of(in.getBytes(StandardCharsets.UTF_8));
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull Blob in) {
+    public Optional<byte[]> from(@NonNull byte[] in) {
+        return Optional.of(in);
+    }
+
+    @NonNull
+    @Override
+    public Optional<byte[]> from(@NonNull Blob in) throws ConvertionException {
         try {
-            return in.getBinaryStream().readAllBytes();
+            return Optional.of(in.getBinaryStream().readAllBytes());
         } catch (SQLException | IOException x) {
-            throw new IllegalStateException(x);
+            throw new ConvertionException(BAD, x, byte[].class);
         }
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull Clob in) {
+    public Optional<byte[]> from(@NonNull Clob in) throws ConvertionException {
         try {
-            return in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8);
+            return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new IllegalStateException(x);
+            throw new ConvertionException(BAD, x, byte[].class);
         }
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull NClob in) {
+    public Optional<byte[]> from(@NonNull NClob in) throws ConvertionException {
         try {
-            return in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8);
+            return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new IllegalStateException(x);
+            throw new ConvertionException(BAD, x, byte[].class);
         }
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull SQLXML in) {
+    public Optional<byte[]> from(@NonNull SQLXML in) throws ConvertionException {
         try {
-            return in.getString().getBytes(StandardCharsets.UTF_8);
+            return Optional.of(in.getString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException x) {
-            throw new IllegalStateException(x);
+            throw new ConvertionException(BAD, x, byte[].class);
         }
     }
 
+    @NonNull
     @Override
-    public byte[] from(@NonNull RowId in) {
-        return in.getBytes();
+    public Optional<byte[]> from(@NonNull RowId in) {
+        return Optional.of(in.getBytes());
     }
 }

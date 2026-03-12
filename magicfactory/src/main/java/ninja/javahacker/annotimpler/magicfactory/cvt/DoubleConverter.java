@@ -6,54 +6,77 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 public enum DoubleConverter implements Converter<Double> {
-    INSTANCE;
+    PRIMITIVE, WRAPPER;
 
+    @NonNull
+    private static final String BAD = "Can't read value as double.";
+
+    @NonNull
     @Override
-    public Double from(boolean in) {
-        return in ? 1.0 : 0.0;
+    public Optional<Double> fromNull() {
+        return this == PRIMITIVE ? Optional.of(0.0) : Optional.empty();
     }
 
+    @NonNull
     @Override
-    public Double from(byte in) {
-        return (double) in;
+    public Optional<Double> from(boolean in) {
+        return Optional.of(in ? 1.0 : 0.0);
     }
 
+    @NonNull
     @Override
-    public Double from(short in) {
-        return (double) in;
+    public Optional<Double> from(byte in) {
+        return Optional.of((double) in);
     }
 
+    @NonNull
     @Override
-    public Double from(int in) {
-        return (double) in;
+    public Optional<Double> from(short in) {
+        return Optional.of((double) in);
     }
 
+    @NonNull
     @Override
-    public Double from(long in) {
-        return (double) in;
+    public Optional<Double> from(int in) {
+        return Optional.of((double) in);
     }
 
+    @NonNull
     @Override
-    public Double from(float in) {
-        return (double) in;
+    public Optional<Double> from(long in) throws ConvertionException {
+        double a = in;
+        if (in != a) throw new ConvertionException(BAD, double.class);
+        return Optional.of(a);
     }
 
+    @NonNull
     @Override
-    public Double from(double in) {
-        return in;
+    public Optional<Double> from(float in) {
+        return Optional.of((double) in);
     }
 
+    @NonNull
     @Override
-    public Double from(@NonNull BigDecimal in) {
-        return in.doubleValue();
+    public Optional<Double> from(double in) {
+        return Optional.of(in);
     }
 
+    @NonNull
     @Override
-    public Double from(@NonNull String in) {
+    public Optional<Double> from(@NonNull BigDecimal in) throws ConvertionException {
+        var a = in.doubleValue();
+        if (in.compareTo(BigDecimal.valueOf(a)) != 0) throw new ConvertionException(BAD, double.class);
+        return Optional.of(a);
+    }
+
+    @NonNull
+    @Override
+    public Optional<Double> from(@NonNull String in) throws ConvertionException {
+        if (in.isEmpty()) return this == PRIMITIVE ? Optional.of(0.0) : Optional.empty();
         try {
-            return Double.valueOf(in);
+            return Optional.of(Double.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new IllegalArgumentException();
+            throw new ConvertionException(BAD, x, double.class);
         }
     }
 }

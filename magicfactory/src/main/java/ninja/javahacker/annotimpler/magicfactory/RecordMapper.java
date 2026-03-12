@@ -3,23 +3,36 @@ package ninja.javahacker.annotimpler.magicfactory;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.magicfactory;
 
 public final class RecordMapper {
 
-    public RecordMapper() {
-        throw new UnsupportedOperationException();
+    @NonNull
+    private final ConverterFactory factory;
+
+    public RecordMapper(@NonNull ConverterFactory factory) {
+        this.factory = factory;
     }
 
-    @NonNull
-    public static <T> T forMap(@NonNull Map<String, ?> map, @NonNull Class<T> someClass) throws ConstructionException {
-        if (someClass.isRecord()) return someClass.cast(mapToRecord(map, someClass.asSubclass(Record.class)));
+    /*@NonNull
+    public <T> Optional<T> forMap(@NonNull Map<String, ?> map, @NonNull Class<T> someClass)
+            throws MagicFactory.CreatorSelectionException,
+            MagicFactory.CreationException,
+            ConverterFactory.UnavailableConverterException,
+            Converter.ConvertionException
+    {
+        if (someClass.isRecord()) return Optional.of(someClass.cast(mapToRecord(map, someClass.asSubclass(Record.class))));
         if (map.size() != 1) throw new IllegalArgumentException("Failed to create instance.");
-        return MagicConverter.forValue(map.values().toArray()[0], someClass);
-    }
+        var value = map.values().iterator().next();
+        return factory.get(someClass).from(value);
+    }*/
 
     @NonNull
-    private static <T extends Record> T mapToRecord(@NonNull Map<String, ?> map, @NonNull Class<T> recordClass)
-            throws ConstructionException
+    public <T extends Record> T mapToRecord(@NonNull Map<String, ?> map, @NonNull Class<T> recordClass)
+            throws MagicFactory.CreatorSelectionException,
+            MagicFactory.CreationException,
+            ConverterFactory.UnavailableConverterException,
+            Converter.ConvertionException
     {
         // Seleciona o construtor ou método mais adequado.
         var exec = MagicFactory.of(recordClass);
@@ -31,10 +44,10 @@ public final class RecordMapper {
     }
 
     @NonNull
-    private static List<?> prepareArguments(
+    private List<?> prepareArguments(
             @NonNull MagicFactory<?> constructor,
             @NonNull Map<String, ?> map)
-            throws ConstructionException
+            throws ConverterFactory.UnavailableConverterException, Converter.ConvertionException
     {
         var parameters = constructor.getParameters();
         var args = new ArrayList<Object>(parameters.size());
@@ -42,7 +55,8 @@ public final class RecordMapper {
         for (var param : parameters) {
             var paramName = camelCaseToSnakeCase(param.getName());
             var paramType = param.getParameterizedType();
-            args.add(MagicConverter.forValue(map.get(paramName), paramType));
+            var value = factory.get(paramType).from(map.get(paramName)).orElse(null);
+            args.add(value);
         }
 
         return args;

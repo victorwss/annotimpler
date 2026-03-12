@@ -23,37 +23,42 @@ public final class ExecuteSqlImplementation implements Implementation {
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
-    private static LongFunction<Object> findWork(@NonNull Method m) throws ConstructionException {
+    private static LongFunction<Object> findWork(@NonNull Method m) throws BadImplementationException {
         if (m == null) throw new AssertionError();
         var rtb = m.getReturnType();
 
         if (Methods.isSimple(m)) {
-            throw new ConstructionException("Unsupported annotation @Execute on " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Unsupported annotation @Execute on " + nome(m), m.getDeclaringClass());
         }
         if (rtb == long.class || rtb == Long.class) return qtd -> qtd;
         if (rtb == int.class || rtb == Integer.class) return qtd -> (int) Long.min(qtd, Integer.MAX_VALUE);
         if (rtb == void.class || rtb == Void.class) return qtd -> null;
-        throw new ConstructionException("Unsupported return @Execute type on " + nome(m), m.getDeclaringClass());
+        throw new BadImplementationException("Unsupported return @Execute type on " + nome(m), m.getDeclaringClass());
     }
 
     @Override
-    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
-        var e = m.getAnnotation(ExecuteSql.class);
-        if (e == null) throw new IllegalArgumentException();
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
+        var es = m.getAnnotation(ExecuteSql.class);
+        if (es == null) throw new IllegalArgumentException();
 
         if (Methods.isSimple(m)) {
-            throw new ConstructionException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
+            throw new BadImplementationException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
         }
         var ret = findWork(m);
-        var supplier = SqlFactory.find(m);
 
-        return (@NonNull E instance, @NonNull Object... a) -> {
-            var params = supplier.get().associar(a);
-            var work = new SqlWorker(getConnection(), params);
-            var qtd = work.executar();
-            if (qtd == 0L && !e.aceitaZero()) throw new SQLException("Nenhuma linha foi afetada.");
-            if (qtd > 1L && !e.aceitaMulti()) throw new SQLException("Múltiplas linhas foram afetadas.");
-            return ret.apply(qtd);
-        };
+        try {
+            var supplier = SqlFactory.find(m);
+
+            return (@NonNull E instance, @NonNull Object... a) -> {
+                var params = supplier.get().associar(a);
+                var work = new SqlWorker(getConnection(), params);
+                var qtd = work.executar();
+                if (qtd == 0L && !es.aceitaZero()) throw new SQLException("Nenhuma linha foi afetada.");
+                if (qtd > 1L && !es.aceitaMulti()) throw new SQLException("Múltiplas linhas foram afetadas.");
+                return ret.apply(qtd);
+            };
+        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
+            throw new BadImplementationException("", e, QuerySqlImplementation.class);
+        }
     }
 }

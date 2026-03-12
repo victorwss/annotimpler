@@ -13,10 +13,7 @@ public final class AnnotationsImplementor {
         throw new UnsupportedOperationException();
     }
 
-    private static void asserts(boolean b) {
-        if (!b) throw new AssertionError();
-    }
-
+    @NonNull
     private static String name(@NonNull Method m) {
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
@@ -26,42 +23,46 @@ public final class AnnotationsImplementor {
             @NonNull Class<E> iface,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws ConstructionException
+            throws BadImplementationException
     {
         if (iface == null) throw new AssertionError();
         if (m == null) throw new AssertionError();
         if (props == null) throw new AssertionError();
-        asserts(!Modifier.isStatic(m.getModifiers()));
-        asserts(Set.of(iface.getMethods()).contains(m));
+        Asserts.asserts(!Modifier.isStatic(m.getModifiers()));
+        Asserts.asserts(Set.of(iface.getMethods()).contains(m));
 
         var impls = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(ImplementedBy.class)).toList();
         if (impls.size() > 1) {
-            throw new ConstructionException("Too many implementations by annotations on: " + name(m), m.getDeclaringClass());
+            throw new BadImplementationException("Too many implementations by annotations on: " + name(m), m.getDeclaringClass());
         }
         if (impls.isEmpty()) {
             if (!m.isDefault()) {
                 var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
-                throw new ConstructionException(msg, m.getDeclaringClass());
+                throw new BadImplementationException(msg, m.getDeclaringClass());
             }
             return (instance, args) -> {
-                asserts(instance != null);
-                asserts(args != null);
+                Asserts.asserts(instance != null);
+                Asserts.asserts(args != null);
                 return InvocationHandler.invokeDefault(instance, m, args);
             };
         }
         var implClass = impls.getFirst().annotationType().getAnnotation(ImplementedBy.class).value();
-        var c = MagicFactory.of(implClass).create().<E>prepare(m, props);
-        if (c == null) throw new ConstructionException("Implementation was null on: " + name(m), m.getDeclaringClass());
-        return c;
+        try {
+            var c = MagicFactory.of(implClass).create().<E>prepare(m, props);
+            if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), m.getDeclaringClass());
+            return c;
+        } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {
+            throw new BadImplementationException(e.getMessage(), e, m.getDeclaringClass());
+        }
     }
 
     @NonNull
-    public static <E> E implement(@NonNull Class<E> iface) throws ConstructionException {
+    public static <E> E implement(@NonNull Class<E> iface) throws BadImplementationException {
         return implement(iface, null);
     }
 
     @NonNull
-    public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws ConstructionException {
+    public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws BadImplementationException {
         if (!iface.isInterface()) throw new UnsupportedOperationException();
 
         @NonNull
@@ -79,8 +80,8 @@ public final class AnnotationsImplementor {
         meths.put(Methods.TO_STRING, DefaultImplementation.forToString(iface));
 
         InvocationHandler ih = (p, m, a) -> {
-            asserts(p != null);
-            asserts(m != null);
+            Asserts.asserts(p != null);
+            Asserts.asserts(m != null);
             var impl = meths.get(m);
             if (impl == null) throw new AssertionError();
             return impl.execute(iface.cast(p), a == null ? new Object[0] : a);

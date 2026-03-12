@@ -9,14 +9,19 @@ import module java.base;
 
 public final class Methods {
 
+    @NonNull
     private static final Set<Method> INTRINSICS;
 
+    @NonNull
     public static final Method TO_STRING = named("toString");
 
+    @NonNull
     public static final Method HASH_CODE = named("hashCode");
 
+    @NonNull
     public static final Method EQUALS = named("equals", Object.class);
 
+    @NonNull
     public static final Set<Method> OBJECT_DEFAULT = Set.of(HASH_CODE, TO_STRING, EQUALS);
 
     static {
@@ -32,6 +37,7 @@ public final class Methods {
         throw new UnsupportedOperationException();
     }
 
+    @NonNull
     @Generated
     @SneakyThrows
     private static Method named(String name, Class<?>... params) {
@@ -118,6 +124,7 @@ public final class Methods {
         return what.newInstance(args);
     }
 
+    @NonNull
     @Generated
     private static NullPointerException npe(@NonNull Method what) {
         if (what == null) throw new AssertionError();

@@ -26,10 +26,10 @@ public final class QuerySqlImplementation implements Implementation {
 
     @FunctionalInterface
     interface SpecialFunc {
-        public Object operate(SqlWorker work) throws SQLException, ConstructionException;
+        public Object operate(SqlWorker work) throws SQLException;
     }
 
-    private static SpecialFunc findWork(@NonNull Method m, @NonNull QuerySql q) throws ConstructionException {
+    private static SpecialFunc findWork(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
         if (m == null) throw new AssertionError();
         if (q == null) throw new AssertionError();
 
@@ -43,21 +43,21 @@ public final class QuerySqlImplementation implements Implementation {
                 throw new UnsupportedOperationException(nome(m) + " - " + base);
             }
             if (!(pt.getActualTypeArguments()[0] instanceof Class<?> rtb2)) {
-                throw new ConstructionException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
+                throw new BadImplementationException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
             }
             rt = rtb2;
         } else if (rtb instanceof Class<?> rtb2) {
             rt = rtb2;
         } else {
-            throw new ConstructionException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Usage of @Query doesn't support return type on: " + nome(m), m.getDeclaringClass());
         }
 
         if (rt.isRecord()) {
             if (campos.length != 0 && campos.length != rt.getRecordComponents().length) {
-                throw new ConstructionException("Mismatch multi-field return @Query record on: " + nome(m), m.getDeclaringClass());
+                throw new BadImplementationException("Mismatch multi-field return @Query record on: " + nome(m), m.getDeclaringClass());
             }
         } else if (campos.length > 1) {
-            throw new ConstructionException("Mismatch single-field return @Query record on: " + nome(m), m.getDeclaringClass());
+            throw new BadImplementationException("Mismatch single-field return @Query record on: " + nome(m), m.getDeclaringClass());
         }
         if (rtb == List.class) return work -> work.listar(rt, campos);
         if (rtb == Optional.class) return work -> work.ler(rt, campos);
@@ -69,17 +69,22 @@ public final class QuerySqlImplementation implements Implementation {
 
     @NonNull
     @Override
-    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws ConstructionException {
+    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
         var q = m.getAnnotation(QuerySql.class);
         if (q == null) throw new IllegalArgumentException();
         var ret = findWork(m, q);
-        var supplier = SqlFactory.find(m);
 
-        return (@NonNull E instance, @NonNull Object... a) -> {
-            var params = supplier.get().associar(a);
-            var work = new SqlWorker(getConnection(), params);
-            return ret.operate(work);
-        };
+        try {
+            var supplier = SqlFactory.find(m);
+
+            return (@NonNull E instance, @NonNull Object... a) -> {
+                var params = supplier.get().associar(a);
+                var work = new SqlWorker(getConnection(), params);
+                return ret.operate(work);
+            };
+        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
+            throw new BadImplementationException("", e, QuerySqlImplementation.class);
+        }
     }
 
     @Nullable

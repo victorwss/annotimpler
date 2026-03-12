@@ -9,22 +9,22 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
     INSTANCE;
 
     @Override
-    public GregorianCalendar from(@NonNull LocalDate in) {
-        return GregorianCalendar.from(ZonedDateTimeConverter.INSTANCE.from(in));
+    public Optional<GregorianCalendar> from(@NonNull LocalDate in) {
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
-    public GregorianCalendar from(@NonNull LocalDateTime in) {
-        return GregorianCalendar.from(ZonedDateTimeConverter.INSTANCE.from(in));
+    public Optional<GregorianCalendar> from(@NonNull LocalDateTime in) {
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
-    public GregorianCalendar from(@NonNull OffsetDateTime in) {
-        return GregorianCalendar.from(ZonedDateTimeConverter.INSTANCE.from(in));
+    public Optional<GregorianCalendar> from(@NonNull OffsetDateTime in) {
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
-    public GregorianCalendar from(@NonNull String in) {
-        return GregorianCalendar.from(ZonedDateTimeConverter.INSTANCE.from(in));
+    public Optional<GregorianCalendar> from(@NonNull String in) throws ConvertionException {
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 }

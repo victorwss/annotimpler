@@ -6,9 +6,14 @@ import lombok.NonNull;
 import module java.base;
 
 public final class NameDictionary {
+
+    @NonNull
     private static final NameDictionary GLOBAL_INSTANCE = new NameDictionary();
 
+    @NonNull
     private final Object lock;
+
+    @NonNull
     private final Map<Class<?>, ClassDictionary<?>> map;
 
     public NameDictionary() {
@@ -17,8 +22,13 @@ public final class NameDictionary {
     }
 
     private static final class ClassDictionary<T> {
+        @NonNull
         private final Class<T> klass;
+
+        @NonNull
         private final Map<Class<?>, String> map1;
+
+        @NonNull
         private final Map<String, Class<?>> map2;
 
         private ClassDictionary(@NonNull Class<T> k) {
@@ -145,7 +155,6 @@ public final class NameDictionary {
             return Optional.ofNullable(name);
         }
 
-        @NonNull
         private void formatParameterTypes(@NonNull Executable method, @NonNull StringBuilder sb) {
             if (method == null) throw new AssertionError();
             if (sb == null) throw new AssertionError();
@@ -156,7 +165,6 @@ public final class NameDictionary {
             }
         }
 
-        @NonNull
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
             if (type == null) throw new AssertionError();
             if (sb == null) throw new AssertionError();
@@ -294,6 +302,7 @@ public final class NameDictionary {
         }
     }
 
+    @NonNull
     @SuppressWarnings("unchecked")
     private <T> ClassDictionary<T> getFor(@NonNull Class<T> klass) {
         if (klass == null) throw new AssertionError();

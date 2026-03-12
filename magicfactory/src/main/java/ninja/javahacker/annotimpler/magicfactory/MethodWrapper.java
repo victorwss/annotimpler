@@ -37,6 +37,7 @@ public interface MethodWrapper<E, U> {
         return getParameterTypes().size();
     }
 
+    @NonNull
     public default String toStringUp() {
         var x = this.toString();
         return x.substring(0, 1).toUpperCase(Locale.ROOT) + x.substring(1);
@@ -59,6 +60,7 @@ public interface MethodWrapper<E, U> {
         return map;
     }
 
+    @NonNull
     @SuppressWarnings("unchecked")
     public default MethodWrapper<E, Object> eraseU() {
         return (MethodWrapper<E, Object>) this;

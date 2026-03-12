@@ -17,14 +17,14 @@ public class BadMagicFactoryTest {
 
     @Test
     @SuppressWarnings("null")
-    public void testBadMagicNull() throws ConstructionException {
+    public void testBadMagicNull() throws Exception {
         var ex = Assertions.assertThrows(IllegalArgumentException.class, () -> MagicFactory.of(null));
         Assertions.assertEquals("klass is marked non-null but is null", ex.getMessage());
     }
 
     @Test
-    public void testBadMagicPrivateConstructor() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample1.class));
+    public void testBadMagicPrivateConstructor() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample1.class));
         Assertions.assertEquals(BadExample1.class, ex.getRoot());
         Assertions.assertEquals("The constructor BadExample1() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -36,8 +36,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicProtectedConstructor() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample2.class));
+    public void testBadMagicProtectedConstructor() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample2.class));
         Assertions.assertEquals(BadExample2.class, ex.getRoot());
         Assertions.assertEquals("The constructor BadExample2() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -49,8 +49,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicPackageConstructor() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample3.class));
+    public void testBadMagicPackageConstructor() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample3.class));
         Assertions.assertEquals(BadExample3.class, ex.getRoot());
         Assertions.assertEquals("The constructor BadExample3() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -63,8 +63,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicConstructorAbstract() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample4.class));
+    public void testBadMagicConstructorAbstract() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample4.class));
         Assertions.assertEquals(BadExample4.class, ex.getRoot());
         Assertions.assertEquals("The constructor BadExample4() can't be a creator, the class is abstract.", ex.getMessage());
     }
@@ -76,8 +76,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicConstructorInterface() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample5.class));
+    public void testBadMagicConstructorInterface() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample5.class));
         Assertions.assertEquals(BadExample5.class, ex.getRoot());
         Assertions.assertEquals("Failed to determine how to create an instance of BadExample5.", ex.getMessage());
     }
@@ -86,8 +86,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicAmbiguousEnum() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample6.class));
+    public void testBadMagicAmbiguousEnum() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample6.class));
         Assertions.assertEquals(BadExample6.class, ex.getRoot());
         Assertions.assertEquals("No preferred enum value for class BadExample6.", ex.getMessage());
     }
@@ -97,8 +97,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicAmbiguousConstructor() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample7.class));
+    public void testBadMagicAmbiguousConstructor() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample7.class));
         Assertions.assertEquals(BadExample7.class, ex.getRoot());
         Assertions.assertEquals("Failed to determine how to create an instance of BadExample7.", ex.getMessage());
     }
@@ -114,8 +114,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicConstructorCreatorAbstract() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample8.class));
+    public void testBadMagicConstructorCreatorAbstract() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample8.class));
         Assertions.assertEquals(BadExample8.class, ex.getRoot());
         Assertions.assertEquals("The constructor BadExample8() can't have @Creator, the class is abstract.", ex.getMessage());
     }
@@ -128,8 +128,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicConstructorMultipleCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample9.class));
+    public void testBadMagicConstructorMultipleCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample9.class));
         Assertions.assertEquals(BadExample9.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample9.", ex.getMessage());
     }
@@ -147,8 +147,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicEnumMultipleCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample10.class));
+    public void testBadMagicEnumMultipleCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample10.class));
         Assertions.assertEquals(BadExample10.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample10.", ex.getMessage());
     }
@@ -162,8 +162,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicMethodMultipleCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample11.class));
+    public void testBadMagicMethodMultipleCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample11.class));
         Assertions.assertEquals(BadExample11.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample11.", ex.getMessage());
     }
@@ -185,8 +185,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicRecordConstructorMultipleCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample12.class));
+    public void testBadMagicRecordConstructorMultipleCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample12.class));
         Assertions.assertEquals(BadExample12.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample12.", ex.getMessage());
     }
@@ -206,8 +206,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicEnumMultipleMixedCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample13.class));
+    public void testBadMagicEnumMultipleMixedCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample13.class));
         Assertions.assertEquals(BadExample13.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample13.", ex.getMessage());
     }
@@ -231,8 +231,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicRecordMultipleMixedCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample14.class));
+    public void testBadMagicRecordMultipleMixedCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample14.class));
         Assertions.assertEquals(BadExample14.class, ex.getRoot());
         Assertions.assertEquals("Can't have @Creator more than once in class BadExample14.", ex.getMessage());
     }
@@ -251,8 +251,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicIncompatibleCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample15.class));
+    public void testBadMagicIncompatibleCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample15.class));
         Assertions.assertEquals(BadExample15.class, ex.getRoot());
         Assertions.assertEquals("Bad type for method String BadExample15.foo(). Should be BadExample15.", ex.getMessage());
     }
@@ -269,9 +269,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicExceptionConstructorCreator() throws ConstructionException {
+    public void testBadMagicExceptionConstructorCreator() throws Exception {
         var magic = MagicFactory.of(BadExample16.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create());
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create());
         Assertions.assertEquals(BadExample16.class, ex.getRoot());
         Assertions.assertEquals(LameException.class, ex.getCause().getClass());
         Assertions.assertEquals("The instantiation of BadExample16 threw an exception.", ex.getMessage());
@@ -284,9 +284,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicExceptionMethodCreator() throws ConstructionException {
+    public void testBadMagicExceptionMethodCreator() throws Exception {
         var magic = MagicFactory.of(BadExample17.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create());
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create());
         Assertions.assertEquals(BadExample17.class, ex.getRoot());
         Assertions.assertEquals(LameException.class, ex.getCause().getClass());
         Assertions.assertEquals("The instantiation of BadExample17 threw an exception.", ex.getMessage());
@@ -304,9 +304,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicExceptionRecordConstructorCreator() throws ConstructionException {
+    public void testBadMagicExceptionRecordConstructorCreator() throws Exception {
         var magic = MagicFactory.of(BadExample18.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create());
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create());
         Assertions.assertEquals(BadExample18.class, ex.getRoot());
         Assertions.assertEquals(LameException.class, ex.getCause().getClass());
         Assertions.assertEquals("The instantiation of BadExample18 threw an exception.", ex.getMessage());
@@ -321,9 +321,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicExceptionRecordMethodCreator() throws ConstructionException {
+    public void testBadMagicExceptionRecordMethodCreator() throws Exception {
         var magic = MagicFactory.of(BadExample19.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create());
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create());
         Assertions.assertEquals(BadExample19.class, ex.getRoot());
         Assertions.assertEquals(LameException.class, ex.getCause().getClass());
         Assertions.assertEquals("The instantiation of BadExample19 threw an exception.", ex.getMessage());
@@ -342,8 +342,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicInstanceCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample20.class));
+    public void testBadMagicInstanceCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample20.class));
         Assertions.assertEquals(BadExample20.class, ex.getRoot());
         Assertions.assertEquals("Instance method BadExample20 BadExample20.foo() can't have @Creator.", ex.getMessage());
     }
@@ -360,8 +360,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicPrivateCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample21.class));
+    public void testBadMagicPrivateCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample21.class));
         Assertions.assertEquals(BadExample21.class, ex.getRoot());
         Assertions.assertEquals("The method BadExample21 BadExample21.foo() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -378,8 +378,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicProtectedCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample22.class));
+    public void testBadMagicProtectedCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample22.class));
         Assertions.assertEquals(BadExample22.class, ex.getRoot());
         Assertions.assertEquals("The method BadExample22 BadExample22.foo() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -396,8 +396,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicPackageCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample23.class));
+    public void testBadMagicPackageCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample23.class));
         Assertions.assertEquals(BadExample23.class, ex.getRoot());
         Assertions.assertEquals("The method BadExample23 BadExample23.foo() can't have @Creator, it isn't public.", ex.getMessage());
     }
@@ -415,9 +415,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicNullCreator() throws ConstructionException {
+    public void testBadMagicNullCreator() throws Exception {
         var magic = MagicFactory.of(BadExample24.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create());
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create());
         Assertions.assertEquals(BadExample24.class, ex.getRoot());
         Assertions.assertEquals("Creator of BadExample24 produced null.", ex.getMessage());
     }
@@ -434,9 +434,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicParameterMethodCreator() throws ConstructionException {
+    public void testBadMagicParameterMethodCreator() throws Exception {
         var magic = MagicFactory.of(BadExample25.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create("x"));
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create("x"));
         Assertions.assertEquals(BadExample25.class, ex.getRoot());
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
         Assertions.assertEquals("Creator of BadExample25 doesn't work.", ex.getMessage());
@@ -454,9 +454,9 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicParameterConstructorCreator() throws ConstructionException {
+    public void testBadMagicParameterConstructorCreator() throws Exception {
         var magic = MagicFactory.of(BadExample26.class);
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> magic.create("x"));
+        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create("x"));
         Assertions.assertEquals(BadExample26.class, ex.getRoot());
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
         Assertions.assertEquals("Creator of BadExample26 doesn't work.", ex.getMessage());
@@ -469,8 +469,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicWildcardMethodCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample27.class));
+    public void testBadMagicWildcardMethodCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample27.class));
         Assertions.assertEquals(BadExample27.class, ex.getRoot());
         Assertions.assertEquals("Bad type for method <E> E BadExample27.foo(). Should be BadExample27.", ex.getMessage());
     }
@@ -487,8 +487,8 @@ public class BadMagicFactoryTest {
     }
 
     @Test
-    public void testBadMagicGenericArrayMethodCreator() throws ConstructionException {
-        var ex = Assertions.assertThrows(ConstructionException.class, () -> MagicFactory.of(BadExample28.class));
+    public void testBadMagicGenericArrayMethodCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample28.class));
         Assertions.assertEquals(BadExample28.class, ex.getRoot());
         Assertions.assertEquals("Bad type for method <E> E[] BadExample28.foo(). Should be BadExample28.", ex.getMessage());
     }

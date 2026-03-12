@@ -15,7 +15,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicEmptyBeanConstructor() throws ConstructionException {
+    public void testMagicEmptyBeanConstructor() throws Exception {
         var magic = MagicFactory.of(Example1.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(0, magic.arity()),
@@ -35,7 +35,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicSimpleBeanConstructor() throws ConstructionException {
+    public void testMagicSimpleBeanConstructor() throws Exception {
         var magic = MagicFactory.of(Example2.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(1, magic.arity()),
@@ -66,7 +66,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexBeanConstructor() throws ConstructionException {
+    public void testMagicComplexBeanConstructor() throws Exception {
         var magic = MagicFactory.of(Example3.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -103,7 +103,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexBeanConstructorCreator() throws ConstructionException {
+    public void testMagicComplexBeanConstructorCreator() throws Exception {
         var magic = MagicFactory.of(Example4.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -145,7 +145,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexBeanMethodCreator() throws ConstructionException {
+    public void testMagicComplexBeanMethodCreator() throws Exception {
         var magic = MagicFactory.of(Example5.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -195,7 +195,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicEnum() throws ConstructionException {
+    public void testMagicEnum() throws Exception {
         var magic = MagicFactory.of(Example6.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(0, magic.arity()),
@@ -211,7 +211,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicEnumCreator() throws ConstructionException {
+    public void testMagicEnumCreator() throws Exception {
         var magic = MagicFactory.of(Example7.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(0, magic.arity()),
@@ -230,7 +230,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicEmptyRecord() throws ConstructionException {
+    public void testMagicEmptyRecord() throws Exception {
         var magic = MagicFactory.of(Example8.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(0, magic.arity()),
@@ -245,7 +245,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicSimpleRecord() throws ConstructionException {
+    public void testMagicSimpleRecord() throws Exception {
         var magic = MagicFactory.of(Example9.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(1, magic.arity()),
@@ -272,7 +272,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexRecord() throws ConstructionException {
+    public void testMagicComplexRecord() throws Exception {
         var magic = MagicFactory.of(Example10.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -301,7 +301,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexRecordCanonicalConstructorCreator() throws ConstructionException {
+    public void testMagicComplexRecordCanonicalConstructorCreator() throws Exception {
         var magic = MagicFactory.of(Example11.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -334,7 +334,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexRecordNonCanonicalConstructorCreator() throws ConstructionException {
+    public void testMagicComplexRecordNonCanonicalConstructorCreator() throws Exception {
         var magic = MagicFactory.of(Example12.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -368,7 +368,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicComplexRecordMethodCreator() throws ConstructionException {
+    public void testMagicComplexRecordMethodCreator() throws Exception {
         var magic = MagicFactory.of(Example13.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -402,7 +402,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicInterfaceMethodCreator() throws ConstructionException {
+    public void testMagicInterfaceMethodCreator() throws Exception {
         var magic = MagicFactory.of(Example14.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -431,7 +431,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicInterfaceCovariantMethodCreator() throws ConstructionException {
+    public void testMagicInterfaceCovariantMethodCreator() throws Exception {
         var magic = MagicFactory.of(Example15.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),
@@ -460,7 +460,7 @@ public class MagicFactoryTest {
     }
 
     @Test
-    public void testMagicInterfaceGenericCovariantMethodCreator() throws ConstructionException {
+    public void testMagicInterfaceGenericCovariantMethodCreator() throws Exception {
         var magic = MagicFactory.of(Example16.class);
         Assertions.assertAll(
             () -> Assertions.assertEquals(2, magic.arity()),

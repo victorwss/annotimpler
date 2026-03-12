@@ -11,6 +11,8 @@ import module ninja.javahacker.annotimpler.magicfactory;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {
 
+    private final ConverterFactory factory;
+
     @NonNull
     @Delegate(types = ResultSet.class)
     private final ResultSet rs;
@@ -20,6 +22,7 @@ public final class SmartResultSet implements ResultSet {
 
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
         this.rs = rs;
+        this.factory = ConverterFactory.STD;
         this.metaData = rs.getMetaData();
     }
 
@@ -53,9 +56,19 @@ public final class SmartResultSet implements ResultSet {
 
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
-    public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws ConstructionException, SQLException {
-        var raw = getTypedValue(columnIndex);
-        return MagicConverter.forValue(raw, target);
+    public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws SQLException {
+        return getTypedValueOpt(columnIndex, target).orElse(null);
+    }
+
+    @NonNull
+    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
+    public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
+        try {
+            var raw = getTypedValue(columnIndex);
+            return factory.get(target).from(raw);
+        } catch (Converter.ConvertionException | ConverterFactory.UnavailableConverterException e) {
+            throw new SQLException(e);
+        }
     }
 
     private <E> E nully(E r) throws SQLException {
@@ -97,7 +110,11 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
-    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... campos) throws ConstructionException, SQLException {
-        return RecordMapper.forMap(getMap(campos), k);
+    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
+        try {
+            return new RecordMapper(factory).mapToRecord(getMap(campos), k);
+        } catch (Converter.ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | ConverterFactory.UnavailableConverterException e) {
+            throw new SQLException(e);
+        }
     }
 }

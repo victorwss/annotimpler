@@ -15,4 +15,5 @@ open module ninja.javahacker.annotimpler.magicfactory {
     requires transitive static lombok;
 
     exports ninja.javahacker.annotimpler.magicfactory;
+    exports ninja.javahacker.annotimpler.magicfactory.cvt;
 }

@@ -10,6 +10,8 @@ import module ninja.javahacker.annotimpler.sql;
 
 public final class SqlNamedParameter<T> {
 
+    private static final ConverterFactory cvt = ConverterFactory.STD;
+
     @Getter
     private final int index;
 
@@ -215,7 +217,7 @@ public final class SqlNamedParameter<T> {
         if (k == null) throw new AssertionError();
         if (k == void.class || k == Void.class) return v -> v == null;
         if (k.isPrimitive()) {
-            var wrapper = MagicConverter.wrap(k);
+            var wrapper = Wrappers.wrap(k);
             return wrapper::isInstance;
         }
         if (ENTRIES.keySet().contains(k) || k.isRecord() || k.isEnum()) return v -> v == null || k.isInstance(v);
@@ -279,5 +281,28 @@ public final class SqlNamedParameter<T> {
     @NonNull
     public SqlNamedParameterWithValue<T> withValue(@Nullable T value) {
         return new SqlNamedParameterWithValue<>(this, value);
+    }
+
+    private static final class Wrappers {
+        private Wrappers() {
+            throw new UnsupportedOperationException();
+        }
+
+        private static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
+                boolean.class, Boolean.class,
+                byte.class, Byte.class,
+                char.class, Character.class,
+                short.class, Short.class,
+                int.class, Integer.class,
+                long.class, Long.class,
+                float.class, Float.class,
+                double.class, Double.class,
+                void.class, Void.class
+        );
+
+        @Nullable
+        public static Class<?> wrap(@NonNull Class<?> k) {
+            return WRAPPERS.get(k);
+        }
     }
 }

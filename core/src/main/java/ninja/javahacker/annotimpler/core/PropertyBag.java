@@ -7,19 +7,22 @@ import module java.base;
 
 public final class PropertyBag {
 
+    @NonNull
     private static final PropertyBag ROOT_INSTANCE = new PropertyBag();
 
+    @NonNull
     private final Map<KeyProperty<?>, Object> properties;
 
     private PropertyBag() {
         this.properties = Map.of();
     }
 
-    private PropertyBag(Map<KeyProperty<?>, Object> properties) {
+    private PropertyBag(@NonNull Map<KeyProperty<?>, Object> properties) {
         if (properties == null) throw new AssertionError();
         this.properties = Map.copyOf(properties);
     }
 
+    @NonNull
     public static PropertyBag root() {
         return ROOT_INSTANCE;
     }
@@ -56,6 +59,7 @@ public final class PropertyBag {
         return properties.hashCode();
     }
 
+    @NonNull
     @Override
     public String toString() {
         return properties.toString();
