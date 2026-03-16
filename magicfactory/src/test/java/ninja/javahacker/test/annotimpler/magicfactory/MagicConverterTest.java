@@ -76,7 +76,7 @@ public class MagicConverterTest {
         exec.execute();
     }
 
-    private static Stream<Arguments> testConvertsMapping() throws Exception {
+    private static Stream<Arguments> testConvertsMapping() {
         var ts = List.of(
                 byte.class, Byte.class,
                 short.class, Short.class,
@@ -121,7 +121,7 @@ public class MagicConverterTest {
     public static record Recursive(Recursive r) {}
 
     @Test
-    public void testRecursiveRecord() throws Exception {
+    public void testRecursiveRecord() {
         var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Recursive.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Recursive.class, ex.getRoot()),
@@ -134,7 +134,7 @@ public class MagicConverterTest {
     public static record Verbose(String bla, String blu) {}
 
     @Test
-    public void testVerboseRecord() throws Exception {
+    public void testVerboseRecord() {
         var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Verbose.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Verbose.class, ex.getRoot()),
@@ -205,7 +205,9 @@ public class MagicConverterTest {
     }
 
     private static void testNoConverter(Type k) {
-        var msg = (k instanceof Class<?> kk && kk.isArray()) ? "No converter for multidimensional arrays." : "No converter for " + k.getTypeName();
+        var msg = (k instanceof Class<?> kk && kk.isArray())
+                ? "No converter for multidimensional arrays."
+                : "No converter for " + k.getTypeName();
         var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(k));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(msg, ex.getMessage()),
@@ -214,7 +216,7 @@ public class MagicConverterTest {
     }
 
     @SuppressWarnings("null")
-    private static Stream<Arguments> testBads() throws Exception {
+    private static Stream<Arguments> testBads() {
         interface Foo<E> {
             void a(
                     E a,
@@ -291,9 +293,15 @@ public class MagicConverterTest {
                 java.util.Date.class, java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
                 Calendar.class, GregorianCalendar.class, Instant.class,
                 java.sql.Ref.class, java.sql.RowId.class, java.sql.Array.class
-        ).map(e -> n(
-                e.getSimpleName(),
-                () -> Assertions.assertTrue(ConverterFactory.STD.get(e).fromNull().isEmpty(), e.getTypeName())
+        ).flatMap(e -> Stream.of(
+                n(
+                        e.getSimpleName() + " fromNull",
+                        () -> Assertions.assertTrue(ConverterFactory.STD.get(e).fromNull().isEmpty())
+                ),
+                n(
+                        e.getSimpleName() + "from(null)",
+                        () -> Assertions.assertTrue(ConverterFactory.STD.get(e).from((Object) null).isEmpty())
+                )
         )).map(NamedTest::args);
     }
 
@@ -309,7 +317,11 @@ public class MagicConverterTest {
                 Boolean[].class, Byte[].class, Character[].class, Short[].class,
                 Integer[].class, Long[].class, Float[].class, Double[].class,
                 BigInteger[].class, BigDecimal[].class,
-                Color[].class, String[].class, Wrapper[].class, LocalDate[].class, GregorianCalendar[].class
+                Color[].class, String[].class, Wrapper[].class,
+                LocalDate[].class, LocalTime[].class, LocalDateTime[].class, OffsetTime[].class, OffsetDateTime[].class,
+                ZonedDateTime[].class, Instant[].class,
+                GregorianCalendar[].class, Calendar[].class,
+                java.util.Date[].class, java.sql.Date[].class, java.sql.Time[].class, java.sql.Timestamp[].class
         ).map(e -> n(
                 e.getCanonicalName(),
                 () -> {
@@ -326,7 +338,44 @@ public class MagicConverterTest {
         exec.execute();
     }
 
-    private static Stream<Arguments> testUnstringify() {
+    private static Stream<Arguments> testSingletonArrays() {
+        return Stream.of(
+                new boolean[] {true}, new byte[] {(byte) 5}, /*new char[] {'x'},*/ new short[] {(short) 42}, new int[] {42},
+                new long[] {42L}, new float[] {42F}, new double[] {42.0},
+                new Boolean[] {true}, new Byte[] {(byte) 5}, /*new Character[] {'x'},*/ new Short[] {(short) 42}, new Integer[] {42},
+                new Long[] {42L}, new Float[] {42F}, new Double[] {42.0},
+                /*new BigInteger[] {BigInteger.valueOf(42)},*/ new BigDecimal[] {BigDecimal.valueOf(42) },
+                /*new Color[] {Color.PINK }, new String[] {"x"}, new Wrapper[] {new Wrapper(42)},*/
+                new LocalDate[] {LocalDate.of(2025, 5, 5)}, new LocalTime[] {LocalTime.of(12, 15, 25)},
+                new LocalDateTime[] {LocalDateTime.of(2025, 4, 5, 12, 15, 25)},
+                new OffsetTime[] {LocalTime.of(12, 15, 25).atOffset(ZoneOffset.UTC)},
+                new OffsetDateTime[] {LocalDateTime.of(2025, 4, 5, 12, 15, 25).atOffset(ZoneOffset.UTC)}/*,
+                new ZonedDateTime[] {LocalDateTime.of(2025, 4, 5, 12, 15, 25).atOffset(ZoneOffset.UTC).toZonedDateTime()},
+                new Instant[] {LocalDateTime.of(2025, 4, 5, 12, 15, 25).atOffset(ZoneOffset.UTC).toInstant()},
+                new GregorianCalendar[] {new GregorianCalendar(2025, 4, 5)},
+                new Calendar[] {new GregorianCalendar(2025, 4, 5)},
+                new java.util.Date[] {java.util.Date.from(LocalDateTime.of(2025, 4, 5, 12, 15, 25).atOffset(ZoneOffset.UTC).toInstant())},
+                new java.sql.Date[] {java.sql.Date.valueOf(LocalDate.of(2025, 4, 5))},
+                new java.sql.Time[] {java.sql.Time.valueOf(LocalTime.of(12, 15, 25))},
+                new java.sql.Timestamp[] {java.sql.Timestamp.valueOf(LocalDateTime.of(2025, 4, 5, 12, 15, 25))}*/
+        ).map(e -> n(
+                e.getClass().getComponentType().getCanonicalName() + "[]",
+                () -> {
+                    var s = ConverterFactory.STD.get(e.getClass()).from(Array.get(e, 0)).get();
+                    Assertions.assertEquals(s.getClass(), e.getClass());
+                    Assertions.assertEquals(1, Array.getLength(s));
+                    Assertions.assertEquals(Array.get(e, 0), Array.get(s, 0));
+                }
+        )).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testSingletonArrays {0}")
+    public void testSingletonArrays(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testFromString() {
         var timestamp = "2025-10-10 04:03:02";
         var time = "04:03:02";
         var date = "2025-10-10";
@@ -374,6 +423,7 @@ public class MagicConverterTest {
 
                 new Parts<>("", String.class, ""),
                 new Parts<>("", byte[].class, new byte[0]),
+                new Parts<>("", int[].class, new int[0]),
                 new Parts<>("", Color.class, null),
                 new Parts<>("", Wrapper.class, new Wrapper(0)),
 
@@ -435,6 +485,7 @@ public class MagicConverterTest {
 
                 new Parts<>("foo", String.class, "foo"),
                 new Parts<>("foo", byte[].class, "foo".getBytes()),
+                new Parts<>("52", int[].class, new int[] {52}),
                 new Parts<>("GREEN", Color.class, Color.GREEN),
                 new Parts<>("5", Wrapper.class, new Wrapper(5)),
 
@@ -461,6 +512,8 @@ public class MagicConverterTest {
                     Assertions.assertTrue(opt.isEmpty());
                 } else if (out instanceof byte[] b) {
                     Assertions.assertArrayEquals(b, (byte[]) opt.get());
+                } else if (out instanceof int[] b) {
+                    Assertions.assertArrayEquals(b, (int[]) opt.get());
                 } else {
                     Assertions.assertEquals(out, opt.get());
                 }
@@ -470,8 +523,72 @@ public class MagicConverterTest {
     }
 
     @MethodSource
-    @ParameterizedTest(name = "testUnstringify {0}")
-    public void testUnstringify(String name, Executable exec) throws Throwable {
+    @ParameterizedTest(name = "testFromString {0}")
+    public void testFromString(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    @SuppressWarnings("null")
+    private static Stream<Arguments> testNulls() {
+        @FunctionalInterface
+        interface Foo {
+            public Object convert(Converter<?> in) throws Converter.ConvertionException;
+
+            public default Consumer<Converter<?>> asFunc() {
+                return in -> ForTests.testNull("in", () -> this.convert(in));
+            }
+        }
+
+        record NamedCall2(String name, Consumer<Converter<?>> action) {
+            public NamedTest apply(Type c) {
+                var cn = !(c instanceof Class<?> k) ? c.getTypeName()
+                        : k.isArray() ? k.getComponentType().getSimpleName() + "[]"
+                        : java.util.Date.class.isAssignableFrom(k) ? k.getName()
+                        : k.getSimpleName();
+                return n("for " + cn + " from " + name, () -> action.accept(ConverterFactory.STD.get(c)));
+            }
+        }
+
+        record NamedCall(String name, Foo action) {
+            public NamedCall2 asFunc() {
+                return new NamedCall2(name, action.asFunc());
+            }
+        }
+
+        var cls = List.of(
+                boolean.class, byte.class, short.class, int.class, long.class, float.class, double.class, char.class,
+                Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Character.class,
+                OptionalInt.class, OptionalLong.class, OptionalDouble.class,
+                byte[].class, int[].class, Double[].class, String.class,
+                LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetTime.class, OffsetDateTime.class, ZonedDateTime.class,
+                Instant.class, java.util.Date.class, java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
+                Calendar.class, GregorianCalendar.class, Ref.class, RowId.class,
+                Color.class, Wrapper.class,
+                COLLECTION_DATE, LIST_STRING, SET_COLOR, OPTIONAL_COLOR
+        );
+        var mtds = Stream.of(
+                new NamedCall("BigDecimal", c -> c.from((BigDecimal) null)),
+                new NamedCall("LocalDate", c -> c.from((LocalDate) null)),
+                new NamedCall("LocalTime", c -> c.from((LocalTime) null)),
+                new NamedCall("LocalDateTime", c -> c.from((LocalDateTime) null)),
+                new NamedCall("OffsetTime", c -> c.from((OffsetTime) null)),
+                new NamedCall("OffsetDateTime", c -> c.from((OffsetDateTime) null)),
+                new NamedCall("String", c -> c.from((String) null)),
+                new NamedCall("byte[]", c -> c.from((byte[]) null)),
+                new NamedCall("Blob", c -> c.from((Blob) null)),
+                new NamedCall("Clob", c -> c.from((Clob) null)),
+                new NamedCall("NClob", c -> c.from((NClob) null)),
+                new NamedCall("SQLXML", c -> c.from((SQLXML) null)),
+                new NamedCall("RowId", c -> c.from((RowId) null)),
+                new NamedCall("Array", c -> c.from((java.sql.Array) null)),
+                new NamedCall("Ref", c -> c.from((Ref) null))
+        ).map(NamedCall::asFunc).toList();
+        return cls.stream().flatMap(k -> mtds.stream().map(m -> m.apply(k))).map(NamedTest::args);
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
         exec.execute();
     }
 }

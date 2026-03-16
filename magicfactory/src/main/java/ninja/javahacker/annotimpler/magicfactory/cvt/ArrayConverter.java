@@ -21,13 +21,15 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     }
 
     @NonNull
+    @SuppressWarnings("unchecked")
     private Optional<E[]> wrap(Optional<E> e) {
-        return e.map(c -> {
-            @SuppressWarnings("unchecked")
-            E[] ret = (E[]) java.lang.reflect.Array.newInstance(baseClass, 1);
-            ret[0] = c;
+        var e2 = (Optional<Object>) e;
+        var r = e2.map(c -> {
+            var ret = java.lang.reflect.Array.newInstance(baseClass, 1);
+            java.lang.reflect.Array.set(ret, 0, c);
             return ret;
         });
+        return (Optional<E[]>) (Optional<?>) r;
     }
 
     @NonNull
@@ -35,7 +37,13 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @SuppressWarnings("unchecked")
     public Optional<E[]> fromNull() {
         var array = java.lang.reflect.Array.newInstance(baseClass, 0);
-        return (Optional<E[]>) (Object) Optional.of(array);
+        return (Optional<E[]>) (Optional<?>) Optional.of(array);
+    }
+
+    @NonNull
+    @Override
+    public Optional<E[]> from(boolean in) throws ConvertionException {
+        return wrap(cvt.from(in));
     }
 
     @NonNull
