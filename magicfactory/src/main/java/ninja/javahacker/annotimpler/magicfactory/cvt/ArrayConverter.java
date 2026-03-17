@@ -121,6 +121,10 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @NonNull
     @Override
     public Optional<E[]> from(@NonNull String in) throws ConvertionException {
+        if (in.isEmpty()) {
+            var array = java.lang.reflect.Array.newInstance(baseClass, 0);
+            return (Optional<E[]>) (Optional<?>) Optional.of(array);
+        }
         return wrap(cvt.from(in));
     }
 
