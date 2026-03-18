@@ -120,6 +120,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
 
     @NonNull
     @Override
+    @SuppressWarnings("unchecked")
     public Optional<E[]> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) {
             var array = java.lang.reflect.Array.newInstance(baseClass, 0);
