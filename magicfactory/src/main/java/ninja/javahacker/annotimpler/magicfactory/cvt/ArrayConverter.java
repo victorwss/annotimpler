@@ -24,12 +24,12 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @SuppressWarnings("unchecked")
     private Optional<E[]> wrap(Optional<E> e) {
         var e2 = (Optional<Object>) e;
-        var r = e2.map(c -> {
+        var array = e2.map(c -> {
             var ret = java.lang.reflect.Array.newInstance(baseClass, 1);
             java.lang.reflect.Array.set(ret, 0, c);
             return ret;
-        });
-        return (Optional<E[]>) (Optional<?>) r;
+        }).orElseGet(() -> java.lang.reflect.Array.newInstance(baseClass, 0));
+        return (Optional<E[]>) (Optional<?>) Optional.of(array);
     }
 
     @NonNull

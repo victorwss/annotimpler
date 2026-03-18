@@ -25,24 +25,35 @@ public class ConverterFactoryTest {
         assertEquals(java.util.List.of("a"), r);
     }
 
-    private static void noopList(java.util.List<String> l) { }
+    private static void noopList(java.util.List<String> x) {
+        throw new AssertionError();
+    }
 
     @Test
-    public void enumAndArrayAndUnavailable() throws Exception {
+    public void testEnum() throws Exception {
         enum E { A, B, C }
-
         var ev = ConverterFactory.STD.get(E.class).from(2).get();
         assertEquals(E.C, ev);
+    }
 
+    @Test
+    public void testArray() throws Exception {
         var arr = ConverterFactory.STD.get(String[].class).from("z").get();
         assertEquals(1, java.lang.reflect.Array.getLength(arr));
         assertEquals("z", java.lang.reflect.Array.get(arr, 0));
+    }
 
-        assertThrows(ConverterFactory.UnavailableConverterException.class,
+    @Test
+    public void testMultidimensionalArrayUnavailable() throws Exception {
+        var ex1 = assertThrows(ConverterFactory.UnavailableConverterException.class,
                 () -> ConverterFactory.STD.get(int[][].class));
+        assertEquals(int[][].class, ex1.getRoot());
+    }
 
-        var ex = assertThrows(ConverterFactory.UnavailableConverterException.class,
+    @Test
+    public void testBadCollectionUnavailable() throws Exception {
+        var ex2 = assertThrows(ConverterFactory.UnavailableConverterException.class,
                 () -> ConverterFactory.STD.get(java.util.Map.class));
-        assertEquals(java.util.Map.class, ex.getRoot());
+        assertEquals(java.util.Map.class, ex2.getRoot());
     }
 }
