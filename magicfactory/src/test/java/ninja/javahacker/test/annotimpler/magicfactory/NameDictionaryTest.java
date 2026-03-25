@@ -1,12 +1,18 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import org.junit.jupiter.api.function.Executable;
+
 import module java.base;
-import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 import ninja.javahacker.test.ForTests;
 
 public class NameDictionaryTest {
+
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
+    }
 
     public static class Something {
 
@@ -50,8 +56,7 @@ public class NameDictionaryTest {
     private static record PartFi(Field a, String b, String c) {
     }
 
-    @Test
-    public void testSimplifiedExecutableName() throws NoSuchMethodException, NoSuchFieldException {
+    private static Stream<Arguments> testSimplifiedExecutableName() throws NoSuchMethodException, NoSuchFieldException {
         var ambig3 = Something.class.getMethod("ambig3", java.util.Date.class, java.sql.Date.class, String.class, Something.class);
         var crazy = Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class);
         var parts = List.of(
@@ -65,15 +70,19 @@ public class NameDictionaryTest {
                 new PartEx(crazy, "Weird", "<U extends Thread> Map<A, Map<C[], Map<String, ? extends List<? super E>>>> Weird.crazy(D, F, U)")
         );
         var q = parts.stream()
-                .map(e -> ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true)));
+                .map(e -> Arguments.of(e.c, ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true))));
         var p = parts.stream()
-                .map(e -> ForTests.checkEquals(e.a, e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, false)));
-        var r = Stream.concat(p, q).toList();
-        Assertions.assertAll(r);
+                .map(e -> Arguments.of(e.c, ForTests.checkEquals(e.a, e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, false))));
+        return Stream.concat(p, q);
     }
 
-    @Test
-    public void testSimplifiedFieldName() throws NoSuchMethodException, NoSuchFieldException {
+    @MethodSource
+    @ParameterizedTest(name = "testSimplifiedExecutableName {0}")
+    public void testSimplifiedExecutableName(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    private static Stream<Arguments> testSimplifiedFieldName() throws NoSuchMethodException, NoSuchFieldException {
         var parts = List.of(
                 new PartFi(Something.class.getDeclaredField("a"), "Something", "int Something.a"),
                 new PartFi(Something.class.getDeclaredField("b"), "Something", "java.sql.Date Something.b"),
@@ -81,37 +90,43 @@ public class NameDictionaryTest {
                 new PartFi(Something.class.getDeclaredField("d"), "Something", "String Something.d")
         );
         var p = parts.stream()
-                .map(e -> ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true)));
+                .map(e -> Arguments.of(e.c, ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true))));
         var q = parts.stream()
-                .map(e -> ForTests.checkEquals(e.a, e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, false)));
-        var r = Stream.concat(p, q).toList();
-        Assertions.assertAll(r);
+                .map(e -> Arguments.of(e.c, ForTests.checkEquals(e.a, e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, false))));
+        return Stream.concat(p, q);
     }
 
-    @Test
+    @MethodSource
+    @ParameterizedTest(name = "testSimplifiedFieldName {0}")
+    public void testSimplifiedFieldName(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
     @SuppressWarnings("null")
-    public void testNulls() throws Exception {
-        Assertions.assertAll(
-            () -> ForTests.testNull(
-                    "what",
-                    () -> NameDictionary.global().getSimplifiedGenericString((Method) null, false),
-                    "getSimplifiedGenericString(Method)"
+    private static Stream<Arguments> testNulls() throws Exception {
+        return Stream.of(
+            n(
+                    "getSimplifiedGenericString(Method)",
+                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((Method) null, false))
             ),
-            () -> ForTests.testNull(
-                    "field",
-                    () -> NameDictionary.global().getSimplifiedGenericString((Field) null, false),
-                    "getSimplifiedGenericString(Field)"
+            n(
+                    "getSimplifiedGenericString(Field)",
+                    () -> ForTests.testNull("field", () -> NameDictionary.global().getSimplifiedGenericString((Field) null, false))
             ),
-            () -> ForTests.testNull(
-                    "what",
-                    () -> NameDictionary.global().getSimplifiedGenericString((Method) null, true),
-                    "getSimplifiedGenericString(Method)"
+            n(
+                    "getSimplifiedGenericString(Method)",
+                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((Method) null, true))
             ),
-            () -> ForTests.testNull(
-                    "field",
-                    () -> NameDictionary.global().getSimplifiedGenericString((Field) null, true),
-                    "getSimplifiedGenericString(Field)"
+            n(
+                    "getSimplifiedGenericString(Field)",
+                    () -> ForTests.testNull("field", () -> NameDictionary.global().getSimplifiedGenericString((Field) null, true))
             )
         );
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

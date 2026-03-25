@@ -1,10 +1,10 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
-import java.lang.reflect.Type;
-import java.util.*;
+import module java.base;
+import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
+
 import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.provider.Arguments;
 
 public final class ConverterTestUtils {
 
@@ -24,7 +24,8 @@ public final class ConverterTestUtils {
     }
 
     @SuppressWarnings("unused")
-    private static void noop(Collection<java.time.LocalDate> a, List<String> b, Map<String, String> c) {}
+    private static void noop(Collection<java.time.LocalDate> a, List<String> b, Map<String, String> c) {
+    }
 
     public static Arguments args(String name, Executable exec) {
         return Arguments.of(name, exec);

@@ -1,8 +1,12 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import org.junit.jupiter.api.function.Executable;
+import ninja.javahacker.test.ForTests;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "AccessingNonPublicFieldOfAnotherObject"})
 public class BadMagicFactoryTest {
@@ -17,9 +21,20 @@ public class BadMagicFactoryTest {
 
     @Test
     @SuppressWarnings("null")
-    public void testBadMagicNull() throws Exception {
-        var ex = Assertions.assertThrows(IllegalArgumentException.class, () -> MagicFactory.of(null));
-        Assertions.assertEquals("klass is marked non-null but is null", ex.getMessage());
+    public void testBadMagicOfNull() throws Exception {
+        ForTests.testNull("klass", () -> MagicFactory.of(null));
+    }
+
+    @Test
+    public void testBadMagicCreateNull() throws Exception {
+        var magic = MagicFactory.of(BadExample0.class);
+        ForTests.testNull("args", () -> magic.create((Object[]) null));
+    }
+
+    public static class BadExample0 {
+        public BadExample0() {
+            throw new AssertionError();
+        }
     }
 
     @Test
@@ -439,7 +454,50 @@ public class BadMagicFactoryTest {
         var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create("x"));
         Assertions.assertEquals(BadExample25.class, ex.getRoot());
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
-        Assertions.assertEquals("Creator of BadExample25 doesn't work.", ex.getMessage());
+        Assertions.assertEquals("Creator of BadExample25 was called with the wrong arguments.", ex.getMessage());
+    }
+
+    private static Stream<Arguments> testBadArgsCreator() throws Exception {
+        var magic25 = MagicFactory.of(BadExample25.class);
+        var magic26 = MagicFactory.of(BadExample26.class);
+        var magic27 = MagicFactory.of(BadExample27.class);
+        var magic28 = MagicFactory.of(BadExample28.class);
+        var magic29 = MagicFactory.of(BadExample29.class);
+
+        record Named(String name, Executable exec, Class<?> c) {
+        }
+
+        var execs = Stream.of(
+                new Named("25-arity-0", () -> magic25.create(         ), BadExample25.class),
+                new Named("25-types"  , () -> magic25.create("x"      ), BadExample25.class),
+                new Named("25-arity-2", () -> magic25.create(5, 7     ), BadExample25.class),
+                new Named("26-arity-0", () -> magic26.create(         ), BadExample26.class),
+                new Named("26-types"  , () -> magic26.create("x"      ), BadExample26.class),
+                new Named("26-arity-2", () -> magic26.create(5, 7     ), BadExample26.class),
+                new Named("27-arity-1", () -> magic27.create("x"      ), BadExample27.class),
+                new Named("28-arity-0", () -> magic28.create(         ), BadExample28.class),
+                new Named("28-arity-1", () -> magic28.create("x"      ), BadExample28.class),
+                new Named("28-types"  , () -> magic28.create(5, "x"   ), BadExample28.class),
+                new Named("28-arity-3", () -> magic28.create("x", 5, 7), BadExample28.class),
+                new Named("29-arity-0", () -> magic29.create(         ), BadExample29.class),
+                new Named("29-types"  , () -> magic29.create("x"      ), BadExample29.class),
+                new Named("29-arity-2", () -> magic29.create(5, 7     ), BadExample29.class)
+        );
+        return execs.map(ex -> {
+                Executable x2 = () -> {
+                    var err = Assertions.assertThrows(MagicFactory.CreationException.class, ex.exec);
+                    Assertions.assertEquals(ex.c, err.getRoot());
+                    Assertions.assertEquals("Creator of " + ex.c.getSimpleName() + " was called with the wrong arguments.", err.getMessage());
+                    Assertions.assertEquals(IllegalArgumentException.class, err.getCause().getClass());
+                };
+                return Arguments.of(ex.name, x2);
+        });
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testBadArgsCreator {0}")
+    public void testBadArgsCreator(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
     public static class BadExample25 {
@@ -453,30 +511,44 @@ public class BadMagicFactoryTest {
         }
     }
 
-    @Test
-    public void testBadMagicParameterConstructorCreator() throws Exception {
-        var magic = MagicFactory.of(BadExample26.class);
-        var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create("x"));
-        Assertions.assertEquals(BadExample26.class, ex.getRoot());
-        Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
-        Assertions.assertEquals("Creator of BadExample26 doesn't work.", ex.getMessage());
-    }
-
     public static class BadExample26 {
         public BadExample26(int x) {
             throw new AssertionError();
         }
     }
 
-    @Test
-    public void testBadMagicWildcardMethodCreator() throws Exception {
-        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample27.class));
-        Assertions.assertEquals(BadExample27.class, ex.getRoot());
-        Assertions.assertEquals("Bad type for method <E> E BadExample27.foo(). Should be BadExample27.", ex.getMessage());
-    }
-
     public static class BadExample27 {
         public BadExample27() {
+            throw new AssertionError();
+        }
+    }
+
+    public static class BadExample28 {
+        public BadExample28(String x, int y) {
+            throw new AssertionError();
+        }
+    }
+
+    public static class BadExample29 {
+        public BadExample29(String x) {
+            throw new AssertionError();
+        }
+
+        @Creator
+        public BadExample29(int y) {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadMagicWildcardMethodCreator() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample30.class));
+        Assertions.assertEquals(BadExample30.class, ex.getRoot());
+        Assertions.assertEquals("Bad type for method <E> E BadExample30.foo(). Should be BadExample30.", ex.getMessage());
+    }
+
+    public static class BadExample30 {
+        public BadExample30() {
             throw new AssertionError();
         }
 
@@ -488,13 +560,13 @@ public class BadMagicFactoryTest {
 
     @Test
     public void testBadMagicGenericArrayMethodCreator() throws Exception {
-        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample28.class));
-        Assertions.assertEquals(BadExample28.class, ex.getRoot());
-        Assertions.assertEquals("Bad type for method <E> E[] BadExample28.foo(). Should be BadExample28.", ex.getMessage());
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample31.class));
+        Assertions.assertEquals(BadExample31.class, ex.getRoot());
+        Assertions.assertEquals("Bad type for method <E> E[] BadExample31.foo(). Should be BadExample31.", ex.getMessage());
     }
 
-    public static class BadExample28 {
-        public BadExample28() {
+    public static class BadExample31 {
+        public BadExample31() {
             throw new AssertionError();
         }
 

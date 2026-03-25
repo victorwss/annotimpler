@@ -5,14 +5,12 @@ import module org.junit.jupiter.api;
 import module org.junit.jupiter.params;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
-import org.junit.jupiter.api.Named;
 
 public class ConversionMappingTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     private static Stream<Arguments> testConvertsMapping() {
@@ -36,7 +34,7 @@ public class ConversionMappingTest {
                 char.class, Character.class
         );
         var vals = List.of((byte) 52, (short) 52, 52, 52L, 52.0, 52.0f, BigDecimal.valueOf(52L));
-        List<NamedTest> execs = new ArrayList<>(vals.size() * ts.size());
+        List<Arguments> execs = new ArrayList<>(vals.size() * ts.size());
         for (var t : ts) {
             var w = t.isPrimitive() ? wrapper.get(t) : t;
             for (var v : vals) {
@@ -49,7 +47,7 @@ public class ConversionMappingTest {
                 execs.add(n(name, x));
             }
         }
-        return execs.stream().map(NamedTest::args);
+        return execs.stream();
     }
 
     @MethodSource

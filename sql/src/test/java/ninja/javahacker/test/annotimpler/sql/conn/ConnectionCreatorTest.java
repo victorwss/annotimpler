@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -11,8 +10,8 @@ import module org.junit.jupiter.params;
 
 public class ConnectionCreatorTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     @FunctionalInterface
@@ -72,10 +71,10 @@ public class ConnectionCreatorTest {
             return create(replace(props, new Object[replaces.length], true));
         }
 
-        public Stream<NamedTest> createAll(E model) {
+        public Stream<Arguments> createAll(E model) {
             var original = destructure.work(model);
             var p = (int) Math.pow(2, replaces.length);
-            var list = new ArrayList<NamedTest>(p);
+            var list = new ArrayList<Arguments>(p);
             for (var i = 0; i < p; i++) {
                 var j = i;
                 var myReplace = replace(i, original, false);
@@ -99,17 +98,17 @@ public class ConnectionCreatorTest {
                 var pn = creator.getParameters()[i].getName();
                 list.add(n(
                         k.getSimpleName() + " creator " + (i + 1) + " param is null",
-                        () -> ForTests.testNullReflective(pn, () -> create(copy), "test null creator " + pn)
+                        () -> ForTests.testNullReflective(pn, () -> create(copy))
                 ));
             }
             return list.stream();
         }
     }
 
-    private static Stream<NamedTest> createAll(Constructor<? extends Connector> k, Object[] params) {
+    private static Stream<Arguments> createAll(Constructor<? extends Connector> k, Object[] params) {
         var dbName = k.getDeclaringClass().getSimpleName();
         var arity = params.length;
-        var list = new ArrayList<NamedTest>(arity);
+        var list = new ArrayList<Arguments>(arity);
         var kp = k.getParameters();
         list.add(n(dbName + " ctor does not throw", () -> Assertions.assertDoesNotThrow(() -> k.newInstance(params.clone()))));
         for (var i = 0; i < arity; i++) {
@@ -120,7 +119,7 @@ public class ConnectionCreatorTest {
             var j = i;
             list.add(n(
                     dbName + " ctor " + (j + 1) + " param is null",
-                    () -> ForTests.testNullReflective(pn, () -> k.newInstance(copy), "[" + j + "] test " + pn + " null")
+                    () -> ForTests.testNullReflective(pn, () -> k.newInstance(copy))
             ));
         }
         return list.stream();
@@ -134,106 +133,106 @@ public class ConnectionCreatorTest {
         }
     }
 
-    private static <E extends Connector> Stream<NamedTest> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure) {
+    private static <E extends Connector> Stream<Arguments> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure) {
         return new TestFactory<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
     }
 
-    private static Stream<NamedTest> testAll(Constructor<? extends Connector> k, Object[] params) {
+    private static Stream<Arguments> testAll(Constructor<? extends Connector> k, Object[] params) {
         return createAll(k, params);
     }
 
-    private static <E extends Connector> Stream<NamedTest> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure, Object[] ctorParams) {
+    private static <E extends Connector> Stream<Arguments> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure, Object[] ctorParams) {
         var tests1 = new TestFactory<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
         @SuppressWarnings("unchecked")
         var tests2 = createAll((Constructor<E>) k.getConstructors()[0], ctorParams);
         return Stream.concat(tests1, tests2);
     }
 
-    private static Stream<NamedTest> mariaDbCreatorTest() {
+    private static Stream<Arguments> mariaDbCreatorTest() {
         Destructure<MariaDbConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(MariaDbConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> mySqlCreatorTest() {
+    private static Stream<Arguments> mySqlCreatorTest() {
         Destructure<MySqlConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(MySqlConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> postgreSqlCreatorTest() {
+    private static Stream<Arguments> postgreSqlCreatorTest() {
         Destructure<PostgreSqlConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database(), a.ssl()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", false};
         return testAll(PostgreSqlConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> oracleCreatorTest() {
+    private static Stream<Arguments> oracleCreatorTest() {
         Destructure<OracleConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database(), a.rac()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", true};
         return testAll(OracleConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> db2CreatorTest() {
+    private static Stream<Arguments> db2CreatorTest() {
         Destructure<Db2Connector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(Db2Connector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> sqlServerCreatorTest() {
+    private static Stream<Arguments> sqlServerCreatorTest() {
         Destructure<SqlServerConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(SqlServerConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> firebirdCreatorTest() {
+    private static Stream<Arguments> firebirdCreatorTest() {
         Destructure<FirebirdConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.filename(), a.encoding()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", "ISO-8859-1"};
         return testAll(FirebirdConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> hsqldbCreatorTest() {
+    private static Stream<Arguments> hsqldbCreatorTest() {
         Destructure<HsqldbConnector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
         var replaces = new Object[] {"master", "pa$$", "test", true};
         return testAll(HsqldbConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> h2CreatorTest() {
+    private static Stream<Arguments> h2CreatorTest() {
         Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
         var replaces = new Object[] {"master", "pa$$", "test", true};
         return testAll(H2Connector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> accessCreatorTest() {
+    private static Stream<Arguments> accessCreatorTest() {
         Destructure<AccessConnector> dest = a -> new Object[] {a.filename()};
         var replaces = new Object[] {"test"};
         return testAll(AccessConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> sqliteCreatorTest() {
+    private static Stream<Arguments> sqliteCreatorTest() {
         Destructure<SqliteConnector> dest = a -> new Object[] {a.filename()};
         var replaces = new Object[] {"test"};
         return testAll(SqliteConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<NamedTest> sqliteMemoryCreatorTest() {
+    private static Stream<Arguments> sqliteMemoryCreatorTest() {
         Destructure<SqliteMemoryConnector> dest = a -> new Object[0];
         var replaces = new Object[0];
         return testAll(SqliteMemoryConnector.class, replaces, dest);
     }
 
-    private static Stream<NamedTest> urlCreatorTest1() {
+    private static Stream<Arguments> urlCreatorTest1() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url()};
         var replaces = new Object[] {"jdbc:test:test"};
         return testAll(UrlConnector.class, replaces, dest);
     }
 
-    private static Stream<NamedTest> urlCreatorTest2() {
+    private static Stream<Arguments> urlCreatorTest2() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url(), a.optAuth().orElse(null)};
         var replaces = new Object[] {"jdbc:test:test", new Connector.Auth("X", "Y")};
         return testAll(UrlConnector.class, replaces, dest);
     }
 
-    private static Stream<NamedTest> urlCreatorTest3() {
+    private static Stream<Arguments> urlCreatorTest3() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url(), a.optUser().orElse(null), a.optPassword().orElse(null)};
         var replaces = new Object[] {"jdbc:test:test", "X", "Y"};
         return testAll(UrlConnector.class, replaces, dest);
@@ -256,7 +255,7 @@ public class ConnectionCreatorTest {
                 urlCreatorTest1(),
                 urlCreatorTest2(),
                 urlCreatorTest3()
-        ).flatMap(x -> x).map(NamedTest::args);
+        ).flatMap(x -> x);
     }
 
     @MethodSource
@@ -273,7 +272,7 @@ public class ConnectionCreatorTest {
         var b = testAll(u.getConstructor(String.class, Connector.Auth.class), new Object[] {url, auth});
         var c = testAll(u.getConstructor(String.class, Optional.class), new Object[] {url, Optional.of(auth)});
         var d = testAll(u.getConstructor(String.class, String.class, String.class), new Object[] {url, "X", "Y"});
-        return Stream.of(a, b, c, d).flatMap(x -> x).map(NamedTest::args);
+        return Stream.of(a, b, c, d).flatMap(x -> x);
     }
 
     @MethodSource
@@ -327,7 +326,7 @@ public class ConnectionCreatorTest {
                 n("h2 std url2"    , () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(H2Connector.std().withMemory(true).url())))),
                 n("h2 std url3"    , () -> Assertions.assertDoesNotThrow(() -> connectionTest(new UrlConnector(H2Connector.std().withMemory(true).url())::get))),
                 n("h2 json"        , () -> Assertions.assertDoesNotThrow(() -> connectionTest(JsonConnector.read(json2))))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -368,7 +367,7 @@ public class ConnectionCreatorTest {
                 n("hsqldb 1"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://", hsql1.url())),
                 n("hsqldb 2"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
                 n("hsqldb 3"  , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url()))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource

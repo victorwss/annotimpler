@@ -1,7 +1,5 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
-import ninja.javahacker.test.NamedTest;
-
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
@@ -11,8 +9,8 @@ import org.junit.jupiter.api.function.Executable;
 
 public class MethodsComplexTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     public static class Something {
@@ -73,7 +71,7 @@ public class MethodsComplexTest {
                     Map.of("homer", 35, "marge", 33.0),
                     Methods.paramMap(simpsonsParents, 35, 33.0)
             ))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -97,23 +95,23 @@ public class MethodsComplexTest {
     }
 
     private static Stream<Arguments> testReturnType() throws Exception {
-        Function<Constructor<?>, NamedTest> func1 = c -> n("Exec " + c.getName(), () -> Assertions.assertEquals(
+        Function<Constructor<?>, Arguments> func1 = c -> n("Exec " + c.getName(), () -> Assertions.assertEquals(
                 c.getDeclaringClass(),
                 Methods.getReturnType((java.lang.reflect.Executable) c)
         ));
-        Function<Constructor<?>, NamedTest> func2 = c -> n("Ctor " + c.getName(), () -> Assertions.assertEquals(
+        Function<Constructor<?>, Arguments> func2 = c -> n("Ctor " + c.getName(), () -> Assertions.assertEquals(
                 c.getDeclaringClass(),
                 Methods.getReturnType(c)
         ));
-        Function<Method, NamedTest> func3 = m -> n("Exec " + m.getName(), () -> Assertions.assertEquals(
+        Function<Method, Arguments> func3 = m -> n("Exec " + m.getName(), () -> Assertions.assertEquals(
                 m.getGenericReturnType(),
                 Methods.getReturnType((java.lang.reflect.Executable) m)
         ));
-        Function<Method, NamedTest> func4 = m -> n("Meth " + m.getName(), () -> Assertions.assertEquals(
+        Function<Method, Arguments> func4 = m -> n("Meth " + m.getName(), () -> Assertions.assertEquals(
                 m.getGenericReturnType(),
                 Methods.getReturnType(m)
         ));
-        Function<Field, NamedTest> func5 = f -> n(
+        Function<Field, Arguments> func5 = f -> n(
                 f.getName(),
                 () -> Assertions.assertEquals(f.getGenericType(), Methods.getReturnType(f))
         );
@@ -147,7 +145,7 @@ public class MethodsComplexTest {
         var t3 = meths.stream().map(func3);
         var t4 = meths.stream().map(func4);
         var t5 = fields.stream().map(func5);
-        return Stream.of(t1, t2, t3, t4, t5).flatMap(x -> x).map(NamedTest::args);
+        return Stream.of(t1, t2, t3, t4, t5).flatMap(x -> x);
     }
 
     @MethodSource

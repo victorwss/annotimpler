@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -13,7 +14,7 @@ public final class MagicFactory<E> {
     private final MethodWrapper<E, Object> wrapper;
 
     private MagicFactory(@NonNull Class<E> klass) throws CreatorSelectionException {
-        if (klass == null) throw new AssertionError();
+        checkNotNull(klass);
         this.klass = klass;
         this.wrapper = creatorFor(klass);
     }
@@ -25,7 +26,7 @@ public final class MagicFactory<E> {
 
     @NonNull
     private <W extends MethodWrapper<?, ?>> W checkOk(@NonNull W wrapper) throws CreatorSelectionException {
-        if (wrapper == null) throw new AssertionError();
+        checkNotNull(wrapper);
         if (!wrapper.isStatic()) {
             var msg = "Instance " + wrapper + " can't have @Creator.";
             throw new CreatorSelectionException(msg, klass);
@@ -44,7 +45,7 @@ public final class MagicFactory<E> {
         var rt = wrapper.getReturnType();
         if (rt instanceof ParameterizedType p) {
             rt = p.getRawType();
-            if (!(rt instanceof Class<?>)) throw new AssertionError();
+            assertTrue(rt instanceof Class<?>);
         } else if (!(rt instanceof Class<?>)) {
             var msg = "Bad type for " + wrapper + ". Should be " + klass.getSimpleName() + ".";
             throw new CreatorSelectionException(msg, klass);
@@ -60,7 +61,7 @@ public final class MagicFactory<E> {
     @NonNull
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     private <E> MethodWrapper<E, Object> creatorFor(@NonNull Class<E> klass) throws CreatorSelectionException {
-        if (klass == null) throw new AssertionError();
+        checkNotNull(klass);
         var methods = klass.getDeclaredMethods();
         var fields = klass.getDeclaredFields();
         var constructors = klass.getDeclaredConstructors();
@@ -125,8 +126,10 @@ public final class MagicFactory<E> {
             var ret = wrapper.call(args);
             if (ret == null) throw new CreationException("Creator of " + klass.getSimpleName() + " produced null.", klass);
             return ret;
-        } catch (IllegalAccessException | InstantiationException | IllegalArgumentException e) {
+        } catch (IllegalAccessException | InstantiationException e) {
             throw new CreationException("Creator of " + klass.getSimpleName() + " doesn't work.", e, klass);
+        } catch (IllegalArgumentException e) {
+            throw new CreationException("Creator of " + klass.getSimpleName() + " was called with the wrong arguments.", e, klass);
         } catch (InvocationTargetException e) {
             throw new CreationException("The instantiation of " + klass.getSimpleName() + " threw an exception.", e.getCause(), klass);
         }
@@ -202,5 +205,15 @@ public final class MagicFactory<E> {
         public Class<?> getRoot() {
             return root;
         }
+    }
+
+    @Generated
+    private static void assertTrue(boolean b) {
+        if (!b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

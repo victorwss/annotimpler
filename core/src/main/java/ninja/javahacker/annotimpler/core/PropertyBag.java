@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -18,7 +19,7 @@ public final class PropertyBag {
     }
 
     private PropertyBag(@NonNull Map<KeyProperty<?>, Object> properties) {
-        if (properties == null) throw new AssertionError();
+        checkNotNull(properties);
         this.properties = Map.copyOf(properties);
     }
 
@@ -50,7 +51,7 @@ public final class PropertyBag {
         var obj = properties.get(key);
         if (obj == null) throw new PropertyNotFoundException(key);
         var kv = key.valueType();
-        if (!kv.isInstance(obj)) throw new AssertionError(key);
+        assertTrue(kv.isInstance(obj));
         return kv.cast(obj);
     }
 
@@ -100,5 +101,15 @@ public final class PropertyBag {
         public KeyProperty<?> getProperty() {
             return property;
         }
+    }
+
+    @Generated
+    private static void assertTrue(boolean b) {
+        if (!b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

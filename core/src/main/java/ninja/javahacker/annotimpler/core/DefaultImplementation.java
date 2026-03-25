@@ -3,9 +3,6 @@ package ninja.javahacker.annotimpler.core;
 import lombok.NonNull;
 import java.lang.reflect.Proxy;
 
-import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
-
 public final class DefaultImplementation {
 
     private static final String NOT_PROXY = "Should be a proxy.";
@@ -29,6 +26,7 @@ public final class DefaultImplementation {
         return args[0] == instance;
     }
 
+    @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static <E> CallContext<E> forToString(@NonNull Class<E> iface) {
         return new CallContext<>() {
 

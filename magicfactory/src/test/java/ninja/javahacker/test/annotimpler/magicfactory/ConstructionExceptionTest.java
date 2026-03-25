@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -11,8 +10,8 @@ import module org.junit.jupiter.params;
 
 public class ConstructionExceptionTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
@@ -57,7 +56,7 @@ public class ConstructionExceptionTest {
                 n("UnavailableConverterException-2.root-ok2", () -> Assertions.assertEquals(Test.class, new ConverterFactory.UnavailableConverterException("foo", Test.class).getRoot())),
                 n("UnavailableConverterException-3.root-ok1", () -> Assertions.assertEquals(String.class, new ConverterFactory.UnavailableConverterException("foo", new Exception(), String.class).getRoot())),
                 n("UnavailableConverterException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new ConverterFactory.UnavailableConverterException("foo", new Exception(), Test.class).getRoot()))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource

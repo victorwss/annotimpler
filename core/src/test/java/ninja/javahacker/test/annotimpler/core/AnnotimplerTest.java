@@ -2,14 +2,19 @@ package ninja.javahacker.test.annotimpler.core;
 
 import lombok.NonNull;
 import ninja.javahacker.test.ForTests;
+import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
-import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 @SuppressWarnings({"missing-explicit-ctor", "AssertEqualsBetweenInconvertibleTypes"})
 public class AnnotimplerTest {
+
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
+    }
 
     @ImplementedBy(TestImpl1.class)
     @Retention(RetentionPolicy.RUNTIME)
@@ -383,12 +388,12 @@ public class AnnotimplerTest {
         Assertions.assertEquals("whoot", AnnotationsImplementor.implement(TestStdIface6.class).wtf());
     }
 
-    @ImplementedBy(TestBadImpl7.class)
+    @ImplementedBy(TestVeryBadImpl.class)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface TestBadAnno7 {
+    public static @interface TestVeryBadAnno {
     }
 
-    public static class TestBadImpl7 implements Implementation {
+    public static class TestVeryBadImpl implements Implementation {
         @NonNull
         @Override
         public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
@@ -396,12 +401,12 @@ public class AnnotimplerTest {
         }
     }
 
-    @ImplementedBy(TestBadImpl8.class)
+    @ImplementedBy(TestReallyBadImpl.class)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface TestBadAnno8 {
+    public static @interface TestReallyBadAnno {
     }
 
-    public static class TestBadImpl8 implements Implementation {
+    public static class TestReallyBadImpl implements Implementation {
         @NonNull
         @Override
         public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
@@ -410,8 +415,8 @@ public class AnnotimplerTest {
     }
 
     public static interface TestBadIface7 {
-        @TestBadAnno7
-        @TestBadAnno8
+        @TestVeryBadAnno
+        @TestReallyBadAnno
         public String crash();
     }
 
@@ -425,38 +430,289 @@ public class AnnotimplerTest {
         );
     }
 
+    public static class TestBadImpl9 implements Implementation {
+        public TestBadImpl9() throws FooException {
+            throw new FooException();
+        }
+
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            throw new AssertionError();
+        }
+    }
+
+    @ImplementedBy(TestBadImpl9.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestBadAnno9 {
+    }
+
+    public static interface TestBadIface9 {
+        @TestBadAnno9
+        public String crash();
+    }
+
     @Test
-    public void testSingleImplEqualsHashCodeToString() throws Exception {
+    public void testBadImpl9() {
+        var msg = "The instantiation of TestBadImpl9 threw an exception.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface9.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface9.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage()),
+                () -> Assertions.assertEquals(MagicFactory.CreationException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals(msg, ex.getCause().getMessage()),
+                () -> Assertions.assertEquals(FooException.class, ex.getCause().getCause().getClass())
+        );
+    }
+
+    public static class TestBadImpl10 implements Implementation {
+        public TestBadImpl10(String foo, int bar) throws FooException {
+            throw new AssertionError();
+        }
+
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            throw new AssertionError();
+        }
+    }
+
+    @ImplementedBy(TestBadImpl10.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestBadAnno10 {
+    }
+
+    public static interface TestBadIface10 {
+        @TestBadAnno10
+        public String crash();
+    }
+
+    @Test
+    public void testBadImpl10() {
+        var msg = "Creator of TestBadImpl10 doesn't work.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface10.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface10.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage()),
+                () -> Assertions.assertEquals(MagicFactory.CreationException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals(msg, ex.getCause().getMessage()),
+                () -> Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getCause().getClass())
+        );
+    }
+
+    public static class TestBadImpl11 implements Implementation {
+        public TestBadImpl11(String foo, int bar) throws FooException {
+            throw new AssertionError();
+        }
+
+        public TestBadImpl11(String foo) throws FooException {
+            throw new AssertionError();
+        }
+
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            throw new AssertionError();
+        }
+    }
+
+    @ImplementedBy(TestBadImpl11.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestBadAnno11 {
+    }
+
+    public static interface TestBadIface11 {
+        @TestBadAnno11
+        public String crash();
+    }
+
+    @Test
+    public void testBadImpl11() {
+        var msg = "Failed to determine how to create an instance of TestBadImpl11.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface11.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface11.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage()),
+                () -> Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals(msg, ex.getCause().getMessage())
+        );
+    }
+
+    public static class TestBadImpl12 implements Implementation {
+        public TestBadImpl12(String foo, int bar) throws FooException {
+            throw new AssertionError();
+        }
+
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) {
+            throw new AssertionError();
+        }
+    }
+
+    public static interface TestBadIface12 {
+        @TestVeryBadAnno
+        public static String crash() {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadImpl12() {
+        var msg = "Can't use @TestVeryBadAnno annotation on static methods.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface12.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface12.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestBadIface13 {
+        @TestVeryBadAnno
+        private String crash() {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadImpl13() {
+        var msg = "Can't use @TestVeryBadAnno annotation on private methods.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface13.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface13.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestBadIface14 {
+        @Override
+        @TestVeryBadAnno
+        public String toString();
+    }
+
+    @Test
+    public void testBadImpl14() {
+        var msg = "Can't use @TestVeryBadAnno annotation on toString() method.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface14.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface14.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestBadIface15 {
+        @Override
+        @TestVeryBadAnno
+        public int hashCode();
+    }
+
+    @Test
+    public void testBadImpl15() {
+        var msg = "Can't use @TestVeryBadAnno annotation on hashCode() method.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface15.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface15.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestBadIface16 {
+        @Override
+        @TestVeryBadAnno
+        public boolean equals(Object x);
+    }
+
+    @Test
+    public void testBadImpl16() {
+        var msg = "Can't use @TestVeryBadAnno annotation on equals(Object) method.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface16.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface16.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestSilly1 {
+    }
+
+    @Test
+    public void testSilly1() throws Exception {
+        AnnotationsImplementor.implement(TestSilly1.class);
+    }
+
+    public static interface TestSilly2 {
+        private void foo1() {
+            throw new AssertionError();
+        }
+
+        public static void foo2() {
+            throw new AssertionError();
+        }
+
+        private static void foo3() {
+            throw new AssertionError();
+        }
+
+        @Override
+        public int hashCode();
+
+        @Override
+        public String toString();
+
+        @Override
+        public boolean equals(Object other);
+    }
+
+    @Test
+    public void testSilly2() throws Exception {
+        AnnotationsImplementor.implement(TestSilly2.class);
+    }
+
+    private static Stream<Arguments> testSingleImplEqualsHashCodeToString() throws Exception {
         var a = AnnotationsImplementor.implement(TestIface1.class);
         var b = AnnotationsImplementor.implement(TestIface1.class);
         var c = AnnotationsImplementor.implement(TestIface2.class);
         var ha = a.hashCode();
         var hb = b.hashCode();
         var hc = c.hashCode();
-        Assertions.assertAll(
-                () -> Assertions.assertNotEquals(a, b),
-                () -> Assertions.assertNotEquals(a, c),
-                () -> Assertions.assertNotEquals(b, c),
-                () -> Assertions.assertNotEquals(a, null),
-                () -> Assertions.assertNotEquals(b, null),
-                () -> Assertions.assertNotEquals(c, null),
-                () -> Assertions.assertEquals(a, a),
-                () -> Assertions.assertEquals(b, b),
-                () -> Assertions.assertEquals(c, c),
-                () -> Assertions.assertEquals("impl[" + TestIface1.class.getName() + "]-" + ha, a.toString()),
-                () -> Assertions.assertEquals("impl[" + TestIface1.class.getName() + "]-" + hb, b.toString()),
-                () -> Assertions.assertEquals("impl[" + TestIface2.class.getName() + "]-" + hc, c.toString())
+        return Stream.of(
+                n("a-a", () -> Assertions.assertEquals(a, a)),
+                n("b-b", () -> Assertions.assertEquals(b, b)),
+                n("c-c", () -> Assertions.assertEquals(c, c)),
+                n("a-b", () -> Assertions.assertNotEquals(a, b)),
+                n("a-c", () -> Assertions.assertNotEquals(a, c)),
+                n("b-c", () -> Assertions.assertNotEquals(b, c)),
+                n("a-n", () -> Assertions.assertNotEquals(a, null)),
+                n("b-n", () -> Assertions.assertNotEquals(b, null)),
+                n("c-n", () -> Assertions.assertNotEquals(c, null)),
+                n("a-x", () -> Assertions.assertNotEquals(a, "x")),
+                n("b-x", () -> Assertions.assertNotEquals(b, "x")),
+                n("c-x", () -> Assertions.assertNotEquals(c, "x")),
+                n("a-s", () -> Assertions.assertEquals("impl[" + TestIface1.class.getName() + "]-" + ha, a.toString())),
+                n("b-s", () -> Assertions.assertEquals("impl[" + TestIface1.class.getName() + "]-" + hb, b.toString())),
+                n("c-s", () -> Assertions.assertEquals("impl[" + TestIface2.class.getName() + "]-" + hc, c.toString()))
         );
     }
 
-    @Test
+    @MethodSource
+    @ParameterizedTest(name = "testSingleImplEqualsHashCodeToString {0}")
+    public void testSingleImplEqualsHashCodeToString(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
     @SuppressWarnings("null")
-    public void testNulls() {
-        Assertions.assertAll(
-                () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null), "simple-null"),
-                () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, null), "double-null"),
-                () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, PropertyBag.root()), "simple-null-2")
+    private static Stream<Arguments> testNulls() {
+        return Stream.of(
+                n("simple-null", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null))),
+                n("double-null", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, null))),
+                n("simple-null-2", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, PropertyBag.root())))
         );
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 
     @Test

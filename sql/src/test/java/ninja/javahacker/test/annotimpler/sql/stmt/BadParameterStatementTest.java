@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.stmt;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -50,8 +49,8 @@ public class BadParameterStatementTest {
         }
     }
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     private static Executable ex(StatementContext ctx) {
@@ -157,7 +156,7 @@ public class BadParameterStatementTest {
         var c = GregorianCalendar.from(ldt.atZone(ZoneOffset.UTC));
         var str = String.class.getName();
         var url = new URI("http://0.0.0.0/").toURL();
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setBoolean-false"    , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean      (null, false                  )))),
                 n("setBoolean-true"     , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean      (null, true                   )))),
                 n("setByte"             , () -> ForTests.testNull("name", ex(ps -> ps.setByte         (null, (byte ) 123            )))),
@@ -188,7 +187,6 @@ public class BadParameterStatementTest {
                 n("setNull"             , () -> ForTests.testNull("name", ex(ps -> ps.setNull         (null, Types.VARCHAR          )))),
                 n("setNull-2"           , () -> ForTests.testNull("name", ex(ps -> ps.setNull         (null, Types.VARCHAR, str     ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -199,7 +197,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("null")
     private static Stream<Arguments> testSetParamNulls() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setOptInt-int"      , () -> ForTests.testNull("x", ex(ps -> ps.setInt   (1  , null)))),
                 n("setOptInt-String"   , () -> ForTests.testNull("x", ex(ps -> ps.setInt   ("a", null)))),
                 n("setOptLong-int"     , () -> ForTests.testNull("x", ex(ps -> ps.setLong  (1  , null)))),
@@ -207,7 +205,6 @@ public class BadParameterStatementTest {
                 n("setOptDouble-int"   , () -> ForTests.testNull("x", ex(ps -> ps.setDouble(1  , null)))),
                 n("setOptDouble-String", () -> ForTests.testNull("x", ex(ps -> ps.setDouble("a", null))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -218,7 +215,7 @@ public class BadParameterStatementTest {
 
     private static Stream<Arguments> testSimpleEmpties() {
         var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setBoolean-false",() -> testBad("", ex(ps -> ps.setBoolean      ("", false                             )))),
                 n("setBoolean-true" ,() -> testBad("", ex(ps -> ps.setBoolean      ("", true                              )))),
                 n("setByte"         ,() -> testBad("", ex(ps -> ps.setByte         ("", (byte ) 123                       )))),
@@ -243,7 +240,6 @@ public class BadParameterStatementTest {
                 n("setNull"         ,() -> testBad("", ex(ps -> ps.setNull         ("", Types.VARCHAR                     )))),
                 n("setNull-2"       ,() -> testBad("", ex(ps -> ps.setNull         ("", Types.VARCHAR, "foo"              ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -254,7 +250,7 @@ public class BadParameterStatementTest {
 
     private static Stream<Arguments> testSimpleBads() {
         var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setBoolean-false", () -> testBad("foo", ex(ps -> ps.setBoolean      ("foo", false                             )))),
                 n("setBoolean-true" , () -> testBad("foo", ex(ps -> ps.setBoolean      ("foo", true                              )))),
                 n("setByte"         , () -> testBad("foo", ex(ps -> ps.setByte         ("foo", (byte ) 123                       )))),
@@ -279,7 +275,6 @@ public class BadParameterStatementTest {
                 n("setNull"         , () -> testBad("foo", ex(ps -> ps.setNull         ("foo", Types.VARCHAR                     )))),
                 n("setNull-2"       , () -> testBad("foo", ex(ps -> ps.setNull         ("foo", Types.VARCHAR, "foo"              ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -290,32 +285,28 @@ public class BadParameterStatementTest {
 
     private static Stream<Arguments> testSimpleBadIndexes() {
         var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
-        var ret = Stream.of(0, -1, 2).flatMap(idx -> {
-            Stream<NamedTest> s = Stream.of(
-                    n("setBoolean-false", () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, false                   )))),
-                    n("setBoolean-true" , () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, true                    )))),
-                    n("setByte"         , () -> testBad(idx, ex(ps -> ps.setByte         (idx, (byte ) 123             )))),
-                    n("setShort"        , () -> testBad(idx, ex(ps -> ps.setShort        (idx, (short) 123             )))),
-                    n("setInt"          , () -> testBad(idx, ex(ps -> ps.setInt          (idx, 123                     )))),
-                    n("setOptInt"       , () -> testBad(idx, ex(ps -> ps.setInt          (idx, OptionalInt.of(123)     )))),
-                    n("setLong"         , () -> testBad(idx, ex(ps -> ps.setLong         (idx, 123L                    )))),
-                    n("setOptLong"      , () -> testBad(idx, ex(ps -> ps.setLong         (idx, OptionalLong.of(123)    )))),
-                    n("setFloat"        , () -> testBad(idx, ex(ps -> ps.setFloat        (idx, 123F                    )))),
-                    n("setDouble"       , () -> testBad(idx, ex(ps -> ps.setDouble       (idx, 123D                    )))),
-                    n("setOptDouble"    , () -> testBad(idx, ex(ps -> ps.setDouble       (idx, OptionalDouble.of(123D) )))),
-                    n("setBigDecimal"   , () -> testBad(idx, ex(ps -> ps.setBigDecimal   (idx, BigDecimal.TWO          )))),
-                    n("setString"       , () -> testBad(idx, ex(ps -> ps.setString       (idx, "foo"                   )))),
-                    n("setNString"      , () -> testBad(idx, ex(ps -> ps.setNString      (idx, "foo"                   )))),
-                    n("setBlob-Blob"    , () -> testBad(idx, ex(ps -> ps.setBytes        (idx, "foo".getBytes()        )))),
-                    n("setLocalDate"    , () -> testBad(idx, ex(ps -> ps.setLocalDate    (idx, LocalDate.of(2026, 1, 1))))),
-                    n("setLocalTime"    , () -> testBad(idx, ex(ps -> ps.setLocalTime    (idx, LocalTime.of(10, 0, 0)  )))),
-                    n("setLocalDateTime", () -> testBad(idx, ex(ps -> ps.setLocalDateTime(idx, d                       )))),
-                    n("setNull"         , () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR           )))),
-                    n("setNull-2"       , () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR, "foo"    ))))
-            );
-            return s;
-        });
-        return ret.map(NamedTest::args);
+        return Stream.of(0, -1, 2).flatMap(idx -> Stream.of(
+                n("setBoolean-false", () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, false                   )))),
+                n("setBoolean-true" , () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, true                    )))),
+                n("setByte"         , () -> testBad(idx, ex(ps -> ps.setByte         (idx, (byte ) 123             )))),
+                n("setShort"        , () -> testBad(idx, ex(ps -> ps.setShort        (idx, (short) 123             )))),
+                n("setInt"          , () -> testBad(idx, ex(ps -> ps.setInt          (idx, 123                     )))),
+                n("setOptInt"       , () -> testBad(idx, ex(ps -> ps.setInt          (idx, OptionalInt.of(123)     )))),
+                n("setLong"         , () -> testBad(idx, ex(ps -> ps.setLong         (idx, 123L                    )))),
+                n("setOptLong"      , () -> testBad(idx, ex(ps -> ps.setLong         (idx, OptionalLong.of(123)    )))),
+                n("setFloat"        , () -> testBad(idx, ex(ps -> ps.setFloat        (idx, 123F                    )))),
+                n("setDouble"       , () -> testBad(idx, ex(ps -> ps.setDouble       (idx, 123D                    )))),
+                n("setOptDouble"    , () -> testBad(idx, ex(ps -> ps.setDouble       (idx, OptionalDouble.of(123D) )))),
+                n("setBigDecimal"   , () -> testBad(idx, ex(ps -> ps.setBigDecimal   (idx, BigDecimal.TWO          )))),
+                n("setString"       , () -> testBad(idx, ex(ps -> ps.setString       (idx, "foo"                   )))),
+                n("setNString"      , () -> testBad(idx, ex(ps -> ps.setNString      (idx, "foo"                   )))),
+                n("setBlob-Blob"    , () -> testBad(idx, ex(ps -> ps.setBytes        (idx, "foo".getBytes()        )))),
+                n("setLocalDate"    , () -> testBad(idx, ex(ps -> ps.setLocalDate    (idx, LocalDate.of(2026, 1, 1))))),
+                n("setLocalTime"    , () -> testBad(idx, ex(ps -> ps.setLocalTime    (idx, LocalTime.of(10, 0, 0)  )))),
+                n("setLocalDateTime", () -> testBad(idx, ex(ps -> ps.setLocalDateTime(idx, d                       )))),
+                n("setNull"         , () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR           )))),
+                n("setNull-2"       , () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR, "foo"    ))))
+        ));
     }
 
     @MethodSource
@@ -326,7 +317,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings({"null", "deprecation"})
     private static Stream<Arguments> testInputStreamReaderBlobClobNulls() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setAsciiStream"          , () -> ForTests.testNull("name", ex(ps -> ps.setAsciiStream     (null, i()    )))),
                 n("setAsciiStream-int"      , () -> ForTests.testNull("name", ex(ps -> ps.setAsciiStream     (null, i(), 0 )))),
                 n("setAsciiStream-long"     , () -> ForTests.testNull("name", ex(ps -> ps.setAsciiStream     (null, i(), 0L)))),
@@ -350,7 +341,6 @@ public class BadParameterStatementTest {
                 n("setNClob-Reader-int"     , () -> ForTests.testNull("name", ex(ps -> ps.setNClob           (null, r(), 0L)))),
                 n("setUnicodeStream"        , () -> ForTests.testNull("name", ex(ps -> ps.setUnicodeStream   (null, i(), 0 ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -361,7 +351,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("deprecation")
     private static Stream<Arguments> testInputStreamReaderBlobClobEmpties() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setAsciiStream"         , () -> testBad("", ex(ps -> ps.setAsciiStream     ("", i()    )))),
                 n("setBinaryStream"        , () -> testBad("", ex(ps -> ps.setBinaryStream    ("", i()    )))),
                 n("setCharacterStream"     , () -> testBad("", ex(ps -> ps.setCharacterStream ("", r()    )))),
@@ -377,7 +367,6 @@ public class BadParameterStatementTest {
                 n("setNClob-Reader-int"    , () -> testBad("", ex(ps -> ps.setNClob           ("", r(), 0L)))),
                 n("setUnicodeStream"       , () -> testBad("", ex(ps -> ps.setUnicodeStream   ("", i(), 0 ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -388,7 +377,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("deprecation")
     private static Stream<Arguments> testInputStreamReaderBlobClobBads() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setAsciiStream"         , () -> testBad("foo", ex(ps -> ps.setAsciiStream     ("foo", i()    )))),
                 n("setBinaryStream"        , () -> testBad("foo", ex(ps -> ps.setBinaryStream    ("foo", i()    )))),
                 n("setCharacterStream"     , () -> testBad("foo", ex(ps -> ps.setCharacterStream ("foo", r()    )))),
@@ -404,7 +393,6 @@ public class BadParameterStatementTest {
                 n("setNClob-Reader-int"    , () -> testBad("foo", ex(ps -> ps.setNClob           ("foo", r(), 0L)))),
                 n("setUnicodeStream"       , () -> testBad("foo", ex(ps -> ps.setUnicodeStream   ("foo", i(), 0 ))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -414,25 +402,21 @@ public class BadParameterStatementTest {
     }
 
     private static Stream<Arguments> testInputStreamReaderBlobClobBadIndexes() {
-        var ret = Stream.of(0, -1, 2).flatMap(idx -> {
-            Stream<NamedTest> s = Stream.of(
-                    n("setAsciiStream"         , () -> testBad(idx, ex(ps -> ps.setAsciiStream     (idx, i()    )))),
-                    n("setBinaryStream"        , () -> testBad(idx, ex(ps -> ps.setBinaryStream    (idx, i()    )))),
-                    n("setCharacterStream"     , () -> testBad(idx, ex(ps -> ps.setCharacterStream (idx, r()    )))),
-                    n("setNCharacterStream"    , () -> testBad(idx, ex(ps -> ps.setNCharacterStream(idx, r()    )))),
-                    n("setBlob-Blob"           , () -> testBad(idx, ex(ps -> ps.setBlob            (idx, b(ps)  )))),
-                    n("setBlob-InputStream"    , () -> testBad(idx, ex(ps -> ps.setBlob            (idx, i()    )))),
-                    n("setBlob-InputStream-int", () -> testBad(idx, ex(ps -> ps.setBlob            (idx, i(), 0L)))),
-                    n("setClob-Clob"           , () -> testBad(idx, ex(ps -> ps.setClob            (idx, c(ps)  )))),
-                    n("setClob-Reader"         , () -> testBad(idx, ex(ps -> ps.setClob            (idx, r()    )))),
-                    n("setClob-Reader-int"     , () -> testBad(idx, ex(ps -> ps.setClob            (idx, r(), 0L)))),
-                    n("setNClob-NClob"         , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, n(ps)  )))),
-                    n("setNClob-Reader"        , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, r()    )))),
-                    n("setNClob-Reader-int"    , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, r(), 0L))))
-            );
-            return s;
-        });
-        return ret.map(NamedTest::args);
+        return Stream.of(0, -1, 2).flatMap(idx -> Stream.of(
+                n("setAsciiStream"         , () -> testBad(idx, ex(ps -> ps.setAsciiStream     (idx, i()    )))),
+                n("setBinaryStream"        , () -> testBad(idx, ex(ps -> ps.setBinaryStream    (idx, i()    )))),
+                n("setCharacterStream"     , () -> testBad(idx, ex(ps -> ps.setCharacterStream (idx, r()    )))),
+                n("setNCharacterStream"    , () -> testBad(idx, ex(ps -> ps.setNCharacterStream(idx, r()    )))),
+                n("setBlob-Blob"           , () -> testBad(idx, ex(ps -> ps.setBlob            (idx, b(ps)  )))),
+                n("setBlob-InputStream"    , () -> testBad(idx, ex(ps -> ps.setBlob            (idx, i()    )))),
+                n("setBlob-InputStream-int", () -> testBad(idx, ex(ps -> ps.setBlob            (idx, i(), 0L)))),
+                n("setClob-Clob"           , () -> testBad(idx, ex(ps -> ps.setClob            (idx, c(ps)  )))),
+                n("setClob-Reader"         , () -> testBad(idx, ex(ps -> ps.setClob            (idx, r()    )))),
+                n("setClob-Reader-int"     , () -> testBad(idx, ex(ps -> ps.setClob            (idx, r(), 0L)))),
+                n("setNClob-NClob"         , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, n(ps)  )))),
+                n("setNClob-Reader"        , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, r()    )))),
+                n("setNClob-Reader-int"    , () -> testBad(idx, ex(ps -> ps.setNClob           (idx, r(), 0L))))
+        ));
     }
 
     @MethodSource
@@ -444,20 +428,16 @@ public class BadParameterStatementTest {
     @SuppressWarnings("deprecation")
     private static Stream<Arguments> testUnsupportedMethods() throws Exception {
         var url = new URI("http://0.0.0.0/").toURL();
-        var ret = Stream.of(1, 0, -1, 2).flatMap(idx -> {
-            Stream<NamedTest> s = Stream.of(
-                    n("setUnicodeStream-null"    , () -> testUnsupported("unicodeStream", ex(ps -> ps.setUnicodeStream(idx, null, 0)))),
-                    n("setUnicodeStream-instance", () -> testUnsupported("unicodeStream", ex(ps -> ps.setUnicodeStream(idx, i() , 0)))),
-                    n("setURL-null"              , () -> testUnsupported("url"          , ex(ps -> ps.setURL          (idx, null   )))),
-                    n("setURL-instance"          , () -> testUnsupported("url"          , ex(ps -> ps.setURL          (idx, url    )))),
-                    n("setRef-null"              , () -> testUnsupported("ref"          , ex(ps -> ps.setRef          (idx, null   )))),
-                    n("setRef-intsance"          , () -> testUnsupported("ref"          , ex(ps -> ps.setRef          (idx, ref()  )))),
-                    n("setRowId-null"            , () -> testUnsupported("rowId"        , ex(ps -> ps.setRowId        (idx, null   )))),
-                    n("setRowId-intsance"        , () -> testUnsupported("rowId"        , ex(ps -> ps.setRowId        (idx, rowid()))))
-            );
-            return s;
-        });
-        return ret.map(NamedTest::args);
+        return Stream.of(1, 0, -1, 2).flatMap(idx -> Stream.of(
+                n("setUnicodeStream-null"    , () -> testUnsupported("unicodeStream", ex(ps -> ps.setUnicodeStream(idx, null, 0)))),
+                n("setUnicodeStream-instance", () -> testUnsupported("unicodeStream", ex(ps -> ps.setUnicodeStream(idx, i() , 0)))),
+                n("setURL-null"              , () -> testUnsupported("url"          , ex(ps -> ps.setURL          (idx, null   )))),
+                n("setURL-instance"          , () -> testUnsupported("url"          , ex(ps -> ps.setURL          (idx, url    )))),
+                n("setRef-null"              , () -> testUnsupported("ref"          , ex(ps -> ps.setRef          (idx, null   )))),
+                n("setRef-intsance"          , () -> testUnsupported("ref"          , ex(ps -> ps.setRef          (idx, ref()  )))),
+                n("setRowId-null"            , () -> testUnsupported("rowId"        , ex(ps -> ps.setRowId        (idx, null   )))),
+                n("setRowId-intsance"        , () -> testUnsupported("rowId"        , ex(ps -> ps.setRowId        (idx, rowid()))))
+        ));
     }
 
     @MethodSource
@@ -468,14 +448,13 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("null")
     private static Stream<Arguments> testArrayNullsAndBads() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("empty"   , () -> testBad(""   , ex(ps -> ps.setArray(""   , a(ps))))),
                 n("junk"    , () -> testBad("foo", ex(ps -> ps.setArray("foo", a(ps))))),
                 n("zero"    , () -> testBad(0    , ex(ps -> ps.setArray(0    , a(ps))))),
                 n("negative", () -> testBad(-1   , ex(ps -> ps.setArray(-1   , a(ps))))),
                 n("large"   , () -> testBad(2    , ex(ps -> ps.setArray(2    , a(ps)))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -486,14 +465,13 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("null")
     private static Stream<Arguments> testSQLXMLNullsAndBads() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("empty"   , () -> testBad(""   , ex(ps -> ps.setSQLXML(""   , s(ps))))),
                 n("junk"    , () -> testBad("foo", ex(ps -> ps.setSQLXML("foo", s(ps))))),
                 n("zero"    , () -> testBad(0    , ex(ps -> ps.setSQLXML(0    , s(ps))))),
                 n("negative", () -> testBad(-1   , ex(ps -> ps.setSQLXML(-1   , s(ps))))),
                 n("large"   , () -> testBad(2    , ex(ps -> ps.setSQLXML(2    , s(ps)))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -504,7 +482,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("null")
     private static Stream<Arguments> testObjectsNulls() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("setArray"          , () -> ForTests.testNull("name", ex(ps -> ps.setArray (null, a(ps)                         )))),
                 n("setSQLXML"         , () -> ForTests.testNull("name", ex(ps -> ps.setSQLXML(null, s(ps)                         )))),
                 n("Simple-name"       , () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0]                   )))),
@@ -513,7 +491,6 @@ public class BadParameterStatementTest {
                 n("Type-Scale-name"   , () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0], Types .VARCHAR, 0)))),
                 n("SQLType-Scale-name", () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0], H2Type.VARCHAR, 0))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource
@@ -524,7 +501,7 @@ public class BadParameterStatementTest {
 
     @SuppressWarnings("null")
     private static Stream<Arguments> testObjectsBads() {
-        var ret = Stream.<NamedTest>of(
+        return Stream.of(
                 n("Simple-empty"          , () -> testBad(""   , ex(ps -> ps.setObject(""   , new byte[0]                   )))),
                 n("Type-empty"            , () -> testBad(""   , ex(ps -> ps.setObject(""   , new byte[0], Types .VARCHAR   )))),
                 n("SQLType-empty"         , () -> testBad(""   , ex(ps -> ps.setObject(""   , new byte[0], H2Type.VARCHAR   )))),
@@ -551,7 +528,6 @@ public class BadParameterStatementTest {
                 n("Type-Scale-large"      , () -> testBad(2    , ex(ps -> ps.setObject(2    , new byte[0], Types .VARCHAR, 0)))),
                 n("SQLType-Scale-large"   , () -> testBad(2    , ex(ps -> ps.setObject(2    , new byte[0], H2Type.VARCHAR, 0))))
         );
-        return ret.map(NamedTest::args);
     }
 
     @MethodSource

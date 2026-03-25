@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 import static ninja.javahacker.annotimpler.sql.meta.SqlNamedParameter.*;
 
@@ -48,8 +47,8 @@ public class SqlNamedParameterTest {
     private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
     private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     private static Method find(String name) {
@@ -251,7 +250,7 @@ public class SqlNamedParameterTest {
         return params().map(x -> n(
                 name(x) + " flat = " + shouldBeFlat(x),
                 () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -264,7 +263,7 @@ public class SqlNamedParameterTest {
         return values().map(x -> n(
                 name(x) + " flat = " + shouldBeFlat(x),
                 () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -277,7 +276,7 @@ public class SqlNamedParameterTest {
         return params().map(x -> n(
                 name(x) + " type = " + type(x),
                 () -> Assertions.assertEquals(type(x), x.getType())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -290,7 +289,7 @@ public class SqlNamedParameterTest {
         return values().map(x -> n(
                 name(x) + " type = " + type(x),
                 () -> Assertions.assertEquals(type(x), x.getType())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -303,7 +302,7 @@ public class SqlNamedParameterTest {
         return params().map(x -> n(
                 name(x) + " name = " + paramName(x),
                 () -> Assertions.assertEquals(paramName(x), x.getName())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -316,7 +315,7 @@ public class SqlNamedParameterTest {
         return values().map(x -> n(
                 name(x) + " name = " + paramName(x),
                 () -> Assertions.assertEquals(paramName(x), x.getName())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -329,7 +328,7 @@ public class SqlNamedParameterTest {
         return params().map(x -> n(
                 name(x) + " index = " + index(x),
                 () -> Assertions.assertEquals(index(x), x.getIndex())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -342,7 +341,7 @@ public class SqlNamedParameterTest {
         return values().map(x -> n(
                 name(x) + " index = " + index(x),
                 () -> Assertions.assertEquals(index(x), x.getIndex())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -355,7 +354,7 @@ public class SqlNamedParameterTest {
         return params().map(x -> n(
                 name(x) + " accept null = " + shouldAcceptNull(x),
                 () -> Assertions.assertEquals(shouldAcceptNull(x), x.accept(null))
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -383,7 +382,7 @@ public class SqlNamedParameterTest {
         return params().flatMap(x -> stuff.stream().map(s -> n(
                 name(x) + " accepts " + vn.apply(s) + " = " + shouldAccept(x, s),
                 () -> Assertions.assertEquals(shouldAccept(x, s), x.accept(s))
-        ))).map(NamedTest::args);
+        )));
     }
 
     @MethodSource
@@ -396,7 +395,7 @@ public class SqlNamedParameterTest {
         return values().map(x -> n(
                 name(x) + " value = " + value(x),
                 () -> Assertions.assertEquals(value(x), x.getValue())
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -421,8 +420,8 @@ public class SqlNamedParameterTest {
                 n("Optional<Thread>", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_2), optThread)),
                 n("List<Boolean>", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_3), listBool)),
                 n("String[]", () -> Assertions.assertThrows(ex, () -> SqlNamedParameter.forMethod(BAD_METHOD_4), "" + String[].class)),
-                n("null", () -> ForTests.testNull("m", () -> SqlNamedParameter.forMethod(null), "null"))
-        ).map(NamedTest::args);
+                n("null", () -> ForTests.testNull("m", () -> SqlNamedParameter.forMethod(null)))
+        );
     }
 
     @MethodSource

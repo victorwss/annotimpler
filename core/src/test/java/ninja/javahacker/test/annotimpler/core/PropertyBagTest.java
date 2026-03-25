@@ -1,13 +1,19 @@
 package ninja.javahacker.test.annotimpler.core;
 
 import ninja.javahacker.test.ForTests;
+import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module org.junit.jupiter.api;
+import module org.junit.jupiter.params;
 
 @SuppressWarnings("missing-explicit-ctor")
 public class PropertyBagTest {
+
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
+    }
 
     public static record TestKey1(int x, String a, int b) implements KeyProperty<String> {
         @Override
@@ -30,9 +36,8 @@ public class PropertyBagTest {
         }
     }
 
-    @Test
-    @SuppressWarnings("unchecked")
-    public void testBagAddRemoveGetEqualsToStringHashCode() {
+    @SuppressWarnings({"unchecked", "rawtypes", "ObjectEqualsNull", "AssertEqualsBetweenInconvertibleTypes"})
+    private static Stream<Arguments> testBagAddRemoveGetEqualsToStringHashCode() {
         var ka = new TestKey1(1, "a", 4);
         var kb = new TestKey1(3, "b", 9);
         var kc = new TestKey2("x");
@@ -51,56 +56,68 @@ public class PropertyBagTest {
 
         var props4 = props3a.add(kc, 5).add(kd, 9).add(ke, "qa").add(kf, "qb");
 
-        Assertions.assertAll(
-                () -> Assertions.assertSame(PropertyBag.root(), props1a),
-                () -> Assertions.assertSame(props1a, props1b),
+        return Stream.of(
+                n("a", () -> Assertions.assertSame(PropertyBag.root(), props1a)),
+                n("b", () -> Assertions.assertSame(props1a, props1b)),
 
-                () -> Assertions.assertEquals(props2a, props2b),
-                () -> Assertions.assertEquals(props2a, props2c),
-                () -> Assertions.assertEquals(props2a, props2d),
-                () -> Assertions.assertEquals(props2a.hashCode(), props2b.hashCode()),
-                () -> Assertions.assertEquals(props2a.toString(), props2b.toString()),
+                n("c", () -> Assertions.assertEquals(props2a, props2b)),
+                n("d", () -> Assertions.assertEquals(props2a, props2c)),
+                n("e", () -> Assertions.assertEquals(props2a, props2d)),
+                n("f", () -> Assertions.assertEquals(props2a.hashCode(), props2b.hashCode())),
+                n("g", () -> Assertions.assertEquals(props2a.toString(), props2b.toString())),
 
-                () -> Assertions.assertEquals(props3a, props3b),
-                () -> Assertions.assertEquals(props3a.hashCode(), props3b.hashCode()),
-                () -> Assertions.assertEquals(props3a.toString(), props3b.toString()),
+                n("h", () -> Assertions.assertEquals(props3a, props3b)),
+                n("i", () -> Assertions.assertEquals(props3a.hashCode(), props3b.hashCode())),
+                n("j", () -> Assertions.assertEquals(props3a.toString(), props3b.toString())),
 
-                () -> Assertions.assertEquals("A", props4.get(ka)),
-                () -> Assertions.assertEquals("B", props4.get(kb)),
-                () -> Assertions.assertEquals(5, props4.get(kc)),
-                () -> Assertions.assertEquals(9, props4.get(kd)),
-                () -> Assertions.assertEquals("qa", props4.get(ke)),
-                () -> Assertions.assertEquals("qb", props4.get(kf)),
+                n("k", () -> Assertions.assertEquals("A", props4.get(ka))),
+                n("l", () -> Assertions.assertEquals("B", props4.get(kb))),
+                n("m", () -> Assertions.assertEquals(5, props4.get(kc))),
+                n("n", () -> Assertions.assertEquals(9, props4.get(kd))),
+                n("o", () -> Assertions.assertEquals("qa", props4.get(ke))),
+                n("p", () -> Assertions.assertEquals("qb", props4.get(kf))),
 
-                () -> Assertions.assertFalse(props1a.equals(null)),
-                () -> Assertions.assertNotEquals(props1a, props2a),
-                () -> Assertions.assertNotEquals(props1a, props3a),
-                () -> Assertions.assertNotEquals(props1a, props4),
-                () -> Assertions.assertNotEquals(props2a, props3a),
-                () -> Assertions.assertNotEquals(props2a, props4),
-                () -> Assertions.assertNotEquals(props3a, props4),
+                n("q", () -> Assertions.assertFalse(props1a.equals(null))),
+                n("r", () -> Assertions.assertNotEquals(props1a, props2a)),
+                n("s", () -> Assertions.assertNotEquals(props1a, props3a)),
+                n("t", () -> Assertions.assertNotEquals(props1a, props4)),
+                n("u", () -> Assertions.assertNotEquals(props2a, props3a)),
+                n("v", () -> Assertions.assertNotEquals(props2a, props4)),
+                n("w", () -> Assertions.assertNotEquals(props3a, props4)),
 
-                () -> {
+                n("x", () -> {
                     var ex = Assertions.assertThrows(PropertyBag.PropertyNotFoundException.class, () -> props3b.get(kf));
                     Assertions.assertSame(kf, ex.getProperty());
-                },
-                () -> {
+                }),
+                n("y", () -> {
                     var kk = (KeyProperty) kc;
                     var ex = Assertions.assertThrows(PropertyBag.IllegalPropertyValueException.class, () -> props3b.add(kk, "x"));
                     Assertions.assertSame(kc, ex.getProperty());
-                }
+                })
         );
     }
 
-    @Test
-    public void testNulls() {
-        Assertions.assertAll(
-                () -> ForTests.testNull("key", () -> PropertyBag.root().add(null, "x"), "add-key"),
-                () -> ForTests.testNull("value", () -> PropertyBag.root().add(new TestKey2("x"), null), "add-value"),
-                () -> ForTests.testNull("key", () -> PropertyBag.root().remove(null), "remove-key"),
-                () -> ForTests.testNull("key", () -> PropertyBag.root().get(null), "get-key"),
-                () -> ForTests.testNull("property", () -> new PropertyBag.PropertyNotFoundException(null), "pnfe-ctor"),
-                () -> ForTests.testNull("property", () -> new PropertyBag.IllegalPropertyValueException(null), "ipve-ctor")
+    @MethodSource
+    @ParameterizedTest(name = "testBagAddRemoveGetEqualsToStringHashCode {0}")
+    public void testBagAddRemoveGetEqualsToStringHashCode(String name, Executable exec) throws Throwable {
+        exec.execute();
+    }
+
+    @SuppressWarnings("null")
+    private static Stream<Arguments> testNulls() {
+        return Stream.of(
+                n("add-key", () -> ForTests.testNull("key", () -> PropertyBag.root().add(null, "x"))),
+                n("add-value", () -> ForTests.testNull("value", () -> PropertyBag.root().add(new TestKey2("x"), null))),
+                n("remove-key", () -> ForTests.testNull("key", () -> PropertyBag.root().remove(null))),
+                n("get-key", () -> ForTests.testNull("key", () -> PropertyBag.root().get(null))),
+                n("pnfe-ctor", () -> ForTests.testNull("property", () -> new PropertyBag.PropertyNotFoundException(null))),
+                n("ipve-ctor", () -> ForTests.testNull("property", () -> new PropertyBag.IllegalPropertyValueException(null)))
         );
+    }
+
+    @MethodSource
+    @ParameterizedTest(name = "testNulls {0}")
+    public void testNulls(String name, Executable exec) throws Throwable {
+        exec.execute();
     }
 }

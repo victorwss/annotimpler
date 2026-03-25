@@ -2,7 +2,6 @@ package ninja.javahacker.test.annotimpler.magicfactory;
 
 import java.lang.reflect.Array;
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -37,8 +36,8 @@ public class MagicConverterTest {
         throw new AssertionError();
     }
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     public static enum Color {
@@ -48,75 +47,6 @@ public class MagicConverterTest {
     public static record Wrapper(int value) {}
 
     public static interface Pointless<X> extends List<X> {}
-
-    private static Stream<Arguments> testSimpleValueMapping() throws Exception {
-        return Stream.of(
-                n("basic int", () -> Assertions.assertEquals(42, ConverterFactory.STD.get(Integer.class).from(42).get())),
-                n("basic long", () -> Assertions.assertEquals(42L, ConverterFactory.STD.get(Long.class).from(42L).get())),
-                n("enum from int", () -> Assertions.assertEquals(Color.YELLOW, ConverterFactory.STD.get(Color.class).from(3).get())),
-                n("enum from long", () -> Assertions.assertEquals(Color.BLUE, ConverterFactory.STD.get(Color.class).from(5L).get())),
-                n("enum from BigDecimal", () -> Assertions.assertEquals(
-                        Color.BLACK,
-                        ConverterFactory.STD.get(Color.class).from(BigDecimal.valueOf(7)).get())
-                ),
-                n("simple record", () -> Assertions.assertEquals(
-                        new Wrapper(25),
-                        ConverterFactory.STD.get(Wrapper.class).from(25).get()
-                )),
-                n("simple record converts", () -> Assertions.assertEquals(
-                        new Wrapper(25),
-                        ConverterFactory.STD.get(Wrapper.class).from(25.0).get()
-                ))
-        ).map(NamedTest::args);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testSimpleValueMapping {0}")
-    public void testSimpleValueMapping(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testConvertsMapping() {
-        var ts = List.of(
-                byte.class, Byte.class,
-                short.class, Short.class,
-                int.class, Integer.class,
-                long.class, Long.class,
-                float.class, Float.class,
-                double.class, Double.class,
-                BigInteger.class,
-                BigDecimal.class
-        );
-        var wrapper = Map.of(
-                byte.class, Byte.class,
-                short.class, Short.class,
-                int.class, Integer.class,
-                long.class, Long.class,
-                float.class, Float.class,
-                double.class, Double.class,
-                char.class, Character.class
-        );
-        var vals = List.of((byte) 52, (short) 52, 52, 52L, 52.0, 52.0f, BigDecimal.valueOf(52L));
-        List<NamedTest> execs = new ArrayList<>(vals.size() * ts.size());
-        for (var t : ts) {
-            var w = t.isPrimitive() ? wrapper.get(t) : t;
-            for (var v : vals) {
-                Executable x = () -> {
-                    var c = ConverterFactory.STD.get(t).from(v).get();
-                    Assertions.assertEquals(w, c.getClass());
-                    Assertions.assertEquals(52, c.intValue());
-                };
-                execs.add(n("forValue((" + v.getClass().getSimpleName() + ") " + v + ", " + t.getSimpleName() + " )", x));
-            }
-        }
-        return execs.stream().map(NamedTest::args);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testConvertsMapping {0}")
-    public void testConvertsMapping(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
 
     public static record Recursive(Recursive r) {}
 
@@ -195,7 +125,7 @@ public class MagicConverterTest {
                         Optional.of(Color.GREEN),
                         ConverterFactory.STD.get(OPTIONAL_COLOR).from(BigDecimal.valueOf(Color.GREEN.ordinal())).get()
                 ))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -236,7 +166,7 @@ public class MagicConverterTest {
             );
 
             public static Arguments args(Type t) {
-                return n(t.getTypeName(), () -> testNoConverter(t)).args();
+                return n(t.getTypeName(), () -> testNoConverter(t));
             }
         }
 
@@ -275,8 +205,7 @@ public class MagicConverterTest {
         .map(e -> n(
                 "zero(" + e.getKey().getTypeName() + ")",
                 () -> Assertions.assertEquals(e.getValue(), ConverterFactory.STD.get(e.getKey()).fromNull().get(), e.getKey().getTypeName())
-        ))
-        .map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -302,7 +231,7 @@ public class MagicConverterTest {
                         e.getSimpleName() + "from(null)",
                         () -> Assertions.assertTrue(ConverterFactory.STD.get(e).from((Object) null).isEmpty())
                 )
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -329,7 +258,7 @@ public class MagicConverterTest {
                     Assertions.assertEquals(e, s.getClass());
                     Assertions.assertEquals(0, Array.getLength(s));
                 }
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -366,7 +295,7 @@ public class MagicConverterTest {
                     Assertions.assertEquals(1, Array.getLength(s));
                     Assertions.assertEquals(Array.get(e, 0), Array.get(s, 0));
                 }
-        )).map(NamedTest::args);
+        ));
     }
 
     @MethodSource
@@ -519,7 +448,7 @@ public class MagicConverterTest {
                 }
             });
             return Stream.of(y);
-        }).map(NamedTest::args);
+        });
     }
 
     @MethodSource
@@ -540,7 +469,7 @@ public class MagicConverterTest {
         }
 
         record NamedCall2(String name, Consumer<Converter<?>> action) {
-            public NamedTest apply(Type c) {
+            public Arguments apply(Type c) {
                 var cn = !(c instanceof Class<?> k) ? c.getTypeName()
                         : k.isArray() ? k.getComponentType().getSimpleName() + "[]"
                         : java.util.Date.class.isAssignableFrom(k) ? k.getName()
@@ -583,7 +512,7 @@ public class MagicConverterTest {
                 new NamedCall("Array", c -> c.from((java.sql.Array) null)),
                 new NamedCall("Ref", c -> c.from((Ref) null))
         ).map(NamedCall::asFunc).toList();
-        return cls.stream().flatMap(k -> mtds.stream().map(m -> m.apply(k))).map(NamedTest::args);
+        return cls.stream().flatMap(k -> mtds.stream().map(m -> m.apply(k)));
     }
 
     @MethodSource

@@ -44,6 +44,61 @@ public final class Methods {
         return Object.class.getMethod(name, params);
     }
 
+    public static boolean isStatic(@NonNull Method m) {
+        return Modifier.isStatic(m.getModifiers());
+    }
+
+    public static boolean isVirtual(@NonNull Method m) {
+        return !Modifier.isStatic(m.getModifiers());
+    }
+
+    public static boolean isPublic(@NonNull Method m) {
+        return Modifier.isPublic(m.getModifiers());
+    }
+
+    public static boolean isPrivate(@NonNull Method m) {
+        return Modifier.isPrivate(m.getModifiers());
+    }
+
+    public static boolean isProtected(@NonNull Method m) {
+        return Modifier.isProtected(m.getModifiers());
+    }
+
+    public static boolean isPackageProtected(@NonNull Method m) {
+        return !isPublic(m) && !isPrivate(m) && !isProtected(m);
+    }
+
+    public static boolean isAbstract(@NonNull Method m) {
+        return Modifier.isAbstract(m.getModifiers());
+    }
+
+    public static boolean isConcrete(@NonNull Method m) {
+        return !Modifier.isAbstract(m.getModifiers());
+    }
+
+    public static boolean isFinal(@NonNull Method m) {
+        return Modifier.isFinal(m.getModifiers())
+                || Modifier.isPrivate(m.getModifiers())
+                || Modifier.isStatic(m.getModifiers())
+                || Modifier.isFinal(m.getDeclaringClass().getModifiers());
+    }
+
+    public static boolean isOverridable(@NonNull Method m) {
+        return !isFinal(m);
+    }
+
+    public static boolean isDefault(@NonNull Method m) {
+        return m.isDefault();
+    }
+
+    public static boolean isSynthetic(@NonNull Method m) {
+        return m.isSynthetic();
+    }
+
+    public static boolean isVarArgs(@NonNull Method m) {
+        return m.isVarArgs();
+    }
+
     public static boolean isObjectIntrinsic(@NonNull Method m) {
         return INTRINSICS.contains(m);
     }

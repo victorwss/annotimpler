@@ -15,38 +15,58 @@ public final class AnnotationsImplementor {
 
     @NonNull
     private static String name(@NonNull Method m) {
+        checkNotNull(m);
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
-    @NonNull
+    @Nullable
     private static <E> CallContext<E> findImplementation(
             @NonNull Class<E> iface,
             @NonNull Method m,
             @NonNull PropertyBag props)
             throws BadImplementationException
     {
-        if (iface == null) throw new AssertionError();
-        if (m == null) throw new AssertionError();
-        if (props == null) throw new AssertionError();
-        Asserts.asserts(!Modifier.isStatic(m.getModifiers()));
-        Asserts.asserts(Set.of(iface.getMethods()).contains(m));
+        checkNotNull(iface);
+        checkNotNull(m);
+        checkNotNull(props);
+
+        assertTrue(Stream.of(iface.getMethods(), iface.getDeclaredMethods()).flatMap(Stream::of).toList().contains(m));
 
         var impls = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(ImplementedBy.class)).toList();
         if (impls.size() > 1) {
             throw new BadImplementationException("Too many implementations by annotations on: " + name(m), m.getDeclaringClass());
         }
         if (impls.isEmpty()) {
+            if (Methods.isPrivate(m) || Methods.isStatic(m) || Methods.isEquals(m) || Methods.isHashCode(m) || Methods.isToString(m)) {
+                return null;
+            }
             if (!m.isDefault()) {
                 var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
                 throw new BadImplementationException(msg, m.getDeclaringClass());
             }
             return (instance, args) -> {
-                Asserts.asserts(instance != null);
-                Asserts.asserts(args != null);
+                checkNotNull(instance);
+                checkNotNull(args);
                 return InvocationHandler.invokeDefault(instance, m, args);
             };
         }
-        var implClass = impls.getFirst().annotationType().getAnnotation(ImplementedBy.class).value();
+        var implAnnon = impls.getFirst().annotationType();
+        if (Methods.isStatic(m)) {
+            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on static methods.", m.getDeclaringClass());
+        }
+        if (Methods.isPrivate(m)) {
+            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on private methods.", m.getDeclaringClass());
+        }
+        if (Methods.isEquals(m)) {
+            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on equals(Object) method.", m.getDeclaringClass());
+        }
+        if (Methods.isHashCode(m)) {
+            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on hashCode() method.", m.getDeclaringClass());
+        }
+        if (Methods.isToString(m)) {
+            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on toString() method.", m.getDeclaringClass());
+        }
+        var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
         try {
             var c = MagicFactory.of(implClass).create().<E>prepare(m, props);
             if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), m.getDeclaringClass());
@@ -65,29 +85,40 @@ public final class AnnotationsImplementor {
     public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws BadImplementationException {
         if (!iface.isInterface()) throw new UnsupportedOperationException();
 
-        @NonNull
         var props2 = props == null ? PropertyBag.root() : props;
 
-        var ifaceMeths = Stream.of(iface.getMethods()).filter(m -> !Modifier.isStatic(m.getModifiers())).toList();
+        var ifacePublicMeths = Stream.of(iface.getMethods());
+        var ifaceDeclaredMeths = Stream.of(iface.getDeclaredMethods());
+        var ifaceMeths = Stream.concat(ifacePublicMeths, ifaceDeclaredMeths).distinct().toList();
 
         Map<Method, CallContext<E>> meths = new HashMap<>(ifaceMeths.size() + 3);
         for (var m : ifaceMeths) {
             var impl = findImplementation(iface, m, props2);
-            meths.put(m, impl);
+            if (impl != null) meths.put(m, impl);
         }
         meths.put(Methods.EQUALS, DefaultImplementation.forEquals());
         meths.put(Methods.HASH_CODE, DefaultImplementation.forHashCode());
         meths.put(Methods.TO_STRING, DefaultImplementation.forToString(iface));
 
         InvocationHandler ih = (p, m, a) -> {
-            Asserts.asserts(p != null);
-            Asserts.asserts(m != null);
+            checkNotNull(p);
+            checkNotNull(m);
             var impl = meths.get(m);
-            if (impl == null) throw new AssertionError();
+            checkNotNull(impl);
             return impl.execute(iface.cast(p), a == null ? new Object[0] : a);
         };
 
         var obj = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { iface }, ih);
         return iface.cast(obj);
+    }
+
+    @Generated
+    private static void assertTrue(boolean b) {
+        if (!b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

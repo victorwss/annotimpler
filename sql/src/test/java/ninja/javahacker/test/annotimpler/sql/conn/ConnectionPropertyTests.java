@@ -2,7 +2,6 @@ package ninja.javahacker.test.annotimpler.sql.conn;
 
 import lombok.NonNull;
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -12,8 +11,8 @@ import module org.junit.jupiter.params;
 
 public class ConnectionPropertyTests {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     private static Object get(Object conn, String name) throws Exception {
@@ -173,7 +172,7 @@ public class ConnectionPropertyTests {
 
     private static void addTestsConnector(
             @NonNull String id,
-            @NonNull List<NamedTest> tests,
+            @NonNull List<Arguments> tests,
             @NonNull Map<String, String> props,
             @NonNull Connector conn)
     {
@@ -335,7 +334,7 @@ public class ConnectionPropertyTests {
     }
 
     private static Stream<Arguments> addTestsConnectors(String db, TestSet... sets) {
-        var tests = new ArrayList<NamedTest>(50);
+        var tests = new ArrayList<Arguments>(50);
 
         var sa = sets[0];
         var a = sa.conns().get(0);
@@ -367,7 +366,7 @@ public class ConnectionPropertyTests {
             }
         }
 
-        return tests.stream().map(NamedTest::args);
+        return tests.stream();
     }
 
     private static Stream<Arguments> testMariaDbProps() {

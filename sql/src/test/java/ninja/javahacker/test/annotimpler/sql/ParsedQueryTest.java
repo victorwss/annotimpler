@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -11,8 +10,8 @@ import module org.junit.jupiter.params;
 
 public class ParsedQueryTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     @Test
@@ -213,7 +212,7 @@ public class ParsedQueryTest {
                 n("not equals null", () -> Assertions.assertFalse(pq1.equals(null))),
                 n("not equals unrelated", () -> Assertions.assertFalse(pq1.equals("x"))),
                 n("equals reflexive", () -> Assertions.assertTrue(pq1.equals(pq1)))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -236,7 +235,7 @@ public class ParsedQueryTest {
                     Assertions.assertThrows(UnsupportedOperationException.class, () -> pq1.params().get("a").add(72));
                     Assertions.assertEquals(pq1, pq2);
                 })
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -252,7 +251,7 @@ public class ParsedQueryTest {
                 n("original-new", () -> ForTests.testNull("original", () -> new ParsedQuery(null, "x", Map.of(), 0, false, false, false))),
                 n("original-parsed", () -> ForTests.testNull("parsed", () -> new ParsedQuery("x", null, Map.of(), 0, false, false, false))),
                 n("original-params", () -> ForTests.testNull("params", () -> new ParsedQuery("x", "x", null, 0, false, false, false)))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource

@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.stmt;
 
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -27,7 +26,7 @@ public class SetNullParameterSatatementTest {
         public void doIt(ResultSet rs) throws Exception;
     }
 
-    public static NamedTest makeStuff(
+    public static Arguments makeStuff(
             Map<String, List<Integer>> idx,
             List<String> prepare,
             String insert,
@@ -35,7 +34,7 @@ public class SetNullParameterSatatementTest {
             NamedStatement test1,
             ResultContext test2)
     {
-        return new NamedTest(test1.name, () -> {
+        return Arguments.of(test1.name, (Executable) () -> {
             try (var con = H2Connector.std().withMemory(true).get()) {
                 for (var sqlp : prepare) {
                     try (var ps = con.prepareStatement(sqlp)) {
@@ -63,7 +62,7 @@ public class SetNullParameterSatatementTest {
         var str = String.class.getName();
         var time = java.sql.Timestamp.class.getName();
         var gc = new GregorianCalendar();
-        var a = Stream.<NamedStatement>of(
+        var a = Stream.of(
                 n("STR-NULL-VARCHAR"       , ps -> ps.setNull         ("bar", Types.VARCHAR                          )),
                 n("INT-NULL-VARCHAR"       , ps -> ps.setNull         (1    , Types.VARCHAR                          )),
                 n("STR-NULL-VARCHAR-NAME"  , ps -> ps.setNull         ("bar", Types.VARCHAR, str                     )),
@@ -121,7 +120,7 @@ public class SetNullParameterSatatementTest {
                 n("STR-OBJ-CLOB-H2-Z"      , ps -> ps.setObject       ("bar",               null, H2Type.CLOB, 0     )),
                 n("INT-OBJ-CLOB-H2-Z"      , ps -> ps.setObject       (1    ,               null, H2Type.CLOB, 0     ))
         );
-        var b = Stream.<NamedStatement>of(
+        var b = Stream.of(
                 n("STR-NULL-TIMESTAMP"     , ps -> ps.setNull         ("bar", Types.TIMESTAMP                        )),
                 n("INT-NULL-TIMESTAMP"     , ps -> ps.setNull         (1    , Types.TIMESTAMP                        )),
                 n("STR-NULL-TIMESTAMP-NAME", ps -> ps.setNull         ("bar", Types.TIMESTAMP   , time               )),
@@ -184,7 +183,7 @@ public class SetNullParameterSatatementTest {
         };
         var a2 = a.map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1));
         var b2 = b.map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2));
-        return Stream.concat(a2, b2).map(NamedTest::args);
+        return Stream.concat(a2, b2);
     }
 
     @MethodSource

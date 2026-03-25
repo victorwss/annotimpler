@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -10,8 +9,8 @@ import module org.junit.jupiter.params;
 
 public class ConnectionStartConfigTest {
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     private static record Config(Supplier<? extends Connector> conn, int port, String key) {
@@ -35,7 +34,7 @@ public class ConnectionStartConfigTest {
     }
 
     private static Arguments testSame(Config x) {
-        return n(x.key(), () -> Assertions.assertSame(x.conn(), x.conn())).args();
+        return n(x.key(), () -> Assertions.assertSame(x.conn(), x.conn()));
     }
 
     private static Stream<Arguments> stdFixedTest() {
@@ -53,7 +52,7 @@ public class ConnectionStartConfigTest {
             var conn = x.conn().get();
             var port = (Integer) conn.getClass().getMethod("port").invoke(conn);
             Assertions.assertEquals(x.port(), port);
-        }).args();
+        });
     }
 
     private static Stream<Arguments> stdPortTest() {
@@ -70,7 +69,7 @@ public class ConnectionStartConfigTest {
         return n(x.key(), () -> {
             var key = x.conn().get().getClass().getAnnotation(ConnectorJsonKey.class).value();
             Assertions.assertEquals(x.key(), key);
-        }).args();
+        });
     }
 
     private static Stream<Arguments> stdStringTest() {

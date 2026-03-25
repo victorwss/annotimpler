@@ -1,7 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.conn;
 
 import ninja.javahacker.test.ForTests;
-import ninja.javahacker.test.NamedTest;
 import org.junit.jupiter.api.function.Executable;
 
 import module com.fasterxml.jackson.core;
@@ -26,8 +25,8 @@ public class ConnJsonTest {
                 "database": "test"
             }""";
 
-    private static NamedTest n(String name, Executable ctx) {
-        return new NamedTest(name, ctx);
+    private static Arguments n(String name, Executable ctx) {
+        return Arguments.of(name, ctx);
     }
 
     public static ObjectMapper mapper() {
@@ -107,7 +106,7 @@ public class ConnJsonTest {
                 n("same password as delegate 2", () -> Assertions.assertEquals(delegate3.optPassword(), jsc4.optPassword())),
                 n("same auth as delegate 2"    , () -> Assertions.assertEquals(delegate3.optAuth(), jsc4.optAuth())),
                 n("same urlconn as delegate 2" , () -> Assertions.assertEquals(delegate3.asUrl(), jsc4.asUrl()))
-        ).map(NamedTest::args);
+        );
     }
 
     @MethodSource
@@ -194,7 +193,7 @@ public class ConnJsonTest {
     @Test
     @SuppressWarnings("null")
     public void testReadBadJsonNull() throws JsonProcessingException {
-        ForTests.testNull("json", () -> JsonConnector.read(null), "json");
+        ForTests.testNull("json", () -> JsonConnector.read(null));
     }
 
     @Test
@@ -381,10 +380,10 @@ public class ConnJsonTest {
     private static Stream<Arguments> testNulls() throws JsonProcessingException {
         return Stream.of(
                 n("register", () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null))),
-                n("find",     () -> ForTests.testNull("key", () -> JsonConnector.find(null), "key")),
-                n("UCE",      () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null), "message")),
-                n("ctor",     () -> ForTests.testNull("delegate", () -> new JsonConnector(null), "delegate"))
-        ).map(NamedTest::args);
+                n("find",     () -> ForTests.testNull("key", () -> JsonConnector.find(null))),
+                n("UCE",      () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null))),
+                n("ctor",     () -> ForTests.testNull("delegate", () -> new JsonConnector(null)))
+        );
     }
 
     @MethodSource
