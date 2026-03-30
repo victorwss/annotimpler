@@ -7,7 +7,6 @@ import static ninja.javahacker.annotimpler.sql.meta.SqlNamedParameter.*;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings({"unused", "unchecked"})
 public class SqlNamedParameterTest {
@@ -47,8 +46,8 @@ public class SqlNamedParameterTest {
     private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
     private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     private static Method find(String name) {
@@ -246,124 +245,80 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    private static Stream<Arguments> testFlat() {
+    @TestFactory
+    public Stream<DynamicTest> testFlat() {
         return params().map(x -> n(
                 name(x) + " flat = " + shouldBeFlat(x),
                 () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testFlat {0}")
-    public void testFlat(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testFlatValue() {
+    @TestFactory
+    public Stream<DynamicTest> testFlatValue() {
         return values().map(x -> n(
                 name(x) + " flat = " + shouldBeFlat(x),
                 () -> Assertions.assertEquals(shouldBeFlat(x), x.isFlat())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testFlatValue {0}")
-    public void testFlatValue(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testType() {
+    @TestFactory
+    public Stream<DynamicTest> testType() {
         return params().map(x -> n(
                 name(x) + " type = " + type(x),
                 () -> Assertions.assertEquals(type(x), x.getType())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testType {0}")
-    public void testType(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testValueType() {
+    @TestFactory
+    public Stream<DynamicTest> testValueType() {
         return values().map(x -> n(
                 name(x) + " type = " + type(x),
                 () -> Assertions.assertEquals(type(x), x.getType())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testType {0}")
-    public void testValueType(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testName() {
+    @TestFactory
+    public Stream<DynamicTest> testName() {
         return params().map(x -> n(
                 name(x) + " name = " + paramName(x),
                 () -> Assertions.assertEquals(paramName(x), x.getName())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testName {0}")
-    public void testName(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testNameValue() {
+    @TestFactory
+    public Stream<DynamicTest> testNameValue() {
         return values().map(x -> n(
                 name(x) + " name = " + paramName(x),
                 () -> Assertions.assertEquals(paramName(x), x.getName())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testNameValue {0}")
-    public void testNameValue(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testIndex() {
+    @TestFactory
+    public Stream<DynamicTest> testIndex() {
         return params().map(x -> n(
                 name(x) + " index = " + index(x),
                 () -> Assertions.assertEquals(index(x), x.getIndex())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testIndex {0}")
-    public void testIndex(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testIndexValue() {
+    @TestFactory
+    public Stream<DynamicTest> testIndexValue() {
         return values().map(x -> n(
                 name(x) + " index = " + index(x),
                 () -> Assertions.assertEquals(index(x), x.getIndex())
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testIndexValue {0}")
-    public void testIndexValue(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testAcceptNull() {
+    @TestFactory
+    public Stream<DynamicTest> testAcceptNull() {
         return params().map(x -> n(
                 name(x) + " accept null = " + shouldAcceptNull(x),
                 () -> Assertions.assertEquals(shouldAcceptNull(x), x.accept(null))
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testAcceptNull {0}")
-    public void testAcceptNull(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testAccepts() {
+    @TestFactory
+    public Stream<DynamicTest> testAccepts() {
         class Foo {
             @Override
             public String toString() {
@@ -385,23 +340,12 @@ public class SqlNamedParameterTest {
         )));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testAccepts {0}")
-    public void testAccepts(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testValue() {
+    @TestFactory
+    public Stream<DynamicTest> testValue() {
         return values().map(x -> n(
                 name(x) + " value = " + value(x),
                 () -> Assertions.assertEquals(value(x), x.getValue())
         ));
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testValue {0}")
-    public void testValue(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     /*@Test
@@ -410,8 +354,9 @@ public class SqlNamedParameterTest {
         //var n = ParameterSet.parameters(ParsedQuery.parse(":x and :y"), m).associar("a", 42);
     }*/
 
+    @TestFactory
     @SuppressWarnings({"unchecked", "null"})
-    private static Stream<Arguments> testBadSqlNamedParameter() throws Exception {
+    public Stream<DynamicTest> testBadSqlNamedParameter() throws Exception {
         var ex = UnsupportedOperationException.class;
         var optThread = "" + BAD_METHOD_2.getParameters()[0].getParameterizedType();
         var listBool = "" + BAD_METHOD_3.getParameters()[1].getParameterizedType();
@@ -423,17 +368,6 @@ public class SqlNamedParameterTest {
                 n("null", () -> ForTests.testNull("m", () -> SqlNamedParameter.forMethod(null)))
         );
     }
-
-    @MethodSource
-    @ParameterizedTest(name = "testBadSqlNamedParameter {0}")
-    public void testBadSqlNamedParameter(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    /*@Test
-    @SuppressWarnings("unchecked")
-    public void testHandle() throws Exception {
-    }*/
 
     @Test
     public void testBadValue() throws Exception {

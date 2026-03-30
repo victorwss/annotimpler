@@ -4,3 +4,4 @@
 /sql/build
 .gradle
 .maven-repo
+/convert/build

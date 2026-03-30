@@ -7,12 +7,11 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class ConnectionPropertyTests {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     private static Object get(Object conn, String name) throws Exception {
@@ -172,7 +171,7 @@ public class ConnectionPropertyTests {
 
     private static void addTestsConnector(
             @NonNull String id,
-            @NonNull List<Arguments> tests,
+            @NonNull List<DynamicTest> tests,
             @NonNull Map<String, String> props,
             @NonNull Connector conn)
     {
@@ -333,8 +332,8 @@ public class ConnectionPropertyTests {
         return new TestSet(props, List.of(conns));
     }
 
-    private static Stream<Arguments> addTestsConnectors(String db, TestSet... sets) {
-        var tests = new ArrayList<Arguments>(50);
+    private static Stream<DynamicTest> addTestsConnectors(String db, TestSet... sets) {
+        var tests = new ArrayList<DynamicTest>(50);
 
         var sa = sets[0];
         var a = sa.conns().get(0);
@@ -369,7 +368,8 @@ public class ConnectionPropertyTests {
         return tests.stream();
     }
 
-    private static Stream<Arguments> testMariaDbProps() {
+    @TestFactory
+    public Stream<DynamicTest> testMariaDbProps() {
         var url1 = "jdbc:mariadb://localhost:3306/test";
         Supplier<Connector> obj1 = () -> new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var map1 = Map.of("host", "localhost", "port", "3306", "user", "admin", "password", "secret", "database", "test", "url", url1);
@@ -384,7 +384,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("MariaDB", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testMySqlProps() {
+    @TestFactory
+    public Stream<DynamicTest> testMySqlProps() {
         var url1 = "jdbc:mysql://localhost:3306/test";
         Supplier<Connector> obj1 = () -> new MySqlConnector("localhost", 3306, "admin", "secret", "test");
         var map1 = Map.of("host", "localhost", "port", "3306", "user", "admin", "password", "secret", "database", "test", "url", url1);
@@ -400,7 +401,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("MySQL", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testSqlServerProps() {
+    @TestFactory
+    public Stream<DynamicTest> testSqlServerProps() {
         var url1 = "jdbc:hyperion:sqlserver://localhost:1433;DatabaseName=test";
         Supplier<Connector> obj1 = () -> new SqlServerConnector("localhost", 1433, "admin", "secret", "test");
         var map1 = Map.of("host", "localhost", "port", "1433", "user", "admin", "password", "secret", "database", "test", "url", url1);
@@ -416,7 +418,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("SQL Server", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testOracleProps() {
+    @TestFactory
+    public Stream<DynamicTest> testOracleProps() {
         var url1 = "jdbc:oracle:thin:@localhost:1521:test";
         Supplier<Connector> obj1 = () -> new OracleConnector("localhost", 1521, "admin", "secret", "test", false);
         var map1 = Map.of(
@@ -438,7 +441,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("Oracle", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testPostgreSqlProps() {
+    @TestFactory
+    public Stream<DynamicTest> testPostgreSqlProps() {
         var url1 = "jdbc:postgresql://localhost:5432/test";
         Supplier<Connector> obj1 = () -> new PostgreSqlConnector("localhost", 5432, "admin", "secret", "test", false);
         var map1 = Map.of(
@@ -460,7 +464,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("PostgreSQL", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testDb2Props() {
+    @TestFactory
+    public Stream<DynamicTest> testDb2Props() {
         var url1 = "jdbc:db2://localhost:50000/test";
         Supplier<Connector> obj1 = () -> new Db2Connector("localhost", 50000, "admin", "secret", "test");
         var map1 = Map.of(
@@ -482,7 +487,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("DB2", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testFirebirdProps() {
+    @TestFactory
+    public Stream<DynamicTest> testFirebirdProps() {
         var url1 = "jdbc:firebird://localhost:3050/test";
         Supplier<Connector> obj1 = () -> new FirebirdConnector("localhost", 3050, "admin", "secret", "test", "");
         var map1 = Map.of(
@@ -507,7 +513,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("Firebird", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testSqliteProps() {
+    @TestFactory
+    public Stream<DynamicTest> testSqliteProps() {
         var url1 = "jdbc:sqlite:test.db";
         Supplier<Connector> obj1 = () -> new SqliteConnector("test.db");
         var map1 = Map.of("filename", "test.db", "url", url1);
@@ -523,7 +530,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("Sqlite", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testAccessProps() {
+    @TestFactory
+    public Stream<DynamicTest> testAccessProps() {
         var url1 = "jdbc:ucanaccess:test.mdb";
         Supplier<Connector> obj1 = () -> new AccessConnector("test.mdb");
         var map1 = Map.of("filename", "test.mdb", "url", url1);
@@ -539,7 +547,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("Access", of(map1, obj1, obj1), of(map2, obj2), of(maps, std));
     }
 
-    private static Stream<Arguments> testHsqldbProps() {
+    @TestFactory
+    public Stream<DynamicTest> testHsqldbProps() {
         var url1 = "jdbc:hsqldb:file://test.db";
         Supplier<Connector> obj1 = () -> new HsqldbConnector("admin", "secret", "test.db", false);
         var map1 = Map.of("user", "admin", "password", "secret", "filename", "test.db", "url", url1);
@@ -563,7 +572,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("HSQLDB", of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(maps, std));
     }
 
-    private static Stream<Arguments> testH2Props() {
+    @TestFactory
+    public Stream<DynamicTest> testH2Props() {
         var url1 = "jdbc:h2:~/test.db";
         Supplier<Connector> obj1 = () -> new H2Connector("admin", "secret", "test.db", false);
         var map1 = Map.of("user", "admin", "password", "secret", "filename", "test.db", "url", url1);
@@ -587,7 +597,8 @@ public class ConnectionPropertyTests {
         return addTestsConnectors("H2", of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(maps, std));
     }
 
-    private static Stream<Arguments> testBareUrl() {
+    @TestFactory
+    public Stream<DynamicTest> testBareUrl() {
         var url1 = "jdbc:test:blabla";
         Supplier<Connector> obj1a = () -> new UrlConnector(url1);
         Supplier<Connector> obj1b = () -> new UrlConnector(url1, Optional.empty());
@@ -602,15 +613,5 @@ public class ConnectionPropertyTests {
         var maps = Map.of("url", "");
 
         return addTestsConnectors("URL", of(map1, obj1a, obj1b), of(map2, obj2a, obj2b), of(maps, std));
-    }
-
-    @MethodSource({
-        "testMariaDbProps", "testMySqlProps",
-        "testSqlServerProps", "testOracleProps", "testPostgreSqlProps", "testDb2Props", "testFirebirdProps",
-        "testSqliteProps", "testAccessProps", "testHsqldbProps", "testH2Props", "testBareUrl"
-    })
-    @ParameterizedTest(name = "{0}")
-    public void propertyTest(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

@@ -342,17 +342,32 @@ project(":magicfactory") {
     }
 
     dependencies {
-        // Jackson.
-        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
-        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
     }
 
     compileJava {
         dependsOn(":magicfactory:delombok")
+    }
+}
+
+project(":convert") {
+    def moduleName = "ninja.javahacker.annotimpler.convert"
+    description = "Annotimpler Converter"
+
+    jar {
+        archiveBaseName = "annotimpler.convert"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":magicfactory"))
+    }
+
+    compileJava {
+        dependsOn(":convert:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
     }
 }
 
@@ -367,14 +382,6 @@ project(":core") {
 
     dependencies {
         api(project(":magicfactory"))
-
-        // Jackson.
-        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
-        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
     }
 
     compileJava {
@@ -397,6 +404,7 @@ project(":sql") {
 
     dependencies {
         api(project(":magicfactory"))
+        api(project(":convert"))
         api(project(":core"))
 
         // Jackson.
@@ -424,6 +432,7 @@ project(":sql") {
 
     delombok {
         dependsOn(":magicfactory:jar")
+        dependsOn(":convert:jar")
         dependsOn(":core:jar")
     }
 }

@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -32,7 +33,7 @@ public final class NameDictionary {
         private final Map<String, Class<?>> map2;
 
         private ClassDictionary(@NonNull Class<T> k) {
-            if (k == null) throw new AssertionError();
+            checkNotNull(k);
             this.klass = k;
             this.map1 = new HashMap<>(20);
             this.map2 = new HashMap<>(20);
@@ -61,25 +62,25 @@ public final class NameDictionary {
         }
 
         private void add(@NonNull Type[] ts) {
-            if (ts == null) throw new AssertionError();
+            checkNotNull(ts);
             add(new HashSet<>(10), ts);
         }
 
         private void add(@NonNull Type t) {
-            if (t == null) throw new AssertionError();
+            checkNotNull(t);
             add(new HashSet<>(10), t);
         }
 
         private void add(@NonNull Set<Type> partial, @NonNull Type[] ts) {
-            if (partial == null) throw new AssertionError();
-            if (ts == null) throw new AssertionError();
+            checkNotNull(partial);
+            checkNotNull(ts);
             for (var t : ts) {
                 add(partial, t);
             }
         }
 
         private void add(@NonNull Set<Type> partial, @Nullable Type t) {
-            if (partial == null) throw new AssertionError();
+            checkNotNull(partial);
             if (t == null || partial.contains(t)) return;
             partial.add(t);
             try {
@@ -98,7 +99,7 @@ public final class NameDictionary {
                         add(partial, w.getLowerBounds());
                         add(partial, w.getUpperBounds());
                     }
-                    default -> throw new UnsupportedOperationException();
+                    default -> throw new AssertionError();
                 }
             } finally {
                 partial.remove(t);
@@ -106,8 +107,8 @@ public final class NameDictionary {
         }
 
         private void addClass(@NonNull Set<Type> partial, @NonNull Class<?> klass) {
-            if (partial == null) throw new AssertionError();
-            if (klass == null) throw new AssertionError();
+            checkNotNull(partial);
+            checkNotNull(klass);
             if (klass.isArray()) {
                 add(partial, klass.getComponentType());
                 return;
@@ -127,37 +128,9 @@ public final class NameDictionary {
             }
         }
 
-        @NonNull
-        public Class<T> getKlass() {
-            return klass;
-        }
-
-        @Override
-        public int hashCode() {
-            return klass.hashCode();
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return klass.toString();
-        }
-
-        @Override
-        public boolean equals(@Nullable Object other) {
-            return other instanceof ClassDictionary<?> n && n.klass == this.klass;
-        }
-
-        @NonNull
-        public Optional<String> getNameFor(@NonNull Class<?> otherClass) {
-            if (otherClass == null) throw new AssertionError();
-            var name = map1.get(otherClass);
-            return Optional.ofNullable(name);
-        }
-
         private void formatParameterTypes(@NonNull Executable method, @NonNull StringBuilder sb) {
-            if (method == null) throw new AssertionError();
-            if (sb == null) throw new AssertionError();
+            checkNotNull(method);
+            checkNotNull(sb);
             var paramTypes = method.getGenericParameterTypes();
             for (var i = 0; i < paramTypes.length; i++) {
                 if (i > 0) sb.append(", ");
@@ -166,8 +139,8 @@ public final class NameDictionary {
         }
 
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
-            if (type == null) throw new AssertionError();
-            if (sb == null) throw new AssertionError();
+            checkNotNull(type);
+            checkNotNull(sb);
             switch (type) {
                 case Class<?> clazz -> {
                     if (clazz.isArray()) {
@@ -175,7 +148,7 @@ public final class NameDictionary {
                         sb.append("[]");
                     } else {
                         var c = map1.get(clazz);
-                        if (c == null) throw new AssertionError(klass + "---" + type);
+                        checkNotNull(c, klass + "---" + type);
                         sb.append(c);
                     }
                 }
@@ -199,19 +172,15 @@ public final class NameDictionary {
 
                     var upperBounds = wildcardType.getUpperBounds();
                     var lowerBounds = wildcardType.getLowerBounds();
+                    assertTrue(upperBounds.length == 1);
+                    assertTrue(lowerBounds.length <= 1);
 
-                    if (upperBounds.length > 0 && upperBounds[0] != Object.class) {
+                    if (upperBounds[0] != Object.class) {
                         sb.append(" extends ");
-                        for (var i = 0; i < upperBounds.length; i++) {
-                            if (i > 0) sb.append(" & ");
-                            formatType(upperBounds[i], sb);
-                        }
+                        formatType(upperBounds[0], sb);
                     } else if (lowerBounds.length > 0) {
                         sb.append(" super ");
-                        for (var i = 0; i < lowerBounds.length; i++) {
-                            if (i > 0) sb.append(" & ");
-                            formatType(lowerBounds[i], sb);
-                        }
+                        formatType(lowerBounds[0], sb);
                     }
                 }
                 default -> throw new AssertionError();
@@ -219,9 +188,9 @@ public final class NameDictionary {
         }
 
         @NonNull
-        public String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
-            if (what == null) throw new AssertionError();
-            if (what.getDeclaringClass() != klass) throw new IllegalArgumentException();
+        private String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
+            checkNotNull(what);
+            assertTrue(what.getDeclaringClass() == klass);
             var sb = new StringBuilder(256);
 
             if (withClassName) {
@@ -237,10 +206,12 @@ public final class NameDictionary {
                     if (i > 0) sb.append(", ");
                     sb.append(typeParams[i].getName());
                     var bounds = typeParams[i].getBounds();
-                    if (bounds.length > 0 && !(bounds.length == 1 && bounds[0] == Object.class)) {
+                    assertTrue(bounds.length > 0);
+                    var s = (bounds[0] == Object.class) ? 1 : 0;
+                    if (bounds.length - s > 0) {
                         sb.append(" extends ");
-                        for (var j = 0; j < bounds.length; j++) {
-                            if (j > 0) sb.append(" & ");
+                        for (var j = s; j < bounds.length; j++) {
+                            if (j > s) sb.append(" & ");
                             formatType(bounds[j], sb);
                         }
                     }
@@ -270,8 +241,9 @@ public final class NameDictionary {
         }
 
         @NonNull
-        public String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
-            if (field.getDeclaringClass() != klass) throw new IllegalArgumentException();
+        private String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
+            checkNotNull(field);
+            assertTrue(field.getDeclaringClass() == klass);
             var sb = new StringBuilder(256);
 
             if (withClassName) {
@@ -292,20 +264,12 @@ public final class NameDictionary {
 
             return sb.toString();
         }
-
-        @NonNull
-        public String getSimplifiedClassName(@NonNull Class<?> what) {
-            if (what == null) throw new AssertionError();
-            var sb = new StringBuilder(256);
-            formatType(what, sb);
-            return sb.toString();
-        }
     }
 
     @NonNull
     @SuppressWarnings("unchecked")
     private <T> ClassDictionary<T> getFor(@NonNull Class<T> klass) {
-        if (klass == null) throw new AssertionError();
+        checkNotNull(klass);
         synchronized (lock) {
             var d = (ClassDictionary<T>) map.get(klass);
             if (d != null) return d;
@@ -330,5 +294,20 @@ public final class NameDictionary {
     @NonNull
     public static NameDictionary global() {
         return GLOBAL_INSTANCE;
+    }
+
+    @Generated
+    private static void assertTrue(boolean b) {
+        if (!b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj, String err) {
+        if (obj == null) throw new AssertionError(err);
     }
 }

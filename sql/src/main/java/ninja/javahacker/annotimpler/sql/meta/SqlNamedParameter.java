@@ -10,6 +10,18 @@ import module ninja.javahacker.annotimpler.sql;
 
 public final class SqlNamedParameter<T> {
 
+    private static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
+            boolean.class, Boolean.class,
+            byte.class, Byte.class,
+            char.class, Character.class,
+            short.class, Short.class,
+            int.class, Integer.class,
+            long.class, Long.class,
+            float.class, Float.class,
+            double.class, Double.class,
+            void.class, Void.class
+    );
+
     private static final ConverterFactory cvt = ConverterFactory.STD;
 
     @Getter
@@ -30,8 +42,8 @@ public final class SqlNamedParameter<T> {
 
     @SuppressWarnings("unchecked")
     private SqlNamedParameter(int index, @NonNull Type type, @NonNull String name, boolean flat) {
-        if (type == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(type);
+        checkNotNull(name);
         this.index = index;
         this.type = type;
         this.name = name;
@@ -40,6 +52,7 @@ public final class SqlNamedParameter<T> {
     }
 
     private static SqlNamedParameter<?> forParam(int index, @NonNull Parameter p) {
+        checkNotNull(p);
         return new SqlNamedParameter<>(index, p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
     }
 
@@ -64,7 +77,7 @@ public final class SqlNamedParameter<T> {
         public void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException;
     }
 
-    private record NameHandlerStrategy<T>(NamedHandler<T> h, Predicate<Object> p) {
+    private record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Object> p) {
         public void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException {
             if (!test(value)) throw new IllegalArgumentException();
             h.handle(ps, value);
@@ -102,8 +115,8 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h, int type) {
-        if (k == null) throw new AssertionError();
-        if (h == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(h);
         return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
             if (value == null) {
                 ps.setNull(name, type);
@@ -115,8 +128,8 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h) {
-        if (k == null) throw new AssertionError();
-        if (h == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(h);
         return Map.entry(k, h);
     }
 
@@ -130,8 +143,8 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static <E extends Record> NamedHandler<E> forRecord(@NonNull Class<E> k, @NonNull String name, boolean flat) {
-        if (k == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(name);
 
         var rcs = k.getRecordComponents();
         var single = rcs.length == 1;
@@ -145,8 +158,8 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static NamedHandler<Object> forComponent(@NonNull RecordComponent rc, @NonNull String name, boolean single, boolean flat) {
-        if (rc == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(rc);
+        checkNotNull(name);
 
         var rct = rc.getGenericType();
 
@@ -170,8 +183,8 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static <E extends Enum<E>> NamedHandler<E> forEnum(@NonNull Class<E> k, @NonNull String name) {
-        if (k == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(name);
 
         return (@NonNull NamedParameterStatement ps, @Nullable E value) -> {
             if (value == null) {
@@ -184,15 +197,15 @@ public final class SqlNamedParameter<T> {
 
     @NonNull
     private static <E> NamedHandler<Optional<E>> forOptional(@NonNull Class<E> k, @NonNull String name, boolean flat) {
-        if (k == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(name);
         var in = forClass(k, name, flat);
         return (@NonNull NamedParameterStatement ps, @Nullable Optional<E> value) -> in.handle(ps, value == null ? null : value.get());
     }
 
     @NonNull
     private static NamedHandler<Void> forNull(@NonNull String name) {
-        if (name == null) throw new AssertionError();
+        checkNotNull(name);
 
         return (@NonNull NamedParameterStatement ps, @Nullable Void value) -> {
             ps.setNull(name, Types.NULL);
@@ -201,8 +214,8 @@ public final class SqlNamedParameter<T> {
 
     @SuppressWarnings("unchecked")
     private static <E> NamedHandler<E> forClass(@NonNull Class<E> k, @NonNull String name, boolean flat) {
-        if (k == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(k);
+        checkNotNull(name);
 
         if (k == void.class || k == Void.class) return (NamedHandler<E>) forNull(name);
         if (k.isRecord()) return (NamedHandler<E>) forRecord(k.asSubclass(Record.class), name, flat);
@@ -214,10 +227,10 @@ public final class SqlNamedParameter<T> {
     }
 
     private static Predicate<Object> acceptor(@NonNull Class<?> k) {
-        if (k == null) throw new AssertionError();
+        checkNotNull(k);
         if (k == void.class || k == Void.class) return v -> v == null;
         if (k.isPrimitive()) {
-            var wrapper = Wrappers.wrap(k);
+            var wrapper = wrap(k);
             return wrapper::isInstance;
         }
         if (ENTRIES.keySet().contains(k) || k.isRecord() || k.isEnum()) return v -> v == null || k.isInstance(v);
@@ -225,8 +238,8 @@ public final class SqlNamedParameter<T> {
     }
 
     private static NameHandlerStrategy<?> makeStrategy(@NonNull Type type, @NonNull String name, boolean flat) {
-        if (type == null) throw new AssertionError();
-        if (name == null) throw new AssertionError();
+        checkNotNull(type);
+        checkNotNull(name);
 
         if (type instanceof Class<?> kk) return new NameHandlerStrategy<>(forClass(kk, name, flat), acceptor(kk));
         if (type instanceof ParameterizedType pt && pt.getRawType() == Optional.class) {
@@ -249,7 +262,7 @@ public final class SqlNamedParameter<T> {
         private final T value;
 
         private SqlNamedParameterWithValue(@NonNull SqlNamedParameter<T> inner, @Nullable T value) {
-            if (inner == null) throw new AssertionError();
+            checkNotNull(inner);
             if (!inner.accept(value)) throw new IllegalArgumentException();
             this.inner = inner;
             this.value = value;
@@ -283,26 +296,14 @@ public final class SqlNamedParameter<T> {
         return new SqlNamedParameterWithValue<>(this, value);
     }
 
-    private static final class Wrappers {
-        private Wrappers() {
-            throw new UnsupportedOperationException();
-        }
+    @NonNull
+    public static Class<?> wrap(@NonNull Class<?> k) {
+        checkNotNull(k);
+        return WRAPPERS.get(k);
+    }
 
-        private static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
-                boolean.class, Boolean.class,
-                byte.class, Byte.class,
-                char.class, Character.class,
-                short.class, Short.class,
-                int.class, Integer.class,
-                long.class, Long.class,
-                float.class, Float.class,
-                double.class, Double.class,
-                void.class, Void.class
-        );
-
-        @Nullable
-        public static Class<?> wrap(@NonNull Class<?> k) {
-            return WRAPPERS.get(k);
-        }
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

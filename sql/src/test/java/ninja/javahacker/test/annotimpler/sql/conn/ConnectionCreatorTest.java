@@ -6,12 +6,11 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class ConnectionCreatorTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     @FunctionalInterface
@@ -32,7 +31,7 @@ public class ConnectionCreatorTest {
         return i == null ? OptionalInt.empty() : OptionalInt.of(i);
     }
 
-    private static record TestFactory<E extends Connector>(
+    private static record TestProcessor<E extends Connector>(
             Object[] replaces,
             Class<E> k,
             Method creator,
@@ -71,10 +70,10 @@ public class ConnectionCreatorTest {
             return create(replace(props, new Object[replaces.length], true));
         }
 
-        public Stream<Arguments> createAll(E model) {
+        public Stream<DynamicTest> createAll(E model) {
             var original = destructure.work(model);
             var p = (int) Math.pow(2, replaces.length);
-            var list = new ArrayList<Arguments>(p);
+            var list = new ArrayList<DynamicTest>(p);
             for (var i = 0; i < p; i++) {
                 var j = i;
                 var myReplace = replace(i, original, false);
@@ -105,10 +104,10 @@ public class ConnectionCreatorTest {
         }
     }
 
-    private static Stream<Arguments> createAll(Constructor<? extends Connector> k, Object[] params) {
+    private static Stream<DynamicTest> createAll(Constructor<? extends Connector> k, Object[] params) {
         var dbName = k.getDeclaringClass().getSimpleName();
         var arity = params.length;
-        var list = new ArrayList<Arguments>(arity);
+        var list = new ArrayList<DynamicTest>(arity);
         var kp = k.getParameters();
         list.add(n(dbName + " ctor does not throw", () -> Assertions.assertDoesNotThrow(() -> k.newInstance(params.clone()))));
         for (var i = 0; i < arity; i++) {
@@ -133,112 +132,113 @@ public class ConnectionCreatorTest {
         }
     }
 
-    private static <E extends Connector> Stream<Arguments> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure) {
-        return new TestFactory<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
+    private static <E extends Connector> Stream<DynamicTest> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure) {
+        return new TestProcessor<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
     }
 
-    private static Stream<Arguments> testAll(Constructor<? extends Connector> k, Object[] params) {
+    private static Stream<DynamicTest> testAll(Constructor<? extends Connector> k, Object[] params) {
         return createAll(k, params);
     }
 
-    private static <E extends Connector> Stream<Arguments> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure, Object[] ctorParams) {
-        var tests1 = new TestFactory<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
+    private static <E extends Connector> Stream<DynamicTest> testAll(Class<E> k, Object[] replaces, Destructure<E> destructure, Object[] ctorParams) {
+        var tests1 = new TestProcessor<>(replaces, k, creatorMethod(k, replaces.length), destructure).createAll(model(k));
         @SuppressWarnings("unchecked")
         var tests2 = createAll((Constructor<E>) k.getConstructors()[0], ctorParams);
         return Stream.concat(tests1, tests2);
     }
 
-    private static Stream<Arguments> mariaDbCreatorTest() {
+    private static Stream<DynamicTest> mariaDbCreatorTest() {
         Destructure<MariaDbConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(MariaDbConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> mySqlCreatorTest() {
+    private static Stream<DynamicTest> mySqlCreatorTest() {
         Destructure<MySqlConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(MySqlConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> postgreSqlCreatorTest() {
+    private static Stream<DynamicTest> postgreSqlCreatorTest() {
         Destructure<PostgreSqlConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database(), a.ssl()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", false};
         return testAll(PostgreSqlConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> oracleCreatorTest() {
+    private static Stream<DynamicTest> oracleCreatorTest() {
         Destructure<OracleConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database(), a.rac()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", true};
         return testAll(OracleConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> db2CreatorTest() {
+    private static Stream<DynamicTest> db2CreatorTest() {
         Destructure<Db2Connector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(Db2Connector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> sqlServerCreatorTest() {
+    private static Stream<DynamicTest> sqlServerCreatorTest() {
         Destructure<SqlServerConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.database()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test"};
         return testAll(SqlServerConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> firebirdCreatorTest() {
+    private static Stream<DynamicTest> firebirdCreatorTest() {
         Destructure<FirebirdConnector> dest = a -> new Object[] {a.host(), a.port(), a.user(), a.password(), a.filename(), a.encoding()};
         var replaces = new Object[] {"10.0.0.1", 5555, "master", "pa$$", "test", "ISO-8859-1"};
         return testAll(FirebirdConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> hsqldbCreatorTest() {
+    private static Stream<DynamicTest> hsqldbCreatorTest() {
         Destructure<HsqldbConnector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
         var replaces = new Object[] {"master", "pa$$", "test", true};
         return testAll(HsqldbConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> h2CreatorTest() {
+    private static Stream<DynamicTest> h2CreatorTest() {
         Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
         var replaces = new Object[] {"master", "pa$$", "test", true};
         return testAll(H2Connector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> accessCreatorTest() {
+    private static Stream<DynamicTest> accessCreatorTest() {
         Destructure<AccessConnector> dest = a -> new Object[] {a.filename()};
         var replaces = new Object[] {"test"};
         return testAll(AccessConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> sqliteCreatorTest() {
+    private static Stream<DynamicTest> sqliteCreatorTest() {
         Destructure<SqliteConnector> dest = a -> new Object[] {a.filename()};
         var replaces = new Object[] {"test"};
         return testAll(SqliteConnector.class, replaces, dest, replaces);
     }
 
-    private static Stream<Arguments> sqliteMemoryCreatorTest() {
+    private static Stream<DynamicTest> sqliteMemoryCreatorTest() {
         Destructure<SqliteMemoryConnector> dest = a -> new Object[0];
         var replaces = new Object[0];
         return testAll(SqliteMemoryConnector.class, replaces, dest);
     }
 
-    private static Stream<Arguments> urlCreatorTest1() {
+    private static Stream<DynamicTest> urlCreatorTest1() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url()};
         var replaces = new Object[] {"jdbc:test:test"};
         return testAll(UrlConnector.class, replaces, dest);
     }
 
-    private static Stream<Arguments> urlCreatorTest2() {
+    private static Stream<DynamicTest> urlCreatorTest2() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url(), a.optAuth().orElse(null)};
         var replaces = new Object[] {"jdbc:test:test", new Connector.Auth("X", "Y")};
         return testAll(UrlConnector.class, replaces, dest);
     }
 
-    private static Stream<Arguments> urlCreatorTest3() {
+    private static Stream<DynamicTest> urlCreatorTest3() {
         Destructure<UrlConnector> dest = a -> new Object[] {a.url(), a.optUser().orElse(null), a.optPassword().orElse(null)};
         var replaces = new Object[] {"jdbc:test:test", "X", "Y"};
         return testAll(UrlConnector.class, replaces, dest);
     }
 
-    private static Stream<Arguments> creatorTest() {
+    @TestFactory
+    public Stream<DynamicTest> creatorTest() {
         return Stream.of(
                 mariaDbCreatorTest(),
                 mySqlCreatorTest(),
@@ -258,13 +258,8 @@ public class ConnectionCreatorTest {
         ).flatMap(x -> x);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "creatorTest {0}")
-    public void creatorTest(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> urlConnectorNullContructorTests() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> urlConnectorNullContructorTests() throws Exception {
         var u = UrlConnector.class;
         var auth = new Connector.Auth("X", "Y");
         var url = "jdbc:test:test";
@@ -273,12 +268,6 @@ public class ConnectionCreatorTest {
         var c = testAll(u.getConstructor(String.class, Optional.class), new Object[] {url, Optional.of(auth)});
         var d = testAll(u.getConstructor(String.class, String.class, String.class), new Object[] {url, "X", "Y"});
         return Stream.of(a, b, c, d).flatMap(x -> x);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "urlConnectorNullContructorTests {0}")
-    public void urlConnectorNullContructorTests(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     private static void connectionTest(ConnectionFactory confac) throws Exception {
@@ -312,7 +301,8 @@ public class ConnectionCreatorTest {
         }
     }
 
-    private static Stream<Arguments> simpleConnectionTest() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> simpleConnectionTest() throws Exception {
         var json1 = "{\"type\":\"sqlite-memory\"}";
         var json2 = "{\"type\":\"h2\",\"memory\":true}";
         return Stream.of(
@@ -329,13 +319,8 @@ public class ConnectionCreatorTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "simpleConnectionTest {0}")
-    public void simpleConnectionTest(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> urlsTest() {
+    @TestFactory
+    public Stream<DynamicTest> urlsTest() {
         var maria1 = MariaDbConnector.std();
         var maria2 = maria1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
         var mysql1 = MySqlConnector.std();
@@ -368,11 +353,5 @@ public class ConnectionCreatorTest {
                 n("hsqldb 2"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
                 n("hsqldb 3"  , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url()))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "urlsTest {0}")
-    public void urlsTest(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

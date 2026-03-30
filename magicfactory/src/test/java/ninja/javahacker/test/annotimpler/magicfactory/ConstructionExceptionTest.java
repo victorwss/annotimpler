@@ -35,28 +35,7 @@ public class ConstructionExceptionTest {
                 n("CreatorSelectionException-2.root-ok1", () -> Assertions.assertEquals(String.class, new MagicFactory.CreatorSelectionException("foo", String.class).getRoot())),
                 n("CreatorSelectionException-2.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", Test.class).getRoot())),
                 n("CreatorSelectionException-3.root-ok1", () -> Assertions.assertEquals(String.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), String.class).getRoot())),
-                n("CreatorSelectionException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), Test.class).getRoot())),
-
-                n("ConvertionException-2.msg-null", () -> ForTests.testNull("message", () -> new Converter.ConvertionException(null, String.class))),
-                n("ConvertionException-2.root-null", () -> ForTests.testNull("root", () -> new Converter.ConvertionException("foo", null))),
-                n("ConvertionException-3.msg-null", () -> ForTests.testNull("message", () -> new Converter.ConvertionException(null, new Exception(), String.class))),
-                n("ConvertionException-3.cause-null", () -> ForTests.testNull("cause", () -> new Converter.ConvertionException("foo", null, String.class))),
-                n("ConvertionException-3.root-null", () -> ForTests.testNull("root", () -> new Converter.ConvertionException("foo", new Exception(), null))),
-                n("ConvertionException-2.root-ok1", () -> Assertions.assertEquals(String.class, new Converter.ConvertionException("foo", String.class).getRoot())),
-                n("ConvertionException-2.root-ok2", () -> Assertions.assertEquals(Test.class, new Converter.ConvertionException("foo", Test.class).getRoot())),
-                n("ConvertionException-3.root-ok1", () -> Assertions.assertEquals(String.class, new Converter.ConvertionException("foo", new Exception(), String.class).getRoot())),
-                n("ConvertionException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new Converter.ConvertionException("foo", new Exception(), Test.class).getRoot())),
-
-                n("UnavailableConverterException-2.msg-null", () -> ForTests.testNull("message", () -> new ConverterFactory.UnavailableConverterException(null, String.class))),
-                n("UnavailableConverterException-2.root-null", () -> ForTests.testNull("root", () -> new ConverterFactory.UnavailableConverterException("foo", null))),
-                n("UnavailableConverterException-3.msg-null", () -> ForTests.testNull("message", () -> new ConverterFactory.UnavailableConverterException(null, new Exception(), String.class))),
-                n("UnavailableConverterException-3.cause-null", () -> ForTests.testNull("cause", () -> new ConverterFactory.UnavailableConverterException("foo", null, String.class))),
-                n("UnavailableConverterException-3.root-null", () -> ForTests.testNull("root", () -> new ConverterFactory.UnavailableConverterException("foo", new Exception(), null))),
-                n("UnavailableConverterException-2.root-ok1", () -> Assertions.assertEquals(String.class, new ConverterFactory.UnavailableConverterException("foo", String.class).getRoot())),
-                n("UnavailableConverterException-2.root-ok2", () -> Assertions.assertEquals(Test.class, new ConverterFactory.UnavailableConverterException("foo", Test.class).getRoot())),
-                n("UnavailableConverterException-3.root-ok1", () -> Assertions.assertEquals(String.class, new ConverterFactory.UnavailableConverterException("foo", new Exception(), String.class).getRoot())),
-                n("UnavailableConverterException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new ConverterFactory.UnavailableConverterException("foo", new Exception(), Test.class).getRoot()))
-        );
+                n("CreatorSelectionException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), Test.class).getRoot()))        );
     }
 
     @MethodSource

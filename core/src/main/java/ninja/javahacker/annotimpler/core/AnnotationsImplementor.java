@@ -32,9 +32,10 @@ public final class AnnotationsImplementor {
 
         assertTrue(Stream.of(iface.getMethods(), iface.getDeclaredMethods()).flatMap(Stream::of).toList().contains(m));
 
+        var mc = m.getDeclaringClass();
         var impls = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(ImplementedBy.class)).toList();
         if (impls.size() > 1) {
-            throw new BadImplementationException("Too many implementations by annotations on: " + name(m), m.getDeclaringClass());
+            throw new BadImplementationException("Too many implementations by annotations on: " + name(m), mc);
         }
         if (impls.isEmpty()) {
             if (Methods.isPrivate(m) || Methods.isStatic(m) || Methods.isEquals(m) || Methods.isHashCode(m) || Methods.isToString(m)) {
@@ -51,25 +52,30 @@ public final class AnnotationsImplementor {
             };
         }
         var implAnnon = impls.getFirst().annotationType();
+        var implName = implAnnon.getSimpleName();
         if (Methods.isStatic(m)) {
-            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on static methods.", m.getDeclaringClass());
+            throw new BadImplementationException("Can't use @" + implName + " annotation on static methods.", mc);
         }
         if (Methods.isPrivate(m)) {
-            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on private methods.", m.getDeclaringClass());
+            throw new BadImplementationException("Can't use @" + implName+ " annotation on private methods.", mc);
         }
         if (Methods.isEquals(m)) {
-            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on equals(Object) method.", m.getDeclaringClass());
+            throw new BadImplementationException("Can't use @" + implName + " annotation on equals(Object) method.", mc);
         }
         if (Methods.isHashCode(m)) {
-            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on hashCode() method.", m.getDeclaringClass());
+            throw new BadImplementationException("Can't use @" + implName + " annotation on hashCode() method.", mc);
         }
         if (Methods.isToString(m)) {
-            throw new BadImplementationException("Can't use @" + implAnnon.getSimpleName() + " annotation on toString() method.", m.getDeclaringClass());
+            throw new BadImplementationException("Can't use @" + implName + " annotation on toString() method.", mc);
         }
         var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
         try {
-            var c = MagicFactory.of(implClass).create().<E>prepare(m, props);
-            if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), m.getDeclaringClass());
+            var mf = MagicFactory.of(implClass);
+            if (mf.arity() != 0) {
+                throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with no arguments.", mc);
+            }
+            var c = mf.create().<E>prepare(m, props);
+            if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
             return c;
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {
             throw new BadImplementationException(e.getMessage(), e, m.getDeclaringClass());

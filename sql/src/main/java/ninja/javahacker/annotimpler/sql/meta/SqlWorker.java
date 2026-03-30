@@ -24,12 +24,15 @@ public final class SqlWorker {
     }
 
     private NamedParameterStatement open() throws SQLException {
-        return NamedParameterStatement.prepareNamedStatement(con, args.getQuery().parsed(), args.getQuery().params());
+        var q = args.getQuery();
+        var ps = con.prepareStatement(q.parsed());
+        return NamedParameterStatement.wrap(ps, q.params());
     }
 
     private NamedParameterStatement openGenerate() throws SQLException {
-        return NamedParameterStatement
-                .prepareNamedStatement(con, args.getQuery().parsed(), args.getQuery().params(), Statement.RETURN_GENERATED_KEYS);
+        var q = args.getQuery();
+        var ps = con.prepareStatement(q.parsed(), Statement.RETURN_GENERATED_KEYS);
+        return NamedParameterStatement.wrap(ps, q.params());
     }
 
     @NonNull

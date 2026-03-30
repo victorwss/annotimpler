@@ -14,9 +14,11 @@ open module ninja.javahacker.annotimpler.sql {
     requires transitive static com.github.spotbugs.annotations;
     requires transitive static lombok;
 
+    requires transitive ninja.javahacker.annotimpler.convert;
     requires transitive ninja.javahacker.annotimpler.magicfactory;
     requires transitive ninja.javahacker.annotimpler.core;
 
+    exports ninja.javahacker.annotimpler.limited;
     exports ninja.javahacker.annotimpler.sql;
     exports ninja.javahacker.annotimpler.sql.conn;
     exports ninja.javahacker.annotimpler.sql.meta;

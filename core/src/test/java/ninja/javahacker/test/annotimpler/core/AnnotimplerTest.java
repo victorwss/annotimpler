@@ -489,14 +489,11 @@ public class AnnotimplerTest {
 
     @Test
     public void testBadImpl10() {
-        var msg = "Creator of TestBadImpl10 doesn't work.";
+        var msg = "Don't know how to build TestBadImpl10 with no arguments.";
         var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface10.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(TestBadIface10.class, ex.getRoot()),
-                () -> Assertions.assertEquals(msg, ex.getMessage()),
-                () -> Assertions.assertEquals(MagicFactory.CreationException.class, ex.getCause().getClass()),
-                () -> Assertions.assertEquals(msg, ex.getCause().getMessage()),
-                () -> Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getCause().getClass())
+                () -> Assertions.assertEquals(msg, ex.getMessage())
         );
     }
 

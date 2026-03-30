@@ -6,12 +6,11 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class ParsedQueryTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     @Test
@@ -194,8 +193,9 @@ public class ParsedQueryTest {
         );
     }
 
+    @TestFactory
     @SuppressWarnings("ObjectEqualsNull")
-    private static Stream<Arguments> testEqualsHashCodeToString() {
+    public Stream<DynamicTest> testEqualsHashCodeToString() {
         var a = "SELECT * FROM foo WHERE :a = 'banana ? banana' AND :b = \"melon ? melon\"";
         var pq1 = ParsedQuery.parse(a);
         var pq2 = ParsedQuery.parse(a);
@@ -215,14 +215,9 @@ public class ParsedQueryTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testEqualsHashCodeToString {0}")
-    public void testEqualsHashCodeToString(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("ThrowableResultIgnored")
-    private static Stream<Arguments> testParamsUnmodifiable() {
+    public Stream<DynamicTest> testParamsUnmodifiable() {
         var a = "SELECT * FROM foo WHERE :a = 'banana ? banana' AND :b = \"melon ? melon\"";
         var pq1 = ParsedQuery.parse(a);
         var pq2 = ParsedQuery.parse(a);
@@ -238,25 +233,14 @@ public class ParsedQueryTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testParamsUnmodifiable {0}")
-    public void testParamsUnmodifiable(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() {
+    public Stream<DynamicTest> testNulls() {
         return Stream.of(
                 n("parse", () -> ForTests.testNull("original", () -> ParsedQuery.parse(null))),
                 n("original-new", () -> ForTests.testNull("original", () -> new ParsedQuery(null, "x", Map.of(), 0, false, false, false))),
                 n("original-parsed", () -> ForTests.testNull("parsed", () -> new ParsedQuery("x", null, Map.of(), 0, false, false, false))),
                 n("original-params", () -> ForTests.testNull("params", () -> new ParsedQuery("x", "x", null, 0, false, false, false)))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

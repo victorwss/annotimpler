@@ -1,12 +1,13 @@
 package ninja.javahacker.test.annotimpler.sql.stmt;
 
 import lombok.SneakyThrows;
+import ninja.javahacker.test.limited.AssertionInputStream;
+import ninja.javahacker.test.limited.AssertionReader;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class BasicNamedParameterStatementTest {
 
@@ -48,7 +49,7 @@ public class BasicNamedParameterStatementTest {
                     ps.executeUpdate();
                 }
             }
-            try (var ps = NamedParameterStatement.prepareNamedStatement(con, sql, idx)) {
+            try (var ps = NamedParameterStatement.wrap(con.prepareStatement(sql), idx)) {
                 recv.doIt(ps);
                 try (var rs = ps.executeQuery()) {
                     Assertions.assertTrue(rs.next(), "Assert has 1st line");
@@ -60,8 +61,9 @@ public class BasicNamedParameterStatementTest {
         return ctx.wrap();
     }
 
-    private static Stream<Arguments> applyBasicValues(String sql, NamedStatementContext... recvs) {
+    private static Stream<DynamicTest> applyBasicValues(String sqla, String sqlb, NamedStatementContext... recvs) {
         var idx = Map.of("bar", List.of(1));
+        var idxm = Map.of("bar", List.of(1, 3, 5), "foo", List.of(2, 4));
         var prepare = List.of(
                 "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
                 "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
@@ -73,10 +75,29 @@ public class BasicNamedParameterStatementTest {
                 () -> Assertions.assertEquals("lol", rs.getString("blah")),
                 () -> Assertions.assertEquals("lol", rs.getString(2))
         );
-        return Stream.of(recvs).map(recv -> Arguments.of(recv.name, singleLineApply(prepare, sql, recv.ctx, run, idx)));
+
+        var a = Stream.of(recvs)
+                .filter(recv -> recv.name.startsWith("INT-") || recv.name.startsWith("SNG-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name, singleLineApply(prepare, sqla, recv.ctx, run, idx)));
+
+        var b = Stream.of(recvs)
+                .filter(recv -> recv.name.startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name + "-SINGLE", singleLineApply(prepare, sqla, recv.ctx, run, idx)));
+
+        var c = Stream.of(recvs)
+                .filter(recv -> recv.name.startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name + "-MULTI", singleLineApply(prepare, sqlb, recv.ctx2(), run, idxm)));
+
+        return Stream.of(a, b, c).flatMap(x -> x);
     }
 
     private static record NamedStatementContext(String name, StatementContext ctx) {
+        private StatementContext ctx2() {
+            return ps -> {
+                ps.setInt("foo", 42);
+                ctx.doIt(ps);
+            };
+        }
     }
 
     private static NamedStatementContext n(String name, StatementContext ctx) {
@@ -87,8 +108,16 @@ public class BasicNamedParameterStatementTest {
         return new ByteArrayInputStream("blue".getBytes());
     }
 
+    private static InputStream i4() {
+        return new AssertionInputStream("bluegreen".getBytes(), 4, false);
+    }
+
     private static Reader r() {
         return new CharArrayReader("blue".toCharArray());
+    }
+
+    private static Reader r4() {
+        return new AssertionReader("bluegreen", 4, false);
     }
 
     @SneakyThrows
@@ -123,21 +152,35 @@ public class BasicNamedParameterStatementTest {
     }
 
     private static String cn(Object obj) {
+        if (obj instanceof Class<?> k) return k.getSimpleName();
         if (obj instanceof NClob) return "NCLOB";
         if (obj instanceof Clob) return "CLOB";
         if (obj instanceof Blob) return "BLOB";
         if (obj instanceof Reader) return "READER";
         if (obj instanceof InputStream) return "STREAM";
-        return obj.getClass().getName().toUpperCase(Locale.ROOT);
+        if (obj instanceof ZonedDateTime) return "ZONED-DATE-TIME";
+        if (obj instanceof OffsetDateTime) return "OFFSET-DATE-TIME";
+        if (obj instanceof Instant) return "INSTANT";
+        if (obj instanceof LocalDateTime) return "LOCAL-DATE-TIME";
+        if (obj instanceof LocalDate) return "LOCAL-DATE";
+        if (obj instanceof LocalTime) return "LOCAL-TIME";
+        if (obj instanceof java.sql.Date) return "SQL-DATE";
+        if (obj instanceof java.sql.Time) return "SQL-TIME";
+        if (obj instanceof java.sql.Timestamp) return "SQL-TIMESTAMP";
+        if (obj instanceof java.util.Date) return "DATE";
+        if (obj instanceof GregorianCalendar) return "GREGORIAN-CALENDAR";
+        if (obj instanceof Calendar) return "CALENDAR";
+        throw new AssertionError(obj);
     }
 
-    private static Stream<Arguments> testSetters() {
+    @TestFactory
+    public Stream<DynamicTest> testSetters() {
         var v1_5 = BigDecimal.valueOf(1.5);
-        var bytes = "blue".getBytes();
+        var blue = "blue";
+        var bytes = blue.getBytes();
         var opti = OptionalInt.of(2);
         var optl = OptionalLong.of(2);
         var optd = OptionalDouble.of(1.5);
-        var blue = "blue";
         byte b2 = 2;
         short s2 = 2;
         var d1 = LocalDate.of(2025, 10, 10);
@@ -153,18 +196,21 @@ public class BasicNamedParameterStatementTest {
 
         var t1 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END)",
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 2 ELSE 1 END)",
                 n("STR-TRUE" , ps -> ps.setBoolean("bar", true )),
                 n("INT-TRUE" , ps -> ps.setBoolean(1    , true ))
         );
 
         var t2 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END)",
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 1 ELSE 2 END)",
                 n("STR-FALSE", ps -> ps.setBoolean("bar", false)),
                 n("INT-FALSE", ps -> ps.setBoolean(1    , false))
         );
 
         var t3 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE pk = ?",
+                "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
                 n("STR-BYTE"           , ps -> ps.setByte  ("bar", b2                      )),
                 n("INT-BYTE"           , ps -> ps.setByte  (1    , b2                      )),
                 n("STR-SHORT"          , ps -> ps.setShort ("bar", s2                      )),
@@ -221,6 +267,7 @@ public class BasicNamedParameterStatementTest {
 
         var t4 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE pk > ?",
+                "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
                 n("STR-OBJ-FLOAT-H2-Z"  , ps -> ps.setFloat     ("bar", 1.5f                    )),
                 n("INT-OBJ-FLOAT-H2-Z"  , ps -> ps.setFloat     (1    , 1.5f                    )),
                 n("STR-OBJ-DOUBLE-H2-Z" , ps -> ps.setDouble    ("bar", 1.5                     )),
@@ -263,6 +310,7 @@ public class BasicNamedParameterStatementTest {
 
         var t5 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE color = ?",
+                "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
                 n("STR-STRING"           , ps -> ps.setString          ("bar", blue                     )),
                 n("INT-STRING"           , ps -> ps.setString          (1    , blue                     )),
                 n("STR-NSTRING"          , ps -> ps.setNString         ("bar", blue                     )),
@@ -289,52 +337,53 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-BYT-H2"       , ps -> ps.setObject          (1    , bytes, H2Type.VARCHAR    )),
                 n("STR-OBJ-BYT-H2-Q"     , ps -> ps.setObject          ("bar", bytes, H2Type.VARCHAR, 4 )),
                 n("INT-OBJ-BYT-H2-Q"     , ps -> ps.setObject          (1    , bytes, H2Type.VARCHAR, 4 )),
-                n("STR-ASCII"            , ps -> ps.setAsciiStream     ("bar", i()                      )),
+                n("SNG-ASCII"            , ps -> ps.setAsciiStream     ("bar", i()                      )),
                 n("INT-ASCII"            , ps -> ps.setAsciiStream     (1    , i()                      )),
-                n("STR-ASCII-INT"        , ps -> ps.setAsciiStream     ("bar", i()                  , 4 )),
-                n("INT-ASCII-INT"        , ps -> ps.setAsciiStream     (1    , i()                  , 4 )),
-                n("STR-ASCII-LONG"       , ps -> ps.setAsciiStream     ("bar", i()                  , 4L)),
-                n("INT-ASCII-LONG"       , ps -> ps.setAsciiStream     (1    , i()                  , 4L)),
-                n("STR-BINARY"           , ps -> ps.setBinaryStream    ("bar", i()                      )),
+                n("SNG-ASCII-INT"        , ps -> ps.setAsciiStream     ("bar", i4()                 , 4 )),
+                n("INT-ASCII-INT"        , ps -> ps.setAsciiStream     (1    , i4()                 , 4 )),
+                n("SNG-ASCII-LONG"       , ps -> ps.setAsciiStream     ("bar", i4()                 , 4L)),
+                n("INT-ASCII-LONG"       , ps -> ps.setAsciiStream     (1    , i4()                 , 4L)),
+                n("SNG-BINARY"           , ps -> ps.setBinaryStream    ("bar", i()                      )),
                 n("INT-BINARY"           , ps -> ps.setBinaryStream    (1    , i()                      )),
-                n("STR-BINARY-INT"       , ps -> ps.setBinaryStream    ("bar", i()                  , 4 )),
-                n("INT-BINARY-INT"       , ps -> ps.setBinaryStream    (1    , i()                  , 4 )),
-                n("STR-BINARY-LONG"      , ps -> ps.setBinaryStream    ("bar", i()                  , 4L)),
-                n("INT-BINARY-LONG"      , ps -> ps.setBinaryStream    (1    , i()                  , 4L)),
-                n("STR-CHAR"             , ps -> ps.setCharacterStream ("bar", r()                      )),
+                n("SNG-BINARY-INT"       , ps -> ps.setBinaryStream    ("bar", i4()                 , 4 )),
+                n("INT-BINARY-INT"       , ps -> ps.setBinaryStream    (1    , i4()                 , 4 )),
+                n("SNG-BINARY-LONG"      , ps -> ps.setBinaryStream    ("bar", i4()                 , 4L)),
+                n("INT-BINARY-LONG"      , ps -> ps.setBinaryStream    (1    , i4()                 , 4L)),
+                n("SNG-CHAR"             , ps -> ps.setCharacterStream ("bar", r()                      )),
                 n("INT-CHAR"             , ps -> ps.setCharacterStream (1    , r()                      )),
-                n("STR-CHAR-INT"         , ps -> ps.setCharacterStream ("bar", r()                  , 4 )),
-                n("INT-CHAR-INT"         , ps -> ps.setCharacterStream (1    , r()                  , 4 )),
-                n("STR-CHAR-LONG"        , ps -> ps.setCharacterStream ("bar", r()                  , 4L)),
-                n("INT-CHAR-LONG"        , ps -> ps.setCharacterStream (1    , r()                  , 4L)),
-                n("STR-NCHAR"            , ps -> ps.setNCharacterStream("bar", r()                      )),
+                n("SNG-CHAR-INT"         , ps -> ps.setCharacterStream ("bar", r4()                 , 4 )),
+                n("INT-CHAR-INT"         , ps -> ps.setCharacterStream (1    , r4()                 , 4 )),
+                n("SNG-CHAR-LONG"        , ps -> ps.setCharacterStream ("bar", r4()                 , 4L)),
+                n("INT-CHAR-LONG"        , ps -> ps.setCharacterStream (1    , r4()                 , 4L)),
+                n("SNG-NCHAR"            , ps -> ps.setNCharacterStream("bar", r()                      )),
                 n("INT-NCHAR"            , ps -> ps.setNCharacterStream(1    , r()                      )),
-                n("STR-NCHAR-INT"        , ps -> ps.setNCharacterStream("bar", r()                  , 4 )),
-                n("INT-NCHAR-INT"        , ps -> ps.setNCharacterStream(1    , r()                  , 4 )),
-                n("STR-NCHAR-LONG"       , ps -> ps.setNCharacterStream("bar", r()                  , 4L)),
-                n("INT-NCHAR-LONG"       , ps -> ps.setNCharacterStream(1    , r()                  , 4L)),
+                n("SNG-NCHAR-INT"        , ps -> ps.setNCharacterStream("bar", r4()                 , 4 )),
+                n("INT-NCHAR-INT"        , ps -> ps.setNCharacterStream(1    , r4()                 , 4 )),
+                n("SNG-NCHAR-LONG"       , ps -> ps.setNCharacterStream("bar", r4()                 , 4L)),
+                n("INT-NCHAR-LONG"       , ps -> ps.setNCharacterStream(1    , r4()                 , 4L)),
                 n("STR-CLOB"             , ps -> ps.setClob            ("bar", c(ps)                    )),
                 n("INT-CLOB"             , ps -> ps.setClob            (1    , c(ps)                    )),
-                n("STR-CLOB-INT"         , ps -> ps.setClob            ("bar", r()                      )),
-                n("INT-CLOB-INT"         , ps -> ps.setClob            (1    , r()                      )),
-                n("STR-CLOB-LONG"        , ps -> ps.setClob            ("bar", r()                  , 4L)),
-                n("INT-CLOB-LONG"        , ps -> ps.setClob            (1    , r()                  , 4L)),
+                n("SNG-CLOB-READER"      , ps -> ps.setClob            ("bar", r()                      )),
+                n("INT-CLOB-READER"      , ps -> ps.setClob            (1    , r()                      )),
+                n("SNG-CLOB-READER-LONG" , ps -> ps.setClob            ("bar", r4()                 , 4L)),
+                n("INT-CLOB-READER-LONG" , ps -> ps.setClob            (1    , r4()                 , 4L)),
                 n("STR-NCLOB"            , ps -> ps.setNClob           ("bar", n(ps)                    )),
                 n("INT-NCLOB"            , ps -> ps.setNClob           (1    , n(ps)                    )),
-                n("STR-NCLOB-INT"        , ps -> ps.setNClob           ("bar", r()                      )),
-                n("INT-NCLOB-INT"        , ps -> ps.setNClob           (1    , r()                      )),
-                n("STR-NCLOB-LONG"       , ps -> ps.setNClob           ("bar", r()                  , 4L)),
-                n("INT-NCHAR-LONG"       , ps -> ps.setNClob           (1    , r()                  , 4L)),
+                n("SNG-NCLOB-READER"     , ps -> ps.setNClob           ("bar", r()                      )),
+                n("INT-NCLOB-READER"     , ps -> ps.setNClob           (1    , r()                      )),
+                n("SNG-NCLOB-READER-LONG", ps -> ps.setNClob           ("bar", r4()                 , 4L)),
+                n("INT-NCHAR-READER-LONG", ps -> ps.setNClob           (1    , r4()                 , 4L)),
                 n("STR-BLOB"             , ps -> ps.setBlob            ("bar", b(ps)                    )),
                 n("INT-BLOB"             , ps -> ps.setBlob            (1    , b(ps)                    )),
-                n("STR-BLOB-INT"         , ps -> ps.setBlob            ("bar", i()                      )),
-                n("INT-BLOB-INT"         , ps -> ps.setBlob            (1    , i()                      )),
-                n("STR-BLOB-LONG"        , ps -> ps.setBlob            ("bar", i()                  , 4L)),
-                n("INT-BLOB-LONG"        , ps -> ps.setBlob            (1    , i()                  , 4L))
+                n("SNG-BLOB-STREAM"      , ps -> ps.setBlob            ("bar", i()                      )),
+                n("INT-BLOB-STREAM"      , ps -> ps.setBlob            (1    , i()                      )),
+                n("SNG-BLOB-STREAM-LONG" , ps -> ps.setBlob            ("bar", i4()                 , 4L)),
+                n("INT-BLOB-STREAM-LONG" , ps -> ps.setBlob            (1    , i4()                 , 4L))
         );
 
         var t6 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
                 n("STR-DATE"             , ps -> ps.setDate         ("bar", d4      )),
                 n("INT-DATE"             , ps -> ps.setDate         (1    , d4      )),
                 n("STR-DATE-CAL-NUL"     , ps -> ps.setDate         ("bar", d4, null)),
@@ -353,8 +402,9 @@ public class BasicNamedParameterStatementTest {
                 n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime(1    , d2      ))
         );
 
-        Function<Object, Stream<Arguments>> t7p = obj -> applyBasicValues(
+        Function<Object, Stream<DynamicTest>> t7p = obj -> applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
                 n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                                    )),
                 n("INT-" + cn(obj)           , ps -> ps.setObject(1    , obj                                    )),
                 n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIMESTAMP                  )),
@@ -378,6 +428,7 @@ public class BasicNamedParameterStatementTest {
 
         var t8 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
                 n("STR-TIME"        , ps -> ps.setTime     ("bar", d6      )),
                 n("INT-TIME"        , ps -> ps.setTime     (1    , d6      )),
                 n("STR-TIME-CAL-NUL", ps -> ps.setTime     ("bar", d6, null)),
@@ -388,8 +439,9 @@ public class BasicNamedParameterStatementTest {
                 n("INT-LOCALTIME"   , ps -> ps.setLocalTime(1    , d3      ))
         );
 
-        Function<Object, Stream<Arguments>> t9p = obj -> applyBasicValues(
+        Function<Object, Stream<DynamicTest>> t9p = obj -> applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
                 n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                               )),
                 n("INT-" + cn(obj)           , ps -> ps.setObject(    1, obj                               )),
                 n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIME                  )),
@@ -416,23 +468,30 @@ public class BasicNamedParameterStatementTest {
         Function<PreparedStatement, Object> o3 = ps -> c(ps);
         Function<PreparedStatement, Object> o4 = ps -> b(ps);
         Function<PreparedStatement, Object> o5 = ps -> n(ps);
-        Function<Function<PreparedStatement, Object>, Stream<Arguments>> t10p = obj -> applyBasicValues(
+        var cmap = Map.of(InputStream.class, o1, Reader.class, o2, Clob.class, o3, Blob.class, o4, NClob.class, o5);
+        var pmap = Map.of(InputStream.class, "SNG-C-", Reader.class, "SNG-C-", Clob.class, "STR-C-", Blob.class, "STR-C-", NClob.class, "STR-C-");
+        var tmap = Map.of(InputStream.class, Types.BLOB, Reader.class, Types.CLOB, Clob.class, Types.CLOB, Blob.class, Types.BLOB, NClob.class, Types.NCLOB);
+        var hmap = Map.of(InputStream.class, H2Type.BLOB, Reader.class, H2Type.CLOB, Clob.class, H2Type.CLOB, Blob.class, H2Type.BLOB, NClob.class, H2Type.CLOB);
+
+        Function<Class<?>, Stream<DynamicTest>> t10p = k -> applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE color = ?",
-                n("STR-" + cn(obj)          , ps -> ps.setObject("bar", obj.apply(ps)                )),
-                n("INT-" + cn(obj)          , ps -> ps.setObject(    1, obj.apply(ps)                )),
-                n("STR-" + cn(obj) + "-TT"  , ps -> ps.setObject("bar", obj.apply(ps), Types .BLOB   )),
-                n("INT-" + cn(obj) + "-TT"  , ps -> ps.setObject(    1, obj.apply(ps), Types .BLOB   )),
-                n("STR-" + cn(obj) + "-TT-Q", ps -> ps.setObject("bar", obj.apply(ps), Types .BLOB, 4)),
-                n("INT-" + cn(obj) + "-TT-Q", ps -> ps.setObject(    1, obj.apply(ps), Types .BLOB, 4)),
-                n("STR-" + cn(obj) + "-H2"  , ps -> ps.setObject("bar", obj.apply(ps), H2Type.BLOB   )),
-                n("INT-" + cn(obj) + "-H2"  , ps -> ps.setObject(    1, obj.apply(ps), H2Type.BLOB   )),
-                n("STR-" + cn(obj) + "-H2-Q", ps -> ps.setObject("bar", obj.apply(ps), H2Type.BLOB, 4)),
-                n("INT-" + cn(obj) + "-H2-Q", ps -> ps.setObject(    1, obj.apply(ps), H2Type.BLOB, 4))
+                "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
+                n(pmap.get(k) + cn(k)          , ps -> ps.setObject("bar", cmap.get(k).apply(ps)                )),
+                n("INT-C-"    + cn(k)          , ps -> ps.setObject(    1, cmap.get(k).apply(ps)                )),
+                n(pmap.get(k) + cn(k) + "-TT"  , ps -> ps.setObject("bar", cmap.get(k).apply(ps), tmap.get(k)   )),
+                n("INT-C-"    + cn(k) + "-TT"  , ps -> ps.setObject(    1, cmap.get(k).apply(ps), tmap.get(k)   )),
+                n(pmap.get(k) + cn(k) + "-TT-Q", ps -> ps.setObject("bar", cmap.get(k).apply(ps), tmap.get(k), 9)),
+                n("INT-C-"    + cn(k) + "-TT-Q", ps -> ps.setObject(    1, cmap.get(k).apply(ps), tmap.get(k), 9)),
+                n(pmap.get(k) + cn(k) + "-H2"  , ps -> ps.setObject("bar", cmap.get(k).apply(ps), hmap.get(k)   )),
+                n("INT-C-"    + cn(k) + "-H2"  , ps -> ps.setObject(    1, cmap.get(k).apply(ps), hmap.get(k)   )),
+                n(pmap.get(k) + cn(k) + "-H2-Q", ps -> ps.setObject("bar", cmap.get(k).apply(ps), hmap.get(k), 9)),
+                n("INT-C-"    + cn(k) + "-H2-Q", ps -> ps.setObject(    1, cmap.get(k).apply(ps), hmap.get(k), 9))
         );
-        var t10 = Stream.of(o1, o2, o3, o4, o5).flatMap(t10p);
+        var t10 = cmap.keySet().stream().flatMap(t10p);
 
         var t11 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE color = ANY(?)",
+                "SELECT pk, blah FROM foo WHERE color = ANY(?) AND ? = 42 AND color = ANY(?) AND ? = 42 AND 'blue' = ANY(?)",
                 n("STR-ARRAY"         , ps -> ps.setArray ("bar", a(ps)                                 )),
                 n("INT-ARRAY"         , ps -> ps.setArray (1    , a(ps)                                 )),
                 n("STR-OBJ-ARRAY"     , ps -> ps.setObject("bar", a(ps)                                 )),
@@ -449,6 +508,7 @@ public class BasicNamedParameterStatementTest {
 
         var t12 = applyBasicValues(
                 "SELECT pk, blah FROM foo WHERE axml = ?",
+                "SELECT pk, blah FROM foo WHERE axml = ? AND ? = 42 AND axml = ? AND ? = 42 AND ? = '<foo>bar</foo>'",
                 n("STR-SQLXML"         , ps -> ps.setSQLXML("bar", s(ps)                    )),
                 n("INT-SQLXML"         , ps -> ps.setSQLXML(1    , s(ps)                    )),
                 n("STR-OBJ-SQLXML"     , ps -> ps.setObject("bar", s(ps)                    )),
@@ -463,11 +523,5 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-SQLXML-H2-Q", ps -> ps.setObject(1    , s(ps), H2Type.VARCHAR, 14))
         );
         return Stream.of(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12).flatMap(x -> x);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testSetters {0}")
-    public void testSetters(String name, Executable ex) throws Throwable {
-        ex.execute();
     }
 }

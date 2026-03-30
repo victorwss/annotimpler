@@ -6,7 +6,7 @@ import lombok.NonNull;
 import lombok.experimental.Delegate;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.annotimpler.convert;
 
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {

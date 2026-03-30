@@ -5,12 +5,11 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class ConnectionStartConfigTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     private static record Config(Supplier<? extends Connector> conn, int port, String key) {
@@ -33,21 +32,16 @@ public class ConnectionStartConfigTest {
         );
     }
 
-    private static Arguments testSame(Config x) {
+    private static DynamicTest testSame(Config x) {
         return n(x.key(), () -> Assertions.assertSame(x.conn(), x.conn()));
     }
 
-    private static Stream<Arguments> stdFixedTest() {
+    @TestFactory
+    public Stream<DynamicTest> stdFixedTest() {
         return stds().stream().map(ConnectionStartConfigTest::testSame);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "stdFixedTest {0}")
-    public void stdFixedTest(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Arguments testPort(Config x) {
+    private static DynamicTest testPort(Config x) {
         return n(x.key(), () -> {
             var conn = x.conn().get();
             var port = (Integer) conn.getClass().getMethod("port").invoke(conn);
@@ -55,30 +49,20 @@ public class ConnectionStartConfigTest {
         });
     }
 
-    private static Stream<Arguments> stdPortTest() {
+    @TestFactory
+    public Stream<DynamicTest> stdPortTest() {
         return stds().stream().filter(e -> e.port() != 0).map(ConnectionStartConfigTest::testPort);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "stdPortTest {0}")
-    public void stdPortTest(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Arguments testString(Config x) {
+    private static DynamicTest testString(Config x) {
         return n(x.key(), () -> {
             var key = x.conn().get().getClass().getAnnotation(ConnectorJsonKey.class).value();
             Assertions.assertEquals(x.key(), key);
         });
     }
 
-    private static Stream<Arguments> stdStringTest() {
+    @TestFactory
+    public Stream<DynamicTest> stdStringTest() {
         return stds().stream().map(ConnectionStartConfigTest::testString);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "stdPortTest {0}")
-    public void stdStringTest(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

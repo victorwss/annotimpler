@@ -10,7 +10,6 @@ import module com.fasterxml.jackson.module.paramnames;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "ThrowableResultIgnored"})
 public class ConnJsonTest {
@@ -25,8 +24,8 @@ public class ConnJsonTest {
                 "database": "test"
             }""";
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static ObjectMapper mapper() {
@@ -68,8 +67,9 @@ public class ConnJsonTest {
         );
     }
 
+    @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
-    private static Stream<Arguments> testEqualsHashCodeToString() {
+    public Stream<DynamicTest> testEqualsHashCodeToString() {
         var delegate1 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var delegate2 = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         var jsc1 = new JsonConnector(delegate1);
@@ -107,12 +107,6 @@ public class ConnJsonTest {
                 n("same auth as delegate 2"    , () -> Assertions.assertEquals(delegate3.optAuth(), jsc4.optAuth())),
                 n("same urlconn as delegate 2" , () -> Assertions.assertEquals(delegate3.asUrl(), jsc4.asUrl()))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testEqualsHashCodeToString {0}")
-    public void testEqualsHashCodeToString(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     private static class BadConnector implements Connector {
@@ -376,19 +370,14 @@ public class ConnJsonTest {
         Assertions.assertEquals(Optional.empty(), JsonConnector.find("goo"));
     }
 
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() throws JsonProcessingException {
+    public Stream<DynamicTest> testNulls() throws JsonProcessingException {
         return Stream.of(
                 n("register", () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null))),
                 n("find",     () -> ForTests.testNull("key", () -> JsonConnector.find(null))),
                 n("UCE",      () -> ForTests.testNull("message", () -> new JsonConnector.UnknownConnectorException(null))),
                 n("ctor",     () -> ForTests.testNull("delegate", () -> new JsonConnector(null)))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

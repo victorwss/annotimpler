@@ -47,7 +47,24 @@ public class NameDictionaryTest {
     }
 
     public static interface Weird<A, B, C extends Serializable & Cloneable, D extends Cloneable, E extends Enum<E>, F extends Comparable<F>> {
-        public <U extends Thread> Map<A, Map<C[], Map<String, ? extends List<? super E>>>> crazy(D param, F foo, U uh);
+        public
+        <
+                U extends Thread,
+                X extends Map<C, D>,
+                Y extends Cloneable & Serializable,
+                Z extends Object,
+                W extends List<? extends Object>,
+                T extends Object & Cloneable,
+                V extends Object & Cloneable & Serializable
+        >
+        Map<A, Map<C[], Map<String, ? extends List<? super E>>>>
+        crazy(
+                D param,
+                F foo,
+                U[] uh,
+                X zu,
+                List<? extends Cloneable> oh,
+                List<? extends Object> of);
     }
 
     private static record PartEx(java.lang.reflect.Executable a, String b, String c) {
@@ -57,8 +74,12 @@ public class NameDictionaryTest {
     }
 
     private static Stream<Arguments> testSimplifiedExecutableName() throws NoSuchMethodException, NoSuchFieldException {
+        var crazyA = "<U extends Thread, X extends Map<C, D>, Y extends Cloneable & Serializable, Z, W extends List<?>, T extends Cloneable, V extends Cloneable & Serializable>";
+        var crazyB = "Map<A, Map<C[], Map<String, ? extends List<? super E>>>>";
+        var crazyC = "Weird.crazy(D, F, U[], X, List<? extends Cloneable>, List<?>)";
+        var crazyX = crazyA + " " + crazyB + " " + crazyC;
         var ambig3 = Something.class.getMethod("ambig3", java.util.Date.class, java.sql.Date.class, String.class, Something.class);
-        var crazy = Weird.class.getMethod("crazy", Cloneable.class, Comparable.class, Thread.class);
+        var crazy = Stream.of(Weird.class.getMethods()).filter(m -> m.getName().equals("crazy")).findAny().get();
         var parts = List.of(
                 new PartEx(Something.class.getConstructor(), "Something", "Something()"),
                 new PartEx(Something.class.getConstructor(int.class), "Something", "Something(int)"),
@@ -67,7 +88,7 @@ public class NameDictionaryTest {
                 new PartEx(Something.class.getMethod("ambig2"), "Something", "java.sql.Date Something.ambig2()"),
                 new PartEx(ambig3, "Something", "int Something.ambig3(java.util.Date, java.sql.Date, String, Something)"),
                 new PartEx(Something.class.getMethod("staticMethod2", int.class, String.class), "Something", "int Something.staticMethod2(int, String)"),
-                new PartEx(crazy, "Weird", "<U extends Thread> Map<A, Map<C[], Map<String, ? extends List<? super E>>>> Weird.crazy(D, F, U)")
+                new PartEx(crazy, "Weird", crazyX)
         );
         var q = parts.stream()
                 .map(e -> Arguments.of(e.c, ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true))));
