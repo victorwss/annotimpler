@@ -6,12 +6,11 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class MethodsSimpleTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     private static String name(Method m) {
@@ -196,7 +195,8 @@ public class MethodsSimpleTest {
         return Stream.of(a, b, c, d, e, f).flatMap(x -> x).distinct().filter(m -> !m.getName().contains("jacoco")).toList();
     }
 
-    private static Stream<Arguments> testEquals() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testEquals() throws NoSuchMethodException {
         var isTrue = List.of(
             String.class.getMethod("equals", Object.class),
             Object.class.getMethod("equals", Object.class),
@@ -206,13 +206,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isEquals);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testEquals {0}")
-    public void testEquals(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testHashCode() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testHashCode() throws NoSuchMethodException {
         var isTrue = List.of(
             String.class.getMethod("hashCode"),
             Object.class.getMethod("hashCode"),
@@ -222,13 +217,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isHashCode);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testHashCode {0}")
-    public void testHashCode(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testToString() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testToString() throws NoSuchMethodException {
         var isTrue = List.of(
             String.class.getMethod("toString"),
             Object.class.getMethod("toString"),
@@ -238,13 +228,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isToString);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testToString {0}")
-    public void testToString(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testClone() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testClone() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
             Sample.class.getMethod("clone"),
@@ -255,26 +240,16 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isClone);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testClone {0}")
-    public void testClone(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testFinalize() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testFinalize() throws NoSuchMethodException {
         var isTrue = List.of(
             Sample.class.getMethod("finalize")
         );
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isFinalize);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testFinalize {0}")
-    public void testFinalize(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testIntrinsic() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testIntrinsic() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
             Object.class.getMethod("notify"),
@@ -287,13 +262,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isObjectIntrinsic);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testIntrinsic {0}")
-    public void testIntrinsic(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testSimple() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testSimple() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
             Object.class.getMethod("notify"),
@@ -329,13 +299,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isSimple);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testSimple {0}")
-    public void testSimple(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testSynthetic() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testSynthetic() throws NoSuchMethodException {
         var isTrue = List.of(
             Stream.of(Sample.class.getMethods()).filter(m -> "clone".equals(m.getName()) && m.getReturnType() == Object.class).findFirst().get(),
             Stream.of(Sample.class.getMethods()).filter(m -> "compare".equals(m.getName()) && m.getParameterTypes()[0] == Object.class).findFirst().get()
@@ -343,13 +308,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isSynthetic);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testSynthetic {0}")
-    public void testSynthetic(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testStatic() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testStatic() throws NoSuchMethodException {
         var isTrue = List.of(
             Sample.class.getDeclaredMethod("internal4"),
             Sample.class.getDeclaredMethod("internal5"),
@@ -359,13 +319,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isStatic);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testStatic {0}")
-    public void testStatic(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testVirtual() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testVirtual() throws NoSuchMethodException {
         var isNot = List.of(
             Sample.class.getDeclaredMethod("internal4"),
             Sample.class.getDeclaredMethod("internal5"),
@@ -377,13 +332,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isVirtual);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testVirtual {0}")
-    public void testVirtual(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testPublic() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testPublic() throws NoSuchMethodException {
         var isNot = List.of(
             Object.class.getDeclaredMethod("clone"),
             Sample.class.getDeclaredMethod("internal1"),
@@ -398,13 +348,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPublic);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testPublic {0}")
-    public void testPublic(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testProtected() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testProtected() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
             Sample.class.getDeclaredMethod("internal2"),
@@ -413,27 +358,18 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isProtected);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testProtected {0}")
-    public void testProtected(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
 
-    private static Stream<Arguments> testPrivate() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testPrivate() throws NoSuchMethodException {
         var isTrue = List.of(
-            Sample.class.getDeclaredMethod("internal1"),
-            Sample.class.getDeclaredMethod("internal5")
+                Sample.class.getDeclaredMethod("internal1"),
+                Sample.class.getDeclaredMethod("internal5")
         );
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPrivate);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testPrivate {0}")
-    public void testPrivate(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testPackageProtected() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testPackageProtected() throws NoSuchMethodException {
         var isTrue = List.of(
             Sample.class.getDeclaredMethod("internal7"),
             Sample.class.getDeclaredMethod("internal3")
@@ -441,29 +377,19 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPackageProtected);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testProtected {0}")
-    public void testPackageProtected(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testConcrete() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testConcrete() throws NoSuchMethodException {
         var isNot = List.of(
-            SampleAbstract.class.getDeclaredMethod("foo1"),
-            CharacterIterator.class.getDeclaredMethod("clone")
+                SampleAbstract.class.getDeclaredMethod("foo1"),
+                CharacterIterator.class.getDeclaredMethod("clone")
         );
         var isTrue = new ArrayList<>(all());
         isTrue.removeAll(isNot);
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isConcrete);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testConcrete {0}")
-    public void testConcrete(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testAbstract() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testAbstract() throws NoSuchMethodException {
         var isTrue = List.of(
             SampleAbstract.class.getDeclaredMethod("foo1"),
             CharacterIterator.class.getDeclaredMethod("clone")
@@ -471,13 +397,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isAbstract);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testAbstract {0}")
-    public void testAbstract(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testOverridable() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testOverridable() throws NoSuchMethodException {
         var isNot = List.of(
             SampleFinal.class.getDeclaredMethod("foo1"),
             SampleAbstract.class.getDeclaredMethod("foo2"),
@@ -507,13 +428,8 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isOverridable);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testOverridable {0}")
-    public void testOverridable(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testFinal() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testFinal() throws NoSuchMethodException {
         var isTrue = List.of(
             SampleFinal.class.getDeclaredMethod("foo1"),
             SampleAbstract.class.getDeclaredMethod("foo2"),
@@ -541,26 +457,16 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isFinal);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testFinal {0}")
-    public void testFinal(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testVarargs() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testVarargs() throws NoSuchMethodException {
         var isTrue = List.of(
             Sample.class.getDeclaredMethod("internal8", String.class, int[].class)
         );
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isVarArgs);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testVarargs {0}")
-    public void testVarargs(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testDefault() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testDefault() throws NoSuchMethodException {
         var isTrue = List.of(
             SampleIface.class.getMethod("foo1"),
             Comparator.class.getMethod("reversed"),
@@ -574,14 +480,9 @@ public class MethodsSimpleTest {
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isDefault);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testDefault {0}")
-    public void testDefault(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() throws Exception {
+    public Stream<DynamicTest> testNulls() throws Exception {
         var cloneCrazy = Sample.class.getMethod("clone", int.class);
         return Stream.of(
             n("isClone", () -> ForTests.testNull("m", () -> Methods.isClone(null))),
@@ -611,12 +512,6 @@ public class MethodsSimpleTest {
             n("paramMap-Exectuable", () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12))),
             n("paramMap-NPE", () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null)))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     @Test

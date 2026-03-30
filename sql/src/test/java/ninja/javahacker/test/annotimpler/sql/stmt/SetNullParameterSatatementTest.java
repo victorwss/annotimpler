@@ -32,7 +32,7 @@ public class SetNullParameterSatatementTest {
             ResultContext test2,
             boolean multi)
     {
-        var nn = test1.name + (!test1.name.startsWith("STR-") ? "" : multi ? "-MULTI" : "-SINGLE");
+        var nn = test1.name() + (!test1.name().startsWith("STR-") ? "" : multi ? "-MULTI" : "-SINGLE");
         return DynamicTest.dynamicTest(nn, () -> {
             try (var con = H2Connector.std().withMemory(true).get()) {
                 for (var sqlp : prepare) {
@@ -41,7 +41,7 @@ public class SetNullParameterSatatementTest {
                     }
                 }
                 try (var ps = NamedParameterStatement.wrap(con.prepareStatement(insert), idx)) {
-                    test1.ctx.doIt(ps);
+                    test1.ctx().doIt(ps);
                     if (multi) {
                         ps.setInt(2, 42);
                         ps.setInt(4, 42);
@@ -63,9 +63,11 @@ public class SetNullParameterSatatementTest {
 
     @TestFactory
     public Stream<DynamicTest> testSetNullSimple() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         var str = String.class.getName();
         var time = java.sql.Timestamp.class.getName();
         var gc = new GregorianCalendar();
+
         var a = List.of(
                 n("STR-NULL-VARCHAR"       , ps -> ps.setNull            ("bar", Types.VARCHAR                          )),
                 n("INT-NULL-VARCHAR"       , ps -> ps.setNull            (1    , Types.VARCHAR                          )),
@@ -148,6 +150,8 @@ public class SetNullParameterSatatementTest {
                 n("STR-OBJ-CLOB-H2-Z"      , ps -> ps.setObject          ("bar",               null, H2Type.CLOB, 0     )),
                 n("INT-OBJ-CLOB-H2-Z"      , ps -> ps.setObject          (1    ,               null, H2Type.CLOB, 0     ))
         );
+
+        @SuppressWarnings("deprecation")
         var b = List.of(
                 n("STR-NULL-TIMESTAMP"     , ps -> ps.setNull            ("bar", Types.TIMESTAMP                        )),
                 n("INT-NULL-TIMESTAMP"     , ps -> ps.setNull            (1    , Types.TIMESTAMP                        )),
@@ -177,6 +181,14 @@ public class SetNullParameterSatatementTest {
                 n("INT-LOCALTIME"          , ps -> ps.setLocalTime       (1    ,               null                     )),
                 n("STR-LOCALDATETIME"      , ps -> ps.setLocalDateTime   ("bar",               null                     )),
                 n("INT-LOCALDATETIME"      , ps -> ps.setLocalDateTime   (1    ,               null                     )),
+                n("STR-OFFSETDATETIME"     , ps -> ps.setOffsetDateTime  ("bar",               null                     )),
+                n("INT-OFFSETDATETIME"     , ps -> ps.setOffsetDateTime  (1    ,               null                     )),
+                n("STR-ZONEDDATETIME"      , ps -> ps.setZonedDateTime   ("bar",               null                     )),
+                n("INT-ZONEDDATETIME"      , ps -> ps.setZonedDateTime   (1    ,               null                     )),
+                n("STR-OFFSETTIME"         , ps -> ps.setOffsetTime      ("bar",               null                     )),
+                n("INT-OFFSETTIME"         , ps -> ps.setOffsetTime      (1    ,               null                     )),
+                n("STR-INSTANT"            , ps -> ps.setInstant         ("bar",               null                     )),
+                n("INT-INSTANT"            , ps -> ps.setInstant         (1    ,               null                     )),
                 n("STR-OBJ-TIMESTAMP"      , ps -> ps.setObject          ("bar",               null, Types .TIMESTAMP   )),
                 n("INT-OBJ-TIMESTAMP"      , ps -> ps.setObject          (1    ,               null, Types .TIMESTAMP   )),
                 n("STR-OBJ-TIMESTAMP-H2"   , ps -> ps.setObject          ("bar",               null, H2Type.TIMESTAMP   )),
@@ -186,6 +198,7 @@ public class SetNullParameterSatatementTest {
                 n("STR-OBJ-TIMESTAMP-H2-Z" , ps -> ps.setObject          ("bar",               null, H2Type.TIMESTAMP, 0)),
                 n("INT-OBJ-TIMESTAMP-H2-Z" , ps -> ps.setObject          (1    ,               null, H2Type.TIMESTAMP, 0))
         );
+
         var idx = Map.of("bar", List.of(1));
         var idxm = Map.of("bar", List.of(1, 3, 5), "foo", List.of(2, 4));
         var prepare1 = List.of(
@@ -208,6 +221,7 @@ public class SetNullParameterSatatementTest {
         var insertm = "INSERT INTO foo(pk, blah, tt, blag, uu, blaf) VALUES (2, ?, ?, ?, ?, ?);";
         var select = "SELECT pk, blah FROM foo WHERE pk = 2";
         var selectm = "SELECT pk, blah, tt, blag, uu, blaf FROM foo WHERE pk = 2";
+
         ResultContext rsc1 = rs -> {
                 Assertions.assertEquals(2, rs.getInt("pk"));
                 Assertions.assertEquals(2, rs.getInt(1));
@@ -249,12 +263,12 @@ public class SetNullParameterSatatementTest {
                 Assertions.assertEquals(null, rs.getTimestamp(6));
         };
 
-        var a2 = a.stream().filter(x -> x.name.startsWith("INT-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
-        var b2 = b.stream().filter(x -> x.name.startsWith("INT-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
-        var a3 = a.stream().filter(x -> x.name.startsWith("STR-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
-        var b3 = b.stream().filter(x -> x.name.startsWith("STR-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
-        var a4 = a.stream().filter(x -> x.name.startsWith("STR-")).map(s -> makeStuff(idxm, prepare1m, insertm, selectm, s, rsc3, true));
-        var b4 = b.stream().filter(x -> x.name.startsWith("STR-")).map(s -> makeStuff(idxm, prepare2m, insertm, selectm, s, rsc4, true));
+        var a2 = a.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
+        var b2 = b.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
+        var a3 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
+        var b3 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
+        var a4 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare1m, insertm, selectm, s, rsc3, true));
+        var b4 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare2m, insertm, selectm, s, rsc4, true));
         return Stream.of(a2, b2, a3, b3, a4, b4).flatMap(x -> x);
     }
 }

@@ -11,6 +11,7 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
 @PackagePrivate
+@SuppressWarnings("deprecation")
 final class InternalNamedParameterStatement implements NamedParameterStatement {
 
     @Delegate(types = PreparedStatement.class)

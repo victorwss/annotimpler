@@ -27,8 +27,8 @@ public final class ConverterTestUtils {
     private static void noop(Collection<java.time.LocalDate> a, List<String> b, Map<String, String> c) {
     }
 
-    public static Arguments args(String name, Executable exec) {
-        return Arguments.of(name, exec);
+    public static DynamicTest args(String name, Executable exec) {
+        return DynamicTest.dynamicTest(name, exec);
     }
 
     public static void assertOptionalEquals(Object expected, Optional<?> opt) {

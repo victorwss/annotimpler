@@ -22,6 +22,9 @@ public interface MethodWrapper<E, U> {
     public Type getReturnType();
 
     @NonNull
+    public Optional<Class<?>> getInstanceType();
+
+    @NonNull
     public <A extends Annotation> Optional<A> getAnnotation(@NonNull Class<A> annoClass);
 
     @Nullable
@@ -50,12 +53,21 @@ public interface MethodWrapper<E, U> {
     @NonNull
     public default Map<String, Object> paramMap(@NonNull Object... args) {
         var pp = getParameters();
-        var ar = arity();
-        if (pp.size() != ar) throw new IllegalArgumentException();
-        var map = new LinkedHashMap<String, Object>(ar);
-        for (var i = 0; i < ar; i++) {
-            var p = pp.get(i);
-            map.put(p.getName(), args[i]);
+        var base = isStatic() ? 0 : 1;
+        if (pp.size() + base != args.length) throw new IllegalArgumentException();
+        var map = new LinkedHashMap<String, Object>(args.length + base);
+        if (base == 1) {
+            var it = getInstanceType().orElseThrow(AssertionError::new);
+            var a = args[0];
+            if (!WrapperClass.wrap(it).isInstance(a)) throw new IllegalArgumentException(it + "---" + a);
+            map.put("this", a);
+        }
+        for (var i = base; i < args.length; i++) {
+            var p = pp.get(i - base);
+            var pt = p.getType();
+            var a = args[i];
+            if (a == null ? pt.isPrimitive() : !WrapperClass.wrap(pt).isInstance(a)) throw new IllegalArgumentException();
+            map.put(p.getName(), a);
         }
         return map;
     }
@@ -76,18 +88,17 @@ public interface MethodWrapper<E, U> {
         var stt = Modifier.isStatic(what.getModifiers());
         var abs = Modifier.isAbstract(what.getModifiers());
         var pub = Modifier.isPublic(what.getModifiers());
-        return new SimpleMethodWrapper<>(what, params, types, rt, str, stt, abs, pub, args -> {
-            if (args.length == 0 && !stt) throw new IllegalArgumentException("Bad parameter count.");
-            var inst = stt ? null : args[0];
-            Object[] nargs;
-            if (stt) {
-                nargs = args;
-            } else {
-                nargs = new Object[args.length - 1];
-                System.arraycopy(args, 1, nargs, 0, nargs.length);
-            }
-            return (E) what.invoke(stt ? null : args[0], nargs);
-        }, what::getAnnotation);
+        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
+        SimpleMethodWrapper.Call<E> icall = args -> {
+            var inst = args[0];
+            var nargs = new Object[args.length - 1];
+            System.arraycopy(args, 1, nargs, 0, nargs.length);
+            return (E) what.invoke(inst, nargs);
+        };
+        SimpleMethodWrapper.Call<E> scall = args -> {
+            return (E) what.invoke(null, args);
+        };
+        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
     }
 
     @NonNull
@@ -98,7 +109,8 @@ public interface MethodWrapper<E, U> {
         var str = "constructor " + NameDictionary.global().getSimplifiedGenericString(what, false);
         var pub = Modifier.isPublic(what.getModifiers());
         var abs = Modifier.isAbstract(what.getDeclaringClass().getModifiers());
-        return new SimpleMethodWrapper<>(what, params, types, rt, str, true, abs, pub, args -> what.newInstance(args), what::getAnnotation);
+        SimpleMethodWrapper.Call<E> call = args -> what.newInstance(args);
+        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, abs, pub, call, what::getAnnotation);
     }
 
     @NonNull
@@ -113,24 +125,32 @@ public interface MethodWrapper<E, U> {
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, Field> getter(@NonNull Field what) {
+        var params = SimpleMethodWrapper.EMPTY1;
+        var types = SimpleMethodWrapper.EMPTY2;
         var rt = what.getGenericType();
         var str = "field " + NameDictionary.global().getSimplifiedGenericString(what, false);
         var stt = Modifier.isStatic(what.getModifiers());
         var pub = Modifier.isPublic(what.getModifiers());
-        return new SimpleMethodWrapper<>(what, SimpleMethodWrapper.EMPTY1, SimpleMethodWrapper.EMPTY2, rt, str, stt, false, pub, args -> {
-            if (args.length != (stt ? 0 : 1)) throw new IllegalArgumentException("Bad parameter count.");
+        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
+        SimpleMethodWrapper.Call<E> call = args -> {
+            if (args.length != (stt ? 0 : 1)) throw new AssertionError();
             return (E) what.get(stt ? null : args[0]);
-        }, what::getAnnotation);
+        };
+        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, stt, false, pub, call, what::getAnnotation);
     }
 
     @NonNull
     public static <E> MethodWrapper<E, E> value(@NonNull E what) {
+        var params = SimpleMethodWrapper.EMPTY1;
+        var types = SimpleMethodWrapper.EMPTY2;
+        var ann = SimpleMethodWrapper.NULL_ANNOTATOR;
         var rt = what.getClass();
         var str = String.valueOf(what);
-        return new SimpleMethodWrapper<>(what, SimpleMethodWrapper.EMPTY1, SimpleMethodWrapper.EMPTY2, rt, str, true, false, true, args -> {
-            if (args.length != 0) throw new IllegalArgumentException("Bad parameter count.");
+        SimpleMethodWrapper.Call<E> call = args -> {
+            if (args.length != 0) throw new AssertionError();
             return what;
-        }, SimpleMethodWrapper.NULL_ANNOTATOR) {
+        };
+        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, false, true, call, ann) {
             @Override
             public String toStringUp() {
                 return this.toString();

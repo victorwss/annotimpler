@@ -7,7 +7,6 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 public class MagicConverterTest {
 
@@ -36,8 +35,8 @@ public class MagicConverterTest {
         throw new AssertionError();
     }
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static enum Color {
@@ -93,7 +92,8 @@ public class MagicConverterTest {
         );
     }
 
-    private static Stream<Arguments> testSingleton() {
+    @TestFactory
+    public Stream<DynamicTest> testSingleton() {
         var bla = "blabla";
         var blu = LocalDate.of(2000, 1, 1);
         return Stream.of(
@@ -128,12 +128,6 @@ public class MagicConverterTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testSingleton {0}")
-    public void testSingleton(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
     private static void testNoConverter(Type k) {
         var msg = (k instanceof Class<?> kk && kk.isArray())
                 ? "No converter for multidimensional arrays."
@@ -145,8 +139,9 @@ public class MagicConverterTest {
         );
     }
 
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testBads() {
+    public Stream<DynamicTest> testBads() {
         interface Foo<E> {
             void a(
                     E a,
@@ -165,7 +160,7 @@ public class MagicConverterTest {
                     String[][] o
             );
 
-            public static Arguments args(Type t) {
+            public static DynamicTest args(Type t) {
                 return n(t.getTypeName(), () -> testNoConverter(t));
             }
         }
@@ -176,13 +171,8 @@ public class MagicConverterTest {
         return Stream.concat(p, q).map(Foo::args);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testBads {0}")
-    public void testBads(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testNullOverride() {
+    @TestFactory
+    public Stream<DynamicTest> testNullOverride() {
         return Map.ofEntries(
                 Map.entry(boolean.class, false),
                 Map.entry(byte.class, (byte) 0),
@@ -208,20 +198,15 @@ public class MagicConverterTest {
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testNullOverride {0}")
-    public void testNullOverride(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testDefaultNulls() {
+    @TestFactory
+    public Stream<DynamicTest> testDefaultNulls() {
         return Stream.of(
                 Boolean.class, Byte.class, Character.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
                 BigInteger.class, BigDecimal.class, Color.class, String.class, Wrapper.class,
                 LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetTime.class, OffsetDateTime.class, ZonedDateTime.class,
                 java.util.Date.class, java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
                 Calendar.class, GregorianCalendar.class, Instant.class,
-                java.sql.Ref.class, java.sql.RowId.class, java.sql.Array.class
+                Ref.class, java.sql.RowId.class, Struct.class, java.sql.Array.class
         ).flatMap(e -> Stream.of(
                 n(
                         e.getSimpleName() + " fromNull",
@@ -234,13 +219,8 @@ public class MagicConverterTest {
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testDefaultNulls {0}")
-    public void testDefaultNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testZeroLengthArrays() {
+    @TestFactory
+    public Stream<DynamicTest> testZeroLengthArrays() {
         return Stream.of(
                 boolean[].class, byte[].class, char[].class, short[].class, int[].class, long[].class, float[].class, double[].class,
                 Boolean[].class, Byte[].class, Character[].class, Short[].class,
@@ -250,7 +230,8 @@ public class MagicConverterTest {
                 LocalDate[].class, LocalTime[].class, LocalDateTime[].class, OffsetTime[].class, OffsetDateTime[].class,
                 ZonedDateTime[].class, Instant[].class,
                 GregorianCalendar[].class, Calendar[].class,
-                java.util.Date[].class, java.sql.Date[].class, java.sql.Time[].class, java.sql.Timestamp[].class
+                java.util.Date[].class, java.sql.Date[].class, java.sql.Time[].class, java.sql.Timestamp[].class,
+                Struct[].class, Ref[].class, RowId[].class
         ).map(e -> n(
                 e.getCanonicalName(),
                 () -> {
@@ -261,13 +242,8 @@ public class MagicConverterTest {
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testZeroLengthArrays {0}")
-    public void testZeroLengthArrays(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testSingletonArrays() {
+    @TestFactory
+    public Stream<DynamicTest> testSingletonArrays() {
         return Stream.of(
                 new boolean[] {true}, new byte[] {(byte) 5}, /*new char[] {'x'},*/ new short[] {(short) 42}, new int[] {42},
                 new long[] {42L}, new float[] {42F}, new double[] {42.0},
@@ -298,24 +274,20 @@ public class MagicConverterTest {
         ));
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testSingletonArrays {0}")
-    public void testSingletonArrays(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testFromString() {
+    @TestFactory
+    public Stream<DynamicTest> testFromString() {
         var timestamp = "2025-10-10 04:03:02";
         var time = "04:03:02";
         var date = "2025-10-10";
         var ldt = LocalDateTime.of(2025, 10, 10, 4, 3, 2);
         var ld = ldt.toLocalDate();
         var lt = ldt.toLocalTime();
-        var off = ldt.atOffset(ZoneOffset.UTC);
-        var zon = off.toZonedDateTime();
-        var ins = off.toInstant();
+        var odt = ldt.atOffset(ZoneOffset.UTC);
+        var ot = lt.atOffset(ZoneOffset.UTC);
+        var zdt = odt.toZonedDateTime();
+        var ins = odt.toInstant();
         var d = java.util.Date.from(ins);
-        var gc = GregorianCalendar.from(zon);
+        var gc = GregorianCalendar.from(zdt);
 
         record Parts<E>(String input, Class<E> type, E output) {
             public String name() {
@@ -361,6 +333,7 @@ public class MagicConverterTest {
                 new Parts<>("", LocalDateTime.class, null),
                 new Parts<>("", ZonedDateTime.class, null),
                 new Parts<>("", OffsetDateTime.class, null),
+                new Parts<>("", OffsetTime.class, null),
                 new Parts<>("", Instant.class, null),
                 new Parts<>("", Calendar.class, null),
                 new Parts<>("", GregorianCalendar.class, null),
@@ -422,8 +395,9 @@ public class MagicConverterTest {
                 new Parts<>(timestamp, LocalDateTime.class, ldt),
                 new Parts<>(date     , LocalDate.class, ld),
                 new Parts<>(time     , LocalTime.class, lt),
-                new Parts<>(timestamp, OffsetDateTime.class, off),
-                new Parts<>(timestamp, ZonedDateTime.class, zon),
+                new Parts<>(time     , OffsetTime.class, ot),
+                new Parts<>(timestamp, OffsetDateTime.class, odt),
+                new Parts<>(timestamp, ZonedDateTime.class, zdt),
                 new Parts<>(timestamp, java.util.Date.class, d),
                 new Parts<>(timestamp, Calendar.class, gc),
                 new Parts<>(timestamp, GregorianCalendar.class, gc),
@@ -451,14 +425,9 @@ public class MagicConverterTest {
         });
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testFromString {0}")
-    public void testFromString(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() {
+    public Stream<DynamicTest> testNulls() {
         @FunctionalInterface
         interface Foo {
             public Object convert(Converter<?> in) throws Converter.ConvertionException;
@@ -469,7 +438,7 @@ public class MagicConverterTest {
         }
 
         record NamedCall2(String name, Consumer<Converter<?>> action) {
-            public Arguments apply(Type c) {
+            public DynamicTest apply(Type c) {
                 var cn = !(c instanceof Class<?> k) ? c.getTypeName()
                         : k.isArray() ? k.getComponentType().getSimpleName() + "[]"
                         : java.util.Date.class.isAssignableFrom(k) ? k.getName()
@@ -491,7 +460,7 @@ public class MagicConverterTest {
                 byte[].class, int[].class, Double[].class, String.class,
                 LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetTime.class, OffsetDateTime.class, ZonedDateTime.class,
                 Instant.class, java.util.Date.class, java.sql.Date.class, java.sql.Time.class, java.sql.Timestamp.class,
-                Calendar.class, GregorianCalendar.class, Ref.class, RowId.class,
+                Calendar.class, GregorianCalendar.class, Ref.class, RowId.class, Struct.class,
                 Color.class, Wrapper.class,
                 COLLECTION_DATE, LIST_STRING, SET_COLOR, OPTIONAL_COLOR
         );
@@ -507,17 +476,11 @@ public class MagicConverterTest {
                 new NamedCall("Blob", c -> c.from((Blob) null)),
                 new NamedCall("Clob", c -> c.from((Clob) null)),
                 new NamedCall("NClob", c -> c.from((NClob) null)),
-                new NamedCall("SQLXML", c -> c.from((SQLXML) null)),
                 new NamedCall("RowId", c -> c.from((RowId) null)),
+                new NamedCall("Struct", c -> c.from((Struct) null)),
                 new NamedCall("Array", c -> c.from((java.sql.Array) null)),
                 new NamedCall("Ref", c -> c.from((Ref) null))
         ).map(NamedCall::asFunc).toList();
         return cls.stream().flatMap(k -> mtds.stream().map(m -> m.apply(k)));
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

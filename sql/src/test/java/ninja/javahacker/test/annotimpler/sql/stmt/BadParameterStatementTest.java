@@ -11,6 +11,28 @@ import module org.junit.jupiter.api;
 
 public class BadParameterStatementTest {
 
+
+    private static final LocalDate LD = LocalDate.of(2026, 1, 1);
+    private static final LocalTime LT = LocalTime.of(10, 0, 0);
+    private static final LocalDateTime LDT = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
+    private static final java.sql.Date D = java.sql.Date.valueOf(LD);
+    private static final java.sql.Time T = java.sql.Time.valueOf(LT);
+    private static final java.sql.Timestamp TS = java.sql.Timestamp.valueOf(LDT);
+    private static final ZonedDateTime ZDT = LDT.atZone(ZoneOffset.UTC);
+    private static final OffsetDateTime ODT = LDT.atOffset(ZoneOffset.UTC);
+    private static final OffsetTime OT = LT.atOffset(ZoneOffset.UTC);
+    private static final Instant INS = ZDT.toInstant();
+    private static final GregorianCalendar GC = GregorianCalendar.from(ZDT);
+    private static final URL AURL;
+
+    static {
+        try {
+            AURL = new URI("http://0.0.0.0/").toURL();
+        } catch (Exception x) {
+            throw new ExceptionInInitializerError(x);
+        }
+    }
+
     @FunctionalInterface
     private interface ConnectionContext {
         public void doIt(Connection con) throws Exception;
@@ -61,7 +83,7 @@ public class BadParameterStatementTest {
                 "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456');",
                 "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (2, 'lol' , 'blue', '2026-01-02 10:11:12.123');"
         );
-        var last = "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (3, 'luz' , 'red', '2025-01-02 10:11:12.123');";
+        var last = "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (3, ?, 'red', '2025-01-02 10:11:12.123');";
         return ctx.wrap(prepare, idx, last);
     }
 
@@ -72,7 +94,7 @@ public class BadParameterStatementTest {
                 "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456');",
                 "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (2, 'lol' , 'blue', '2026-01-02 10:11:12.123');"
         );
-        var last = "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (3, 'luz' , 'red', '2025-01-02 10:11:12.123');";
+        var last = "INSERT INTO foo(pk, blah, color, onceuponatime) VALUES (3, ?, ?, '2025-01-02 10:11:12.123');";
         return ctx.wrap(prepare, idx, last);
     }
 
@@ -190,6 +212,18 @@ public class BadParameterStatementTest {
         };
     }
 
+    private static record MyStruct(String getSQLTypeName, Object[] getAttributes) implements Struct, Serializable {
+        @Override
+        public Object[] getAttributes(Map<String, Class<?>> map) throws SQLException {
+            throw new AssertionError();
+        }
+    }
+
+    private static Struct struct() {
+        var attrs = new Object[] {"a", 5, 4.0};
+        return new MyStruct("foo", attrs);
+    }
+
     private static void testBad(String paramName, Executable runIt) {
         var ex = Assertions.assertThrows(IllegalArgumentException.class, runIt);
         Assertions.assertEquals("Parameter not found: " + paramName, ex.getMessage());
@@ -203,6 +237,11 @@ public class BadParameterStatementTest {
     private static void testUnsupported(String what, Executable runIt) {
         var ex = Assertions.assertThrows(SQLException.class, runIt);
         Assertions.assertEquals("Feature not supported: \"" + what + "\" [50100-240]", ex.getMessage());
+    }
+
+    private static void testBadIndex(int idx, Executable runIt) {
+        var ex = Assertions.assertThrows(SQLException.class, runIt);
+        Assertions.assertEquals("Invalid value \"" + idx + "\" for parameter \"parameterIndex\" [90008-240]", ex.getMessage());
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
@@ -239,47 +278,47 @@ public class BadParameterStatementTest {
     }
 
     @TestFactory
-    @SuppressWarnings("null")
+    @SuppressWarnings({"null", "deprecation"})
     public Stream<DynamicTest> testSetNameNulls() throws Exception {
-        var ld = LocalDate.of(2026, 1, 1);
-        var lt = LocalTime.of(10, 0, 0);
-        var ldt = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
-        var d = java.sql.Date.valueOf(ld);
-        var t = java.sql.Time.valueOf(lt);
-        var ts = java.sql.Timestamp.valueOf(ldt);
-        var c = GregorianCalendar.from(ldt.atZone(ZoneOffset.UTC));
         var str = String.class.getName();
-        var url = new URI("http://0.0.0.0/").toURL();
+
         return Stream.of(
-                n("setBoolean-false"    , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean      (null, false                  )))),
-                n("setBoolean-true"     , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean      (null, true                   )))),
-                n("setByte"             , () -> ForTests.testNull("name", ex(ps -> ps.setByte         (null, (byte ) 123            )))),
-                n("setShort"            , () -> ForTests.testNull("name", ex(ps -> ps.setShort        (null, (short) 123            )))),
-                n("setInt"              , () -> ForTests.testNull("name", ex(ps -> ps.setInt          (null, 123                    )))),
-                n("setOptInt"           , () -> ForTests.testNull("name", ex(ps -> ps.setInt          (null, OptionalInt.of(123)    )))),
-                n("setLong"             , () -> ForTests.testNull("name", ex(ps -> ps.setLong         (null, 123L                   )))),
-                n("setOptLong"          , () -> ForTests.testNull("name", ex(ps -> ps.setLong         (null, OptionalLong.of(123)   )))),
-                n("setFloat"            , () -> ForTests.testNull("name", ex(ps -> ps.setFloat        (null, 123F                   )))),
-                n("setDouble"           , () -> ForTests.testNull("name", ex(ps -> ps.setDouble       (null, 123D                   )))),
-                n("setOptDouble"        , () -> ForTests.testNull("name", ex(ps -> ps.setDouble       (null, OptionalDouble.of(123D))))),
-                n("setBigDecimal"       , () -> ForTests.testNull("name", ex(ps -> ps.setBigDecimal   (null, BigDecimal.TWO         )))),
-                n("setString"           , () -> ForTests.testNull("name", ex(ps -> ps.setString       (null, "foo"                  )))),
-                n("setNString"          , () -> ForTests.testNull("name", ex(ps -> ps.setNString      (null, "foo"                  )))),
-                n("setBlob-Blob"        , () -> ForTests.testNull("name", ex(ps -> ps.setBytes        (null, "foo".getBytes()       )))),
-                n("setURL"              , () -> ForTests.testNull("name", ex(ps -> ps.setURL          (null, url                    )))),
-                n("setRef"              , () -> ForTests.testNull("name", ex(ps -> ps.setRef          (null, ref()                  )))),
-                n("setRowId"            , () -> ForTests.testNull("name", ex(ps -> ps.setRowId        (null, rowid()                )))),
-                n("setLocalDate"        , () -> ForTests.testNull("name", ex(ps -> ps.setLocalDate    (null, ld                     )))),
-                n("setLocalTime"        , () -> ForTests.testNull("name", ex(ps -> ps.setLocalTime    (null, lt                     )))),
-                n("setLocalDateTime"    , () -> ForTests.testNull("name", ex(ps -> ps.setLocalDateTime(null, ldt                    )))),
-                n("setDate"             , () -> ForTests.testNull("name", ex(ps -> ps.setDate         (null, d                      )))),
-                n("setTime"             , () -> ForTests.testNull("name", ex(ps -> ps.setTime         (null, t                      )))),
-                n("setTimestamp"        , () -> ForTests.testNull("name", ex(ps -> ps.setTimestamp    (null, ts                     )))),
-                n("setDateCalendar"     , () -> ForTests.testNull("name", ex(ps -> ps.setDate         (null, d , c                  )))),
-                n("setTimeCalendar"     , () -> ForTests.testNull("name", ex(ps -> ps.setTime         (null, t , c                  )))),
-                n("setTimestampCalendar", () -> ForTests.testNull("name", ex(ps -> ps.setTimestamp    (null, ts, c                  )))),
-                n("setNull"             , () -> ForTests.testNull("name", ex(ps -> ps.setNull         (null, Types.VARCHAR          )))),
-                n("setNull-2"           , () -> ForTests.testNull("name", ex(ps -> ps.setNull         (null, Types.VARCHAR, str     ))))
+                n("setBoolean-false"    , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean       (null, false                  )))),
+                n("setBoolean-true"     , () -> ForTests.testNull("name", ex(ps -> ps.setBoolean       (null, true                   )))),
+                n("setByte"             , () -> ForTests.testNull("name", ex(ps -> ps.setByte          (null, (byte ) 123            )))),
+                n("setShort"            , () -> ForTests.testNull("name", ex(ps -> ps.setShort         (null, (short) 123            )))),
+                n("setInt"              , () -> ForTests.testNull("name", ex(ps -> ps.setInt           (null, 123                    )))),
+                n("setOptInt"           , () -> ForTests.testNull("name", ex(ps -> ps.setInt           (null, OptionalInt.of(123)    )))),
+                n("setLong"             , () -> ForTests.testNull("name", ex(ps -> ps.setLong          (null, 123L                   )))),
+                n("setOptLong"          , () -> ForTests.testNull("name", ex(ps -> ps.setLong          (null, OptionalLong.of(123)   )))),
+                n("setFloat"            , () -> ForTests.testNull("name", ex(ps -> ps.setFloat         (null, 123F                   )))),
+                n("setDouble"           , () -> ForTests.testNull("name", ex(ps -> ps.setDouble        (null, 123D                   )))),
+                n("setOptDouble"        , () -> ForTests.testNull("name", ex(ps -> ps.setDouble        (null, OptionalDouble.of(123D))))),
+                n("setBigDecimal"       , () -> ForTests.testNull("name", ex(ps -> ps.setBigDecimal    (null, BigDecimal.TWO         )))),
+                n("setString"           , () -> ForTests.testNull("name", ex(ps -> ps.setString        (null, "foo"                  )))),
+                n("setNString"          , () -> ForTests.testNull("name", ex(ps -> ps.setNString       (null, "foo"                  )))),
+                n("setBlob-Blob"        , () -> ForTests.testNull("name", ex(ps -> ps.setBytes         (null, "foo".getBytes()       )))),
+                n("setURL"              , () -> ForTests.testNull("name", ex(ps -> ps.setURL           (null, AURL                   )))),
+                n("setRef"              , () -> ForTests.testNull("name", ex(ps -> ps.setRef           (null, ref()                  )))),
+                n("setRowId"            , () -> ForTests.testNull("name", ex(ps -> ps.setRowId         (null, rowid()                )))),
+                n("setStruct"           , () -> ForTests.testNull("name", ex(ps -> ps.setStruct        (null, struct()               )))),
+                n("setLocalDate"        , () -> ForTests.testNull("name", ex(ps -> ps.setLocalDate     (null, LD                     )))),
+                n("setLocalTime"        , () -> ForTests.testNull("name", ex(ps -> ps.setLocalTime     (null, LT                     )))),
+                n("setLocalDateTime"    , () -> ForTests.testNull("name", ex(ps -> ps.setLocalDateTime (null, LDT                    )))),
+                n("setOffsetDateTime"   , () -> ForTests.testNull("name", ex(ps -> ps.setOffsetDateTime(null, ODT                    )))),
+                n("setZonedDateTime"    , () -> ForTests.testNull("name", ex(ps -> ps.setZonedDateTime (null, ZDT                    )))),
+                n("setOffsetTime"       , () -> ForTests.testNull("name", ex(ps -> ps.setOffsetTime    (null, OT                     )))),
+                n("setInstant"          , () -> ForTests.testNull("name", ex(ps -> ps.setInstant       (null, INS                    )))),
+                n("setDate"             , () -> ForTests.testNull("name", ex(ps -> ps.setDate          (null, D                      )))),
+                n("setTime"             , () -> ForTests.testNull("name", ex(ps -> ps.setTime          (null, T                      )))),
+                n("setTimestamp"        , () -> ForTests.testNull("name", ex(ps -> ps.setTimestamp     (null, TS                     )))),
+                n("setDateCalendar"     , () -> ForTests.testNull("name", ex(ps -> ps.setDate          (null, D , GC                 )))),
+                n("setTimeCalendar"     , () -> ForTests.testNull("name", ex(ps -> ps.setTime          (null, T , GC                 )))),
+                n("setTimestampCalendar", () -> ForTests.testNull("name", ex(ps -> ps.setTimestamp     (null, TS, GC                 )))),
+                n("setArray"            , () -> ForTests.testNull("name", ex(ps -> ps.setArray         (null, a(ps)                  )))),
+                n("setSQLXML"           , () -> ForTests.testNull("name", ex(ps -> ps.setSQLXML        (null, s(ps)                  )))),
+                n("setNull"             , () -> ForTests.testNull("name", ex(ps -> ps.setNull          (null, Types.VARCHAR          )))),
+                n("setNull-2"           , () -> ForTests.testNull("name", ex(ps -> ps.setNull          (null, Types.VARCHAR, str     ))))
         );
     }
 
@@ -297,89 +336,128 @@ public class BadParameterStatementTest {
     }
 
     @TestFactory
+    @SuppressWarnings("deprecation")
     public Stream<DynamicTest> testSimpleEmpties() {
         var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
         return Stream.of(
-                n("setBoolean-false",() -> testBad("", ex(ps -> ps.setBoolean      ("", false                             )))),
-                n("setBoolean-true" ,() -> testBad("", ex(ps -> ps.setBoolean      ("", true                              )))),
-                n("setByte"         ,() -> testBad("", ex(ps -> ps.setByte         ("", (byte ) 123                       )))),
-                n("setShort"        ,() -> testBad("", ex(ps -> ps.setShort        ("", (short) 123                       )))),
-                n("setInt"          ,() -> testBad("", ex(ps -> ps.setInt          ("", 123                               )))),
-                n("setOptInt"       ,() -> testBad("", ex(ps -> ps.setInt          ("", OptionalInt.of(123)               )))),
-                n("setLong"         ,() -> testBad("", ex(ps -> ps.setLong         ("", 123L                              )))),
-                n("setOptLong"      ,() -> testBad("", ex(ps -> ps.setLong         ("", OptionalLong.of(123)              )))),
-                n("setFloat"        ,() -> testBad("", ex(ps -> ps.setFloat        ("", 123F                              )))),
-                n("setDouble"       ,() -> testBad("", ex(ps -> ps.setDouble       ("", 123D                              )))),
-                n("setOptDouble"    ,() -> testBad("", ex(ps -> ps.setDouble       ("", OptionalDouble.of(123D)           )))),
-                n("setBigDecimal"   ,() -> testBad("", ex(ps -> ps.setBigDecimal   ("", BigDecimal.TWO                    )))),
-                n("setString"       ,() -> testBad("", ex(ps -> ps.setString       ("", "foo"                             )))),
-                n("setNString"      ,() -> testBad("", ex(ps -> ps.setNString      ("", "foo"                             )))),
-                n("setBlob-Blob"    ,() -> testBad("", ex(ps -> ps.setBytes        ("", "foo".getBytes()                  )))),
-                n("setURL"          ,() -> testBad("", ex(ps -> ps.setURL          ("", new URI("http://0.0.0.0/").toURL())))),
-                n("setRef"          ,() -> testBad("", ex(ps -> ps.setRef          ("", ref()                             )))),
-                n("setRowId"        ,() -> testBad("", ex(ps -> ps.setRowId        ("", rowid()                           )))),
-                n("setLocalDate"    ,() -> testBad("", ex(ps -> ps.setLocalDate    ("", LocalDate.of(2026, 1, 1)          )))),
-                n("setLocalTime"    ,() -> testBad("", ex(ps -> ps.setLocalTime    ("", LocalTime.of(10, 0, 0)            )))),
-                n("setLocalDateTime",() -> testBad("", ex(ps -> ps.setLocalDateTime("", d                                 )))),
-                n("setNull"         ,() -> testBad("", ex(ps -> ps.setNull         ("", Types.VARCHAR                     )))),
-                n("setNull-2"       ,() -> testBad("", ex(ps -> ps.setNull         ("", Types.VARCHAR, "foo"              ))))
+                n("setBoolean-false"    , () -> testBad("", ex(ps -> ps.setBoolean       ("", false                  )))),
+                n("setBoolean-true"     , () -> testBad("", ex(ps -> ps.setBoolean       ("", true                   )))),
+                n("setByte"             , () -> testBad("", ex(ps -> ps.setByte          ("", (byte ) 123            )))),
+                n("setShort"            , () -> testBad("", ex(ps -> ps.setShort         ("", (short) 123            )))),
+                n("setInt"              , () -> testBad("", ex(ps -> ps.setInt           ("", 123                    )))),
+                n("setOptInt"           , () -> testBad("", ex(ps -> ps.setInt           ("", OptionalInt.of(123)    )))),
+                n("setLong"             , () -> testBad("", ex(ps -> ps.setLong          ("", 123L                   )))),
+                n("setOptLong"          , () -> testBad("", ex(ps -> ps.setLong          ("", OptionalLong.of(123)   )))),
+                n("setFloat"            , () -> testBad("", ex(ps -> ps.setFloat         ("", 123F                   )))),
+                n("setDouble"           , () -> testBad("", ex(ps -> ps.setDouble        ("", 123D                   )))),
+                n("setOptDouble"        , () -> testBad("", ex(ps -> ps.setDouble        ("", OptionalDouble.of(123D))))),
+                n("setBigDecimal"       , () -> testBad("", ex(ps -> ps.setBigDecimal    ("", BigDecimal.TWO         )))),
+                n("setString"           , () -> testBad("", ex(ps -> ps.setString        ("", "foo"                  )))),
+                n("setNString"          , () -> testBad("", ex(ps -> ps.setNString       ("", "foo"                  )))),
+                n("setBlob-Blob"        , () -> testBad("", ex(ps -> ps.setBytes         ("", "foo".getBytes()       )))),
+                n("setURL"              , () -> testBad("", ex(ps -> ps.setURL           ("", AURL                   )))),
+                n("setRef"              , () -> testBad("", ex(ps -> ps.setRef           ("", ref()                  )))),
+                n("setRowId"            , () -> testBad("", ex(ps -> ps.setRowId         ("", rowid()                )))),
+                n("setStruct"           , () -> testBad("", ex(ps -> ps.setStruct        ("", struct()               )))),
+                n("setLocalDate"        , () -> testBad("", ex(ps -> ps.setLocalDate     ("", LD                     )))),
+                n("setLocalTime"        , () -> testBad("", ex(ps -> ps.setLocalTime     ("", LT                     )))),
+                n("setLocalDateTime"    , () -> testBad("", ex(ps -> ps.setLocalDateTime ("", LDT                    )))),
+                n("setOffsetDateTime"   , () -> testBad("", ex(ps -> ps.setOffsetDateTime("", ODT                    )))),
+                n("setZonedDateTime"    , () -> testBad("", ex(ps -> ps.setZonedDateTime ("", ZDT                    )))),
+                n("setOffsetTime"       , () -> testBad("", ex(ps -> ps.setOffsetTime    ("", OT                     )))),
+                n("setInstant"          , () -> testBad("", ex(ps -> ps.setInstant       ("", INS                    )))),
+                n("setDate"             , () -> testBad("", ex(ps -> ps.setDate          ("", D                      )))),
+                n("setTime"             , () -> testBad("", ex(ps -> ps.setTime          ("", T                      )))),
+                n("setTimestamp"        , () -> testBad("", ex(ps -> ps.setTimestamp     ("", TS                     )))),
+                n("setDateCalendar"     , () -> testBad("", ex(ps -> ps.setDate          ("", D , GC                 )))),
+                n("setTimeCalendar"     , () -> testBad("", ex(ps -> ps.setTime          ("", T , GC                 )))),
+                n("setTimestampCalendar", () -> testBad("", ex(ps -> ps.setTimestamp     ("", TS, GC                 )))),
+                n("setArray"            , () -> testBad("", ex(ps -> ps.setArray         ("", a(ps)                  )))),
+                n("setSQLXML"           , () -> testBad("", ex(ps -> ps.setSQLXML        ("", s(ps)                  )))),
+                n("setNull"             , () -> testBad("", ex(ps -> ps.setNull          ("", Types.VARCHAR          )))),
+                n("setNull-2"           , () -> testBad("", ex(ps -> ps.setNull          ("", Types.VARCHAR, "foo"   ))))
         );
     }
 
     @TestFactory
+    @SuppressWarnings("deprecation")
     public Stream<DynamicTest> testSimpleBads() {
-        var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
         return Stream.of(
-                n("setBoolean-false", () -> testBad("foo", ex(ps -> ps.setBoolean      ("foo", false                             )))),
-                n("setBoolean-true" , () -> testBad("foo", ex(ps -> ps.setBoolean      ("foo", true                              )))),
-                n("setByte"         , () -> testBad("foo", ex(ps -> ps.setByte         ("foo", (byte ) 123                       )))),
-                n("setShort"        , () -> testBad("foo", ex(ps -> ps.setShort        ("foo", (short) 123                       )))),
-                n("setInt"          , () -> testBad("foo", ex(ps -> ps.setInt          ("foo", 123                               )))),
-                n("setOptInt"       , () -> testBad("foo", ex(ps -> ps.setInt          ("foo", OptionalInt.of(123)               )))),
-                n("setLong"         , () -> testBad("foo", ex(ps -> ps.setLong         ("foo", 123L                              )))),
-                n("setOptLong"      , () -> testBad("foo", ex(ps -> ps.setLong         ("foo", OptionalLong.of(123)              )))),
-                n("setFloat"        , () -> testBad("foo", ex(ps -> ps.setFloat        ("foo", 123F                              )))),
-                n("setDouble"       , () -> testBad("foo", ex(ps -> ps.setDouble       ("foo", 123D                              )))),
-                n("setOptDouble"    , () -> testBad("foo", ex(ps -> ps.setDouble       ("foo", OptionalDouble.of(123D)           )))),
-                n("setBigDecimal"   , () -> testBad("foo", ex(ps -> ps.setBigDecimal   ("foo", BigDecimal.TWO                    )))),
-                n("setString"       , () -> testBad("foo", ex(ps -> ps.setString       ("foo", "foo"                             )))),
-                n("setNString"      , () -> testBad("foo", ex(ps -> ps.setNString      ("foo", "foo"                             )))),
-                n("setBlob-Blob"    , () -> testBad("foo", ex(ps -> ps.setBytes        ("foo", "foo".getBytes()                  )))),
-                n("setURL"          , () -> testBad("foo", ex(ps -> ps.setURL          ("foo", new URI("http://0.0.0.0/").toURL())))),
-                n("setRef"          , () -> testBad("foo", ex(ps -> ps.setRef          ("foo", ref()                             )))),
-                n("setRowId"        , () -> testBad("foo", ex(ps -> ps.setRowId        ("foo", rowid()                           )))),
-                n("setLocalDate"    , () -> testBad("foo", ex(ps -> ps.setLocalDate    ("foo", LocalDate.of(2026, 1, 1)          )))),
-                n("setLocalTime"    , () -> testBad("foo", ex(ps -> ps.setLocalTime    ("foo", LocalTime.of(10, 0, 0)            )))),
-                n("setLocalDateTime", () -> testBad("foo", ex(ps -> ps.setLocalDateTime("foo", d                                 )))),
-                n("setNull"         , () -> testBad("foo", ex(ps -> ps.setNull         ("foo", Types.VARCHAR                     )))),
-                n("setNull-2"       , () -> testBad("foo", ex(ps -> ps.setNull         ("foo", Types.VARCHAR, "foo"              ))))
+                n("setBoolean-false"    , () -> testBad("foo", ex(ps -> ps.setBoolean       ("foo", false                  )))),
+                n("setBoolean-true"     , () -> testBad("foo", ex(ps -> ps.setBoolean       ("foo", true                   )))),
+                n("setByte"             , () -> testBad("foo", ex(ps -> ps.setByte          ("foo", (byte ) 123            )))),
+                n("setShort"            , () -> testBad("foo", ex(ps -> ps.setShort         ("foo", (short) 123            )))),
+                n("setInt"              , () -> testBad("foo", ex(ps -> ps.setInt           ("foo", 123                    )))),
+                n("setOptInt"           , () -> testBad("foo", ex(ps -> ps.setInt           ("foo", OptionalInt.of(123)    )))),
+                n("setLong"             , () -> testBad("foo", ex(ps -> ps.setLong          ("foo", 123L                   )))),
+                n("setOptLong"          , () -> testBad("foo", ex(ps -> ps.setLong          ("foo", OptionalLong.of(123)   )))),
+                n("setFloat"            , () -> testBad("foo", ex(ps -> ps.setFloat         ("foo", 123F                   )))),
+                n("setDouble"           , () -> testBad("foo", ex(ps -> ps.setDouble        ("foo", 123D                   )))),
+                n("setOptDouble"        , () -> testBad("foo", ex(ps -> ps.setDouble        ("foo", OptionalDouble.of(123D))))),
+                n("setBigDecimal"       , () -> testBad("foo", ex(ps -> ps.setBigDecimal    ("foo", BigDecimal.TWO         )))),
+                n("setString"           , () -> testBad("foo", ex(ps -> ps.setString        ("foo", "foo"                  )))),
+                n("setNString"          , () -> testBad("foo", ex(ps -> ps.setNString       ("foo", "foo"                  )))),
+                n("setBlob-Blob"        , () -> testBad("foo", ex(ps -> ps.setBytes         ("foo", "foo".getBytes()       )))),
+                n("setURL"              , () -> testBad("foo", ex(ps -> ps.setURL           ("foo", AURL                   )))),
+                n("setRef"              , () -> testBad("foo", ex(ps -> ps.setRef           ("foo", ref()                  )))),
+                n("setRowId"            , () -> testBad("foo", ex(ps -> ps.setRowId         ("foo", rowid()                )))),
+                n("setStruct"           , () -> testBad("foo", ex(ps -> ps.setStruct        ("foo", struct()               )))),
+                n("setLocalDate"        , () -> testBad("foo", ex(ps -> ps.setLocalDate     ("foo", LD                     )))),
+                n("setLocalTime"        , () -> testBad("foo", ex(ps -> ps.setLocalTime     ("foo", LT                     )))),
+                n("setLocalDateTime"    , () -> testBad("foo", ex(ps -> ps.setLocalDateTime ("foo", LDT                    )))),
+                n("setOffsetTime"       , () -> testBad("foo", ex(ps -> ps.setOffsetTime    ("foo", OT                     )))),
+                n("setOffsetDateTime"   , () -> testBad("foo", ex(ps -> ps.setOffsetDateTime("foo", ODT                    )))),
+                n("setZonedDateTime"    , () -> testBad("foo", ex(ps -> ps.setZonedDateTime ("foo", ZDT                    )))),
+                n("setInstant-"         , () -> testBad("foo", ex(ps -> ps.setInstant       ("foo", INS                    )))),
+                n("setDate"             , () -> testBad("foo", ex(ps -> ps.setDate          ("foo", D                      )))),
+                n("setTime"             , () -> testBad("foo", ex(ps -> ps.setTime          ("foo", T                      )))),
+                n("setTimestamp"        , () -> testBad("foo", ex(ps -> ps.setTimestamp     ("foo", TS                     )))),
+                n("setDateCalendar"     , () -> testBad("foo", ex(ps -> ps.setDate          ("foo", D , GC                 )))),
+                n("setTimeCalendar"     , () -> testBad("foo", ex(ps -> ps.setTime          ("foo", T , GC                 )))),
+                n("setTimestampCalendar", () -> testBad("foo", ex(ps -> ps.setTimestamp     ("foo", TS, GC                 )))),
+                n("setArray"            , () -> testBad("foo", ex(ps -> ps.setArray         ("foo", a(ps)                  )))),
+                n("setSQLXML"           , () -> testBad("foo", ex(ps -> ps.setSQLXML        ("foo", s(ps)                  )))),
+                n("setNull"             , () -> testBad("foo", ex(ps -> ps.setNull          ("foo", Types.VARCHAR          )))),
+                n("setNull-2"           , () -> testBad("foo", ex(ps -> ps.setNull          ("foo", Types.VARCHAR, "foo"   ))))
         );
     }
 
     @TestFactory
+    @SuppressWarnings("deprecation")
     public Stream<DynamicTest> testSimpleBadIndexes() {
-        var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
         return Stream.of(0, -1, 2).flatMap(idx -> Stream.of(
-                n("setBoolean-false-" + idx, () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, false                   )))),
-                n("setBoolean-true-"  + idx, () -> testBad(idx, ex(ps -> ps.setBoolean      (idx, true                    )))),
-                n("setByte-"          + idx, () -> testBad(idx, ex(ps -> ps.setByte         (idx, (byte ) 123             )))),
-                n("setShort-"         + idx, () -> testBad(idx, ex(ps -> ps.setShort        (idx, (short) 123             )))),
-                n("setInt-"           + idx, () -> testBad(idx, ex(ps -> ps.setInt          (idx, 123                     )))),
-                n("setOptInt-"        + idx, () -> testBad(idx, ex(ps -> ps.setInt          (idx, OptionalInt.of(123)     )))),
-                n("setLong-"          + idx, () -> testBad(idx, ex(ps -> ps.setLong         (idx, 123L                    )))),
-                n("setOptLong-"       + idx, () -> testBad(idx, ex(ps -> ps.setLong         (idx, OptionalLong.of(123)    )))),
-                n("setFloat-"         + idx, () -> testBad(idx, ex(ps -> ps.setFloat        (idx, 123F                    )))),
-                n("setDouble-"        + idx, () -> testBad(idx, ex(ps -> ps.setDouble       (idx, 123D                    )))),
-                n("setOptDouble-"     + idx, () -> testBad(idx, ex(ps -> ps.setDouble       (idx, OptionalDouble.of(123D) )))),
-                n("setBigDecimal-"    + idx, () -> testBad(idx, ex(ps -> ps.setBigDecimal   (idx, BigDecimal.TWO          )))),
-                n("setString-"        + idx, () -> testBad(idx, ex(ps -> ps.setString       (idx, "foo"                   )))),
-                n("setNString-"       + idx, () -> testBad(idx, ex(ps -> ps.setNString      (idx, "foo"                   )))),
-                n("setBlob-Blob-"     + idx, () -> testBad(idx, ex(ps -> ps.setBytes        (idx, "foo".getBytes()        )))),
-                n("setLocalDate-"     + idx, () -> testBad(idx, ex(ps -> ps.setLocalDate    (idx, LocalDate.of(2026, 1, 1))))),
-                n("setLocalTime-"     + idx, () -> testBad(idx, ex(ps -> ps.setLocalTime    (idx, LocalTime.of(10, 0, 0)  )))),
-                n("setLocalDateTime-" + idx, () -> testBad(idx, ex(ps -> ps.setLocalDateTime(idx, d                       )))),
-                n("setNull-"          + idx, () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR           )))),
-                n("setNull-2-"        + idx, () -> testBad(idx, ex(ps -> ps.setNull         (idx, Types.VARCHAR, "foo"    ))))
+                n("setBoolean-false-"     + idx, () -> testBad(idx, ex(ps -> ps.setBoolean       (idx, false                  )))),
+                n("setBoolean-true-"      + idx, () -> testBad(idx, ex(ps -> ps.setBoolean       (idx, true                   )))),
+                n("setByte-"              + idx, () -> testBad(idx, ex(ps -> ps.setByte          (idx, (byte ) 123            )))),
+                n("setShort-"             + idx, () -> testBad(idx, ex(ps -> ps.setShort         (idx, (short) 123            )))),
+                n("setInt-"               + idx, () -> testBad(idx, ex(ps -> ps.setInt           (idx, 123                    )))),
+                n("setOptInt-"            + idx, () -> testBad(idx, ex(ps -> ps.setInt           (idx, OptionalInt.of(123)    )))),
+                n("setLong-"              + idx, () -> testBad(idx, ex(ps -> ps.setLong          (idx, 123L                   )))),
+                n("setOptLong-"           + idx, () -> testBad(idx, ex(ps -> ps.setLong          (idx, OptionalLong.of(123)   )))),
+                n("setFloat-"             + idx, () -> testBad(idx, ex(ps -> ps.setFloat         (idx, 123F                   )))),
+                n("setDouble-"            + idx, () -> testBad(idx, ex(ps -> ps.setDouble        (idx, 123D                   )))),
+                n("setOptDouble-"         + idx, () -> testBad(idx, ex(ps -> ps.setDouble        (idx, OptionalDouble.of(123D))))),
+                n("setBigDecimal-"        + idx, () -> testBad(idx, ex(ps -> ps.setBigDecimal    (idx, BigDecimal.TWO         )))),
+                n("setString-"            + idx, () -> testBad(idx, ex(ps -> ps.setString        (idx, "foo"                  )))),
+                n("setNString-"           + idx, () -> testBad(idx, ex(ps -> ps.setNString       (idx, "foo"                  )))),
+                n("setBlob-Blob-"         + idx, () -> testBad(idx, ex(ps -> ps.setBytes         (idx, "foo".getBytes()       )))),
+                n("setLocalDate-"         + idx, () -> testBad(idx, ex(ps -> ps.setLocalDate     (idx, LD                     )))),
+                n("setLocalTime-"         + idx, () -> testBad(idx, ex(ps -> ps.setLocalTime     (idx, LT                     )))),
+                n("setLocalDateTime-"     + idx, () -> testBad(idx, ex(ps -> ps.setLocalDateTime (idx, LDT                    )))),
+                n("setOffsetTime-"        + idx, () -> testBad(idx, ex(ps -> ps.setOffsetTime    (idx, OT                     )))),
+                n("setOffsetDateTime-"    + idx, () -> testBad(idx, ex(ps -> ps.setOffsetDateTime(idx, ODT                    )))),
+                n("setZonedDateTime-"     + idx, () -> testBad(idx, ex(ps -> ps.setZonedDateTime (idx, ZDT                    )))),
+                n("setInstant-"           + idx, () -> testBad(idx, ex(ps -> ps.setInstant       (idx, INS                    )))),
+                n("setDate-"              + idx, () -> testBad(idx, ex(ps -> ps.setDate          (idx, D                      )))),
+                n("setTime-"              + idx, () -> testBad(idx, ex(ps -> ps.setTime          (idx, T                      )))),
+                n("setTimestamp-"         + idx, () -> testBad(idx, ex(ps -> ps.setTimestamp     (idx, TS                     )))),
+                n("setDateCalendar-"      + idx, () -> testBad(idx, ex(ps -> ps.setDate          (idx, D , GC                 )))),
+                n("setTimeCalendar-"      + idx, () -> testBad(idx, ex(ps -> ps.setTime          (idx, T , GC                 )))),
+                n("setTimestampCalendar-" + idx, () -> testBad(idx, ex(ps -> ps.setTimestamp     (idx, TS, GC                 )))),
+                n("setArray-"             + idx, () -> testBad(idx, ex(ps -> ps.setArray         (idx, a(ps)                  )))),
+                n("setSQLXML-"            + idx, () -> testBad(idx, ex(ps -> ps.setSQLXML        (idx, s(ps)                  )))),
+                n("setNull-"              + idx, () -> testBad(idx, ex(ps -> ps.setNull          (idx, Types.VARCHAR          )))),
+                n("setNull-2-"            + idx, () -> testBad(idx, ex(ps -> ps.setNull          (idx, Types.VARCHAR, "foo"   ))))
         ));
     }
 
@@ -502,120 +580,114 @@ public class BadParameterStatementTest {
         return Stream.of(1, 2, 3, 4).flatMap(t -> Stream.of(
                 n("setAsciiStream-1-"           + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t)     )))),
                 n("setAsciiStream-2-"           + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t)     )))),
-                n("setAsciiStream-3-"           + t, () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()       )))),
                 n("setAsciiStream-int-1-"       + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t), 10 )))),
                 n("setAsciiStream-int-2-"       + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t), 10 )))),
-                n("setAsciiStream-int-3-"       + t, () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()  , 10 )))),
                 n("setAsciiStream-long-1-"      + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t), 10L)))),
                 n("setAsciiStream-long-2-"      + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t), 10L)))),
-                n("setAsciiStream-long-3-"      + t, () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()  , 10L)))),
                 n("setBinaryStream-1-"          + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t)     )))),
                 n("setBinaryStream-2-"          + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t)     )))),
-                n("setBinaryStream-3-"          + t, () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()       )))),
                 n("setBinaryStream-int-1-"      + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t), 10 )))),
                 n("setBinaryStream-int-2-"      + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t), 10 )))),
-                n("setBinaryStream-int-3-"      + t, () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()  , 10 )))),
                 n("setBinaryStream-long-1-"     + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t), 10L)))),
                 n("setBinaryStream-long-2-"     + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t), 10L)))),
-                n("setBinaryStream-long-3-"     + t, () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()  , 10L)))),
                 n("setCharacterStream-1-"       + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t)     )))),
                 n("setCharacterStream-2-"       + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t)     )))),
-                n("setCharacterStream-3-"       + t, () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()       )))),
                 n("setCharacterStream-int-1-"   + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t), 10 )))),
                 n("setCharacterStream-int-2-"   + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t), 10 )))),
-                n("setCharacterStream-int-3-"   + t, () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()  , 10 )))),
                 n("setCharacterStream-long-1-"  + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t), 10L)))),
                 n("setCharacterStream-long-2-"  + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t), 10L)))),
-                n("setCharacterStream-long-3-"  + t, () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()  , 10L)))),
                 n("setNCharacterStream-1-"      + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream(1    , rx(t)     )))),
                 n("setNCharacterStream-2-"      + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream("bar", rx(t)     )))),
-                n("setNCharacterStream-3-"      + t, () -> testThrows(6, ex2(ps -> ps.setNCharacterStream("bar", r()       )))),
                 n("setNCharacterStream-long-1-" + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream(1    , rx(t), 10L)))),
                 n("setNCharacterStream-long-2-" + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream("bar", rx(t), 10L)))),
-                n("setNCharacterStream-long-3-" + t, () -> testThrows(6, ex2(ps -> ps.setNCharacterStream("bar", r()  , 10L)))),
                 n("setBlob-InputStream-1-"      + t, () -> testThrows(t, ex (ps -> ps.setBlob            (1    , ix(t)     )))),
                 n("setBlob-InputStream-2-"      + t, () -> testThrows(t, ex (ps -> ps.setBlob            ("bar", ix(t)     )))),
-                n("setBlob-InputStream-3-"      + t, () -> testThrows(5, ex2(ps -> ps.setBlob            ("bar", i()       )))),
                 n("setBlob-InputStream-long-1-" + t, () -> testThrows(t, ex (ps -> ps.setBlob            (1    , ix(t), 10L)))),
                 n("setBlob-InputStream-long-2-" + t, () -> testThrows(t, ex (ps -> ps.setBlob            ("bar", ix(t), 10L)))),
-                n("setBlob-InputStream-long-3-" + t, () -> testThrows(5, ex2(ps -> ps.setBlob            ("bar", i()  , 10L)))),
                 n("setClob-Reader-1-"           + t, () -> testThrows(t, ex (ps -> ps.setClob            (1    , rx(t)     )))),
                 n("setClob-Reader-2-"           + t, () -> testThrows(t, ex (ps -> ps.setClob            ("bar", rx(t)     )))),
-                n("setClob-Reader-3-"           + t, () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()       )))),
                 n("setClob-Reader-long-1-"      + t, () -> testThrows(t, ex (ps -> ps.setClob            (1    , rx(t), 10L)))),
                 n("setClob-Reader-long-2-"      + t, () -> testThrows(t, ex (ps -> ps.setClob            ("bar", rx(t), 10L)))),
-                n("setClob-Reader-long-3-"      + t, () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()  , 10L)))),
                 n("setNClob-Reader-1-"          + t, () -> testThrows(t, ex (ps -> ps.setNClob           (1    , rx(t)     )))),
                 n("setNClob-Reader-2-"          + t, () -> testThrows(t, ex (ps -> ps.setNClob           ("bar", rx(t)     )))),
-                n("setNClob-Reader-3-"          + t, () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()       )))),
                 n("setNClob-Reader-long-1-"     + t, () -> testThrows(t, ex (ps -> ps.setNClob           (1    , rx(t), 10L)))),
-                n("setNClob-Reader-long-2-"     + t, () -> testThrows(t, ex (ps -> ps.setNClob           ("bar", rx(t), 10L)))),
-                n("setNClob-Reader-long-3-"     + t, () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()  , 10L))))
+                n("setNClob-Reader-long-2-"     + t, () -> testThrows(t, ex (ps -> ps.setNClob           ("bar", rx(t), 10L))))
+        ));
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testInputStreamReaderThrowsExceptionIfRepeated() {
+        return Stream.of(
+                n("setAsciiStream-3-X"          , () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()       )))),
+                n("setAsciiStream-int-3-X"      , () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()  , 10 )))),
+                n("setAsciiStream-long-3-X"     , () -> testThrows(5, ex2(ps -> ps.setAsciiStream     ("bar", i()  , 10L)))),
+                n("setBinaryStream-3-X"         , () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()       )))),
+                n("setBinaryStream-int-3-X"     , () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()  , 10 )))),
+                n("setBinaryStream-long-3-X"    , () -> testThrows(5, ex2(ps -> ps.setBinaryStream    ("bar", i()  , 10L)))),
+                n("setCharacterStream-3-X"      , () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()       )))),
+                n("setCharacterStream-int-3-X"  , () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()  , 10 )))),
+                n("setCharacterStream-long-3-X" , () -> testThrows(6, ex2(ps -> ps.setCharacterStream ("bar", r()  , 10L)))),
+                n("setNCharacterStream-3-X"     , () -> testThrows(6, ex2(ps -> ps.setNCharacterStream("bar", r()       )))),
+                n("setNCharacterStream-long-3-X", () -> testThrows(6, ex2(ps -> ps.setNCharacterStream("bar", r()  , 10L)))),
+                n("setBlob-InputStream-3-X"     , () -> testThrows(5, ex2(ps -> ps.setBlob            ("bar", i()       )))),
+                n("setBlob-InputStream-long-3-X", () -> testThrows(5, ex2(ps -> ps.setBlob            ("bar", i()  , 10L)))),
+                n("setClob-Reader-3-X"          , () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()       )))),
+                n("setClob-Reader-long-3-X"     , () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()  , 10L)))),
+                n("setNClob-Reader-3-X"         , () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()       )))),
+                n("setNClob-Reader-long-3-X"    , () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()  , 10L))))
+        );
+    }
+
+    @TestFactory
+    @SuppressWarnings("deprecation")
+    public Stream<DynamicTest> testUnsupportedMethodsIntKeys() throws Exception {
+        var url = new URI("http://0.0.0.0/").toURL();
+        return Stream.of(1, 0, -1, 2).flatMap(idx -> Stream.of(
+                n("setUnicodeStream-null-"     + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx, null, 10)))),
+                n("setUnicodeStream-instance-" + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx, i() , 10)))),
+                n("setURL-null-"               + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx, null    )))),
+                n("setURL-instance-"           + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx, url     )))),
+                n("setRef-null-"               + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx, null    )))),
+                n("setRef-instance-"           + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx, ref()   )))),
+                n("setRowId-null-"             + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx, null    )))),
+                n("setRowId-instance-"         + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx, rowid() )))),
+                n("setStruct-null-"            + idx, () -> testUnsupported("Struct"       , ex (ps -> ps.setStruct       (idx, null    )))),
+                n("setStruct-instance-"        + idx, () -> testUnsupported("Struct"       , ex (ps -> ps.setStruct       (idx, struct()))))
         ));
     }
 
     @TestFactory
     @SuppressWarnings("deprecation")
-    public Stream<DynamicTest> testUnsupportedMethods() throws Exception {
+    public Stream<DynamicTest> testUnsupportedMethodsStringKeys() throws Exception {
         var url = new URI("http://0.0.0.0/").toURL();
-        return Stream.of(1, 0, -1, 2).flatMap(idx -> Stream.of(
-                n("setUnicodeStream-null-1-"     + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx  , null, 10)))),
-                n("setUnicodeStream-null-2-"     + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream("bar", null, 10)))),
-                n("setUnicodeStream-null-3-"     + idx, () -> testUnsupported("unicodeStream", ex2(ps -> ps.setUnicodeStream("bar", null, 10)))),
-                n("setUnicodeStream-instance-1-" + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx  , i() , 10)))),
-                n("setUnicodeStream-instance-2-" + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream("bar", i() , 10)))),
-                n("setUnicodeStream-instance-3-" + idx, () -> testThrows     (5              , ex2(ps -> ps.setUnicodeStream("bar", i() , 10)))),
-                n("setURL-null-1-"               + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx  , null    )))),
-                n("setURL-null-2-"               + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          ("bar", null    )))),
-                n("setURL-null-3-"               + idx, () -> testUnsupported("url"          , ex2(ps -> ps.setURL          ("bar", null    )))),
-                n("setURL-instance-1-"           + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx  , url     )))),
-                n("setURL-instance-1-"           + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          ("bar", url     )))),
-                n("setURL-instance-1-"           + idx, () -> testUnsupported("url"          , ex2(ps -> ps.setURL          ("bar", url     )))),
-                n("setRef-null-1-"               + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx  , null    )))),
-                n("setRef-null-2-"               + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          ("bar", null    )))),
-                n("setRef-null-3-"               + idx, () -> testUnsupported("ref"          , ex2(ps -> ps.setRef          ("bar", null    )))),
-                n("setRef-instance-1-"           + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx  , ref()   )))),
-                n("setRef-instance-2-"           + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          ("bar", ref()   )))),
-                n("setRef-instance-3-"           + idx, () -> testUnsupported("ref"          , ex2(ps -> ps.setRef          ("bar", ref()   )))),
-                n("setRowId-null-1-"             + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx  , null    )))),
-                n("setRowId-null-2-"             + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        ("bar", null    )))),
-                n("setRowId-null-3-"             + idx, () -> testUnsupported("rowId"        , ex2(ps -> ps.setRowId        ("bar", null    )))),
-                n("setRowId-instance-1-"         + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx  , rowid() )))),
-                n("setRowId-instance-2-"         + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        ("bar", rowid() )))),
-                n("setRowId-instance-3-"         + idx, () -> testUnsupported("rowId"        , ex2(ps -> ps.setRowId        ("bar", rowid() ))))
+        return Stream.of("bar").flatMap(idx -> Stream.of(
+                n("setUnicodeStream-null-1-"     + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx, null, 10)))),
+                n("setUnicodeStream-null-2-"     + idx, () -> testUnsupported("unicodeStream", ex2(ps -> ps.setUnicodeStream(idx, null, 10)))),
+                n("setUnicodeStream-instance-1-" + idx, () -> testUnsupported("unicodeStream", ex (ps -> ps.setUnicodeStream(idx, i() , 10)))),
+                n("setUnicodeStream-instance-2-" + idx, () -> testThrows     (5              , ex2(ps -> ps.setUnicodeStream(idx, i() , 10)))),
+                n("setURL-null-1-"               + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx, null    )))),
+                n("setURL-null-2-"               + idx, () -> testUnsupported("url"          , ex2(ps -> ps.setURL          (idx, null    )))),
+                n("setURL-instance-1-"           + idx, () -> testUnsupported("url"          , ex (ps -> ps.setURL          (idx, url     )))),
+                n("setURL-instance-2-"           + idx, () -> testUnsupported("url"          , ex2(ps -> ps.setURL          (idx, url     )))),
+                n("setRef-null-1-"               + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx, null    )))),
+                n("setRef-null-2-"               + idx, () -> testUnsupported("ref"          , ex2(ps -> ps.setRef          (idx, null    )))),
+                n("setRef-instance-1-"           + idx, () -> testUnsupported("ref"          , ex (ps -> ps.setRef          (idx, ref()   )))),
+                n("setRef-instance-2-"           + idx, () -> testUnsupported("ref"          , ex2(ps -> ps.setRef          (idx, ref()   )))),
+                n("setRowId-null-1-"             + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx, null    )))),
+                n("setRowId-null-2-"             + idx, () -> testUnsupported("rowId"        , ex2(ps -> ps.setRowId        (idx, null    )))),
+                n("setRowId-instance-1-"         + idx, () -> testUnsupported("rowId"        , ex (ps -> ps.setRowId        (idx, rowid() )))),
+                n("setRowId-instance-2-"         + idx, () -> testUnsupported("rowId"        , ex2(ps -> ps.setRowId        (idx, rowid() )))),
+                n("setStruct-null-1-"            + idx, () -> testUnsupported("Struct"       , ex (ps -> ps.setStruct       (idx, null    )))),
+                n("setStruct-null-2-"            + idx, () -> testUnsupported("Struct"       , ex2(ps -> ps.setStruct       (idx, null    )))),
+                n("setStruct-instance-1-"        + idx, () -> testUnsupported("Struct"       , ex (ps -> ps.setStruct       (idx, struct())))),
+                n("setStruct-instance-2-"        + idx, () -> testUnsupported("Struct"       , ex2(ps -> ps.setStruct       (idx, struct()))))
         ));
-    }
-
-    @TestFactory
-    @SuppressWarnings("null")
-    public Stream<DynamicTest> testArrayNullsAndBads() {
-        return Stream.of(
-                n("empty"   , () -> testBad(""   , ex(ps -> ps.setArray(""   , a(ps))))),
-                n("junk"    , () -> testBad("foo", ex(ps -> ps.setArray("foo", a(ps))))),
-                n("zero"    , () -> testBad(0    , ex(ps -> ps.setArray(0    , a(ps))))),
-                n("negative", () -> testBad(-1   , ex(ps -> ps.setArray(-1   , a(ps))))),
-                n("large"   , () -> testBad(2    , ex(ps -> ps.setArray(2    , a(ps)))))
-        );
-    }
-
-    @TestFactory
-    @SuppressWarnings("null")
-    public Stream<DynamicTest> testSQLXMLNullsAndBads() {
-        return Stream.of(
-                n("empty"   , () -> testBad(""   , ex(ps -> ps.setSQLXML(""   , s(ps))))),
-                n("junk"    , () -> testBad("foo", ex(ps -> ps.setSQLXML("foo", s(ps))))),
-                n("zero"    , () -> testBad(0    , ex(ps -> ps.setSQLXML(0    , s(ps))))),
-                n("negative", () -> testBad(-1   , ex(ps -> ps.setSQLXML(-1   , s(ps))))),
-                n("large"   , () -> testBad(2    , ex(ps -> ps.setSQLXML(2    , s(ps)))))
-        );
     }
 
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testObjectsNulls() {
         return Stream.of(
-                n("setArray"          , () -> ForTests.testNull("name", ex(ps -> ps.setArray (null, a(ps)                         )))),
-                n("setSQLXML"         , () -> ForTests.testNull("name", ex(ps -> ps.setSQLXML(null, s(ps)                         )))),
                 n("Simple-name"       , () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0]                   )))),
                 n("Type-name"         , () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0], Types .VARCHAR   )))),
                 n("SQLType-name"      , () -> ForTests.testNull("name", ex(ps -> ps.setObject(null, new byte[0], H2Type.VARCHAR   )))),

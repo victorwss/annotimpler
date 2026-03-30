@@ -20,17 +20,17 @@ public class LimitedReaderTest {
     @DisplayName("Constructor Tests")
     class ConstructorTests {
 
-        @Test
+        @TestFactory
         @DisplayName("Should create instance with valid parameters.")
-        void shouldCreateInstanceWithValidParameters() {
+        Stream<DynamicTest> shouldCreateInstanceWithValidParameters() {
             var wrapped = new StringReader(TEST_DATA);
             var limited = new LimitedReader(wrapped, 50);
-            Assertions.assertAll(
-                    () -> Assertions.assertEquals(50, limited.getMaxSize()),
-                    () -> Assertions.assertEquals(50, limited.getRemaining()),
-                    () -> Assertions.assertEquals(0, limited.getPosition()),
-                    () -> Assertions.assertFalse(limited.isMarkSet()),
-                    () -> Assertions.assertFalse(limited.isClosed())
+            return Stream.of(
+                    DynamicTest.dynamicTest("getMaxSize", () -> Assertions.assertEquals(50, limited.getMaxSize())),
+                    DynamicTest.dynamicTest("getRemaining", () -> Assertions.assertEquals(50, limited.getRemaining())),
+                    DynamicTest.dynamicTest("getPosition", () -> Assertions.assertEquals(0, limited.getPosition())),
+                    DynamicTest.dynamicTest("isMarkSet", () -> Assertions.assertFalse(limited.isMarkSet())),
+                    DynamicTest.dynamicTest("isClosed", () -> Assertions.assertFalse(limited.isClosed()))
             );
         }
 
@@ -388,9 +388,9 @@ public class LimitedReaderTest {
     @DisplayName("Close Operations Tests")
     class CloseOperationsTests {
 
-        @Test
+        @TestFactory
         @DisplayName("Should close wrapped reader.")
-        void shouldCloseWrappedReader() throws IOException {
+        Stream<DynamicTest> shouldCloseWrappedReader() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, true);
             var limited = new LimitedReader(wrapped, 50);
 
@@ -399,17 +399,17 @@ public class LimitedReaderTest {
             Assertions.assertTrue(wrapped.isClosed());
 
             // Trying to do anything after close should throw exception.
-            Assertions.assertAll(
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.read()),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.read(new char[10])),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.read(new char[10], 0, 5)),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.skip(5)),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.mark(50)),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.reset()),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.getMaxSize()),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.getPosition()),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.getRemaining()),
-                    () -> Assertions.assertThrows(IOException.class, () -> limited.isMarkSet())
+            return Stream.of(
+                    DynamicTest.dynamicTest("read()"      , () -> Assertions.assertThrows(IOException.class, () -> limited.read())),
+                    DynamicTest.dynamicTest("read(1)"     , () -> Assertions.assertThrows(IOException.class, () -> limited.read(new char[10]))),
+                    DynamicTest.dynamicTest("read(3)"     , () -> Assertions.assertThrows(IOException.class, () -> limited.read(new char[10], 0, 5))),
+                    DynamicTest.dynamicTest("skip"        , () -> Assertions.assertThrows(IOException.class, () -> limited.skip(5))),
+                    DynamicTest.dynamicTest("mark"        , () -> Assertions.assertThrows(IOException.class, () -> limited.mark(50))),
+                    DynamicTest.dynamicTest("reset"       , () -> Assertions.assertThrows(IOException.class, () -> limited.reset())),
+                    DynamicTest.dynamicTest("getMaxSize"  , () -> Assertions.assertThrows(IOException.class, () -> limited.getMaxSize())),
+                    DynamicTest.dynamicTest("getPosition" , () -> Assertions.assertThrows(IOException.class, () -> limited.getPosition())),
+                    DynamicTest.dynamicTest("getRemaining", () -> Assertions.assertThrows(IOException.class, () -> limited.getRemaining())),
+                    DynamicTest.dynamicTest("isMarkSet"   , () -> Assertions.assertThrows(IOException.class, () -> limited.isMarkSet()))
             );
         }
 

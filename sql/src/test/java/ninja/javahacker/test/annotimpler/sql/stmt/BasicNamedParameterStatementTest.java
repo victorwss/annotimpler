@@ -11,12 +11,18 @@ import module org.junit.jupiter.api;
 
 public class BasicNamedParameterStatementTest {
 
+    public static final List<String> PREPARE_MAIN = List.of(
+                "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
+                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
+                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (2, 'lol' , 'blue', '2026-01-02 16:11:12.123', '<foo>bar</foo>');"
+    );
+
     @FunctionalInterface
     private interface ConnectionContext {
         public void doIt(Connection con) throws Exception;
 
         public default void onConnection() throws Exception {
-            try (var con = H2Connector.std().withMemory(true).get()) {
+            try (var con = H2Connector.std().withMemory(true).withTimezone("UTC").get()) {
                 this.doIt(con);
             }
         }
@@ -61,14 +67,15 @@ public class BasicNamedParameterStatementTest {
         return ctx.wrap();
     }
 
-    private static Stream<DynamicTest> applyBasicValues(String sqla, String sqlb, NamedStatementContext... recvs) {
+    private static DynamicNode applyBasicValues(
+            String name,
+            List<String> prepare,
+            String sqla,
+            String sqlb,
+            NamedStatementContext... recvs)
+    {
         var idx = Map.of("bar", List.of(1));
         var idxm = Map.of("bar", List.of(1, 3, 5), "foo", List.of(2, 4));
-        var prepare = List.of(
-                "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
-                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
-                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (2, 'lol' , 'blue', '2026-01-02 16:11:12.123', '<foo>bar</foo>');"
-        );
         ResultSetContext run = rs -> Assertions.assertAll(
                 () -> Assertions.assertEquals(2, rs.getInt("pk")),
                 () -> Assertions.assertEquals(2, rs.getInt(1)),
@@ -77,18 +84,26 @@ public class BasicNamedParameterStatementTest {
         );
 
         var a = Stream.of(recvs)
-                .filter(recv -> recv.name.startsWith("INT-") || recv.name.startsWith("SNG-"))
-                .map(recv -> DynamicTest.dynamicTest(recv.name, singleLineApply(prepare, sqla, recv.ctx, run, idx)));
+                .filter(recv -> recv.name().startsWith("INT-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name(), singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var ac = DynamicContainer.dynamicContainer("(int, ...)", a);
 
         var b = Stream.of(recvs)
-                .filter(recv -> recv.name.startsWith("STR-"))
-                .map(recv -> DynamicTest.dynamicTest(recv.name + "-SINGLE", singleLineApply(prepare, sqla, recv.ctx, run, idx)));
+                .filter(recv -> recv.name().startsWith("SNG-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name(), singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var bc = DynamicContainer.dynamicContainer("(String, ...) - once and only once", b);
 
         var c = Stream.of(recvs)
-                .filter(recv -> recv.name.startsWith("STR-"))
-                .map(recv -> DynamicTest.dynamicTest(recv.name + "-MULTI", singleLineApply(prepare, sqlb, recv.ctx2(), run, idxm)));
+                .filter(recv -> recv.name().startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name() + "-SINGLE", singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var cc = DynamicContainer.dynamicContainer("(String, ...) - single", c);
 
-        return Stream.of(a, b, c).flatMap(x -> x);
+        var d = Stream.of(recvs)
+                .filter(recv -> recv.name().startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name() + "-MULTI", singleLineApply(prepare, sqlb, recv.ctx2(), run, idxm)));
+        var dc = DynamicContainer.dynamicContainer("(String, ...) - multiple", d);
+
+        return DynamicContainer.dynamicContainer(name, List.of(ac, bc, cc, dc));
     }
 
     private static record NamedStatementContext(String name, StatementContext ctx) {
@@ -145,7 +160,7 @@ public class BasicNamedParameterStatementTest {
         return ps.getConnection().createArrayOf("VARCHAR(10)", List.of("yellow", "blue", "green").toArray());
     }
 
-    private static SQLXML s(PreparedStatement ps) throws SQLException {
+    private static SQLXML sx(PreparedStatement ps) throws SQLException {
         var x = ps.getConnection().createSQLXML();
         x.setString("<foo>bar</foo>");
         return x;
@@ -164,6 +179,7 @@ public class BasicNamedParameterStatementTest {
         if (obj instanceof LocalDateTime) return "LOCAL-DATE-TIME";
         if (obj instanceof LocalDate) return "LOCAL-DATE";
         if (obj instanceof LocalTime) return "LOCAL-TIME";
+        if (obj instanceof OffsetTime) return "OFFSET-TIME";
         if (obj instanceof java.sql.Date) return "SQL-DATE";
         if (obj instanceof java.sql.Time) return "SQL-TIME";
         if (obj instanceof java.sql.Timestamp) return "SQL-TIMESTAMP";
@@ -174,7 +190,8 @@ public class BasicNamedParameterStatementTest {
     }
 
     @TestFactory
-    public Stream<DynamicTest> testSetters() {
+    public DynamicNode testSetters() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
         var v1_5 = BigDecimal.valueOf(1.5);
         var blue = "blue";
         var bytes = blue.getBytes();
@@ -192,9 +209,12 @@ public class BasicNamedParameterStatementTest {
         var d7 = ZonedDateTime.of(d2, ZoneOffset.UTC);
         var d8 = OffsetDateTime.of(d2, ZoneOffset.UTC);
         var d9 = d8.toInstant();
+        var d10 = OffsetTime.of(d3, ZoneOffset.UTC);
         var gc = new GregorianCalendar();
 
         var t1 = applyBasicValues(
+                "set boolean true",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END)",
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 2 ELSE 1 END)",
                 n("STR-TRUE" , ps -> ps.setBoolean("bar", true )),
@@ -202,13 +222,17 @@ public class BasicNamedParameterStatementTest {
         );
 
         var t2 = applyBasicValues(
+                "set boolean false",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END)",
                 "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 1 ELSE 2 END)",
                 n("STR-FALSE", ps -> ps.setBoolean("bar", false)),
                 n("INT-FALSE", ps -> ps.setBoolean(1    , false))
         );
 
-        var t3 = applyBasicValues(
+        var t3a = applyBasicValues(
+                "set integers",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk = ?",
                 "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
                 n("STR-BYTE"           , ps -> ps.setByte  ("bar", b2                      )),
@@ -217,8 +241,8 @@ public class BasicNamedParameterStatementTest {
                 n("INT-SHORT"          , ps -> ps.setShort (1    , s2                      )),
                 n("STR-INT"            , ps -> ps.setInt   ("bar", 2                       )),
                 n("INT-INT"            , ps -> ps.setInt   (1    , 2                       )),
-                n("STR-LONG"           , ps -> ps.setLong  ("bar", 2                       )),
-                n("INT-LONG"           , ps -> ps.setLong  (1    , 2                       )),
+                n("STR-LONG"           , ps -> ps.setLong  ("bar", 2L                      )),
+                n("INT-LONG"           , ps -> ps.setLong  (1    , 2L                      )),
                 n("STR-OPTINT"         , ps -> ps.setInt   ("bar", opti                    )),
                 n("INT-OPTINT"         , ps -> ps.setInt   (1    , opti                    )),
                 n("STR-OPTLONG"        , ps -> ps.setLong  ("bar", optl                    )),
@@ -265,7 +289,20 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-LONG-H2-Z"  , ps -> ps.setObject(1    , 2L   , H2Type.NUMERIC, 0))
         );
 
-        var t4 = applyBasicValues(
+        var t3b = applyBasicValues(
+                "set optional integers",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk = ?",
+                "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
+                n("STR-OPTINT"         , ps -> ps.setInt   ("bar", opti                    )),
+                n("INT-OPTINT"         , ps -> ps.setInt   (1    , opti                    )),
+                n("STR-OPTLONG"        , ps -> ps.setLong  ("bar", optl                    )),
+                n("INT-OPTLONG"        , ps -> ps.setLong  (1    , optl                    ))
+        );
+
+        var t4a = applyBasicValues(
+                "set reals",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk > ?",
                 "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
                 n("STR-OBJ-FLOAT-H2-Z"  , ps -> ps.setFloat     ("bar", 1.5f                    )),
@@ -274,8 +311,6 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-DOUBLE-H2-Z" , ps -> ps.setDouble    (1    , 1.5                     )),
                 n("STR-OBJ-BIGD-H2-Z"   , ps -> ps.setBigDecimal("bar", v1_5                    )),
                 n("INT-OBJ-BIGD-H2-Z"   , ps -> ps.setBigDecimal(1    , v1_5                    )),
-                n("STR-OPTDOUBLE"       , ps -> ps.setDouble    ("bar", optd                    )),
-                n("INT-OPTDOUBLE"       , ps -> ps.setDouble    (1    , optd                    )),
                 n("STR-OBJ-FLOAT"       , ps -> ps.setObject    ("bar", 1.5f                    )),
                 n("INT-OBJ-FLOAT"       , ps -> ps.setObject    (1    , 1.5f                    )),
                 n("STR-OBJ-DOUBLE"      , ps -> ps.setObject    ("bar", 1.5                     )),
@@ -308,7 +343,18 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-BIGD-H2-Z"   , ps -> ps.setObject    (1    , v1_5 , H2Type.NUMERIC, 1))
         );
 
+        var t4b = applyBasicValues(
+                "set optional reals",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk > ?",
+                "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
+                n("STR-OPTDOUBLE"       , ps -> ps.setDouble    ("bar", optd                    )),
+                n("INT-OPTDOUBLE"       , ps -> ps.setDouble    (1    , optd                    ))
+        );
+
         var t5 = applyBasicValues(
+                "set strings",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE color = ?",
                 "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
                 n("STR-STRING"           , ps -> ps.setString          ("bar", blue                     )),
@@ -381,28 +427,39 @@ public class BasicNamedParameterStatementTest {
                 n("INT-BLOB-STREAM-LONG" , ps -> ps.setBlob            (1    , i4()                 , 4L))
         );
 
+        @SuppressWarnings("deprecation")
         var t6 = applyBasicValues(
+                "set dates",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
-                n("STR-DATE"             , ps -> ps.setDate         ("bar", d4      )),
-                n("INT-DATE"             , ps -> ps.setDate         (1    , d4      )),
-                n("STR-DATE-CAL-NUL"     , ps -> ps.setDate         ("bar", d4, null)),
-                n("INT-DATE-CAL-NUL"     , ps -> ps.setDate         (1    , d4, null)),
-                n("STR-DATE-CAL-NEW"     , ps -> ps.setDate         ("bar", d4, gc  )),
-                n("INT-DATE-CAL-NEW"     , ps -> ps.setDate         (1    , d4, gc  )),
-                n("STR-TIMESTAMP"        , ps -> ps.setTimestamp    ("bar", d5      )),
-                n("INT-TIMESTAMP"        , ps -> ps.setTimestamp    (1    , d5      )),
-                n("STR-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp    ("bar", d5, null)),
-                n("INT-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp    (1    , d5, null)),
-                n("STR-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp    ("bar", d5, gc  )),
-                n("INT-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp    (1    , d5, gc  )),
-                n("STR-LOCALDATE"        , ps -> ps.setLocalDate    ("bar", d1      )),
-                n("INT-LOCALDATE"        , ps -> ps.setLocalDate    (1    , d1      )),
-                n("STR-LOCALDATETIME"    , ps -> ps.setLocalDateTime("bar", d2      )),
-                n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime(1    , d2      ))
+                n("STR-DATE"             , ps -> ps.setDate          ("bar", d4      )),
+                n("INT-DATE"             , ps -> ps.setDate          (1    , d4      )),
+                n("STR-DATE-CAL-NUL"     , ps -> ps.setDate          ("bar", d4, null)),
+                n("INT-DATE-CAL-NUL"     , ps -> ps.setDate          (1    , d4, null)),
+                n("STR-DATE-CAL-NEW"     , ps -> ps.setDate          ("bar", d4, gc  )),
+                n("INT-DATE-CAL-NEW"     , ps -> ps.setDate          (1    , d4, gc  )),
+                n("STR-TIMESTAMP"        , ps -> ps.setTimestamp     ("bar", d5      )),
+                n("INT-TIMESTAMP"        , ps -> ps.setTimestamp     (1    , d5      )),
+                n("STR-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp     ("bar", d5, null)),
+                n("INT-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp     (1    , d5, null)),
+                n("STR-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp     ("bar", d5, gc  )),
+                n("INT-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp     (1    , d5, gc  )),
+                n("STR-LOCALDATE"        , ps -> ps.setLocalDate     ("bar", d1      )),
+                n("INT-LOCALDATE"        , ps -> ps.setLocalDate     (1    , d1      )),
+                n("STR-LOCALDATETIME"    , ps -> ps.setLocalDateTime ("bar", d2      )),
+                n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime (1    , d2      )),
+                n("STR-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime("bar", d8      )),
+                n("INT-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime(1    , d8      )),
+                n("STR-ZONEDDATETIME"    , ps -> ps.setZonedDateTime ("bar", d7      )),
+                n("INT-ZONEDDATETIME"    , ps -> ps.setZonedDateTime (1    , d7      )),
+                n("STR-INSTANT"          , ps -> ps.setInstant       ("bar", d9      )),
+                n("INT-INSTANT"          , ps -> ps.setInstant       (1    , d9      ))
         );
 
-        Function<Object, Stream<DynamicTest>> t7p = obj -> applyBasicValues(
+        Function<Object, DynamicNode> t7p = obj -> applyBasicValues(
+                "set " + cn(obj) + " as objects",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
                 n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                                    )),
@@ -424,22 +481,29 @@ public class BasicNamedParameterStatementTest {
                 n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIMESTAMP_WITH_TIME_ZONE, 0)),
                 n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(1    , obj, H2Type.TIMESTAMP_WITH_TIME_ZONE, 0))
         );
-        var t7 = Stream.of(d1, d2, d4, d5, d7, d8, d9).flatMap(t7p);
+        var t7 = DynamicContainer.dynamicContainer("set dates as objects", Stream.of(d1, d2, d4, d5, d7, d8, d9).map(t7p));
 
+        @SuppressWarnings("deprecation")
         var t8 = applyBasicValues(
+                "set times",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
-                n("STR-TIME"        , ps -> ps.setTime     ("bar", d6      )),
-                n("INT-TIME"        , ps -> ps.setTime     (1    , d6      )),
-                n("STR-TIME-CAL-NUL", ps -> ps.setTime     ("bar", d6, null)),
-                n("INT-TIME-CAL-NUL", ps -> ps.setTime     (1    , d6, null)),
-                n("STR-TIME-CAL-NEW", ps -> ps.setTime     ("bar", d6, gc  )),
-                n("INT-TIME-CAL-NEW", ps -> ps.setTime     (1    , d6, gc  )),
-                n("STR-LOCALTIME"   , ps -> ps.setLocalTime("bar", d3      )),
-                n("INT-LOCALTIME"   , ps -> ps.setLocalTime(1    , d3      ))
+                n("STR-TIME"        , ps -> ps.setTime      ("bar", d6      )),
+                n("INT-TIME"        , ps -> ps.setTime      (1    , d6      )),
+                n("STR-TIME-CAL-NUL", ps -> ps.setTime      ("bar", d6, null)),
+                n("INT-TIME-CAL-NUL", ps -> ps.setTime      (1    , d6, null)),
+                n("STR-TIME-CAL-NEW", ps -> ps.setTime      ("bar", d6, gc  )),
+                n("INT-TIME-CAL-NEW", ps -> ps.setTime      (1    , d6, gc  )),
+                n("STR-LOCALTIME"   , ps -> ps.setLocalTime ("bar", d3      )),
+                n("INT-LOCALTIME"   , ps -> ps.setLocalTime (1    , d3      )),
+                n("STR-OFFSETTIME"  , ps -> ps.setOffsetTime("bar", d10     )),
+                n("INT-OFFSETTIME"  , ps -> ps.setOffsetTime(1    , d10     ))
         );
 
-        Function<Object, Stream<DynamicTest>> t9p = obj -> applyBasicValues(
+        Function<Object, DynamicNode> t9p = obj -> applyBasicValues(
+                "set " + cn(obj) + " as objects",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
                 n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                               )),
@@ -461,7 +525,7 @@ public class BasicNamedParameterStatementTest {
                 n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIME_WITH_TIME_ZONE, 0)),
                 n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(    1, obj, H2Type.TIME_WITH_TIME_ZONE, 0))
         );
-        var t9 = Stream.of(d3, d6).flatMap(t9p);
+        var t9 = DynamicContainer.dynamicContainer("set times as objects", Stream.of(d3, d6, d10).map(t9p));
 
         Function<PreparedStatement, Object> o1 = ps -> i();
         Function<PreparedStatement, Object> o2 = ps -> r();
@@ -473,7 +537,9 @@ public class BasicNamedParameterStatementTest {
         var tmap = Map.of(InputStream.class, Types.BLOB, Reader.class, Types.CLOB, Clob.class, Types.CLOB, Blob.class, Types.BLOB, NClob.class, Types.NCLOB);
         var hmap = Map.of(InputStream.class, H2Type.BLOB, Reader.class, H2Type.CLOB, Clob.class, H2Type.CLOB, Blob.class, H2Type.BLOB, NClob.class, H2Type.CLOB);
 
-        Function<Class<?>, Stream<DynamicTest>> t10p = k -> applyBasicValues(
+        Function<Class<?>, DynamicNode> t10p = k -> applyBasicValues(
+                "set " + cn(k) + " as objects",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE color = ?",
                 "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
                 n(pmap.get(k) + cn(k)          , ps -> ps.setObject("bar", cmap.get(k).apply(ps)                )),
@@ -487,9 +553,11 @@ public class BasicNamedParameterStatementTest {
                 n(pmap.get(k) + cn(k) + "-H2-Q", ps -> ps.setObject("bar", cmap.get(k).apply(ps), hmap.get(k), 9)),
                 n("INT-C-"    + cn(k) + "-H2-Q", ps -> ps.setObject(    1, cmap.get(k).apply(ps), hmap.get(k), 9))
         );
-        var t10 = cmap.keySet().stream().flatMap(t10p);
+        var t10 = DynamicContainer.dynamicContainer("set lobs as objects", cmap.keySet().stream().map(t10p));
 
         var t11 = applyBasicValues(
+                "set arrays",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE color = ANY(?)",
                 "SELECT pk, blah FROM foo WHERE color = ANY(?) AND ? = 42 AND color = ANY(?) AND ? = 42 AND 'blue' = ANY(?)",
                 n("STR-ARRAY"         , ps -> ps.setArray ("bar", a(ps)                                 )),
@@ -507,21 +575,24 @@ public class BasicNamedParameterStatementTest {
         );
 
         var t12 = applyBasicValues(
+                "set XML",
+                PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE axml = ?",
                 "SELECT pk, blah FROM foo WHERE axml = ? AND ? = 42 AND axml = ? AND ? = 42 AND ? = '<foo>bar</foo>'",
-                n("STR-SQLXML"         , ps -> ps.setSQLXML("bar", s(ps)                    )),
-                n("INT-SQLXML"         , ps -> ps.setSQLXML(1    , s(ps)                    )),
-                n("STR-OBJ-SQLXML"     , ps -> ps.setObject("bar", s(ps)                    )),
-                n("INT-OBJ-SQLXML"     , ps -> ps.setObject(1    , s(ps)                    )),
-                n("STR-OBJ-SQLXML-TT"  , ps -> ps.setObject("bar", s(ps), Types .VARCHAR    )),
-                n("INT-OBJ-SQLXML-TT"  , ps -> ps.setObject(1    , s(ps), Types .VARCHAR    )),
-                n("STR-OBJ-SQLXML-TT-Q", ps -> ps.setObject("bar", s(ps), Types .VARCHAR, 14)),
-                n("INT-OBJ-SQLXML-TT-Q", ps -> ps.setObject(1    , s(ps), Types .VARCHAR, 14)),
-                n("STR-OBJ-SQLXML-H2"  , ps -> ps.setObject("bar", s(ps), H2Type.VARCHAR    )),
-                n("INT-OBJ-SQLXML-H2"  , ps -> ps.setObject(1    , s(ps), H2Type.VARCHAR    )),
-                n("STR-OBJ-SQLXML-H2-Q", ps -> ps.setObject("bar", s(ps), H2Type.VARCHAR, 14)),
-                n("INT-OBJ-SQLXML-H2-Q", ps -> ps.setObject(1    , s(ps), H2Type.VARCHAR, 14))
+                n("STR-SQLXML"         , ps -> ps.setSQLXML("bar", sx(ps)                    )),
+                n("INT-SQLXML"         , ps -> ps.setSQLXML(1    , sx(ps)                    )),
+                n("STR-OBJ-SQLXML"     , ps -> ps.setObject("bar", sx(ps)                    )),
+                n("INT-OBJ-SQLXML"     , ps -> ps.setObject(1    , sx(ps)                    )),
+                n("STR-OBJ-SQLXML-TT"  , ps -> ps.setObject("bar", sx(ps), Types .VARCHAR    )),
+                n("INT-OBJ-SQLXML-TT"  , ps -> ps.setObject(1    , sx(ps), Types .VARCHAR    )),
+                n("STR-OBJ-SQLXML-TT-Q", ps -> ps.setObject("bar", sx(ps), Types .VARCHAR, 14)),
+                n("INT-OBJ-SQLXML-TT-Q", ps -> ps.setObject(1    , sx(ps), Types .VARCHAR, 14)),
+                n("STR-OBJ-SQLXML-H2"  , ps -> ps.setObject("bar", sx(ps), H2Type.VARCHAR    )),
+                n("INT-OBJ-SQLXML-H2"  , ps -> ps.setObject(1    , sx(ps), H2Type.VARCHAR    )),
+                n("STR-OBJ-SQLXML-H2-Q", ps -> ps.setObject("bar", sx(ps), H2Type.VARCHAR, 14)),
+                n("INT-OBJ-SQLXML-H2-Q", ps -> ps.setObject(1    , sx(ps), H2Type.VARCHAR, 14))
         );
-        return Stream.of(t1, t2, t3, t4, t5, t6, t7, t8, t9, t10, t11, t12).flatMap(x -> x);
+
+        return DynamicContainer.dynamicContainer("setter tests", List.of(t1, t2, t3a, t3b, t4a, t4b, t5, t6, t7, t8, t9, t10, t11, t12));
     }
 }

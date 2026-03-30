@@ -38,10 +38,10 @@ public final class SmartResultSet implements ResultSet {
     }
 
     @NonNull
-    public Map<String, Object> getMap(@NonNull int... campos) throws SQLException {
-        Map<String, Object> row = new HashMap<>(campos.length);
+    public Map<String, Object> getMap(@NonNull int... fields) throws SQLException {
+        Map<String, Object> row = new HashMap<>(fields.length);
 
-        for (var i : campos) {
+        for (var i : fields) {
             var columnName = metaData.getColumnLabel(i);
             if (columnName == null || columnName.isEmpty()) {
                 columnName = metaData.getColumnName(i);
@@ -71,18 +71,20 @@ public final class SmartResultSet implements ResultSet {
         }
     }
 
-    private <E> E nully(E r) throws SQLException {
+    @Nullable
+    private <E> E nully(@Nullable E r) throws SQLException {
         return wasNull() ? null : r;
     }
 
     // Pode retornar null, Long, Integer, Byte, Short, Float, Double, Boolean,
     // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
-    // Clob, NClob, Blob, Array, Ref, SQLXML ou RowId.
+    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId ou Struct.
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(int columnIndex) throws SQLException {
         var columnType = metaData.getColumnType(columnIndex);
         return switch (columnType) {
+            case Types.NULL -> null;
             case Types.DATE      -> Optional.ofNullable(getDate     (columnIndex)).map(java.sql.Date     ::toLocalDate    ).orElse(null);
             case Types.TIMESTAMP -> Optional.ofNullable(getTimestamp(columnIndex)).map(java.sql.Timestamp::toLocalDateTime).orElse(null);
             case Types.TIME      -> Optional.ofNullable(getTime     (columnIndex)).map(java.sql.Time     ::toLocalTime    ).orElse(null);
@@ -105,7 +107,10 @@ public final class SmartResultSet implements ResultSet {
             case Types.NVARCHAR, Types.NCHAR, Types.LONGNVARCHAR    -> getNString   (columnIndex);
             case Types.SQLXML                                       -> getSQLXML    (columnIndex);
             case Types.ROWID                                        -> getRowId     (columnIndex);
-            // Inclui Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR
+            case Types.STRUCT                              -> (Struct) getObject    (columnIndex);
+            case Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR , Types.DISTINCT -> getString    (columnIndex);
+            case Types.REF_CURSOR -> throw new UnsupportedOperationException();
+            // Types.DATALINK, Types.JAVA_OBJECT, Types.OTHER,
             default                                                 -> getString    (columnIndex);
         };
     }

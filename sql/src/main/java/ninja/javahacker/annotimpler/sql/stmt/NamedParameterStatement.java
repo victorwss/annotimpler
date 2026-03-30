@@ -174,12 +174,50 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used.
+     * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
+     * {@link LocalDate} as the second parameter.
+     * @see #setLocalDate(int, LocalDate)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setDate(int parameterIndex, @Nullable java.sql.Date x) throws SQLException;
+
+    @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setDate(index, x);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @param cal {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used. Having a companion {@link Calendar}
+     * as a timezone makes things still more confusing and fragile. Further, having a date without time but with a timezone in non-sense.
+     * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
+     * {@link LocalDate} as the second parameter.
+     * @see #setLocalDate(int, LocalDate)
+     * @see #setLocalDateTime(int, LocalDateTime)
+     * @see #setOffsetDateTime(int, OffsetDateTime)
+     * @see #setZonedDateTime(int, ZonedDateTime)
+     * @see #setInstant(int, Instant)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setDate(int parameterIndex, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException;
+
+    @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setDate(index, x, cal);
@@ -233,7 +271,7 @@ public interface NamedParameterStatement extends PreparedStatement {
     }
 
     public default void setLocalDate(int index, @Nullable LocalDate x) throws SQLException {
-        this.setDate(index, x == null ? null : java.sql.Date.valueOf(x));
+        this.setObject(index, x);
     }
 
     public default void setLocalDate(@NonNull String name, @Nullable LocalDate x) throws SQLException {
@@ -243,7 +281,7 @@ public interface NamedParameterStatement extends PreparedStatement {
     }
 
     public default void setLocalDateTime(int index, @Nullable LocalDateTime x) throws SQLException {
-        this.setTimestamp(index, x == null ? null : Timestamp.valueOf(x));
+        this.setObject(index, x);
     }
 
     public default void setLocalDateTime(@NonNull String name, @Nullable LocalDateTime x) throws SQLException {
@@ -253,12 +291,52 @@ public interface NamedParameterStatement extends PreparedStatement {
     }
 
     public default void setLocalTime(int index, @Nullable LocalTime x) throws SQLException {
-        this.setTime(index, x == null ? null : java.sql.Time.valueOf(x));
+        this.setObject(index, x);
     }
 
     public default void setLocalTime(@NonNull String name, @Nullable LocalTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLocalTime(index, x);
+        }
+    }
+
+    public default void setOffsetTime(int index, @Nullable OffsetTime x) throws SQLException {
+        this.setObject(index, x);
+    }
+
+    public default void setOffsetTime(@NonNull String name, @Nullable OffsetTime x) throws SQLException {
+        for (var index : getIndexes(name)) {
+            this.setOffsetTime(index, x);
+        }
+    }
+
+    public default void setOffsetDateTime(int index, @Nullable OffsetDateTime x) throws SQLException {
+        this.setObject(index, x);
+    }
+
+    public default void setOffsetDateTime(@NonNull String name, @Nullable OffsetDateTime x) throws SQLException {
+        for (var index : getIndexes(name)) {
+            this.setOffsetDateTime(index, x);
+        }
+    }
+
+    public default void setZonedDateTime(int index, @Nullable ZonedDateTime x) throws SQLException {
+        this.setObject(index, x);
+    }
+
+    public default void setZonedDateTime(@NonNull String name, @Nullable ZonedDateTime x) throws SQLException {
+        for (var index : getIndexes(name)) {
+            this.setZonedDateTime(index, x);
+        }
+    }
+
+    public default void setInstant(int index, @Nullable Instant x) throws SQLException {
+        this.setObject(index, x);
+    }
+
+    public default void setInstant(@NonNull String name, @Nullable Instant x) throws SQLException {
+        for (var index : getIndexes(name)) {
+            this.setInstant(index, x);
         }
     }
 
@@ -402,6 +480,21 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
+    public default void setStruct(int index, @Nullable Struct x) throws SQLException {
+        // This serves two purposes: 1 - Test if createStruct works. 2 - Ensure that the Struct instance passed downwards is compatible.
+        var x2 = x == null
+                ? this.getConnection().createStruct("test", new Object[] {"test"})
+                : this.getConnection().createStruct(x.getSQLTypeName(), x.getAttributes());
+
+        this.setObject(index, x == null ? null : x2);
+    }
+
+    public default void setStruct(@NonNull String name, @Nullable Struct x) throws SQLException {
+        for (var index : getIndexes(name)) {
+            this.setStruct(index, x);
+        }
+    }
+
     public default void setShort(@NonNull String name, short x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setShort(index, x);
@@ -414,24 +507,95 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used.
+     * Prefer the {@link #setLocalTime(int, LocalTime)} method or the {@link #setObject(int, Object)} method passing a
+     * {@link LocalTime} as the second parameter.
+     * @see #setLocalTime(int, LocalTime)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setTime(int parameterIndex, @Nullable java.sql.Time x) throws SQLException;
+
+    @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setTime(index, x);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @param cal {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used. Having a companion {@link Calendar}
+     * as a timezone makes things still more confusing and fragile.
+     * Prefer the {@link #setOffsetTime(int, OffsetTime)} method or the {@link #setObject(int, Object)} method passing a
+     * {@link OffsetTime} as the second parameter.
+     * @see #setOffsetTime(int, OffsetTime)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setTime(int parameterIndex, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException;
+
+    @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setTime(index, x, cal);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link Timestamp} is very badly designed and should never be used.
+     * Prefer the {@link #setLocalDateTime(int, LocalDateTime)} method or the {@link #setObject(int, Object)} method passing a
+     * {@link LocalDateTime} as the second parameter.
+     * @see #setLocalDateTime(int, LocalDateTime)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setTimestamp(int parameterIndex, @Nullable Timestamp x) throws SQLException;
+
+    @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setTimestamp(index, x);
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * @param parameterIndex {@inheritDoc}
+     * @param x {@inheritDoc}
+     * @param cal {@inheritDoc}
+     * @throws SQLException {@inheritDoc}
+     * @deprecated The class {@link Timestamp} is very badly designed and should never be used. Having a companion {@link Calendar}
+     * as a timezone makes things still more confusing and fragile.
+     * Prefer one of the {@link #setOffsetDateTime(int, OffsetDateTime)}, {@link #setZonedDateTime(int, ZonedDateTime)},
+     * {@link #setInstant(int, Instant)} methods or perhaps the {@link #setObject(int, Object)} method passing a
+     * {@link OffsetDateTime}, {@link ZonedDateTime} or {@link Instant} as the second parameter.
+     * @see #setOffsetDateTime(int, OffsetDateTime)
+     * @see #setZonedDateTime(int, ZonedDateTime)
+     * @see #setInstant(int, Instant)
+     * @see #setObject(int, Object)
+     */
+    @Override
+    @Deprecated
+    public void setTimestamp(int parameterIndex, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException;
+
+    @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setTimestamp(index, x, cal);

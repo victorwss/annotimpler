@@ -6,7 +6,6 @@ import ninja.javahacker.test.ForTests;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "AccessingNonPublicFieldOfAnotherObject"})
 public class BadMagicFactoryTest {
@@ -457,7 +456,8 @@ public class BadMagicFactoryTest {
         Assertions.assertEquals("Creator of BadExample25 was called with the wrong arguments.", ex.getMessage());
     }
 
-    private static Stream<Arguments> testBadArgsCreator() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> testBadArgsCreator() throws Exception {
         var magic25 = MagicFactory.of(BadExample25.class);
         var magic26 = MagicFactory.of(BadExample26.class);
         var magic27 = MagicFactory.of(BadExample27.class);
@@ -490,14 +490,8 @@ public class BadMagicFactoryTest {
                     Assertions.assertEquals("Creator of " + ex.c.getSimpleName() + " was called with the wrong arguments.", err.getMessage());
                     Assertions.assertEquals(IllegalArgumentException.class, err.getCause().getClass());
                 };
-                return Arguments.of(ex.name, x2);
+                return DynamicTest.dynamicTest(ex.name, x2);
         });
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testBadArgsCreator {0}")
-    public void testBadArgsCreator(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     public static class BadExample25 {

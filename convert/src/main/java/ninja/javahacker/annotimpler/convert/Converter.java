@@ -33,6 +33,7 @@ public interface Converter<E> {
             case SQLXML b -> from(b);
             case RowId b -> from(b);
             case Ref b -> from(b);
+            case Struct b -> from(b);
             case java.sql.Array b -> from(b);
             default -> throw new ConvertionException("Unsupported Type: " + in.getClass().getName(), in.getClass());
         };
@@ -146,6 +147,11 @@ public interface Converter<E> {
     @NonNull
     public default Optional<E> from(@NonNull java.sql.Array in) throws ConvertionException {
         throw new ConvertionException("Unsupported Array", java.sql.Array.class);
+    }
+
+    @NonNull
+    public default Optional<E> from(@NonNull Struct in) throws ConvertionException {
+        throw new ConvertionException("Unsupported Struct", Struct.class);
     }
 
     @NonNull

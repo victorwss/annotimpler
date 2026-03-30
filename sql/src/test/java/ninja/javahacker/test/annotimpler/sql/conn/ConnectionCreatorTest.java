@@ -196,8 +196,8 @@ public class ConnectionCreatorTest {
     }
 
     private static Stream<DynamicTest> h2CreatorTest() {
-        Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory()};
-        var replaces = new Object[] {"master", "pa$$", "test", true};
+        Destructure<H2Connector> dest = a -> new Object[] {a.user(), a.password(), a.filename(), a.memory(), a.timezone()};
+        var replaces = new Object[] {"master", "pa$$", "test", true, ""};
         return testAll(H2Connector.class, replaces, dest, replaces);
     }
 
@@ -332,6 +332,7 @@ public class ConnectionCreatorTest {
         var hTwo1 = H2Connector.std();
         var hTwo2 = hTwo1.withFilename("foo").withUser("lol").withPassword("pass");
         var hTwo3 = hTwo2.withMemory(true);
+        var hTwo4 = hTwo2.withTimezone("UTC");
         var hsql1 = HsqldbConnector.std();
         var hsql2 = hsql1.withFilename("foo").withUser("lol").withPassword("pass");
         var hsql3 = hsql2.withMemory(true);
@@ -349,6 +350,7 @@ public class ConnectionCreatorTest {
                 n("h2 1"      , () -> Assertions.assertEquals("jdbc:h2:~/", hTwo1.url())),
                 n("h2 2"      , () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url())),
                 n("h2 3"      , () -> Assertions.assertEquals("jdbc:h2:mem:foo", hTwo3.url())),
+                n("h2 4"      , () -> Assertions.assertEquals("jdbc:h2:~/foo;TIME ZONE=UTC", hTwo4.url())),
                 n("hsqldb 1"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://", hsql1.url())),
                 n("hsqldb 2"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
                 n("hsqldb 3"  , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url()))

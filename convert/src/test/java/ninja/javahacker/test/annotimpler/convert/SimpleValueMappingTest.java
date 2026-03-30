@@ -1,9 +1,8 @@
 package ninja.javahacker.test.annotimpler.convert;
 
-import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 import module ninja.javahacker.annotimpler.convert;
 import module java.base;
+import module org.junit.jupiter.api;
 
 import org.junit.jupiter.api.function.Executable;
 
@@ -15,12 +14,13 @@ public class SimpleValueMappingTest {
 
     public static record Wrapper(int value) {}
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
+    @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private static Stream<Arguments> testSimpleValueMapping() {
+    public Stream<DynamicTest> testSimpleValueMapping() {
         return Stream.of(
                 n("basic int", () -> Assertions.assertEquals(42, ConverterFactory.STD.get(Integer.class).from(42).get())),
                 n("basic long", () -> Assertions.assertEquals(42L, ConverterFactory.STD.get(Long.class).from(42L).get())),
@@ -30,11 +30,5 @@ public class SimpleValueMappingTest {
                 n("simple record", () -> Assertions.assertEquals(new Wrapper(25), ConverterFactory.STD.get(Wrapper.class).from(25).get())),
                 n("simple record converts", () -> Assertions.assertEquals(new Wrapper(25), ConverterFactory.STD.get(Wrapper.class).from(25.0).get()))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testSimpleValueMapping {0}")
-    public void testSimpleValueMapping(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

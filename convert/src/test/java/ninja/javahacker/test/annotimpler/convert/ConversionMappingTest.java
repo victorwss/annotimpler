@@ -3,17 +3,17 @@ package ninja.javahacker.test.annotimpler.convert;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 import org.junit.jupiter.api.function.Executable;
 
 public class ConversionMappingTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
-    private static Stream<Arguments> testConvertsMapping() {
+    @TestFactory
+    public Stream<DynamicTest> testConvertsMapping() {
         var ts = List.of(
                 byte.class, Byte.class,
                 short.class, Short.class,
@@ -34,7 +34,7 @@ public class ConversionMappingTest {
                 char.class, Character.class
         );
         var vals = List.of((byte) 52, (short) 52, 52, 52L, 52.0, 52.0f, BigDecimal.valueOf(52L));
-        List<Arguments> execs = new ArrayList<>(vals.size() * ts.size());
+        List<DynamicTest> execs = new ArrayList<>(vals.size() * ts.size());
         for (var t : ts) {
             var w = t.isPrimitive() ? wrapper.get(t) : t;
             for (var v : vals) {
@@ -48,11 +48,5 @@ public class ConversionMappingTest {
             }
         }
         return execs.stream();
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "{0}")
-    public void testConvertsMapping(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

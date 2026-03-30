@@ -9,8 +9,8 @@ import org.junit.jupiter.api.function.Executable;
 
 public class MethodsComplexTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static class Something {
@@ -43,28 +43,30 @@ public class MethodsComplexTest {
         public <U extends Thread> Map<A, Map<C[], Map<String, ? extends List<? super E>>>> crazy(D param, F foo, U uh);
     }
 
-    private static Stream<Arguments> testParamMap() throws NoSuchMethodException {
+    @TestFactory
+    public Stream<DynamicTest> testParamMap() throws NoSuchMethodException {
         var c3poR2d2 = Something.class.getMethod("staticMethod2", int.class, String.class);
         var some = new Something();
+        var other = new Something();
         var simpsonsKids = Something.class.getMethod("instanceMethod2", String.class, int.class, Something.class);
         var simpsonsParents = Something.class.getConstructor(int.class, double.class);
 
         return Stream.of(
-            n("a", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(String.class.getMethod("toString")))),
+            n("a", () -> Assertions.assertEquals(Map.of("this", "x"), Methods.paramMap(String.class.getMethod("toString"), "x"))),
             n("b", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(System.class.getMethod("nanoTime")))),
             n("c", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(List.class.getMethod("of")))),
             n("d", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("staticMethod1")))),
-            n("e", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getMethod("instanceMethod1")))),
+            n("e", () -> Assertions.assertEquals(Map.of("this", some), Methods.paramMap(Something.class.getMethod("instanceMethod1"), some))),
             n("f", () -> Assertions.assertEquals(Map.of(), Methods.paramMap(Something.class.getConstructor()))),
 
             n("g", () -> Assertions.assertEquals(
                     Map.of("c3po", 5, "r2d2", "bla"),
-                    Methods.paramMap(c3poR2d2, 5, "bla", 2, 1)
+                    Methods.paramMap(c3poR2d2, 5, "bla")
             )),
 
             n("h", () -> Assertions.assertEquals(
-                    Map.of("bart", "santa claus", "lisa", 999, "meggie", some),
-                    Methods.paramMap(simpsonsKids, "santa claus", 999, some)
+                    Map.of("this", other, "bart", "santa claus", "lisa", 999, "meggie", some),
+                    Methods.paramMap(simpsonsKids, other, "santa claus", 999, some)
             )),
 
             n("i", () -> Assertions.assertEquals(
@@ -72,12 +74,6 @@ public class MethodsComplexTest {
                     Methods.paramMap(simpsonsParents, 35, 33.0)
             ))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testParamMap {0}")
-    public void testParamMap(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     public record SomeRecord(String wendy, int butters, double mrGarrison) {
@@ -94,24 +90,25 @@ public class MethodsComplexTest {
         private Thread kenny;
     }
 
-    private static Stream<Arguments> testReturnType() throws Exception {
-        Function<Constructor<?>, Arguments> func1 = c -> n("Exec " + c.getName(), () -> Assertions.assertEquals(
+    @TestFactory
+    public Stream<DynamicTest> testReturnType() throws Exception {
+        Function<Constructor<?>, DynamicTest> func1 = c -> n("Exec " + c.getName(), () -> Assertions.assertEquals(
                 c.getDeclaringClass(),
                 Methods.getReturnType((java.lang.reflect.Executable) c)
         ));
-        Function<Constructor<?>, Arguments> func2 = c -> n("Ctor " + c.getName(), () -> Assertions.assertEquals(
+        Function<Constructor<?>, DynamicTest> func2 = c -> n("Ctor " + c.getName(), () -> Assertions.assertEquals(
                 c.getDeclaringClass(),
                 Methods.getReturnType(c)
         ));
-        Function<Method, Arguments> func3 = m -> n("Exec " + m.getName(), () -> Assertions.assertEquals(
+        Function<Method, DynamicTest> func3 = m -> n("Exec " + m.getName(), () -> Assertions.assertEquals(
                 m.getGenericReturnType(),
                 Methods.getReturnType((java.lang.reflect.Executable) m)
         ));
-        Function<Method, Arguments> func4 = m -> n("Meth " + m.getName(), () -> Assertions.assertEquals(
+        Function<Method, DynamicTest> func4 = m -> n("Meth " + m.getName(), () -> Assertions.assertEquals(
                 m.getGenericReturnType(),
                 Methods.getReturnType(m)
         ));
-        Function<Field, Arguments> func5 = f -> n(
+        Function<Field, DynamicTest> func5 = f -> n(
                 f.getName(),
                 () -> Assertions.assertEquals(f.getGenericType(), Methods.getReturnType(f))
         );
@@ -146,11 +143,5 @@ public class MethodsComplexTest {
         var t4 = meths.stream().map(func4);
         var t5 = fields.stream().map(func5);
         return Stream.of(t1, t2, t3, t4, t5).flatMap(x -> x);
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testReturnType {0}")
-    public void testReturnType(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

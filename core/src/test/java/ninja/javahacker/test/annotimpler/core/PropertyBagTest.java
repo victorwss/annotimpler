@@ -6,13 +6,12 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings("missing-explicit-ctor")
 public class PropertyBagTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static record TestKey1(int x, String a, int b) implements KeyProperty<String> {
@@ -36,8 +35,9 @@ public class PropertyBagTest {
         }
     }
 
+    @TestFactory
     @SuppressWarnings({"unchecked", "rawtypes", "ObjectEqualsNull", "AssertEqualsBetweenInconvertibleTypes"})
-    private static Stream<Arguments> testBagAddRemoveGetEqualsToStringHashCode() {
+    public Stream<DynamicTest> testBagAddRemoveGetEqualsToStringHashCode() {
         var ka = new TestKey1(1, "a", 4);
         var kb = new TestKey1(3, "b", 9);
         var kc = new TestKey2("x");
@@ -97,14 +97,9 @@ public class PropertyBagTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testBagAddRemoveGetEqualsToStringHashCode {0}")
-    public void testBagAddRemoveGetEqualsToStringHashCode(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() {
+    public Stream<DynamicTest> testNulls() {
         return Stream.of(
                 n("add-key", () -> ForTests.testNull("key", () -> PropertyBag.root().add(null, "x"))),
                 n("add-value", () -> ForTests.testNull("value", () -> PropertyBag.root().add(new TestKey2("x"), null))),
@@ -113,11 +108,5 @@ public class PropertyBagTest {
                 n("pnfe-ctor", () -> ForTests.testNull("property", () -> new PropertyBag.PropertyNotFoundException(null))),
                 n("ipve-ctor", () -> ForTests.testNull("property", () -> new PropertyBag.IllegalPropertyValueException(null)))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

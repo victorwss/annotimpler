@@ -24,7 +24,8 @@ public class ExtraParameterStatementTest {
         private static final long serialVersionUID = 42L;
     }
 
-    private static final Method rowIdMethod, urlMethod, refMethod, unicodeMethod, intMethod, executeMethod, closeMethod;
+    private static final Method rowIdMethod, urlMethod, refMethod, unicodeMethod, intMethod, objectMethod,
+            executeMethod, closeMethod, getConnectionMethod, prepareMethod, createStructMethod;
 
     static {
         try {
@@ -33,9 +34,13 @@ public class ExtraParameterStatementTest {
             refMethod = PreparedStatement.class.getMethod("setRef", int.class, Ref.class);
             unicodeMethod = PreparedStatement.class.getMethod("setUnicodeStream", int.class, InputStream.class, int.class);
             intMethod = PreparedStatement.class.getMethod("setInt", int.class, int.class);
+            objectMethod = PreparedStatement.class.getMethod("setObject", int.class, Object.class);
             executeMethod = PreparedStatement.class.getMethod("executeUpdate");
+            getConnectionMethod = PreparedStatement.class.getMethod("getConnection");
             closeMethod = PreparedStatement.class.getMethod("close");
-        } catch (Exception e) {
+            prepareMethod = Connection.class.getMethod("prepareStatement", String.class);
+            createStructMethod = Connection.class.getMethod("createStruct", String.class, Object[].class);
+        } catch (NoSuchMethodException e) {
             throw new ExceptionInInitializerError(e);
         }
     }
@@ -71,13 +76,38 @@ public class ExtraParameterStatementTest {
         }
     }
 
-    private static Connection mockCon(PreparedStatement ps) throws NoSuchMethodException {
-        Method prepareMethod = Connection.class.getMethod("prepareStatement", String.class);
+    private static Connection mockCon(boolean nully, PreparedStatement ps) throws NoSuchMethodException {
         var mock = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {Connection.class}, (i, m, a) -> {
-            if (!m.equals(prepareMethod)) throw new AssertionError(m);
-            var sql = (String) a[0];
-            Assertions.assertEquals("MOCK SQL", sql);
-            return ps;
+            if (m.equals(prepareMethod)) {
+                if (a.length != 1) throw new AssertionError();
+                var sql = (String) a[0];
+                Assertions.assertEquals("MOCK SQL", sql);
+                return ps;
+            }
+            if (m.equals(createStructMethod)) {
+                if (a.length != 2) throw new AssertionError();
+                var name = (String) a[0];
+                var items = (Object[]) a[1];
+                Assertions.assertEquals(nully ? "test" : "blabla", name);
+                Assertions.assertArrayEquals(nully ? new Object[] {"test"} : new Object[] {"red", 18, 4.6}, items);
+                return new Struct() {
+                    @Override
+                    public String getSQLTypeName() throws SQLException {
+                        return "blabla";
+                    }
+
+                    @Override
+                    public Object[] getAttributes() throws SQLException {
+                        return items;
+                    }
+
+                    @Override
+                    public Object[] getAttributes(Map<String, Class<?>> map) throws SQLException {
+                        throw new AssertionError();
+                    }
+                };
+            }
+            throw new AssertionError(m);
         });
 
         return (Connection) mock;
@@ -94,6 +124,7 @@ public class ExtraParameterStatementTest {
         private boolean okExecute;
         private boolean okClose;
         private boolean expectException;
+        private Connection con;
         private final PreparedStatement ps;
 
         public MockPreparedStatementState(Map<Method, Strategy> actions) throws NoSuchMethodException {
@@ -110,10 +141,9 @@ public class ExtraParameterStatementTest {
                         if (ok2) throw new AssertionError();
                         Assertions.assertEquals(84, num);
                         ok2 = true;
-                    } else {
-                        throw new AssertionError();
+                        return null;
                     }
-                    return null;
+                    throw new AssertionError();
                 }
                 if (m.equals(executeMethod)) {
                     if (a.length != 0) throw new AssertionError();
@@ -127,9 +157,17 @@ public class ExtraParameterStatementTest {
                     okClose = true;
                     return null;
                 }
-                throw new AssertionError();
+                if (m.equals(getConnectionMethod)) {
+                    if (a.length != 0) throw new AssertionError();
+                    return con;
+                }
+                throw new AssertionError(m);
             });
             this.ps = (PreparedStatement) mock;
+        }
+
+        public void setCon(Connection c) {
+            this.con = c;
         }
 
         public boolean success() {
@@ -177,7 +215,8 @@ public class ExtraParameterStatementTest {
             }
             return null;
         }));
-        var con = mockCon(state.ps);
+        var con = mockCon(nully, state.ps);
+        state.setCon(con);
         try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
             ps.setRowId("lol", nully ? null : new MyRowId("XYZ"));
             ps.setInt("wul", 84);
@@ -212,9 +251,48 @@ public class ExtraParameterStatementTest {
             }
             return null;
         }));
-        var con = mockCon(state.ps);
+        var con = mockCon(nully, state.ps);
+        state.setCon(con);
         try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
             ps.setURL("lol", nully ? null : new URI("http://test.com").toURL());
+            ps.setInt("wul", 84);
+            Assertions.assertEquals(1, ps.executeUpdate());
+        }
+        Assertions.assertTrue(state.success());
+    }
+
+    @ValueSource(strings = {"ok", "null"})
+    @ParameterizedTest(name = "testStruct {0}")
+    public void testStruct(String tx) throws Exception {
+        var nully = tx.equals("null");
+        var map = Map.of("lol", List.of(1, 3), "wul", List.of(2));
+        var state = new MockPreparedStatementState(Map.of(objectMethod, (x, a) -> {
+            if (a.length != 2) throw new AssertionError();
+            if (x.okExecute || x.okClose) throw new AssertionError();
+            var idx = (int) a[0];
+            var struct = (Struct) a[1];
+            if (nully) {
+                Assertions.assertNull(struct);
+            } else {
+                Assertions.assertEquals("blabla", struct.getSQLTypeName());
+                Assertions.assertArrayEquals(new Object[] {"red", 18, 4.6}, struct.getAttributes());
+            }
+            if (idx == 1) {
+                if (x.ok1) throw new AssertionError();
+                x.ok1 = true;
+            } else if (idx == 3) {
+                if (x.ok3) throw new AssertionError();
+                x.ok3 = true;
+            } else {
+                throw new AssertionError();
+            }
+            return null;
+        }));
+        var con = mockCon(nully, state.ps);
+        state.setCon(con);
+        var struct = nully ? null : con.createStruct("blabla", new Object[] {"red", 18, 4.6});
+        try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
+            ps.setStruct("lol", struct);
             ps.setInt("wul", 84);
             Assertions.assertEquals(1, ps.executeUpdate());
         }
@@ -247,7 +325,8 @@ public class ExtraParameterStatementTest {
             }
             return null;
         }));
-        var con = mockCon(state.ps);
+        var con = mockCon(nully, state.ps);
+        state.setCon(con);
         try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
             ps.setRef("lol", nully ? null : new MyRef(53));
             ps.setInt("wul", 84);
@@ -287,7 +366,8 @@ public class ExtraParameterStatementTest {
             return null;
         }));
         if (!multi) state.ok3 = true;
-        var con = mockCon(state.ps);
+        var con = mockCon(nully, state.ps);
+        state.setCon(con);
         try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
             ps.setUnicodeStream("lol", nully ? null : new ByteArrayInputStream("yellow".getBytes()), 25);
             ps.setInt("wul", 84);
@@ -298,7 +378,7 @@ public class ExtraParameterStatementTest {
 
     @ValueSource(ints = {1, 2, 3, 4, 5})
     @ParameterizedTest(name = "testUnicodeStreamError {0}")
-    @SuppressWarnings({"deprecation", "AssertEqualsBetweenInconvertibleTypes"})
+    @SuppressWarnings({"deprecation", "AssertEqualsBetweenInconvertibleTypes", "null"})
     public void testUnicodeStreamError(int t) throws Throwable {
         var map = Map.of("lol", t == 5 ? List.of(1, 3) : List.of(1), "wul", List.of(2));
         var state = new MockPreparedStatementState(Map.of(unicodeMethod, (x, a) -> {
@@ -314,7 +394,8 @@ public class ExtraParameterStatementTest {
             throw new AssertionError();
         }));
         state.expectException = true;
-        var con = mockCon(state.ps);
+        var con = mockCon(false, state.ps);
+        state.setCon(con);
         try {
             try (var ps = NamedParameterStatement.wrap(con.prepareStatement("MOCK SQL"), map)) {
                 ps.setUnicodeStream("lol", ix(t), 25);

@@ -7,13 +7,12 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings({"missing-explicit-ctor", "AssertEqualsBetweenInconvertibleTypes"})
 public class AnnotimplerTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     @ImplementedBy(TestImpl1.class)
@@ -665,7 +664,8 @@ public class AnnotimplerTest {
         AnnotationsImplementor.implement(TestSilly2.class);
     }
 
-    private static Stream<Arguments> testSingleImplEqualsHashCodeToString() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> testSingleImplEqualsHashCodeToString() throws Exception {
         var a = AnnotationsImplementor.implement(TestIface1.class);
         var b = AnnotationsImplementor.implement(TestIface1.class);
         var c = AnnotationsImplementor.implement(TestIface2.class);
@@ -691,25 +691,14 @@ public class AnnotimplerTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testSingleImplEqualsHashCodeToString {0}")
-    public void testSingleImplEqualsHashCodeToString(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() {
+    public Stream<DynamicTest> testNulls() {
         return Stream.of(
                 n("simple-null", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null))),
                 n("double-null", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, null))),
                 n("simple-null-2", () -> ForTests.testNull("iface", () -> AnnotationsImplementor.implement(null, PropertyBag.root())))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 
     @Test

@@ -6,13 +6,12 @@ import ninja.javahacker.test.ForTests;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "unused"})
 public class MethodsInvokeTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static class LameException extends RuntimeException {
@@ -135,7 +134,8 @@ public class MethodsInvokeTest {
         }
     }
 
-    private static Stream<Arguments> testInvokeBadException() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> testInvokeBadException() throws Exception {
         var r = new RunMe("ok");
         var e1 = AbstractMess.class.getConstructor();
         var e2 = RunMe.class.getDeclaredConstructor(double.class);
@@ -170,13 +170,8 @@ public class MethodsInvokeTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testInvokeBadException {0}")
-    public void testInvokeBadException(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testInvokeNullPointerException() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> testInvokeNullPointerException() throws Exception {
         var e8 = RunMe.class.getMethod("foo6");
         return Stream.of(
             n("m0", () -> Assertions.assertThrows(NullPointerException.class, () -> Methods.invoke(e8))),
@@ -188,13 +183,8 @@ public class MethodsInvokeTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testInvokeNullPointerException {0}")
-    public void testInvokeNullPointerException(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
-    private static Stream<Arguments> testInvokeInvocationTargetException() throws Exception {
+    @TestFactory
+    public Stream<DynamicTest> testInvokeInvocationTargetException() throws Exception {
         var r = new RunMe("ok");
         var x1 = RunMe.class.getConstructor(int.class);
         var x2 = RunMe.class.getMethod("foo2", int.class);
@@ -227,12 +217,6 @@ public class MethodsInvokeTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testInvokeInvocationTargetException {0}")
-    public void testInvokeInvocationTargetException(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
     private static void dontRun(String x) {
         throw new AssertionError();
     }
@@ -243,30 +227,25 @@ public class MethodsInvokeTest {
         }
     }
 
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testNulls() throws Exception {
+    public Stream<DynamicTest> testNulls() throws Exception {
         Method dont1 = MethodsInvokeTest.class.getDeclaredMethod("dontRun", String.class);
         Constructor<?> dont2 = DontRun.class.getDeclaredConstructor(String.class);
         return Stream.of(
             n("invoke-method-1-what", () -> ForTests.testNull("what", () -> Methods.invoke((Method) null))),
             n("invoke-method-2-what", () -> ForTests.testNull("what", () -> Methods.invoke((Method) null, "x"))),
             n("invoke-method-3-what", () -> ForTests.testNull("what", () -> Methods.invoke((Method) null, (Object[]) null))),
-            n("invoke-method-args", () -> ForTests.testNull("args", () -> Methods.invoke(dont1, (Object[]) null))),
-            n("invoke-ctor-1-what", () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null))),
-            n("invoke-ctor-2-what", () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null, "x"))),
-            n("invoke-ctor-3-what", () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null, (Object[]) null))),
-            n("invoke-ctor-args", () -> ForTests.testNull("args", () -> Methods.invoke(dont2, (Object[]) null))),
-            n("invoke-exec-1-what", () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null))),
-            n("invoke-exec-2-what", () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null, "x"))),
-            n("invoke-exec-3-what", () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null, (Object[]) null))),
-            n("invoke-exec-m-args", () -> ForTests.testNull("args", () -> Methods.invoke((java.lang.reflect.Executable) dont1, (Object[]) null))),
-            n("invoke-exec-c-args", () -> ForTests.testNull("args", () -> Methods.invoke((java.lang.reflect.Executable) dont2, (Object[]) null)))
+            n("invoke-method-args"  , () -> ForTests.testNull("args", () -> Methods.invoke(dont1, (Object[]) null))),
+            n("invoke-ctor-1-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null))),
+            n("invoke-ctor-2-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null, "x"))),
+            n("invoke-ctor-3-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((Constructor<?>) null, (Object[]) null))),
+            n("invoke-ctor-args"    , () -> ForTests.testNull("args", () -> Methods.invoke(dont2, (Object[]) null))),
+            n("invoke-exec-1-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null))),
+            n("invoke-exec-2-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null, "x"))),
+            n("invoke-exec-3-what"  , () -> ForTests.testNull("what", () -> Methods.invoke((java.lang.reflect.Executable) null, (Object[]) null))),
+            n("invoke-exec-m-args"  , () -> ForTests.testNull("args", () -> Methods.invoke((java.lang.reflect.Executable) dont1, (Object[]) null))),
+            n("invoke-exec-c-args"  , () -> ForTests.testNull("args", () -> Methods.invoke((java.lang.reflect.Executable) dont2, (Object[]) null)))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testNulls {0}")
-    public void testNulls(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }

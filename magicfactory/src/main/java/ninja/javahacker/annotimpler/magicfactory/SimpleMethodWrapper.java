@@ -2,6 +2,7 @@ package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.annotation.Annotation;
+import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
@@ -17,12 +18,11 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     public static final List<Type> EMPTY2 = List.of();
 
     @NonNull
-    @PackagePrivate
-    static final Annotator NULL_ANNOTATOR = new Annotator() {
+    public static final Annotator NULL_ANNOTATOR = new Annotator() {
         @Nullable
         @Override
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass) {
-            if (annoClass == null) throw new AssertionError();
+            checkNotNull(annoClass);
             return null;
         }
     };
@@ -40,10 +40,15 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     private final Type rt;
 
     @NonNull
+    private final Optional<Class<?>> it;
+
+    @NonNull
     private final String str;
 
     private final boolean staticModifier;
+
     private final boolean abstractModifier;
+
     private final boolean publicModifier;
 
     @NonNull
@@ -64,12 +69,12 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass);
     }
 
-    @PackagePrivate
-    SimpleMethodWrapper(
+    public SimpleMethodWrapper(
             @NonNull U what,
             @NonNull List<Parameter> params,
             @NonNull List<Type> types,
             @NonNull Type rt,
+            @NonNull Optional<Class<?>> it,
             @NonNull String str,
             boolean staticModifier,
             boolean abstractModifier,
@@ -78,17 +83,20 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
             @NonNull Annotator annotator
     )
     {
-        if (what == null) throw new AssertionError();
-        if (params == null) throw new AssertionError();
-        if (types == null) throw new AssertionError();
-        if (rt == null) throw new AssertionError();
-        if (str == null) throw new AssertionError();
-        if (caller == null) throw new AssertionError();
-        if (annotator == null) throw new AssertionError();
+        checkNotNull(what);
+        checkNotNull(params);
+        checkNotNull(types);
+        checkNotNull(rt);
+        checkNotNull(it);
+        checkNotNull(str);
+        checkNotNull(caller);
+        checkNotNull(annotator);
+
         this.what = what;
         this.params = List.copyOf(params);
         this.types = List.copyOf(types);
         this.rt = rt;
+        this.it = it;
         this.str = str;
         this.staticModifier = staticModifier;
         this.abstractModifier = abstractModifier;
@@ -101,6 +109,7 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @Override
     @SuppressWarnings("unchecked")
     public E call(@NonNull Object... params) throws IllegalAccessException, InstantiationException, InvocationTargetException {
+        this.paramMap(params);
         return caller.call(params);
     }
 
@@ -128,6 +137,12 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @Override
     public Type getReturnType() {
         return rt;
+    }
+
+    @NonNull
+    @Override
+    public Optional<Class<?>> getInstanceType() {
+        return it;
     }
 
     @Override
@@ -164,5 +179,10 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @Override
     public String toString() {
         return str;
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

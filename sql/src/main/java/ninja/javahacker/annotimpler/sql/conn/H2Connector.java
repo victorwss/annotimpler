@@ -10,10 +10,11 @@ public record H2Connector(
         @NonNull String user,
         @NonNull String password,
         @NonNull String filename,
-        boolean memory
+        boolean memory,
+        @NonNull String timezone
 ) implements Connector.MandatoryAuthConnector<H2Connector>
 {
-    private static final H2Connector STD = new H2Connector("sa", "password", "", false);
+    private static final H2Connector STD = new H2Connector("sa", "password", "", false, "");
 
     @NonNull
     public static H2Connector std() {
@@ -26,41 +27,48 @@ public record H2Connector(
             @NonNull Optional<String> user,
             @NonNull Optional<String> password,
             @NonNull Optional<String> filename,
-            @NonNull Optional<Boolean> memory)
+            @NonNull Optional<Boolean> memory,
+            @NonNull Optional<String> timezone)
     {
         var r = new H2Connector[] {STD};
         user.ifPresent(v -> r[0] = r[0].withUser(v));
         password.ifPresent(v -> r[0] = r[0].withPassword(v));
         filename.ifPresent(v -> r[0] = r[0].withFilename(v));
         memory.ifPresent(v -> r[0] = r[0].withMemory(v));
+        timezone.ifPresent(v -> r[0] = r[0].withTimezone(v));
         return r[0];
     }
 
     @NonNull
     @Override
     public String url() {
-        return "jdbc:h2:" + (memory ? "mem:" : "~/") + filename;
+        return "jdbc:h2:" + (memory ? "mem:" : "~/") + filename + (timezone.isEmpty() ? "" : ";TIME ZONE=" + timezone);
     }
 
     @NonNull
     @Override
     public H2Connector withUser(@NonNull String user) {
-        return new H2Connector(user, password, filename, memory);
+        return new H2Connector(user, password, filename, memory, timezone);
     }
 
     @NonNull
     @Override
     public H2Connector withPassword(@NonNull String password) {
-        return new H2Connector(user, password, filename, memory);
+        return new H2Connector(user, password, filename, memory, timezone);
     }
 
     @NonNull
     public H2Connector withFilename(@NonNull String filename) {
-        return new H2Connector(user, password, filename, memory);
+        return new H2Connector(user, password, filename, memory, timezone);
     }
 
     @NonNull
     public H2Connector withMemory(boolean memory) {
-        return new H2Connector(user, password, filename, memory);
+        return new H2Connector(user, password, filename, memory, timezone);
+    }
+
+    @NonNull
+    public H2Connector withTimezone(@NonNull String timezone) {
+        return new H2Connector(user, password, filename, memory, timezone);
     }
 }

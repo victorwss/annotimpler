@@ -7,13 +7,12 @@ import org.junit.jupiter.api.function.Executable;
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 @SuppressWarnings("missing-explicit-ctor")
 public class DefaultImplementationTest {
 
-    private static Arguments n(String name, Executable ctx) {
-        return Arguments.of(name, ctx);
+    private static DynamicTest n(String name, Executable ctx) {
+        return DynamicTest.dynamicTest(name, ctx);
     }
 
     public static class Foo {
@@ -61,8 +60,9 @@ public class DefaultImplementationTest {
         return (Bar) Proxy.newProxyInstance(cl, new Class<?>[] {Bar.class}, ih);
     }
 
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testHashCodeBad() throws Exception {
+    public Stream<DynamicTest> testHashCodeBad() throws Exception {
         var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), Methods.HASH_CODE);
         var inst = r();
         Runnable s = () -> {};
@@ -99,14 +99,9 @@ public class DefaultImplementationTest {
         return Stream.of(a, b, c, d).flatMap(x -> x);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testHashCodeBad {0}")
-    public void testHashCodeBad(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testToStringBad() throws Exception {
+    public Stream<DynamicTest> testToStringBad() throws Exception {
         var mtds = List.of(Foo.class.getMethod("toString"), Bar.class.getMethod("toString"), Methods.TO_STRING);
         var inst = r();
         var a = mtds.stream().map(m -> n(
@@ -146,14 +141,9 @@ public class DefaultImplementationTest {
         return Stream.of(a, b, c, d, e).flatMap(x -> x);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testToStringBad {0}")
-    public void testToStringBad(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings("null")
-    private static Stream<Arguments> testEqualsBad() throws Exception {
+    public Stream<DynamicTest> testEqualsBad() throws Exception {
         var mtds = List.of(Foo.class.getMethod("equals", Object.class), Bar.class.getMethod("equals", Object.class), Methods.EQUALS);
         var inst = r();
         var a = mtds.stream().map(m -> n(
@@ -207,19 +197,14 @@ public class DefaultImplementationTest {
         return Stream.of(a, b, c, d, e, f, g).flatMap(x -> x);
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testEqualsBad {0}")
-    public void testEqualsBad(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
     @Test
     public void testNonInstantiable() throws Exception {
         ForTests.testNonInstantiable(DefaultImplementation.class);
     }
 
+    @TestFactory
     @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
-    private static Stream<Arguments> testHashCode() throws Throwable {
+    public Stream<DynamicTest> testHashCode() throws Throwable {
         var a = r();
         var b = r();
         var c = t();
@@ -236,14 +221,9 @@ public class DefaultImplementationTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testHashCode {0}")
-    public void testHashCode(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
-    private static Stream<Arguments> testToString() throws Throwable {
+    public Stream<DynamicTest> testToString() throws Throwable {
         var a = r();
         var b = r();
         var c = t();
@@ -262,14 +242,9 @@ public class DefaultImplementationTest {
         );
     }
 
-    @MethodSource
-    @ParameterizedTest(name = "testToString {0}")
-    public void testToString(String name, Executable exec) throws Throwable {
-        exec.execute();
-    }
-
+    @TestFactory
     @SuppressWarnings({"null", "AssertEqualsBetweenInconvertibleTypes"})
-    private static Stream<Arguments> testEquals() throws Throwable {
+    public Stream<DynamicTest> testEquals() throws Throwable {
         var a = r();
         var b = r();
         var c = t();
@@ -290,11 +265,5 @@ public class DefaultImplementationTest {
                 n("b-x", () -> Assertions.assertEquals(Boolean.FALSE, DefaultImplementation.forEquals().execute(b, "x"))),
                 n("c-x", () -> Assertions.assertEquals(Boolean.FALSE, DefaultImplementation.forEquals().execute(c, "x")))
         );
-    }
-
-    @MethodSource
-    @ParameterizedTest(name = "testEquals {0}")
-    public void testEquals(String name, Executable exec) throws Throwable {
-        exec.execute();
     }
 }
