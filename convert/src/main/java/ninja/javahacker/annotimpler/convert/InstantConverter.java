@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum InstantConverter implements Converter<Instant> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<Instant> getType() {
+        return Instant.class;
+    }
 
     @NonNull
     @Override

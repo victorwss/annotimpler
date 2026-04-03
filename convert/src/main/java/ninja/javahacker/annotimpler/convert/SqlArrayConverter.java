@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum SqlArrayConverter implements Converter<java.sql.Array> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<java.sql.Array> getType() {
+        return java.sql.Array.class;
+    }
 
     @NonNull
     @Override

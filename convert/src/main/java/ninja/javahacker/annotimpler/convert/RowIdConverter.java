@@ -10,6 +10,12 @@ public enum RowIdConverter implements Converter<RowId> {
 
     @NonNull
     @Override
+    public Class<RowId> getType() {
+        return RowId.class;
+    }
+
+    @NonNull
+    @Override
     public Optional<RowId> from(@NonNull RowId in) {
         return Optional.of(in);
     }

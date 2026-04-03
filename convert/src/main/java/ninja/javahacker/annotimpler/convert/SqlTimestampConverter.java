@@ -4,10 +4,15 @@ import java.sql.Timestamp;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum SqlTimestampConverter implements Converter<Timestamp> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<Timestamp> getType() {
+        return Timestamp.class;
+    }
 
     @NonNull
     @Override

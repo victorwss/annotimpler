@@ -4,10 +4,15 @@ import java.sql.Date;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum SqlDateConverter implements Converter<Date> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<Date> getType() {
+        return Date.class;
+    }
 
     @NonNull
     @Override

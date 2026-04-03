@@ -8,10 +8,15 @@ import module ninja.javahacker.annotimpler.convert;
 public final class OptionalConverter<E> implements Converter<Optional<E>> {
     private final Converter<E> cvt;
 
-    public OptionalConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass)
-            throws ConverterFactory.UnavailableConverterException
-    {
+    public OptionalConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass) throws UnavailableConverterException {
         this.cvt = factory.get(baseClass);
+    }
+
+    @NonNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Class<Optional<E>> getType() {
+        return (Class) Optional.class;
     }
 
     @NonNull

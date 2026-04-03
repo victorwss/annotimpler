@@ -3,7 +3,6 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
@@ -11,6 +10,13 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
     private final Class<E> enumClass;
+
+    @NonNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Class<E> getType() {
+        return enumClass;
+    }
 
     public EnumConverter(@NonNull Class<E> enumClass) {
         this.enumClass = enumClass;
@@ -40,7 +46,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         try {
             return enumClass.getEnumConstants()[in];
         } catch (ArrayIndexOutOfBoundsException e) {
-            throw new ConvertionException(BAD, e, enumClass);
+            throw new ConvertionException(BAD, e, int.class, enumClass);
         }
     }
 
@@ -56,7 +62,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
         } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, enumClass);
+            throw new ConvertionException(BAD, e, long.class, enumClass);
         }
     }
 
@@ -66,7 +72,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
         } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, enumClass);
+            throw new ConvertionException(BAD, e, float.class, enumClass);
         }
     }
 
@@ -76,7 +82,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
         } catch (ArithmeticException e) {
-            throw new Converter.ConvertionException(BAD, e, enumClass);
+            throw new ConvertionException(BAD, e, double.class, enumClass);
         }
     }
 
@@ -86,7 +92,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         try {
             return from(in.intValueExact());
         } catch (ArithmeticException e) {
-            throw new Converter.ConvertionException(BAD, e, enumClass);
+            throw new ConvertionException(BAD, e, BigDecimal.class, enumClass);
         }
     }
 
@@ -100,7 +106,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
             try {
                 return from(Integer.parseInt(in));
             } catch (NumberFormatException e2) {
-                throw new Converter.ConvertionException(BAD, e1, enumClass);
+                throw new ConvertionException(BAD, e1, String.class, enumClass);
             }
         }
     }

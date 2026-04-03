@@ -1,12 +1,18 @@
 package ninja.javahacker.annotimpler.convert;
 
+import java.sql.Time;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum SqlTimeConverter implements Converter<Time> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<Time> getType() {
+        return Time.class;
+    }
 
     @NonNull
     @Override

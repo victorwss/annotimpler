@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<OptionalDouble> getType() {
+        return OptionalDouble.class;
+    }
 
     @NonNull
     @Override
@@ -46,7 +51,7 @@ public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
 
     @NonNull
     @Override
-    public Optional<OptionalDouble> from(float in) {
+    public Optional<OptionalDouble> from(float in) throws ConvertionException {
         return DoubleConverter.WRAPPER.from(in).map(OptionalDouble::of);
     }
 

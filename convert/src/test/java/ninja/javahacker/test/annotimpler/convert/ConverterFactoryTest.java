@@ -3,7 +3,6 @@ package ninja.javahacker.test.annotimpler.convert;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
-import module org.junit.jupiter.params;
 
 import java.lang.reflect.Type;
 
@@ -47,15 +46,13 @@ public class ConverterFactoryTest {
 
     @Test
     public void testMultidimensionalArrayUnavailable() throws Exception {
-        var ex1 = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class,
-                () -> ConverterFactory.STD.get(int[][].class));
+        var ex1 = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(int[][].class));
         Assertions.assertEquals(int[][].class, ex1.getRoot());
     }
 
     @Test
     public void testBadCollectionUnavailable() throws Exception {
-        var ex2 = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class,
-                () -> ConverterFactory.STD.get(java.util.Map.class));
+        var ex2 = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(java.util.Map.class));
         Assertions.assertEquals(Map.class, ex2.getRoot());
     }
 }

@@ -39,7 +39,7 @@ public class ConversionMappingTest {
             var w = t.isPrimitive() ? wrapper.get(t) : t;
             for (var v : vals) {
                 Executable x = () -> {
-                    var c = ConverterFactory.STD.get(t).from(v).get();
+                    var c = ConverterFactory.STD.get(t).fromObj(v).get();
                     Assertions.assertEquals(w, c.getClass());
                     Assertions.assertEquals(52, ((Number) c).intValue());
                 };

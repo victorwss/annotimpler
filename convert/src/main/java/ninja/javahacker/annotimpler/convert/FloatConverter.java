@@ -1,15 +1,25 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum FloatConverter implements Converter<Float> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as float.";
+    private static final String BAD = "Can't read value as $$$.";
+
+    @NonNull
+    @Override
+    public Class<Float> getType() {
+        return this == PRIMITIVE ? float.class : Float.class;
+    }
+
+    private String bad() {
+        return BAD.replace("$$$", getType().getSimpleName());
+    }
 
     @NonNull
     @Override
@@ -39,7 +49,7 @@ public enum FloatConverter implements Converter<Float> {
     @Override
     public Optional<Float> from(int in) throws ConvertionException {
         float a = in;
-        if (in != a) throw new ConvertionException(BAD, float.class);
+        if (in != (int) a) throw new ConvertionException(bad(), int.class, getType());
         return Optional.of(a);
     }
 
@@ -47,7 +57,7 @@ public enum FloatConverter implements Converter<Float> {
     @Override
     public Optional<Float> from(long in) throws ConvertionException {
         float a = in;
-        if (in != a) throw new ConvertionException(BAD, float.class);
+        if (in != (long) a) throw new ConvertionException(bad(), long.class, getType());
         return Optional.of(a);
     }
 
@@ -58,19 +68,27 @@ public enum FloatConverter implements Converter<Float> {
     }
 
     @NonNull
-    @Override
-    public Optional<Float> from(double in) throws ConvertionException {
-        var a = (float) in;
-        if (in != a) throw new ConvertionException(BAD, float.class);
+    private Optional<Float> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
+        checkNotNull(what);
+        checkNotNull(in);
+        var a = in.floatValue();
+        if (in.compareTo(FloatAndDouble.makeBig(a)) != 0) throw new ConvertionException(bad(), what, getType());
         return Optional.of(a);
     }
 
     @NonNull
     @Override
+    public Optional<Float> from(double in) throws ConvertionException {
+        if (in == Double.POSITIVE_INFINITY) return Optional.of(Float.POSITIVE_INFINITY);
+        if (in == Double.NEGATIVE_INFINITY) return Optional.of(Float.NEGATIVE_INFINITY);
+        if (Double.isNaN(in)) return Optional.of(Float.NaN);
+        return from(double.class, FloatAndDouble.makeBig(in));
+    }
+
+    @NonNull
+    @Override
     public Optional<Float> from(@NonNull BigDecimal in) throws ConvertionException {
-        var a = in.floatValue();
-        if (in.compareTo(BigDecimal.valueOf(a)) != 0) throw new ConvertionException(BAD, double.class);
-        return Optional.of(a);
+        return from(BigDecimal.class, in);
     }
 
     @NonNull
@@ -80,7 +98,12 @@ public enum FloatConverter implements Converter<Float> {
         try {
             return Optional.of(Float.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, float.class);
+            throw new ConvertionException(bad(), x, String.class, getType());
         }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

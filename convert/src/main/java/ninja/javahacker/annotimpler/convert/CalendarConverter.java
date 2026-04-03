@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum CalendarConverter implements Converter<Calendar> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<Calendar> getType() {
+        return Calendar.class;
+    }
 
     @Override
     public Optional<Calendar> from(@NonNull LocalDate in) {

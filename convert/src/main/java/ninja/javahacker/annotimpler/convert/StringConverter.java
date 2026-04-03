@@ -9,6 +9,12 @@ public enum StringConverter implements Converter<String> {
     INSTANCE;
 
     @NonNull
+    @Override
+    public Class<String> getType() {
+        return String.class;
+    }
+
+    @NonNull
     private static final String BAD = "Can't read value as short.";
 
     @NonNull
@@ -43,14 +49,14 @@ public enum StringConverter implements Converter<String> {
 
     @NonNull
     @Override
-    public Optional<String> from(float in) {
-        return Optional.of(String.valueOf(in));
+    public Optional<String> from(float in) throws ConvertionException {
+        return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
     }
 
     @NonNull
     @Override
-    public Optional<String> from(double in) {
-        return Optional.of(String.valueOf(in));
+    public Optional<String> from(double in) throws ConvertionException {
+        return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
     }
 
     @NonNull
@@ -107,7 +113,7 @@ public enum StringConverter implements Converter<String> {
         try {
             return Optional.of(new String(in.getBinaryStream().readAllBytes(), StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, String.class);
+            throw new ConvertionException(BAD, x, Blob.class, String.class);
         }
     }
 
@@ -117,7 +123,7 @@ public enum StringConverter implements Converter<String> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, String.class);
+            throw new ConvertionException(BAD, x, Clob.class, String.class);
         }
     }
 
@@ -127,7 +133,7 @@ public enum StringConverter implements Converter<String> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, String.class);
+            throw new ConvertionException(BAD, x, NClob.class, String.class);
         }
     }
 
@@ -137,7 +143,7 @@ public enum StringConverter implements Converter<String> {
         try {
             return Optional.of(in.getString());
         } catch (SQLException x) {
-            throw new ConvertionException(BAD, x, String.class);
+            throw new ConvertionException(BAD, x, SQLXML.class, String.class);
         }
     }
 

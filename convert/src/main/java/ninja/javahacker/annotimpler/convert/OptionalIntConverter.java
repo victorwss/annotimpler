@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum OptionalIntConverter implements Converter<OptionalInt> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<OptionalInt> getType() {
+        return OptionalInt.class;
+    }
 
     @NonNull
     @Override

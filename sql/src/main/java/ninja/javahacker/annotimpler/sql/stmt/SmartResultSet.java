@@ -65,8 +65,8 @@ public final class SmartResultSet implements ResultSet {
     public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
         try {
             var raw = getTypedValue(columnIndex);
-            return factory.get(target).from(raw);
-        } catch (Converter.ConvertionException | ConverterFactory.UnavailableConverterException e) {
+            return factory.get(target).fromObj(raw);
+        } catch (ConvertionException | UnavailableConverterException e) {
             throw new SQLException(e);
         }
     }
@@ -85,9 +85,9 @@ public final class SmartResultSet implements ResultSet {
         var columnType = metaData.getColumnType(columnIndex);
         return switch (columnType) {
             case Types.NULL -> null;
-            case Types.DATE      -> Optional.ofNullable(getDate     (columnIndex)).map(java.sql.Date     ::toLocalDate    ).orElse(null);
-            case Types.TIMESTAMP -> Optional.ofNullable(getTimestamp(columnIndex)).map(java.sql.Timestamp::toLocalDateTime).orElse(null);
-            case Types.TIME      -> Optional.ofNullable(getTime     (columnIndex)).map(java.sql.Time     ::toLocalTime    ).orElse(null);
+            case Types.DATE                    -> getObject(columnIndex, LocalDate     .class);
+            case Types.TIMESTAMP               -> getObject(columnIndex, LocalDateTime .class);
+            case Types.TIME                    -> getObject(columnIndex, LocalTime     .class);
             case Types.TIMESTAMP_WITH_TIMEZONE -> getObject(columnIndex, OffsetDateTime.class);
             case Types.TIME_WITH_TIMEZONE      -> getObject(columnIndex, OffsetTime    .class);
             case Types.BIGINT             -> nully(getLong  (columnIndex));
@@ -115,10 +115,10 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
-    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
+    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
         try {
-            return new RecordMapper(factory).mapToRecord(getMap(campos), k);
-        } catch (Converter.ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | ConverterFactory.UnavailableConverterException e) {
+            return new RecordMapper(factory).mapToRecord(getMap(fields), k);
+        } catch (ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | UnavailableConverterException e) {
             throw new SQLException(e);
         }
     }

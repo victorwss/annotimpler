@@ -9,16 +9,16 @@ import module java.sql;
 public interface Converter<E> {
 
     @NonNull
-    public default Optional<E> from(@Nullable Object in) throws ConvertionException {
+    public default Optional<E> fromObj(@Nullable Object in) throws ConvertionException {
         return switch (in) {
             case null -> fromNull();
-            case Boolean b -> from(b.booleanValue());
-            case Byte b -> from(b.byteValue());
-            case Short b -> from(b.shortValue());
-            case Integer b -> from(b.intValue());
-            case Long b -> from(b.longValue());
-            case Float b -> from(b.floatValue());
-            case Double b -> from(b.doubleValue());
+            case Boolean b -> from(b);
+            case Byte b -> from(b);
+            case Short b -> from(b);
+            case Integer b -> from(b);
+            case Long b -> from(b);
+            case Float b -> from(b);
+            case Double b -> from(b);
             case BigDecimal b -> from(b);
             case LocalDate b -> from(b);
             case LocalTime b -> from(b);
@@ -35,9 +35,12 @@ public interface Converter<E> {
             case Ref b -> from(b);
             case Struct b -> from(b);
             case java.sql.Array b -> from(b);
-            default -> throw new ConvertionException("Unsupported Type: " + in.getClass().getName(), in.getClass());
+            default -> throw new ConvertionException("Unsupported Type: " + in.getClass().getName(), in.getClass(), getType());
         };
     }
+
+    @NonNull
+    public Class<E> getType();
 
     @NonNull
     public default Optional<E> fromNull() throws ConvertionException {
@@ -46,142 +49,116 @@ public interface Converter<E> {
 
     @NonNull
     public default Optional<E> from(boolean in) throws ConvertionException {
-        throw new ConvertionException("Unsupported boolean", boolean.class);
+        throw new ConvertionException("Unsupported boolean", boolean.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(byte in) throws ConvertionException {
-        throw new ConvertionException("Unsupported byte", byte.class);
+        throw new ConvertionException("Unsupported byte", byte.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(short in) throws ConvertionException {
-        throw new ConvertionException("Unsupported short", short.class);
+        throw new ConvertionException("Unsupported short", short.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(int in) throws ConvertionException {
-        throw new ConvertionException("Unsupported int", int.class);
+        throw new ConvertionException("Unsupported int", int.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(long in) throws ConvertionException {
-        throw new ConvertionException("Unsupported long", long.class);
+        throw new ConvertionException("Unsupported long", long.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(float in) throws ConvertionException {
-        throw new ConvertionException("Unsupported float", float.class);
+        throw new ConvertionException("Unsupported float", float.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(double in) throws ConvertionException {
-        throw new ConvertionException("Unsupported double", double.class);
+        throw new ConvertionException("Unsupported double", double.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull BigDecimal in) throws ConvertionException {
-        throw new ConvertionException("Unsupported BigDecimal", BigDecimal.class);
+        throw new ConvertionException("Unsupported BigDecimal", BigDecimal.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull LocalDate in) throws ConvertionException {
-        throw new ConvertionException("Unsupported LocalDate", LocalDate.class);
+        throw new ConvertionException("Unsupported LocalDate", LocalDate.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull LocalTime in) throws ConvertionException {
-        throw new ConvertionException("Unsupported LocalTime", LocalTime.class);
+        throw new ConvertionException("Unsupported LocalTime", LocalTime.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull LocalDateTime in) throws ConvertionException {
-        throw new ConvertionException("Unsupported LocalDateTime", LocalDateTime.class);
+        throw new ConvertionException("Unsupported LocalDateTime", LocalDateTime.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull OffsetTime in) throws ConvertionException {
-        throw new ConvertionException("Unsupported OffsetTime", OffsetTime.class);
+        throw new ConvertionException("Unsupported OffsetTime", OffsetTime.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull OffsetDateTime in) throws ConvertionException {
-        throw new ConvertionException("Unsupported OffsetDateTime", OffsetDateTime.class);
+        throw new ConvertionException("Unsupported OffsetDateTime", OffsetDateTime.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull String in) throws ConvertionException {
-        throw new ConvertionException("Unsupported String", String.class);
+        throw new ConvertionException("Unsupported String", String.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull byte[] in) throws ConvertionException {
-        throw new ConvertionException("Unsupported byte[]", byte[].class);
+        throw new ConvertionException("Unsupported byte[]", byte[].class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull Blob in) throws ConvertionException {
-        throw new ConvertionException("Unsupported Blob", Blob.class);
+        throw new ConvertionException("Unsupported Blob", Blob.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull Clob in) throws ConvertionException {
-        throw new ConvertionException("Unsupported Clob", Clob.class);
+        throw new ConvertionException("Unsupported Clob", Clob.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull NClob in) throws ConvertionException {
-        throw new ConvertionException("Unsupported NClob", NClob.class);
+        throw new ConvertionException("Unsupported NClob", NClob.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull SQLXML in) throws ConvertionException {
-        throw new ConvertionException("Unsupported SQLXML", SQLXML.class);
+        throw new ConvertionException("Unsupported SQLXML", SQLXML.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull RowId in) throws ConvertionException {
-        throw new ConvertionException("Unsupported RowId", RowId.class);
+        throw new ConvertionException("Unsupported RowId", RowId.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull java.sql.Array in) throws ConvertionException {
-        throw new ConvertionException("Unsupported Array", java.sql.Array.class);
+        throw new ConvertionException("Unsupported Array", java.sql.Array.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull Struct in) throws ConvertionException {
-        throw new ConvertionException("Unsupported Struct", Struct.class);
+        throw new ConvertionException("Unsupported Struct", Struct.class, getType());
     }
 
     @NonNull
     public default Optional<E> from(@NonNull Ref in) throws ConvertionException {
-        throw new ConvertionException("Unsupported Ref", Ref.class);
-    }
-
-    public static class ConvertionException extends Exception {
-
-        @Serial
-        private static final long serialVersionUID = 1L;
-
-        @NonNull
-        private final Class<?> root;
-
-        public ConvertionException(@NonNull String message, @NonNull Class<?> root) {
-            List.of(message, root); // Force lombok put the null-checks before the constructor call.
-            super(message);
-            this.root = root;
-        }
-
-        public ConvertionException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> root) {
-            List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
-            super(message, cause);
-            this.root = root;
-        }
-
-        @NonNull
-        public Class<?> getRoot() {
-            return root;
-        }
+        throw new ConvertionException("Unsupported Ref", Ref.class, getType());
     }
 }

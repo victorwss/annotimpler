@@ -6,6 +6,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 public class RecordConverter<R extends Record> implements Converter<R> {
+    private final Class<R> recordClass;
     private final MagicFactory<R> factory;
     private final Type inType;
     private final Converter<?> inFactory;
@@ -15,14 +16,15 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     private static record OngoingCreation(ConverterFactory a, Class<?> b) {
     }
 
-    public RecordConverter(@NonNull ConverterFactory cvtf, @NonNull Class<R> recordClass) throws ConvertionException {
+    public RecordConverter(@NonNull ConverterFactory cvtf, @NonNull Class<R> recordClass) throws UnavailableConverterException {
+        this.recordClass = recordClass;
         var o = new OngoingCreation(cvtf, recordClass);
         var n = ongoing.get();
         if (n == null) {
             n = new HashSet<>(5);
             ongoing.set(n);
         } else if (n.contains(o)) {
-            throw new ConvertionException("Recursive record class: " + recordClass.getName(), recordClass);
+            throw new UnavailableConverterException("Recursive record class: " + recordClass.getName(), recordClass);
         }
         n.add(o);
 
@@ -30,22 +32,25 @@ public class RecordConverter<R extends Record> implements Converter<R> {
             try {
                 this.factory = MagicFactory.of(recordClass);
             } catch (MagicFactory.CreatorSelectionException e) {
-                throw new ConvertionException(e.getMessage(), e, recordClass);
+                throw new UnavailableConverterException(e.getMessage(), e, recordClass);
             }
             if (this.factory.arity() != 1) {
                 var msg = "Non-single value record class where single-valued was expected: " + recordClass.getName();
-                throw new ConvertionException(msg, recordClass);
+                throw new UnavailableConverterException(msg, recordClass);
             }
             this.inType = recordClass.getRecordComponents()[0].getGenericType();
-            try {
-                this.inFactory = cvtf.get(inType);
-            } catch (ConverterFactory.UnavailableConverterException e) {
-                throw new ConvertionException(e.getMessage(), e, recordClass);
-            }
+            this.inFactory = cvtf.get(inType);
         } finally {
             n.remove(o);
             if (n.isEmpty()) ongoing.remove();
         }
+    }
+
+    @NonNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Class<R> getType() {
+        return recordClass;
     }
 
     /*@Override
@@ -62,7 +67,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, boolean.class, recordClass);
         }
     }
 
@@ -71,7 +76,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, byte.class, recordClass);
         }
     }
 
@@ -80,7 +85,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, short.class, recordClass);
         }
     }
 
@@ -89,7 +94,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, int.class, recordClass);
         }
     }
 
@@ -98,7 +103,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, long.class, recordClass);
         }
     }
 
@@ -107,7 +112,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, float.class, recordClass);
         }
     }
 
@@ -116,7 +121,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, double.class, recordClass);
         }
     }
 
@@ -125,7 +130,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, BigDecimal.class, recordClass);
         }
     }
 
@@ -134,7 +139,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, byte[].class, recordClass);
         }
     }
 
@@ -143,7 +148,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, String.class, recordClass);
         }
     }
 
@@ -152,7 +157,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, LocalDate.class, recordClass);
         }
     }
 
@@ -161,7 +166,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, LocalTime.class, recordClass);
         }
     }
 
@@ -170,7 +175,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, LocalDateTime.class, recordClass);
         }
     }
 
@@ -179,7 +184,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, OffsetTime.class, recordClass);
         }
     }
 
@@ -188,7 +193,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, OffsetDateTime.class, recordClass);
         }
     }
 
@@ -197,7 +202,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, Blob.class, recordClass);
         }
     }
 
@@ -206,7 +211,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, Clob.class, recordClass);
         }
     }
 
@@ -215,7 +220,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, NClob.class, recordClass);
         }
     }
 
@@ -224,7 +229,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, RowId.class, recordClass);
         }
     }
 
@@ -233,7 +238,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, Ref.class, recordClass);
         }
     }
 
@@ -242,7 +247,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, java.sql.Array.class, recordClass);
         }
     }
 }

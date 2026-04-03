@@ -10,6 +10,12 @@ public enum RefConverter implements Converter<Ref> {
 
     @NonNull
     @Override
+    public Class<Ref> getType() {
+        return Ref.class;
+    }
+
+    @NonNull
+    @Override
     public Optional<Ref> from(@NonNull Ref in) {
         return Optional.of(in);
     }

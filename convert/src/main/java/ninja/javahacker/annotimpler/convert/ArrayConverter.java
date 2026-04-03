@@ -11,13 +11,22 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     private final Class<E> baseClass;
 
     @NonNull
+    private final Class<E[]> arrayClass;
+
+    @NonNull
     private final Converter<E> cvt;
 
-    public ArrayConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass)
-            throws ConverterFactory.UnavailableConverterException
-    {
+    @SuppressWarnings("unchecked")
+    public ArrayConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass) throws UnavailableConverterException {
         this.baseClass = baseClass;
         this.cvt = factory.get(baseClass);
+        this.arrayClass = (Class<E[]>) java.lang.reflect.Array.newInstance(baseClass, 0).getClass();
+    }
+
+    @NonNull
+    @Override
+    public Class<E[]> getType() {
+        return arrayClass;
     }
 
     @NonNull

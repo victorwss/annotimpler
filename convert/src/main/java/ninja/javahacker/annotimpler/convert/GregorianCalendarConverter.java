@@ -3,10 +3,15 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
     INSTANCE;
+
+    @NonNull
+    @Override
+    public Class<GregorianCalendar> getType() {
+        return GregorianCalendar.class;
+    }
 
     @Override
     public Optional<GregorianCalendar> from(@NonNull LocalDate in) {

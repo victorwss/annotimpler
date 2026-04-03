@@ -8,10 +8,15 @@ import module ninja.javahacker.annotimpler.convert;
 public final class CollectionConverter<E> implements Converter<Collection<E>> {
     private final Converter<E> cvt;
 
-    public CollectionConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass)
-            throws ConverterFactory.UnavailableConverterException
-    {
+    public CollectionConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass) throws UnavailableConverterException {
         this.cvt = factory.get(baseClass);
+    }
+
+    @NonNull
+    @Override
+    @SuppressWarnings("unchecked")
+    public Class<Collection<E>> getType() {
+        return (Class) Collection.class;
     }
 
     @NonNull

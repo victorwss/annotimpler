@@ -1,15 +1,25 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum IntegerConverter implements Converter<Integer> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as int.";
+    private static final String BAD = "Can't read value as $$$.";
+
+    @NonNull
+    @Override
+    public Class<Integer> getType() {
+        return this == PRIMITIVE ? int.class : Integer.class;
+    }
+
+    private String bad() {
+        return BAD.replace("$$$", getType().getSimpleName());
+    }
 
     @NonNull
     @Override
@@ -45,34 +55,39 @@ public enum IntegerConverter implements Converter<Integer> {
     @Override
     public Optional<Integer> from(long in) throws ConvertionException {
         var a = (int) in;
-        if (in != a) throw new ConvertionException(BAD, int.class);
+        if (in != a) throw new ConvertionException(bad(), long.class, getType());
         return Optional.of(a);
+    }
+
+    @NonNull
+    private Optional<Integer> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
+        checkNotNull(what);
+        checkNotNull(in);
+        try {
+            return Optional.of(in.intValueExact());
+        } catch (ArithmeticException x) {
+            throw new ConvertionException(bad(), x, what, getType());
+        }
     }
 
     @NonNull
     @Override
     public Optional<Integer> from(float in) throws ConvertionException {
-        var a = (int) in;
-        if (in != a) throw new ConvertionException(BAD, int.class);
-        return Optional.of(a);
+        return from(float.class, FloatAndDouble.makeBig(in));
     }
 
     @NonNull
     @Override
     public Optional<Integer> from(double in) throws ConvertionException {
         var a = (int) in;
-        if (in != a) throw new ConvertionException(BAD, int.class);
+        if (in != a) throw new ConvertionException(bad(), double.class, getType());
         return Optional.of(a);
     }
 
     @NonNull
     @Override
     public Optional<Integer> from(@NonNull BigDecimal in) throws ConvertionException {
-        try {
-            return Optional.of(in.intValueExact());
-        } catch (ArithmeticException x) {
-            throw new ConvertionException(BAD, x, byte.class);
-        }
+        return from(BigDecimal.class, in);
     }
 
     @NonNull
@@ -82,7 +97,12 @@ public enum IntegerConverter implements Converter<Integer> {
         try {
             return Optional.of(Integer.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, int.class);
+            throw new ConvertionException(bad(), x, String.class, getType());
         }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

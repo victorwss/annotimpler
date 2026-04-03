@@ -31,8 +31,8 @@ public final class RecordMapper {
     public <T extends Record> T mapToRecord(@NonNull Map<String, ?> map, @NonNull Class<T> recordClass)
             throws MagicFactory.CreatorSelectionException,
             MagicFactory.CreationException,
-            ConverterFactory.UnavailableConverterException,
-            Converter.ConvertionException
+            UnavailableConverterException,
+            ConvertionException
     {
         // Seleciona o construtor ou método mais adequado.
         var exec = MagicFactory.of(recordClass);
@@ -47,7 +47,7 @@ public final class RecordMapper {
     private List<?> prepareArguments(
             @NonNull MagicFactory<?> constructor,
             @NonNull Map<String, ?> map)
-            throws ConverterFactory.UnavailableConverterException, Converter.ConvertionException
+            throws UnavailableConverterException, ConvertionException
     {
         var parameters = constructor.getParameters();
         var args = new ArrayList<Object>(parameters.size());
@@ -55,7 +55,7 @@ public final class RecordMapper {
         for (var param : parameters) {
             var paramName = camelCaseToSnakeCase(param.getName());
             var paramType = param.getParameterizedType();
-            var value = factory.get(paramType).from(map.get(paramName)).orElse(null);
+            var value = factory.get(paramType).fromObj(map.get(paramName)).orElse(null);
             args.add(value);
         }
 

@@ -3,13 +3,22 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum ByteConverter implements Converter<Byte> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as byte.";
+    private static final String BAD = "Can't read value as $$$.";
+
+    @NonNull
+    @Override
+    public Class<Byte> getType() {
+        return this == PRIMITIVE ? byte.class : Byte.class;
+    }
+
+    private String bad() {
+        return BAD.replace("$$$", getType().getSimpleName());
+    }
 
     @NonNull
     @Override
@@ -33,7 +42,7 @@ public enum ByteConverter implements Converter<Byte> {
     @Override
     public Optional<Byte> from(short in) throws ConvertionException {
         var a = (byte) in;
-        if (in != a) throw new ConvertionException(BAD, byte.class);
+        if (in != a) throw new ConvertionException(bad(), short.class, getType());
         return Optional.of(a);
     }
 
@@ -41,7 +50,7 @@ public enum ByteConverter implements Converter<Byte> {
     @Override
     public Optional<Byte> from(int in) throws ConvertionException {
         var a = (byte) in;
-        if (in != a) throw new ConvertionException(BAD, byte.class);
+        if (in != a) throw new ConvertionException(bad(), int.class, getType());
         return Optional.of(a);
     }
 
@@ -49,7 +58,7 @@ public enum ByteConverter implements Converter<Byte> {
     @Override
     public Optional<Byte> from(long in) throws ConvertionException {
         var a = (byte) in;
-        if (in != a) throw new ConvertionException(BAD, byte.class);
+        if (in != a) throw new ConvertionException(bad(), long.class, getType());
         return Optional.of(a);
     }
 
@@ -57,7 +66,7 @@ public enum ByteConverter implements Converter<Byte> {
     @Override
     public Optional<Byte> from(float in) throws ConvertionException {
         var a = (byte) in;
-        if (in != a) throw new ConvertionException(BAD, byte.class);
+        if (in != a) throw new ConvertionException(bad(), float.class, getType());
         return Optional.of(a);
     }
 
@@ -65,7 +74,7 @@ public enum ByteConverter implements Converter<Byte> {
     @Override
     public Optional<Byte> from(double in) throws ConvertionException {
         var a = (byte) in;
-        if (in != a) throw new ConvertionException(BAD, byte.class);
+        if (in != a) throw new ConvertionException(bad(), double.class, getType());
         return Optional.of(a);
     }
 
@@ -75,7 +84,7 @@ public enum ByteConverter implements Converter<Byte> {
         try {
             return Optional.of(in.byteValueExact());
         } catch (ArithmeticException x) {
-            throw new ConvertionException(BAD, x, byte.class);
+            throw new ConvertionException(bad(), x, BigDecimal.class, getType());
         }
     }
 
@@ -86,7 +95,7 @@ public enum ByteConverter implements Converter<Byte> {
         try {
             return Optional.of(Byte.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, byte.class);
+            throw new ConvertionException(bad(), x, String.class, getType());
         }
     }
 }

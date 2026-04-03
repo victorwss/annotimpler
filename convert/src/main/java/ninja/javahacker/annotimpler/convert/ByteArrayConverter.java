@@ -13,6 +13,12 @@ public enum ByteArrayConverter implements Converter<byte[]> {
 
     @NonNull
     @Override
+    public Class<byte[]> getType() {
+        return byte[].class;
+    }
+
+    @NonNull
+    @Override
     @SuppressWarnings("unchecked")
     public Optional<byte[]> fromNull() {
         return Optional.of(new byte[0]);
@@ -78,7 +84,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getBinaryStream().readAllBytes());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, byte[].class);
+            throw new ConvertionException(BAD, x, Blob.class, byte[].class);
         }
     }
 
@@ -88,7 +94,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, byte[].class);
+            throw new ConvertionException(BAD, x, Clob.class, byte[].class);
         }
     }
 
@@ -98,7 +104,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, byte[].class);
+            throw new ConvertionException(BAD, x, NClob.class, byte[].class);
         }
     }
 
@@ -108,7 +114,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException x) {
-            throw new ConvertionException(BAD, x, byte[].class);
+            throw new ConvertionException(BAD, x, SQLXML.class, byte[].class);
         }
     }
 

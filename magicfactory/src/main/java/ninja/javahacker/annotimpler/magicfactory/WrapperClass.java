@@ -18,6 +18,9 @@ public final class WrapperClass {
             void.class, Void.class
     );
 
+    private static final Map<Class<?>, Class<?>> PRIMITIVES =
+            WRAPPERS.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
     private WrapperClass() {
         throw new UnsupportedOperationException();
     }
@@ -26,5 +29,11 @@ public final class WrapperClass {
     @SuppressWarnings("unchecked")
     public static <E> Class<E> wrap(@NonNull Class<E> in) {
         return (Class<E>) WRAPPERS.getOrDefault(in, in);
+    }
+
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <E> Class<E> unwrap(@NonNull Class<E> in) {
+        return (Class<E>) PRIMITIVES.getOrDefault(in, in);
     }
 }

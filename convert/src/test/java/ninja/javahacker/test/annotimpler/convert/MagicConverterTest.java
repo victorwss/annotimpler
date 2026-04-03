@@ -51,12 +51,10 @@ public class MagicConverterTest {
 
     @Test
     public void testRecursiveRecord() {
-        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Recursive.class));
+        var ex = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(Recursive.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Recursive.class, ex.getRoot()),
-                () -> Assertions.assertEquals("Recursive record class: " + Recursive.class.getName(), ex.getMessage()),
-                () -> Assertions.assertEquals(Converter.ConvertionException.class, ex.getCause().getClass()),
-                () -> Assertions.assertEquals("Recursive record class: " + Recursive.class.getName(), ex.getCause().getMessage())
+                () -> Assertions.assertEquals("Recursive record class: " + Recursive.class.getName(), ex.getMessage())
         );
     }
 
@@ -64,30 +62,30 @@ public class MagicConverterTest {
 
     @Test
     public void testVerboseRecord() {
-        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(Verbose.class));
+        var ex = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(Verbose.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Verbose.class, ex.getRoot()),
-                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected: " + Verbose.class.getName(), ex.getMessage()),
-                () -> Assertions.assertEquals(Converter.ConvertionException.class, ex.getCause().getClass()),
-                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected: " + Verbose.class.getName(), ex.getCause().getMessage())
+                () -> Assertions.assertEquals("Non-single value record class where single-valued was expected: " + Verbose.class.getName(), ex.getMessage())
         );
     }
 
     @Test
     public void testBadEnum1() {
         var in = new Wrapper(5);
-        var ex = Assertions.assertThrows(Converter.ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).from(in));
+        var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).fromObj(in));
         Assertions.assertAll(
-                () -> Assertions.assertEquals(Wrapper.class, ex.getRoot()),
+                () -> Assertions.assertEquals(Color.class, ex.getOut()),
+                () -> Assertions.assertEquals(Wrapper.class, ex.getIn()),
                 () -> Assertions.assertEquals("Unsupported Type: " + Wrapper.class.getName(), ex.getMessage())
         );
     }
 
     @Test
     public void testBadEnum2() {
-        var ex = Assertions.assertThrows(Converter.ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).from("bla"));
+        var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.get(Color.class).from("bla"));
         Assertions.assertAll(
-                () -> Assertions.assertEquals(Color.class, ex.getRoot()),
+                () -> Assertions.assertEquals(Color.class, ex.getOut()),
+                () -> Assertions.assertEquals(String.class, ex.getIn()),
                 () -> Assertions.assertEquals("Can't read value as an enum object.", ex.getMessage())
         );
     }
@@ -132,7 +130,7 @@ public class MagicConverterTest {
         var msg = (k instanceof Class<?> kk && kk.isArray())
                 ? "No converter for multidimensional arrays."
                 : "No converter for " + k.getTypeName();
-        var ex = Assertions.assertThrows(ConverterFactory.UnavailableConverterException.class, () -> ConverterFactory.STD.get(k));
+        var ex = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(k));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(msg, ex.getMessage()),
                 () -> Assertions.assertEquals(k, ex.getRoot())
@@ -214,7 +212,7 @@ public class MagicConverterTest {
                 ),
                 n(
                         e.getSimpleName() + "from(null)",
-                        () -> Assertions.assertTrue(ConverterFactory.STD.get(e).from((Object) null).isEmpty())
+                        () -> Assertions.assertTrue(ConverterFactory.STD.get(e).fromObj(null).isEmpty())
                 )
         ));
     }
@@ -266,7 +264,7 @@ public class MagicConverterTest {
         ).map(e -> n(
                 e.getClass().getComponentType().getCanonicalName() + "[]",
                 () -> {
-                    var s = ConverterFactory.STD.get(e.getClass()).from(Array.get(e, 0)).get();
+                    var s = ConverterFactory.STD.get(e.getClass()).fromObj(Array.get(e, 0)).get();
                     Assertions.assertEquals(s.getClass(), e.getClass());
                     Assertions.assertEquals(1, Array.getLength(s));
                     Assertions.assertEquals(Array.get(e, 0), Array.get(s, 0));
@@ -430,7 +428,7 @@ public class MagicConverterTest {
     public Stream<DynamicTest> testNulls() {
         @FunctionalInterface
         interface Foo {
-            public Object convert(Converter<?> in) throws Converter.ConvertionException;
+            public Object convert(Converter<?> in) throws ConvertionException;
 
             public default Consumer<Converter<?>> asFunc() {
                 return in -> ForTests.testNull("in", () -> this.convert(in));

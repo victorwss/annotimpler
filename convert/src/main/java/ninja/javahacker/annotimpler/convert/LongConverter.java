@@ -1,15 +1,25 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum LongConverter implements Converter<Long> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as long.";
+    private static final String BAD = "Can't read value as $$$.";
+
+    @NonNull
+    @Override
+    public Class<Long> getType() {
+        return this == PRIMITIVE ? long.class : Long.class;
+    }
+
+    private String bad() {
+        return BAD.replace("$$$", getType().getSimpleName());
+    }
 
     @NonNull
     @Override
@@ -48,29 +58,32 @@ public enum LongConverter implements Converter<Long> {
     }
 
     @NonNull
+    private Optional<Long> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
+        checkNotNull(what);
+        checkNotNull(in);
+        try {
+            return Optional.of(in.longValueExact());
+        } catch (ArithmeticException x) {
+            throw new ConvertionException(bad(), x, what, getType());
+        }
+    }
+
+    @NonNull
     @Override
     public Optional<Long> from(float in) throws ConvertionException {
-        var a = (long) in;
-        if (in != a) throw new ConvertionException(BAD, long.class);
-        return Optional.of(a);
+        return from(float.class, FloatAndDouble.makeBig(in));
     }
 
     @NonNull
     @Override
     public Optional<Long> from(double in) throws ConvertionException {
-        var a = (long) in;
-        if (in != a) throw new ConvertionException(BAD, long.class);
-        return Optional.of(a);
+        return from(double.class, FloatAndDouble.makeBig(in));
     }
 
     @NonNull
     @Override
     public Optional<Long> from(@NonNull BigDecimal in) throws ConvertionException {
-        try {
-            return Optional.of(in.longValueExact());
-        } catch (ArithmeticException x) {
-            throw new ConvertionException(BAD, x, byte.class);
-        }
+        return from(BigDecimal.class, in);
     }
 
     @NonNull
@@ -80,7 +93,12 @@ public enum LongConverter implements Converter<Long> {
         try {
             return Optional.of(Long.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, long.class);
+            throw new ConvertionException(bad(), x, String.class, getType());
         }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

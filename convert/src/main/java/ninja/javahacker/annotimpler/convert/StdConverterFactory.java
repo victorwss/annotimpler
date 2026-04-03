@@ -100,23 +100,24 @@ enum StdConverterFactory implements ConverterFactory {
 
     @NonNull
     private <E> ArrayConverter<E> array(@NonNull Class<E> klass) throws UnavailableConverterException {
-        if (klass == null) throw new AssertionError();
+        checkNotNull(klass);
         return new ArrayConverter<>(this, klass);
     }
 
     @NonNull
     private <E extends Enum<E>> EnumConverter<E> enums(@NonNull Class<E> klass) {
-        if (klass == null) throw new AssertionError();
+        checkNotNull(klass);
         return new EnumConverter<>(klass);
     }
 
     @NonNull
     private <E extends Record> RecordConverter<E> records(@NonNull Class<E> klass) throws UnavailableConverterException {
-        if (klass == null) throw new AssertionError();
-        try {
-            return new RecordConverter<>(this, klass);
-        } catch (Converter.ConvertionException e) {
-            throw new UnavailableConverterException(e.getMessage(), e, klass);
-        }
+        checkNotNull(klass);
+        return new RecordConverter<>(this, klass);
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

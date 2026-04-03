@@ -3,7 +3,6 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 public enum OffsetTimeConverter implements Converter<OffsetTime> {
     INSTANCE;
@@ -12,6 +11,12 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
     public static final DateTimeFormatter FORMATTER_TZ = DateTimeFormatter
             .ofPattern("HH:mm[:ss][ Z]")
             .withResolverStyle(ResolverStyle.STRICT);
+
+    @NonNull
+    @Override
+    public Class<OffsetTime> getType() {
+        return OffsetTime.class;
+    }
 
     @NonNull
     @Override
@@ -47,7 +52,7 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
             try {
                 return LocalTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC));
             } catch (DateTimeParseException e2) {
-                throw new ConvertionException("String inconvertible to OffsetTime.", e1, OffsetTime.class);
+                throw new ConvertionException("String inconvertible to OffsetTime.", e1, String.class, OffsetTime.class);
             }
         }
     }
