@@ -45,19 +45,19 @@ public class HeavyConverterTest {
     }
 
     private Integer i(Long x) {
-        return x == null ? null : x < Integer.MIN_VALUE || x > Integer.MAX_VALUE ? null : x.intValue();
+        return x == null || x < Integer.MIN_VALUE || x > Integer.MAX_VALUE ? null : x.intValue();
     }
 
     private Character c(Long x) {
-        return x == null ? null : x < Character.MIN_VALUE || x > Character.MAX_VALUE ? null : (char) x.intValue();
+        return x == null || x < Character.MIN_VALUE || x > Character.MAX_VALUE ? null : (char) x.intValue();
     }
 
     private Short s(Long x) {
-        return x == null ? null : x < Short.MIN_VALUE || x > Short.MAX_VALUE ? null : x.shortValue();
+        return x == null || x < Short.MIN_VALUE || x > Short.MAX_VALUE ? null : x.shortValue();
     }
 
     private Byte b(Long x) {
-        return x == null ? null : x < Byte.MIN_VALUE || x > Byte.MAX_VALUE ? null : x.byteValue();
+        return x == null || x < Byte.MIN_VALUE || x > Byte.MAX_VALUE ? null : x.byteValue();
     }
 
     private Boolean o(Long x) {
@@ -73,7 +73,7 @@ public class HeavyConverterTest {
     }
 
     private OffsetDateTime odt(String x) {
-        return x == null ? null : OffsetDateTime.parse(x, OffsetDateTimeConverter.FORMATTER_DTZ);
+        return x == null ? null : OffsetDateTime.parse(x, DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]][ xxxxx]").withResolverStyle(ResolverStyle.STRICT));
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
@@ -115,7 +115,7 @@ public class HeavyConverterTest {
                                 () -> Assertions.assertEquals(k1, ce.getOut())
                         );
                 };
-                var exec = v1 == null ? err2 : out == null ? err1 : ok;
+                var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class).contains(k1)) ? err2 : out == null ? err1 : ok;
                 var nd1 = DynamicTest.dynamicTest(
                         "Converter for " + k1.getSimpleName() + " from " + base.getSimpleName() + " - " + in + ".",
                         () -> exec.receive(() -> m.receive(cvt, in))
@@ -137,18 +137,21 @@ public class HeavyConverterTest {
         var str1 = e(String.class, List.of(
                 "0", "1", "42", "55", "127", "-30", "-128", "32000", "64000",
                 "489876544", "12345678910", "9876543210987654", "98765432109876543210",
+                "16777217", "9007199254740993",
                 "3.5", "0.078", "-177.77", "98765432109876543210.98765432",
                 "NaN", "Infinity", "-Infinity"
         ));
         var floats = e(Float.class, Arrays.asList(
                 0F, 1F, 42F, 55F, 127F, -30F, -128F, 32000F, 64000F,
                 489876544F, null, null, null,
+                null, null,
                 3.5F, 0.078F, -177.77F, null,
                 Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
         ));
         var doubles = e(Double.class, Arrays.asList(
                 0D, 1D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
                 489876544D, 12345678910D, 9876543210987654D, null,
+                16777217.0D, null,
                 3.5D, 0.078D, -177.77D, null,
                 Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         ));
@@ -168,6 +171,8 @@ public class HeavyConverterTest {
 
         var all  = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
         var allB = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, strB);
+        var allC = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
+        var allD = List.of(bools,                                                                                                  strB);
 
         var byteNode   = testIn(byte      .class, all , (cvt, in) -> cvt.from(in));
         var intNode    = testIn(int       .class, all , (cvt, in) -> cvt.from(in));
@@ -177,17 +182,49 @@ public class HeavyConverterTest {
         var doubleNode = testIn(double    .class, all , (cvt, in) -> cvt.from(in));
         var bigdNode   = testIn(BigDecimal.class, all , (cvt, in) -> cvt.from(in));
         var boolNode   = testIn(boolean   .class, allB, (cvt, in) -> cvt.from(in));
+        var str1Node   = testIn(String    .class, allC, (cvt, in) -> cvt.from(in));
+        var str2Node   = testIn(String    .class, allD, (cvt, in) -> cvt.from(in));
 
-        return List.of(byteNode, intNode, longNode, shortNode, floatNode, doubleNode, bigdNode, boolNode);
+        return List.of(byteNode, intNode, longNode, shortNode, floatNode, doubleNode, bigdNode, boolNode, str1Node, str2Node);
+    }
+
+    @TestFactory
+    public List<DynamicNode> testMinusZero() throws Exception {
+        var str1 = e(String.class, List.of("-0"));
+        var floats = e(Float.class, Arrays.asList(-0.0F));
+        var doubles = e(Double.class, Arrays.asList(-0.0));
+
+        var bigds      = str1 .map(BigDecimal.class, this::bd);
+        var bigis      = str1 .map(BigInteger.class, this::bi);
+        var longs      = bigis.map(Long      .class, this::lo);
+        var bools      = longs.map(Boolean   .class, this::o );
+        var bytes      = longs.map(Byte      .class, this::b );
+        var chars      = longs.map(Character .class, this::c );
+        var shorts     = longs.map(Short     .class, this::s );
+        var ints       = longs.map(Integer   .class, this::i );
+        var optDoubles = doubles.map(OptionalDouble.class, x -> x == null ? null : OptionalDouble.of(x));
+        var optInts    = ints   .map(OptionalInt   .class, x -> x == null ? null : OptionalInt   .of(x));
+        var optLongs   = longs  .map(OptionalLong  .class, x -> x == null ? null : OptionalLong  .of(x));
+
+        var all1 = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
+        var all2 = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
+
+        var floatNode  = testIn(float .class, all1, (cvt, in) -> cvt.from(in));
+        var doubleNode = testIn(double.class, all1, (cvt, in) -> cvt.from(in));
+        var strNode    = testIn(String.class, all2, (cvt, in) -> cvt.from(in));
+
+        return List.of(floatNode, doubleNode, strNode);
     }
 
     @TestFactory
     public List<DynamicNode> testTemporalTypes() throws Exception {
         var str1 = e(String.class, List.of(
                 "2026-01-02 03:04:05 +06:13",
-                "2025-10-31 13:14:15 +11:55:44",
+                "2025-10-31 13:14:15.123456 +11:55:44",
                 "2022-04-12 08:07:06.123456789 -03:04:05",
-                "2023-07-14 11:12:13.123 -00:12"
+                "2023-07-14 11:12:13.123 -00:12",
+                "2021-10-04 13:14:15.12 -12:20",
+                "2022-09-14 21:10:12.1 -04:10"
         ));
         var str2 = str1.map(String.class, x -> x.split(" ")[0] + " " + x.split(" ")[1]);
         var str3 = str1.map(String.class, x -> x.split(" ")[0]);
@@ -232,12 +269,17 @@ public class HeavyConverterTest {
         var all4 = List.of(                    lts1, ots1,                                     sts1,       str4);
         var all5 = List.of(                    lts1, ots5,                                     sts1,       str5);
 
-        var odtNode = testIn(OffsetDateTime.class, all1, (cvt, in) -> cvt.from(in));
-        var ldtNode = testIn(LocalDateTime .class, all2, (cvt, in) -> cvt.from(in));
-        var ldNode  = testIn(LocalDate     .class, all3, (cvt, in) -> cvt.from(in));
-        var otNode  = testIn(OffsetTime    .class, all4, (cvt, in) -> cvt.from(in));
-        var ltNode  = testIn(LocalTime     .class, all5, (cvt, in) -> cvt.from(in));
+        var odtNode  = testIn(OffsetDateTime.class, all1, (cvt, in) -> cvt.from(in));
+        var str1Node = testIn(String        .class, all1, (cvt, in) -> cvt.from(in));
+        var ldtNode  = testIn(LocalDateTime .class, all2, (cvt, in) -> cvt.from(in));
+        var str2Node = testIn(String        .class, all2, (cvt, in) -> cvt.from(in));
+        var ldNode   = testIn(LocalDate     .class, all3, (cvt, in) -> cvt.from(in));
+        var str3Node = testIn(String        .class, all3, (cvt, in) -> cvt.from(in));
+        var otNode   = testIn(OffsetTime    .class, all4, (cvt, in) -> cvt.from(in));
+        var str4Node = testIn(String        .class, all4, (cvt, in) -> cvt.from(in));
+        var ltNode   = testIn(LocalTime     .class, all5, (cvt, in) -> cvt.from(in));
+        var str5Node = testIn(String        .class, all5, (cvt, in) -> cvt.from(in));
 
-        return List.of(odtNode, ldNode, ldtNode, ltNode, otNode);
+        return List.of(odtNode, ldNode, ldtNode, ltNode, otNode, str1Node, str2Node, str3Node, str4Node, str5Node);
     }
 }

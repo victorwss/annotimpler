@@ -8,11 +8,6 @@ public enum LocalTimeConverter implements Converter<LocalTime> {
     INSTANCE;
 
     @NonNull
-    public static final DateTimeFormatter FORMATTER_T = DateTimeFormatter
-            .ofPattern("HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]]")
-            .withResolverStyle(ResolverStyle.STRICT);
-
-    @NonNull
     @Override
     public Class<LocalTime> getType() {
         return LocalTime.class;
@@ -46,10 +41,6 @@ public enum LocalTimeConverter implements Converter<LocalTime> {
     @Override
     public Optional<LocalTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        try {
-            return Optional.of(LocalTime.parse(in, FORMATTER_T));
-        } catch (DateTimeParseException e) {
-            throw new ConvertionException(e, String.class, LocalTime.class);
-        }
+        return Optional.of(MultiFormatters.parseLocalTime(in));
     }
 }

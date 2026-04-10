@@ -57,7 +57,7 @@ public enum DoubleConverter implements Converter<Double> {
         checkNotNull(what);
         checkNotNull(in);
         var a = in.doubleValue();
-        if (in.compareTo(FloatAndDouble.makeBig(a, getType())) != 0) throw new ConvertionException(what, getType());
+        if (in.compareTo(FloatAndDouble.makeBig(a)) != 0) throw new ConvertionException(what, getType());
         return Optional.of(a);
     }
 
@@ -67,7 +67,8 @@ public enum DoubleConverter implements Converter<Double> {
         if (in == Float.POSITIVE_INFINITY) return Optional.of(Double.POSITIVE_INFINITY);
         if (in == Float.NEGATIVE_INFINITY) return Optional.of(Double.NEGATIVE_INFINITY);
         if (Float.isNaN(in)) return Optional.of(Double.NaN);
-        return from(float.class, FloatAndDouble.makeBig(in, getType()));
+        if (Float.floatToRawIntBits(in) == Integer.MIN_VALUE) return Optional.of(-0.0);
+        return from(float.class, FloatAndDouble.makeBig(in));
     }
 
     @NonNull
@@ -87,7 +88,11 @@ public enum DoubleConverter implements Converter<Double> {
     public Optional<Double> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return this == PRIMITIVE ? Optional.of(0.0) : Optional.empty();
         try {
-            return Optional.of(Double.valueOf(in));
+            var a = Double.valueOf(in);
+            var b = StringConverter.INSTANCE.from(a).get();
+            //if (!List.of("NaN", "Infinity", "-Infinity").contains(b) && !b.contains(".")) b += ".0";
+            if (!in.equals(b)) throw new ConvertionException(String.class, getType());
+            return Optional.of(a);
         } catch (NumberFormatException x) {
             throw new ConvertionException(x, String.class, getType());
         }

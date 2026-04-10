@@ -8,11 +8,6 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
     INSTANCE;
 
     @NonNull
-    public static final DateTimeFormatter FORMATTER_TZ = DateTimeFormatter
-            .ofPattern("HH:mm[:ss][ Z]")
-            .withResolverStyle(ResolverStyle.STRICT);
-
-    @NonNull
     @Override
     public Class<OffsetTime> getType() {
         return OffsetTime.class;
@@ -46,14 +41,6 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
     @Override
     public Optional<OffsetTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        try {
-            return Optional.of(OffsetTime.parse(in, FORMATTER_TZ));
-        } catch (DateTimeParseException e1) {
-            try {
-                return LocalTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC));
-            } catch (ConvertionException e2) {
-                throw new ConvertionException(e1, String.class, OffsetTime.class);
-            }
-        }
+        return Optional.of(MultiFormatters.parseOffsetTime(in));
     }
 }

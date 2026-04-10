@@ -26,6 +26,18 @@ final class FloatAndDouble {
     }
 
     @NonNull
+    public static BigDecimal makeBig(float in) {
+        assertFloatOk(in);
+        return normalize(in >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+    }
+
+    @NonNull
+    public static BigDecimal makeBig(double in) {
+        assertDoubleOk(in);
+        return normalize(in >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+    }
+
+    @NonNull
     public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target);
         if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
@@ -41,6 +53,20 @@ final class FloatAndDouble {
             throw new ConvertionException(double.class, target);
         }
         return normalize(in >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+    }
+
+    @Generated
+    private static void assertFloatOk(float in) {
+        if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
+            throw new AssertionError();
+        }
+    }
+
+    @Generated
+    private static void assertDoubleOk(double in) {
+        if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {
+            throw new AssertionError();
+        }
     }
 
     @Generated

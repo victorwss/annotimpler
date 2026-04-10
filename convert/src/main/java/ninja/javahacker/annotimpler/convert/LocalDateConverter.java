@@ -8,11 +8,6 @@ public enum LocalDateConverter implements Converter<LocalDate> {
     INSTANCE;
 
     @NonNull
-    public static final DateTimeFormatter FORMATTER_D = DateTimeFormatter
-            .ofPattern("uuuu-MM-dd")
-            .withResolverStyle(ResolverStyle.STRICT);
-
-    @NonNull
     @Override
     public Class<LocalDate> getType() {
         return LocalDate.class;
@@ -40,10 +35,6 @@ public enum LocalDateConverter implements Converter<LocalDate> {
     @Override
     public Optional<LocalDate> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        try {
-            return Optional.of(LocalDate.parse(in, FORMATTER_D));
-        } catch (DateTimeParseException e) {
-            throw new ConvertionException(e, String.class, LocalDate.class);
-        }
+        return Optional.of(MultiFormatters.parseLocalDate(in));
     }
 }

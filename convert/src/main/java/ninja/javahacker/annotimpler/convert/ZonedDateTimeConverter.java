@@ -28,17 +28,10 @@ public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
         return Optional.of(in.toZonedDateTime());
     }
 
+    @NonNull
     @Override
     public Optional<ZonedDateTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        try {
-            return Optional.of(ZonedDateTime.parse(in, OffsetDateTimeConverter.FORMATTER_DTZ));
-        } catch (DateTimeParseException e1) {
-            try {
-                return LocalDateTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC).toZonedDateTime());
-            } catch (ConvertionException e2) {
-                throw new ConvertionException(e1, String.class, ZonedDateTime.class);
-            }
-        }
+        return Optional.of(MultiFormatters.parseZonedDateTime(in));
     }
 }

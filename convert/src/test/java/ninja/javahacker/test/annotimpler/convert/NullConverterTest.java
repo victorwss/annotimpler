@@ -118,4 +118,21 @@ public class NullConverterTest {
         }
         return nodes1;
     }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public List<DynamicNode> testFromEmpty() throws Exception {
+        MethodSpec m = cvt -> cvt.from("");
+        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
+        for (var k1 : CVT_CLASSES) {
+            if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
+            var cvt = ConverterFactory.STD.get(k1);
+            var nd1 = DynamicTest.dynamicTest(
+                    "Converter for " + k1.getSimpleName() + " with empty String.",
+                    () -> Assertions.assertEquals(Optional.ofNullable(zero(k1)), m.receive(cvt))
+            );
+            nodes1.add(nd1);
+        }
+        return nodes1;
+    }
 }
