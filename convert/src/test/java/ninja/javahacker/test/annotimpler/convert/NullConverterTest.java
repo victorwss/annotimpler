@@ -8,7 +8,7 @@ import module org.junit.jupiter.api;
 
 public class NullConverterTest {
 
-    public static interface MethodSpec<E> {
+    public static interface MethodSpec {
         public Optional<?> receive(Converter<?> cvt) throws Exception;
     }
 
@@ -22,7 +22,7 @@ public class NullConverterTest {
     );
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private <E> DynamicNode testIn(Class<E> base, MethodSpec<E> m) throws Exception {
+    private <E> DynamicNode testIn(Class<E> base, MethodSpec m) throws Exception {
         List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
         for (var k1 : CVT_CLASSES) {
             var cvt = ConverterFactory.STD.get(k1);
@@ -91,6 +91,30 @@ public class NullConverterTest {
                     () -> Assertions.assertEquals(z, cvt.fromNull())
             );
             nodes1.add(nd2);
+        }
+        return nodes1;
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public List<DynamicNode> testFromBadJunk() throws Exception {
+        MethodSpec m = cvt -> cvt.from("xxx");
+        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
+        for (var k1 : CVT_CLASSES) {
+            if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
+            var cvt = ConverterFactory.STD.get(k1);
+            var nd1 = DynamicTest.dynamicTest(
+                    "Converter for " + k1.getSimpleName() + " with bad String.",
+                    () -> {
+                        var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
+                        Assertions.assertAll(
+                                () -> Assertions.assertEquals("Can't read value as " + k1.getSimpleName() + ".", ex.getMessage()),
+                                () -> Assertions.assertEquals(String.class, ex.getIn()),
+                                () -> Assertions.assertEquals(k1, ex.getOut())
+                        );
+                    }
+            );
+            nodes1.add(nd1);
         }
         return nodes1;
     }

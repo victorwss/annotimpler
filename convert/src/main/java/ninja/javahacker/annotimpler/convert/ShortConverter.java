@@ -8,16 +8,9 @@ public enum ShortConverter implements Converter<Short> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as $$$.";
-
-    @NonNull
     @Override
     public Class<Short> getType() {
         return this == PRIMITIVE ? short.class : Short.class;
-    }
-
-    private String bad() {
-        return BAD.replace("$$$", getType().getSimpleName());
     }
 
     @NonNull
@@ -48,7 +41,7 @@ public enum ShortConverter implements Converter<Short> {
     @Override
     public Optional<Short> from(int in) throws ConvertionException {
         var a = (short) in;
-        if (in != a) throw new ConvertionException(bad(), int.class, getType());
+        if (in != a) throw new ConvertionException(int.class, getType());
         return Optional.of(a);
     }
 
@@ -56,7 +49,7 @@ public enum ShortConverter implements Converter<Short> {
     @Override
     public Optional<Short> from(long in) throws ConvertionException {
         var a = (short) in;
-        if (in != a) throw new ConvertionException(bad(), long.class, getType());
+        if (in != a) throw new ConvertionException(long.class, getType());
         return Optional.of(a);
     }
 
@@ -64,7 +57,7 @@ public enum ShortConverter implements Converter<Short> {
     @Override
     public Optional<Short> from(float in) throws ConvertionException {
         var a = (short) in;
-        if (in != a) throw new ConvertionException(bad(), float.class, getType());
+        if (in != a) throw new ConvertionException(float.class, getType());
         return Optional.of(a);
     }
 
@@ -72,7 +65,7 @@ public enum ShortConverter implements Converter<Short> {
     @Override
     public Optional<Short> from(double in) throws ConvertionException {
         var a = (short) in;
-        if (in != a) throw new ConvertionException(bad(), double.class, getType());
+        if (in != a) throw new ConvertionException(double.class, getType());
         return Optional.of(a);
     }
 
@@ -82,7 +75,7 @@ public enum ShortConverter implements Converter<Short> {
         try {
             return Optional.of(in.shortValueExact());
         } catch (ArithmeticException x) {
-            throw new ConvertionException(bad(), x, BigDecimal.class, getType());
+            throw new ConvertionException(x, BigDecimal.class, getType());
         }
     }
 
@@ -93,7 +86,7 @@ public enum ShortConverter implements Converter<Short> {
         try {
             return Optional.of(Short.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(bad(), x, String.class, getType());
+            throw new ConvertionException(x, String.class, getType());
         }
     }
 }

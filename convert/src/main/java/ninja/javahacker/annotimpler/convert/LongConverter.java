@@ -9,16 +9,9 @@ public enum LongConverter implements Converter<Long> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as $$$.";
-
-    @NonNull
     @Override
     public Class<Long> getType() {
         return this == PRIMITIVE ? long.class : Long.class;
-    }
-
-    private String bad() {
-        return BAD.replace("$$$", getType().getSimpleName());
     }
 
     @NonNull
@@ -64,20 +57,20 @@ public enum LongConverter implements Converter<Long> {
         try {
             return Optional.of(in.longValueExact());
         } catch (ArithmeticException x) {
-            throw new ConvertionException(bad(), x, what, getType());
+            throw new ConvertionException(x, what, getType());
         }
     }
 
     @NonNull
     @Override
     public Optional<Long> from(float in) throws ConvertionException {
-        return from(float.class, FloatAndDouble.makeBig(in));
+        return from(float.class, FloatAndDouble.makeBig(in, getType()));
     }
 
     @NonNull
     @Override
     public Optional<Long> from(double in) throws ConvertionException {
-        return from(double.class, FloatAndDouble.makeBig(in));
+        return from(double.class, FloatAndDouble.makeBig(in, getType()));
     }
 
     @NonNull
@@ -93,7 +86,7 @@ public enum LongConverter implements Converter<Long> {
         try {
             return Optional.of(Long.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(bad(), x, String.class, getType());
+            throw new ConvertionException(x, String.class, getType());
         }
     }
 

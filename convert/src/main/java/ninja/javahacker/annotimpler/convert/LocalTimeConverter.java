@@ -49,7 +49,7 @@ public enum LocalTimeConverter implements Converter<LocalTime> {
         try {
             return Optional.of(LocalTime.parse(in, FORMATTER_T));
         } catch (DateTimeParseException e) {
-            throw new ConvertionException("String inconvertible to LocalTime.", e, String.class, LocalTime.class);
+            throw new ConvertionException(e, String.class, LocalTime.class);
         }
     }
 }

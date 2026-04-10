@@ -43,7 +43,7 @@ public enum LocalDateConverter implements Converter<LocalDate> {
         try {
             return Optional.of(LocalDate.parse(in, FORMATTER_D));
         } catch (DateTimeParseException e) {
-            throw new ConvertionException("String inconvertible to LocalDate.", e, String.class, LocalDate.class);
+            throw new ConvertionException(e, String.class, LocalDate.class);
         }
     }
 }

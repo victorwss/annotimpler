@@ -9,16 +9,9 @@ public enum CharacterConverter implements Converter<Character> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as $$$.";
-
-    @NonNull
     @Override
     public Class<Character> getType() {
         return this == PRIMITIVE ? char.class : Character.class;
-    }
-
-    private String bad() {
-        return BAD.replace("$$$", getType().getSimpleName());
     }
 
     @NonNull
@@ -43,7 +36,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(int in) throws ConvertionException {
         var a = (char) in;
-        if (in != a) throw new ConvertionException(bad(), int.class, getType());
+        if (in != a) throw new ConvertionException(int.class, getType());
         return Optional.of(a);
     }
 
@@ -51,7 +44,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(long in) throws ConvertionException {
         var a = (char) in;
-        if (in != a) throw new ConvertionException(bad(), long.class, getType());
+        if (in != a) throw new ConvertionException(long.class, getType());
         return Optional.of(a);
     }
 
@@ -59,7 +52,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(float in) throws ConvertionException {
         var a = (char) in;
-        if (in != a) throw new ConvertionException(bad(), float.class, getType());
+        if (in != a) throw new ConvertionException(float.class, getType());
         return Optional.of(a);
     }
 
@@ -67,7 +60,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(double in) throws ConvertionException {
         var a = (char) in;
-        if (in != a) throw new ConvertionException(bad(), double.class, getType());
+        if (in != a) throw new ConvertionException(double.class, getType());
         return Optional.of(a);
     }
 
@@ -77,7 +70,7 @@ public enum CharacterConverter implements Converter<Character> {
         try {
             return from(in.intValueExact());
         } catch (ArithmeticException x) {
-            throw new ConvertionException(bad(), BigDecimal.class, getType());
+            throw new ConvertionException(BigDecimal.class, getType());
         }
     }
 
@@ -85,7 +78,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(@NonNull String in) throws ConvertionException {
         if (in.length() == 0) return this == PRIMITIVE ? Optional.of('\0') : Optional.empty();
-        if (in.length() != 1) throw new ConvertionException(bad(), String.class, getType());
+        if (in.length() != 1) throw new ConvertionException(String.class, getType());
         return Optional.of(in.charAt(0));
     }
 
@@ -93,7 +86,7 @@ public enum CharacterConverter implements Converter<Character> {
     @Override
     public Optional<Character> from(@NonNull byte[] in) throws ConvertionException {
         if (in.length == 0) return this == PRIMITIVE ? Optional.of('\0') : Optional.empty();
-        if (in.length != 1) throw new ConvertionException(bad(), byte[].class, getType());
+        if (in.length != 1) throw new ConvertionException(byte[].class, getType());
         return from(in[0]);
     }
 
@@ -103,7 +96,7 @@ public enum CharacterConverter implements Converter<Character> {
         try {
             return from(new String(in.getBinaryStream().readAllBytes(), StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(bad(), Blob.class, getType());
+            throw new ConvertionException(Blob.class, getType());
         }
     }
 
@@ -113,7 +106,7 @@ public enum CharacterConverter implements Converter<Character> {
         try {
             return from(in.getCharacterStream().readAllAsString());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(bad(), Clob.class, getType());
+            throw new ConvertionException(Clob.class, getType());
         }
     }
 
@@ -123,7 +116,7 @@ public enum CharacterConverter implements Converter<Character> {
         try {
             return from(in.getCharacterStream().readAllAsString());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(bad(), NClob.class, getType());
+            throw new ConvertionException(NClob.class, getType());
         }
     }
 }

@@ -3,9 +3,25 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum OptionalLongConverter implements Converter<OptionalLong> {
     INSTANCE;
+
+    @FunctionalInterface
+    public interface Work {
+        public Optional<OptionalLong> work() throws ConvertionException;
+    }
+
+    @NonNull
+    private Optional<OptionalLong> rewrap(@NonNull Work w) throws ConvertionException {
+        checkNotNull(w);
+        try {
+            return w.work();
+        } catch (ConvertionException e) {
+            throw new ConvertionException(e, e.getIn(), OptionalLong.class);
+        }
+    }
 
     @NonNull
     @Override
@@ -52,24 +68,29 @@ public enum OptionalLongConverter implements Converter<OptionalLong> {
     @NonNull
     @Override
     public Optional<OptionalLong> from(float in) throws ConvertionException {
-        return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
+        return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
     @NonNull
     @Override
     public Optional<OptionalLong> from(double in) throws ConvertionException {
-        return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
+        return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
     @NonNull
     @Override
     public Optional<OptionalLong> from(@NonNull BigDecimal in) throws ConvertionException {
-        return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
+        return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
     @NonNull
     @Override
     public Optional<OptionalLong> from(@NonNull String in) throws ConvertionException {
-        return Optional.of(LongConverter.WRAPPER.from(in).map(OptionalLong::of).orElse(OptionalLong.empty()));
+        return rewrap(() -> Optional.of(LongConverter.WRAPPER.from(in).map(OptionalLong::of).orElse(OptionalLong.empty())));
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

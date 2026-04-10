@@ -8,9 +8,6 @@ public enum BigDecimalConverter implements Converter<BigDecimal> {
     INSTANCE;
 
     @NonNull
-    private static final String BAD = "Can't read value as BigDecimal.";
-
-    @NonNull
     @Override
     public Class<BigDecimal> getType() {
         return BigDecimal.class;
@@ -49,21 +46,13 @@ public enum BigDecimalConverter implements Converter<BigDecimal> {
     @NonNull
     @Override
     public Optional<BigDecimal> from(float in) throws ConvertionException {
-        try {
-            return Optional.of(FloatAndDouble.makeBig(in));
-        } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, float.class, BigDecimal.class);
-        }
+        return Optional.of(FloatAndDouble.makeBig(in, getType()));
     }
 
     @NonNull
     @Override
     public Optional<BigDecimal> from(double in) throws ConvertionException {
-        try {
-            return Optional.of(FloatAndDouble.makeBig(in));
-        } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, double.class, BigDecimal.class);
-        }
+        return Optional.of(FloatAndDouble.makeBig(in, getType()));
     }
 
     @NonNull
@@ -79,7 +68,7 @@ public enum BigDecimalConverter implements Converter<BigDecimal> {
         try {
             return Optional.of(new BigDecimal(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(BAD, x, String.class, BigDecimal.class);
+            throw new ConvertionException(x, String.class, BigDecimal.class);
         }
     }
 }

@@ -9,16 +9,9 @@ public enum DoubleConverter implements Converter<Double> {
     PRIMITIVE, WRAPPER;
 
     @NonNull
-    private static final String BAD = "Can't read value as $$$.";
-
-    @NonNull
     @Override
     public Class<Double> getType() {
         return this == PRIMITIVE ? double.class : Double.class;
-    }
-
-    private String bad() {
-        return BAD.replace("$$$", getType().getSimpleName());
     }
 
     @NonNull
@@ -55,7 +48,7 @@ public enum DoubleConverter implements Converter<Double> {
     @Override
     public Optional<Double> from(long in) throws ConvertionException {
         double a = in;
-        if (in != (long) a) throw new ConvertionException(bad(), long.class, getType());
+        if (in != (long) a) throw new ConvertionException(long.class, getType());
         return Optional.of(a);
     }
 
@@ -64,7 +57,7 @@ public enum DoubleConverter implements Converter<Double> {
         checkNotNull(what);
         checkNotNull(in);
         var a = in.doubleValue();
-        if (in.compareTo(FloatAndDouble.makeBig(a)) != 0) throw new ConvertionException(bad(), what, getType());
+        if (in.compareTo(FloatAndDouble.makeBig(a, getType())) != 0) throw new ConvertionException(what, getType());
         return Optional.of(a);
     }
 
@@ -74,7 +67,7 @@ public enum DoubleConverter implements Converter<Double> {
         if (in == Float.POSITIVE_INFINITY) return Optional.of(Double.POSITIVE_INFINITY);
         if (in == Float.NEGATIVE_INFINITY) return Optional.of(Double.NEGATIVE_INFINITY);
         if (Float.isNaN(in)) return Optional.of(Double.NaN);
-        return from(float.class, FloatAndDouble.makeBig(in));
+        return from(float.class, FloatAndDouble.makeBig(in, getType()));
     }
 
     @NonNull
@@ -96,7 +89,7 @@ public enum DoubleConverter implements Converter<Double> {
         try {
             return Optional.of(Double.valueOf(in));
         } catch (NumberFormatException x) {
-            throw new ConvertionException(bad(), x, String.class, getType());
+            throw new ConvertionException(x, String.class, getType());
         }
     }
 

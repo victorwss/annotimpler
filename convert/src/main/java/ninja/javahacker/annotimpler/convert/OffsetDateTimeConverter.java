@@ -9,7 +9,7 @@ public enum OffsetDateTimeConverter implements Converter<OffsetDateTime> {
 
     @NonNull
     public static final DateTimeFormatter FORMATTER_DTZ = DateTimeFormatter
-            .ofPattern("uuuu-MM-dd[ HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]][ x]]")
+            .ofPattern("uuuu-MM-dd[ HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]][ xxxxx]]")
             .withResolverStyle(ResolverStyle.STRICT);
 
     @NonNull
@@ -45,8 +45,8 @@ public enum OffsetDateTimeConverter implements Converter<OffsetDateTime> {
         } catch (DateTimeParseException e1) {
             try {
                 return LocalDateTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC));
-            } catch (DateTimeParseException e2) {
-                throw new ConvertionException("String inconvertible to OffsetDateTime.", e1, String.class, OffsetDateTime.class);
+            } catch (ConvertionException e2) {
+                throw new ConvertionException(e1, String.class, OffsetDateTime.class);
             }
         }
     }

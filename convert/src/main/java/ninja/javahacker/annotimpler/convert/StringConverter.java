@@ -9,6 +9,45 @@ public enum StringConverter implements Converter<String> {
     INSTANCE;
 
     @NonNull
+    private static final DateTimeFormatter FORMATTER_DTZ = DateTimeFormatter
+            .ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSSSS xxxxx")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    @NonNull
+    private static final DateTimeFormatter FORMATTER_DT = DateTimeFormatter
+            .ofPattern("uuuu-MM-dd HH:mm:ss.SSSSSSSSS")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    @NonNull
+    private static final DateTimeFormatter FORMATTER_TZ = DateTimeFormatter
+            .ofPattern("HH:mm:ss.SSSSSSSSS xxxxx")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    @NonNull
+    private static final DateTimeFormatter FORMATTER_T = DateTimeFormatter
+            .ofPattern("HH:mm:ss.SSSSSSSSS")
+            .withResolverStyle(ResolverStyle.STRICT);
+
+    private static final Pattern EXCESS_ZEROS = Pattern.compile("\\.0+ ", Pattern.CASE_INSENSITIVE);
+
+    @NonNull
+    private static String removeExcessZeros(@NonNull String input, int part) {
+        checkNotNull(input);
+        var parts = input.split(" ");
+        var time = parts[part];
+        if (!time.contains(".")) return input;
+        var t = time.length();
+        while (time.charAt(t - 1) == '0') {
+            t--;
+        }
+        if (time.charAt(t - 1) == '.') {
+            t--;
+        }
+        parts[part] = time.substring(0, t);
+        return String.join(" ", parts);
+    }
+
+    @NonNull
     @Override
     public Class<String> getType() {
         return String.class;
@@ -50,12 +89,18 @@ public enum StringConverter implements Converter<String> {
     @NonNull
     @Override
     public Optional<String> from(float in) throws ConvertionException {
+        if (in == Float.POSITIVE_INFINITY) return Optional.of("Infinity");
+        if (in == Float.NEGATIVE_INFINITY) return Optional.of("-Infinity");
+        if (Float.isNaN(in)) return Optional.of("NaN");
         return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
     }
 
     @NonNull
     @Override
     public Optional<String> from(double in) throws ConvertionException {
+        if (in == Double.POSITIVE_INFINITY) return Optional.of("Infinity");
+        if (in == Double.NEGATIVE_INFINITY) return Optional.of("-Infinity");
+        if (Double.isNaN(in)) return Optional.of("NaN");
         return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
     }
 
@@ -74,25 +119,25 @@ public enum StringConverter implements Converter<String> {
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalTime in) {
-        return Optional.of(in.format(LocalTimeConverter.FORMATTER_T));
+        return Optional.of(removeExcessZeros(in.format(FORMATTER_T), 0));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalDateTime in) {
-        return Optional.of(in.format(LocalDateTimeConverter.FORMATTER_DT));
+        return Optional.of(removeExcessZeros(in.format(FORMATTER_DT), 1));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetTime in) {
-        return Optional.of(in.format(OffsetTimeConverter.FORMATTER_TZ));
+        return Optional.of(removeExcessZeros(in.format(FORMATTER_TZ), 0));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetDateTime in) {
-        return Optional.of(in.format(OffsetDateTimeConverter.FORMATTER_DTZ));
+        return Optional.of(removeExcessZeros(in.format(FORMATTER_DTZ), 1));
     }
 
     @NonNull
@@ -151,5 +196,10 @@ public enum StringConverter implements Converter<String> {
     @Override
     public Optional<String> from(@NonNull RowId in) {
         return Optional.of(new BigInteger(in.getBytes()).toString());
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

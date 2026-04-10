@@ -65,19 +65,19 @@ public class HeavyConverterTest {
     }
 
     private BigInteger bi(String x) {
-        return x == null || x.contains(".") ? null : new BigInteger(x);
+        return x == null || List.of("NaN", "Infinity", "-Infinity").contains(x) || x.contains(".") ? null : new BigInteger(x);
     }
 
     private BigDecimal bd(String x) {
-        return x == null ? null : new BigDecimal(x);
+        return x == null || List.of("NaN", "Infinity", "-Infinity").contains(x) ? null : new BigDecimal(x);
     }
 
-    private static Class<?> unoptionalize(Class<?> x) {
-        return x == OptionalLong.class ? Long.class : x == OptionalInt.class ? Integer.class : x == OptionalDouble.class ? Double.class : x;
+    private OffsetDateTime odt(String x) {
+        return x == null ? null : OffsetDateTime.parse(x, OffsetDateTimeConverter.FORMATTER_DTZ);
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private <E> DynamicNode testIn(Class<E> base, List<Elements<?>> lists, MethodSpec<E> m) throws Exception {
+    private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
         var baseWrap = WrapperClass.wrap(base);
         Map<Class<?>, List<?>> mappings = new HashMap<>(CVT_CLASSES.size());
         for (var a1 : lists) {
@@ -95,7 +95,6 @@ public class HeavyConverterTest {
                 var in = start.get(i);
                 if (in == null) continue;
                 var out = v1 == null || i >= v1.size() ? null : v1.get(i);
-                var k1s = unoptionalize(k1);
                 Giver2 ok = exec0 -> {
                         var g = exec0.give().get();
                         Assertions.assertEquals(out, g);
@@ -103,17 +102,17 @@ public class HeavyConverterTest {
                 Giver2 err1 = exec0 -> {
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
                         Assertions.assertAll(
-                                () -> Assertions.assertEquals("Can't read value as " + k1s.getSimpleName() + ".", ce.getMessage()),
+                                () -> Assertions.assertEquals("Can't read value as " + k1.getSimpleName() + ".", ce.getMessage()),
                                 () -> Assertions.assertEquals(base, ce.getIn()),
-                                () -> Assertions.assertEquals(k1s, ce.getOut())
+                                () -> Assertions.assertEquals(k1, ce.getOut())
                         );
                 };
                 Giver2 err2 = exec0 -> {
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
                         Assertions.assertAll(
-                                () -> Assertions.assertEquals("Unsupported " + base.getSimpleName(), ce.getMessage()),
+                                () -> Assertions.assertEquals("Unsupported " + base.getSimpleName() + ".", ce.getMessage()),
                                 () -> Assertions.assertEquals(base, ce.getIn()),
-                                () -> Assertions.assertEquals(k1s, ce.getOut())
+                                () -> Assertions.assertEquals(k1, ce.getOut())
                         );
                 };
                 var exec = v1 == null ? err2 : out == null ? err1 : ok;
@@ -138,17 +137,20 @@ public class HeavyConverterTest {
         var str1 = e(String.class, List.of(
                 "0", "1", "42", "55", "127", "-30", "-128", "32000", "64000",
                 "489876544", "12345678910", "9876543210987654", "98765432109876543210",
-                "3.5", "0.078", "-177.77", "98765432109876543210.98765432"
+                "3.5", "0.078", "-177.77", "98765432109876543210.98765432",
+                "NaN", "Infinity", "-Infinity"
         ));
         var floats = e(Float.class, Arrays.asList(
                 0F, 1F, 42F, 55F, 127F, -30F, -128F, 32000F, 64000F,
                 489876544F, null, null, null,
-                3.5F, 0.078F, -177.77F, null
+                3.5F, 0.078F, -177.77F, null,
+                Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
         ));
         var doubles = e(Double.class, Arrays.asList(
                 0D, 1D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
                 489876544D, 12345678910D, 9876543210987654D, null,
-                3.5D, 0.078D, -177.77D, null
+                3.5D, 0.078D, -177.77D, null,
+                Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         ));
         var strB = e(String.class, List.of("false", "true"));
 
@@ -177,5 +179,65 @@ public class HeavyConverterTest {
         var boolNode   = testIn(boolean   .class, allB, (cvt, in) -> cvt.from(in));
 
         return List.of(byteNode, intNode, longNode, shortNode, floatNode, doubleNode, bigdNode, boolNode);
+    }
+
+    @TestFactory
+    public List<DynamicNode> testTemporalTypes() throws Exception {
+        var str1 = e(String.class, List.of(
+                "2026-01-02 03:04:05 +06:13",
+                "2025-10-31 13:14:15 +11:55:44",
+                "2022-04-12 08:07:06.123456789 -03:04:05",
+                "2023-07-14 11:12:13.123 -00:12"
+        ));
+        var str2 = str1.map(String.class, x -> x.split(" ")[0] + " " + x.split(" ")[1]);
+        var str3 = str1.map(String.class, x -> x.split(" ")[0]);
+        var str4 = str1.map(String.class, x -> x.split(" ")[1] + " " + x.split(" ")[2]);
+        var str5 = str1.map(String.class, x -> x.split(" ")[1]);
+
+        var odts1 = str1 .map(OffsetDateTime    .class, this::odt);
+        var lds1  = odts1.map(LocalDate         .class, OffsetDateTime::toLocalDate);
+        var ldts1 = odts1.map(LocalDateTime     .class, OffsetDateTime::toLocalDateTime);
+        var lts1  = odts1.map(LocalTime         .class, OffsetDateTime::toLocalTime);
+        var ots1  = odts1.map(OffsetTime        .class, OffsetDateTime::toOffsetTime);
+        var ins1  = odts1.map(Instant           .class, OffsetDateTime::toInstant);
+        var zdts1 = odts1.map(ZonedDateTime     .class, OffsetDateTime::toZonedDateTime);
+        var gcs1  = zdts1.map(GregorianCalendar .class, GregorianCalendar::from);
+        var cs1   = gcs1 .map(Calendar          .class, gc -> gc);
+        var uds1  = ins1 .map(java.util.Date    .class, java.util.Date::from);
+        var tss1  = ldts1.map(java.sql.Timestamp.class, java.sql.Timestamp::valueOf);
+        var sts1  = lts1 .map(java.sql.Time     .class, java.sql.Time::valueOf);
+        var sds1  = lds1 .map(java.sql.Date     .class, java.sql.Date::valueOf);
+
+        var odts2 = ldts1.map(OffsetDateTime    .class, x -> x.atOffset(ZoneOffset.UTC));
+        var ins2  = odts2.map(Instant           .class, OffsetDateTime::toInstant);
+        var zdts2 = odts2.map(ZonedDateTime     .class, OffsetDateTime::toZonedDateTime);
+        var gcs2  = zdts2.map(GregorianCalendar .class, GregorianCalendar::from);
+        var cs2   = gcs2 .map(Calendar          .class, gc -> gc);
+        var uds2  = ins2 .map(java.util.Date    .class, java.util.Date::from);
+
+        var ldts3 = lds1 .map(LocalDateTime     .class, x -> x.atTime(LocalTime.MIN));
+        var odts3 = ldts3.map(OffsetDateTime    .class, x -> x.atOffset(ZoneOffset.UTC));
+        var ins3  = odts3.map(Instant           .class, OffsetDateTime::toInstant);
+        var zdts3 = odts3.map(ZonedDateTime     .class, OffsetDateTime::toZonedDateTime);
+        var gcs3  = zdts3.map(GregorianCalendar .class, GregorianCalendar::from);
+        var cs3   = gcs3 .map(Calendar          .class, gc -> gc);
+        var uds3  = ins3 .map(java.util.Date    .class, java.util.Date::from);
+        var tss3  = ldts3.map(java.sql.Timestamp.class, java.sql.Timestamp::valueOf);
+
+        var ots5  = lts1 .map(OffsetTime        .class, x -> x.atOffset(ZoneOffset.UTC));
+
+        var all1 = List.of(odts1, lds1, ldts1, lts1, ots1, ins1, zdts1, gcs1, cs1, uds1, tss1, sts1, sds1, str1);
+        var all2 = List.of(odts2, lds1, ldts1, lts1, ots5, ins2, zdts2, gcs2, cs2, uds2, tss1, sts1, sds1, str2);
+        var all3 = List.of(odts3, lds1, ldts3,             ins3, zdts3, gcs3, cs3, uds3, tss3,       sds1, str3);
+        var all4 = List.of(                    lts1, ots1,                                     sts1,       str4);
+        var all5 = List.of(                    lts1, ots5,                                     sts1,       str5);
+
+        var odtNode = testIn(OffsetDateTime.class, all1, (cvt, in) -> cvt.from(in));
+        var ldtNode = testIn(LocalDateTime .class, all2, (cvt, in) -> cvt.from(in));
+        var ldNode  = testIn(LocalDate     .class, all3, (cvt, in) -> cvt.from(in));
+        var otNode  = testIn(OffsetTime    .class, all4, (cvt, in) -> cvt.from(in));
+        var ltNode  = testIn(LocalTime     .class, all5, (cvt, in) -> cvt.from(in));
+
+        return List.of(odtNode, ldNode, ldtNode, ltNode, otNode);
     }
 }

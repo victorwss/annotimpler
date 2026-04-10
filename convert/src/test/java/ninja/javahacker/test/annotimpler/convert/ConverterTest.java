@@ -36,7 +36,7 @@ public class ConverterTest {
         Assertions.assertAll(
                 () -> Assertions.assertEquals(int.class, ex.getIn()),
                 () -> Assertions.assertEquals(Thread.class, ex.getOut()),
-                () -> Assertions.assertEquals("Unsupported int", ex.getMessage())
+                () -> Assertions.assertEquals("Unsupported int.", ex.getMessage())
         );
     }
 

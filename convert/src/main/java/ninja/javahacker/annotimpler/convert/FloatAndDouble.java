@@ -19,16 +19,27 @@ final class FloatAndDouble {
 
     @NonNull
     private static BigDecimal normalize(@NonNull BigDecimal in) {
+        checkNotNull(in);
         var in2 = in.stripTrailingZeros();
         if (in2.scale() < 0) in2 = in2.setScale(0);
         return in2;
     }
 
-    public static BigDecimal makeBig(float in) {
+    @NonNull
+    public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
+        checkNotNull(target);
+        if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
+            throw new ConvertionException(float.class, target);
+        }
         return normalize(in >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
     }
 
-    public static BigDecimal makeBig(double in) {
+    @NonNull
+    public static BigDecimal makeBig(double in, @NonNull Class<?> target) throws ConvertionException {
+        checkNotNull(target);
+        if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {
+            throw new ConvertionException(double.class, target);
+        }
         return normalize(in >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
     }
 

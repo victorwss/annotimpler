@@ -36,8 +36,8 @@ public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
         } catch (DateTimeParseException e1) {
             try {
                 return LocalDateTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC).toZonedDateTime());
-            } catch (DateTimeParseException e2) {
-                throw new ConvertionException("String inconvertible to ZonedDateTime.", e1, String.class, ZonedDateTime.class);
+            } catch (ConvertionException e2) {
+                throw new ConvertionException(e1, String.class, ZonedDateTime.class);
             }
         }
     }

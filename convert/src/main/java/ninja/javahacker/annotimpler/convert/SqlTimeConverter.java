@@ -4,9 +4,25 @@ import java.sql.Time;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum SqlTimeConverter implements Converter<Time> {
     INSTANCE;
+
+    @FunctionalInterface
+    public interface Work {
+        public Optional<Time> work() throws ConvertionException;
+    }
+
+    @NonNull
+    private Optional<Time> rewrap(@NonNull Work w) throws ConvertionException {
+        checkNotNull(w);
+        try {
+            return w.work();
+        } catch (ConvertionException e) {
+            throw new ConvertionException(e, e.getIn(), Time.class);
+        }
+    }
 
     @NonNull
     @Override
@@ -41,6 +57,11 @@ public enum SqlTimeConverter implements Converter<Time> {
     @NonNull
     @Override
     public Optional<Time> from(@NonNull String in) throws ConvertionException {
-        return LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf);
+        return rewrap(() -> LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf));
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

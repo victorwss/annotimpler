@@ -51,8 +51,8 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
         } catch (DateTimeParseException e1) {
             try {
                 return LocalTimeConverter.INSTANCE.from(in).map(x -> x.atOffset(ZoneOffset.UTC));
-            } catch (DateTimeParseException e2) {
-                throw new ConvertionException("String inconvertible to OffsetTime.", e1, String.class, OffsetTime.class);
+            } catch (ConvertionException e2) {
+                throw new ConvertionException(e1, String.class, OffsetTime.class);
             }
         }
     }
