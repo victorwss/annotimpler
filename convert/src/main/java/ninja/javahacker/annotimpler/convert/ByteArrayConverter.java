@@ -9,9 +9,6 @@ public enum ByteArrayConverter implements Converter<byte[]> {
     INSTANCE;
 
     @NonNull
-    private static final String BAD = "Can't read value as byte array.";
-
-    @NonNull
     @Override
     public Class<byte[]> getType() {
         return byte[].class;
@@ -84,7 +81,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getBinaryStream().readAllBytes());
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, Blob.class, byte[].class);
+            throw new ConvertionException(x, Blob.class, byte[].class);
         }
     }
 
@@ -94,7 +91,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, Clob.class, byte[].class);
+            throw new ConvertionException(x, Clob.class, byte[].class);
         }
     }
 
@@ -104,7 +101,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getCharacterStream().readAllAsString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException | IOException x) {
-            throw new ConvertionException(BAD, x, NClob.class, byte[].class);
+            throw new ConvertionException(x, NClob.class, byte[].class);
         }
     }
 
@@ -114,7 +111,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         try {
             return Optional.of(in.getString().getBytes(StandardCharsets.UTF_8));
         } catch (SQLException x) {
-            throw new ConvertionException(BAD, x, SQLXML.class, byte[].class);
+            throw new ConvertionException(x, SQLXML.class, byte[].class);
         }
     }
 

@@ -1,5 +1,6 @@
 package ninja.javahacker.test.annotimpler.convert;
 
+import java.lang.reflect.Proxy;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
@@ -10,6 +11,9 @@ public class NullConverterTest {
 
     public static interface MethodSpec {
         public Optional<?> receive(Converter<?> cvt) throws Exception;
+    }
+
+    public static record NamedSpec(String name, MethodSpec spec, Class<?> base, Class<? extends Exception> err) {
     }
 
     private static final List<Class<?>> CVT_CLASSES = List.of(
@@ -132,6 +136,121 @@ public class NullConverterTest {
                     () -> Assertions.assertEquals(Optional.ofNullable(zero(k1)), m.receive(cvt))
             );
             nodes1.add(nd1);
+        }
+        return nodes1;
+    }
+
+    private Blob blobSqlex() {
+        return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
+            throw new SQLException("test");
+        });
+    }
+
+    private NClob nclobSqlex() {
+        return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            throw new SQLException("test");
+        });
+    }
+
+    private Clob clobSqlex() {
+        return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            throw new SQLException("test");
+        });
+    }
+
+    private SQLXML sqlxmlSqlex() {
+        return (SQLXML) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { SQLXML.class }, (i, m, a) -> {
+            if (!m.getName().equals("getString")) throw new AssertionError(m.getName());
+            throw new SQLException("test");
+        });
+    }
+
+    private Blob blobIoex() {
+        var is = new InputStream() {
+            @Override
+            public int read() throws IOException {
+                throw new IOException("test");
+            }
+        };
+        return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
+            return is;
+        });
+    }
+
+    private NClob nclobIoex() {
+        var is = new Reader() {
+            @Override
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                throw new IOException("test");
+            }
+
+            @Override
+            public void close() {
+                throw new AssertionError();
+            }
+        };
+        return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            return is;
+        });
+    }
+
+    private Clob clobIoex() {
+        var is = new Reader() {
+            @Override
+            public int read(char[] cbuf, int off, int len) throws IOException {
+                throw new IOException("test");
+            }
+
+            @Override
+            public void close() {
+                throw new AssertionError();
+            }
+        };
+        return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            return is;
+        });
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public List<DynamicNode> testFromBadLob() throws Exception {
+        List<NamedSpec> m = List.of(
+                new NamedSpec("Blob throws SQLException"  , cvt -> cvt.from(blobSqlex  ()), Blob.class  , SQLException.class),
+                new NamedSpec("Blob throws IOException"   , cvt -> cvt.from(blobIoex   ()), Blob.class  , IOException .class),
+                new NamedSpec("Clob throws SQLException"  , cvt -> cvt.from(clobSqlex  ()), Clob.class  , SQLException.class),
+                new NamedSpec("Clob throws IOException"   , cvt -> cvt.from(clobIoex   ()), Clob.class  , IOException .class),
+                new NamedSpec("NClob throws SQLException" , cvt -> cvt.from(nclobSqlex ()), NClob.class , SQLException.class),
+                new NamedSpec("NClob throws IOException"  , cvt -> cvt.from(nclobIoex  ()), NClob.class , IOException .class),
+                new NamedSpec("SQLXML throws SQLException", cvt -> cvt.from(sqlxmlSqlex()), SQLXML.class, SQLException.class)
+        );
+        var blobs = List.of(String.class, byte[].class);
+        List<DynamicNode> nodes1 = new ArrayList<>(blobs.size());
+        for (var k1 : blobs) {
+            var cvt = ConverterFactory.STD.get(k1);
+            List<DynamicNode> nodes2 = new ArrayList<>(m.size());
+            for (var k2 : m) {
+                var nd2 = DynamicTest.dynamicTest(
+                        "Converter for " + k1.getSimpleName() + " with " + k2.name() + ".",
+                        () -> {
+                            var ce = Assertions.assertThrows(ConvertionException.class, () -> k2.spec().receive(cvt));
+                            Assertions.assertAll(
+                                    () -> Assertions.assertEquals("Can't read value as " + k1.getSimpleName() + ".", ce.getMessage()),
+                                    () -> Assertions.assertEquals(k2.base(), ce.getIn()),
+                                    () -> Assertions.assertEquals(k1, ce.getOut()),
+                                    () -> Assertions.assertEquals(k2.err(), ce.getCause().getClass()),
+                                    () -> Assertions.assertEquals("test", ce.getCause().getMessage())
+                            );
+                        }
+                );
+                nodes2.add(nd2);
+            }
+            nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + k1.getSimpleName() + ".", nodes2));
         }
         return nodes1;
     }

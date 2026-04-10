@@ -118,7 +118,12 @@ public class HeavyConverterTest {
                         );
                 };
                 var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class).contains(k1)) ? err2 : out == null ? err1 : ok;
-                var inStr = in instanceof Blob ? "<Blob>" : in instanceof NClob ? "<NClob>" : in instanceof Clob ? "<Clob>" : in instanceof SQLXML ? "<SQLXML>" : "" + in;
+                var inStr = in instanceof Blob ? "<Blob>"
+                        : in instanceof NClob ? "<NClob>"
+                        : in instanceof Clob ? "<Clob>"
+                        : in instanceof SQLXML ? "<SQLXML>"
+                        : in instanceof RowId ? "<RowId>"
+                        : "" + in;
                 var nd1 = DynamicTest.dynamicTest(
                         "Converter for " + k1.getSimpleName() + " from " + base.getSimpleName() + " - " + inStr + ".",
                         () -> exec.receive(() -> m.receive(cvt, in))
@@ -314,16 +319,24 @@ public class HeavyConverterTest {
         });
     }
 
+    private RowId rowid(String in) {
+        return (RowId) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { RowId.class }, (i, m, a) -> {
+            if (!m.getName().equals("getBytes")) throw new AssertionError(m.getName());
+            return in.getBytes();
+        });
+    }
+
     @TestFactory
     public List<DynamicNode> testLobTypes() throws Exception {
         var str1   = e(String.class, List.of("bla bla bla", "blu blu blu", "lorem ipsum dolor sit amet"));
         var bytes  = str1.map(byte[].class, String::getBytes);
-        var blobs  = str1.map(Blob.class  , this::blob);
-        var clobs  = str1.map(Clob.class  , this::clob);
-        var nclobs = str1.map(NClob.class , this::nclob);
+        var blobs  = str1.map(Blob  .class, this::blob);
+        var clobs  = str1.map(Clob  .class, this::clob);
+        var nclobs = str1.map(NClob .class, this::nclob);
         var xmls   = str1.map(SQLXML.class, this::sqlxml);
+        //var rowids = str1.map(RowId .class, this::rowid);
 
-        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls);
+        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls/*, rowids*/);
 
         var strNode   = testIn(String.class, all, (cvt, in) -> cvt.from(in));
         var bytsNode  = testIn(byte[].class, all, (cvt, in) -> cvt.from(in));
@@ -331,7 +344,8 @@ public class HeavyConverterTest {
         var clobNode  = testIn(Clob  .class, all, (cvt, in) -> cvt.from(in));
         var nclobNode = testIn(NClob .class, all, (cvt, in) -> cvt.from(in));
         var xmlNode   = testIn(SQLXML.class, all, (cvt, in) -> cvt.from(in));
+        //var rowidNode = testIn(RowId .class, all, (cvt, in) -> cvt.from(in));
 
-        return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode);
+        return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode/*, rowidNode*/);
     }
 }
