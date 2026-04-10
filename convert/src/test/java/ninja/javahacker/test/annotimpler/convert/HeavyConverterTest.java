@@ -1,5 +1,7 @@
 package ninja.javahacker.test.annotimpler.convert;
 
+import java.lang.reflect.Proxy;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
@@ -116,12 +118,13 @@ public class HeavyConverterTest {
                         );
                 };
                 var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class).contains(k1)) ? err2 : out == null ? err1 : ok;
+                var inStr = in instanceof Blob ? "<Blob>" : in instanceof NClob ? "<NClob>" : in instanceof Clob ? "<Clob>" : in instanceof SQLXML ? "<SQLXML>" : "" + in;
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " from " + base.getSimpleName() + " - " + in + ".",
+                        "Converter for " + k1.getSimpleName() + " from " + base.getSimpleName() + " - " + inStr + ".",
                         () -> exec.receive(() -> m.receive(cvt, in))
                 );
                 var nd2 = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " fromObj " + base.getSimpleName() + " - " + in + ".",
+                        "Converter for " + k1.getSimpleName() + " fromObj " + base.getSimpleName() + " - " + inStr + ".",
                         () -> exec.receive(() -> cvt.fromObj(in))
                 );
                 nodes2.add(nd1);
@@ -281,5 +284,54 @@ public class HeavyConverterTest {
         var str5Node = testIn(String        .class, all5, (cvt, in) -> cvt.from(in));
 
         return List.of(odtNode, ldNode, ldtNode, ltNode, otNode, str1Node, str2Node, str3Node, str4Node, str5Node);
+    }
+
+    private Blob blob(String in) {
+        return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
+            return new ByteArrayInputStream(in.getBytes());
+        });
+    }
+
+    private NClob nclob(String in) {
+        return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            return new StringReader(in);
+        });
+    }
+
+    private Clob clob(String in) {
+        return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
+            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
+            return new StringReader(in);
+        });
+    }
+
+    private SQLXML sqlxml(String in) {
+        return (SQLXML) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { SQLXML.class }, (i, m, a) -> {
+            if (!m.getName().equals("getString")) throw new AssertionError(m.getName());
+            return in;
+        });
+    }
+
+    @TestFactory
+    public List<DynamicNode> testLobTypes() throws Exception {
+        var str1   = e(String.class, List.of("bla bla bla", "blu blu blu", "lorem ipsum dolor sit amet"));
+        var bytes  = str1.map(byte[].class, String::getBytes);
+        var blobs  = str1.map(Blob.class  , this::blob);
+        var clobs  = str1.map(Clob.class  , this::clob);
+        var nclobs = str1.map(NClob.class , this::nclob);
+        var xmls   = str1.map(SQLXML.class, this::sqlxml);
+
+        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls);
+
+        var strNode   = testIn(String.class, all, (cvt, in) -> cvt.from(in));
+        var bytsNode  = testIn(byte[].class, all, (cvt, in) -> cvt.from(in));
+        var blobNode  = testIn(Blob  .class, all, (cvt, in) -> cvt.from(in));
+        var clobNode  = testIn(Clob  .class, all, (cvt, in) -> cvt.from(in));
+        var nclobNode = testIn(NClob .class, all, (cvt, in) -> cvt.from(in));
+        var xmlNode   = testIn(SQLXML.class, all, (cvt, in) -> cvt.from(in));
+
+        return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode);
     }
 }
