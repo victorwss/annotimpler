@@ -293,36 +293,29 @@ public class HeavyConverterTest {
 
     private Blob blob(String in) {
         return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
-            return new ByteArrayInputStream(in.getBytes());
+            if (m.getName().equals("getBinaryStream")) return new ByteArrayInputStream(in.getBytes());
+            throw new AssertionError(m.getName());
         });
     }
 
     private NClob nclob(String in) {
         return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            return new StringReader(in);
+            if (m.getName().equals("getCharacterStream")) return new StringReader(in);
+            throw new AssertionError(m.getName());
         });
     }
 
     private Clob clob(String in) {
         return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            return new StringReader(in);
+            if (m.getName().equals("getCharacterStream")) return new StringReader(in);
+            throw new AssertionError(m.getName());
         });
     }
 
     private SQLXML sqlxml(String in) {
         return (SQLXML) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { SQLXML.class }, (i, m, a) -> {
-            if (!m.getName().equals("getString")) throw new AssertionError(m.getName());
-            return in;
-        });
-    }
-
-    private RowId rowid(String in) {
-        return (RowId) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { RowId.class }, (i, m, a) -> {
-            if (!m.getName().equals("getBytes")) throw new AssertionError(m.getName());
-            return in.getBytes();
+            if (m.getName().equals("getString")) return in;
+            throw new AssertionError(m.getName());
         });
     }
 
@@ -334,9 +327,8 @@ public class HeavyConverterTest {
         var clobs  = str1.map(Clob  .class, this::clob);
         var nclobs = str1.map(NClob .class, this::nclob);
         var xmls   = str1.map(SQLXML.class, this::sqlxml);
-        //var rowids = str1.map(RowId .class, this::rowid);
 
-        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls/*, rowids*/);
+        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls);
 
         var strNode   = testIn(String.class, all, (cvt, in) -> cvt.from(in));
         var bytsNode  = testIn(byte[].class, all, (cvt, in) -> cvt.from(in));
@@ -344,8 +336,7 @@ public class HeavyConverterTest {
         var clobNode  = testIn(Clob  .class, all, (cvt, in) -> cvt.from(in));
         var nclobNode = testIn(NClob .class, all, (cvt, in) -> cvt.from(in));
         var xmlNode   = testIn(SQLXML.class, all, (cvt, in) -> cvt.from(in));
-        //var rowidNode = testIn(RowId .class, all, (cvt, in) -> cvt.from(in));
 
-        return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode/*, rowidNode*/);
+        return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode);
     }
 }

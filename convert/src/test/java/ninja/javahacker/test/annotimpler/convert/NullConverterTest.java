@@ -142,29 +142,29 @@ public class NullConverterTest {
 
     private Blob blobSqlex() {
         return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
-            throw new SQLException("test");
+            if (m.getName().equals("getBinaryStream")) throw new SQLException("test");
+            throw new AssertionError(m.getName());
         });
     }
 
     private NClob nclobSqlex() {
         return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            throw new SQLException("test");
+            if (m.getName().equals("getCharacterStream")) throw new SQLException("test");
+            throw new AssertionError(m.getName());
         });
     }
 
     private Clob clobSqlex() {
         return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            throw new SQLException("test");
+            if (m.getName().equals("getCharacterStream")) throw new SQLException("test");
+            throw new AssertionError(m.getName());
         });
     }
 
     private SQLXML sqlxmlSqlex() {
         return (SQLXML) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { SQLXML.class }, (i, m, a) -> {
-            if (!m.getName().equals("getString")) throw new AssertionError(m.getName());
-            throw new SQLException("test");
+            if (m.getName().equals("getString")) throw new SQLException("test");
+            throw new AssertionError(m.getName());
         });
     }
 
@@ -176,8 +176,8 @@ public class NullConverterTest {
             }
         };
         return (Blob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Blob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getBinaryStream")) throw new AssertionError(m.getName());
-            return is;
+            if (m.getName().equals("getBinaryStream")) return is;
+            throw new AssertionError(m.getName());
         });
     }
 
@@ -194,8 +194,8 @@ public class NullConverterTest {
             }
         };
         return (NClob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { NClob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            return is;
+            if (m.getName().equals("getCharacterStream")) return is;
+            throw new AssertionError(m.getName());
         });
     }
 
@@ -212,8 +212,8 @@ public class NullConverterTest {
             }
         };
         return (Clob) Proxy.newProxyInstance(getClass().getClassLoader(), new Class<?>[] { Clob.class }, (i, m, a) -> {
-            if (!m.getName().equals("getCharacterStream")) throw new AssertionError(m.getName());
-            return is;
+            if (m.getName().equals("getCharacterStream")) return is;
+            throw new AssertionError(m.getName());
         });
     }
 

@@ -61,6 +61,7 @@ enum StdConverterFactory implements ConverterFactory {
     @Override
     @SuppressWarnings("unchecked")
     public <E> Converter<E> get(@NonNull Type t) throws UnavailableConverterException {
+        checkNotNull(t);
         if (t instanceof Class<?> k) return (Converter<E>) get(k);
         if (t instanceof ParameterizedType p) {
             var args = p.getActualTypeArguments();
@@ -86,6 +87,7 @@ enum StdConverterFactory implements ConverterFactory {
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public <E> Converter<E> get(@NonNull Class<E> klass) throws UnavailableConverterException {
+        checkNotNull(klass);
         if (klass.isEnum()) return (Converter<E>) enums((Class) klass);
         if (klass.isRecord()) return (Converter<E>) records((Class) klass);
         if (klass.isArray() && klass != byte[].class) {
