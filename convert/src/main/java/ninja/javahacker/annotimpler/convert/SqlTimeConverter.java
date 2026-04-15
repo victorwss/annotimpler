@@ -10,7 +10,7 @@ public enum SqlTimeConverter implements Converter<Time> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<Time> work() throws ConvertionException;
     }
 

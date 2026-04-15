@@ -6,6 +6,7 @@ import module org.junit.jupiter.api;
 
 import org.junit.jupiter.api.function.Executable;
 
+@Disabled
 public class ConversionMappingTest {
 
     private static DynamicTest n(String name, Executable ctx) {

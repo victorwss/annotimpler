@@ -7,13 +7,48 @@ import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
 
 public class SpecialConverterTest {
-    private static final List<Class<?>> CVT_CLASSES = List.of(
+
+    private static final Type COLLECTION_STRING;
+    private static final Type LIST_STRING;
+    private static final Type SET_STRING;
+    private static final Type OPTIONAL_STRING;
+    private static final Type POINTLESS;
+    private static final Type MAP_STRING_STRING;
+
+    static {
+        try {
+            var mtd = SpecialConverterTest.class.getDeclaredMethod("noop", Collection.class, List.class, Set.class, Optional.class, Pointless.class, Map.class);
+            COLLECTION_STRING = mtd.getParameters()[0].getParameterizedType();
+            LIST_STRING = mtd.getParameters()[1].getParameterizedType();
+            SET_STRING = mtd.getParameters()[2].getParameterizedType();
+            OPTIONAL_STRING = mtd.getParameters()[3].getParameterizedType();
+            POINTLESS = mtd.getParameters()[4].getParameterizedType();
+            MAP_STRING_STRING = mtd.getParameters()[5].getParameterizedType();
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public static interface Pointless<X> extends List<X> {}
+
+    private static void noop(Collection<String> a, List<String> b, Set<String> c, Optional<String> d, Pointless<String> e, Map<String, String> g) {
+        throw new AssertionError();
+    }
+
+    private static String name(Type t) {
+        if (t instanceof Class<?> k) return k.getSimpleName();
+        if (t instanceof ParameterizedType p) return ((Class<?>) p.getRawType()).getSimpleName() + "<String>";
+        throw new AssertionError();
+    }
+
+    private static final List<Type> CVT_CLASSES = List.of(
             boolean.class, byte.class, short.class, int    .class, long.class, float.class, double.class,
             Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
             BigDecimal.class, BigInteger.class, OptionalInt.class, OptionalLong.class, OptionalDouble.class,
             Calendar.class, GregorianCalendar.class, java.util.Date.class, java.sql.Date.class, Time.class, java.sql.Timestamp.class,
             LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetDateTime.class, ZonedDateTime.class, OffsetTime.class, Instant.class,
-            RowId.class, Ref.class, Struct.class, java.sql.Array.class, byte[].class, String.class
+            RowId.class, Ref.class, Struct.class, java.sql.Array.class, byte[].class, String.class,
+            LocalDate[].class, COLLECTION_STRING, LIST_STRING, SET_STRING, OPTIONAL_STRING
     );
 
     private RowId rowid(String in) {
@@ -53,7 +88,7 @@ public class SpecialConverterTest {
             for (var k1 : all) {
                 var cvt = ConverterFactory.STD.get(k1);
                 var nd = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " from RowId - " + in + ".",
+                        "Converter for " + name(k1) + " from RowId - " + in + ".",
                         () -> {
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                                 Assertions.assertAll(
@@ -78,7 +113,7 @@ public class SpecialConverterTest {
         for (var k1 : all) {
             var cvt = ConverterFactory.STD.get(k1);
             var nd = DynamicTest.dynamicTest(
-                    "Converter for " + k1.getSimpleName() + " from Ref.",
+                    "Converter for " + name(k1) + " from Ref.",
                     () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
@@ -102,7 +137,7 @@ public class SpecialConverterTest {
         for (var k1 : all) {
             var cvt = ConverterFactory.STD.get(k1);
             var nd = DynamicTest.dynamicTest(
-                    "Converter for " + k1.getSimpleName() + " from Struct.",
+                    "Converter for " + name(k1) + " from Struct.",
                     () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
@@ -126,7 +161,7 @@ public class SpecialConverterTest {
         for (var k1 : all) {
             var cvt = ConverterFactory.STD.get(k1);
             var nd = DynamicTest.dynamicTest(
-                    "Converter for " + k1.getSimpleName() + " from Array.",
+                    "Converter for " + name(k1) + " from Array.",
                     () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(

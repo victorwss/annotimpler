@@ -10,7 +10,7 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<Timestamp> work() throws ConvertionException;
     }
 

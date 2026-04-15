@@ -8,6 +8,39 @@ import module org.junit.jupiter.api;
 
 public class HeavyConverterTest {
 
+    private static final Type COLLECTION_STRING;
+    private static final Type LIST_STRING;
+    private static final Type SET_STRING;
+    private static final Type OPTIONAL_STRING;
+    private static final Type POINTLESS;
+    private static final Type MAP_STRING_STRING;
+
+    static {
+        try {
+            var mtd = HeavyConverterTest.class.getDeclaredMethod("noop", Collection.class, List.class, Set.class, Optional.class, Pointless.class, Map.class);
+            COLLECTION_STRING = mtd.getParameters()[0].getParameterizedType();
+            LIST_STRING = mtd.getParameters()[1].getParameterizedType();
+            SET_STRING = mtd.getParameters()[2].getParameterizedType();
+            OPTIONAL_STRING = mtd.getParameters()[3].getParameterizedType();
+            POINTLESS = mtd.getParameters()[4].getParameterizedType();
+            MAP_STRING_STRING = mtd.getParameters()[5].getParameterizedType();
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    public static interface Pointless<X> extends List<X> {}
+
+    private static void noop(Collection<String> a, List<String> b, Set<String> c, Optional<String> d, Pointless<String> e, Map<String, String> g) {
+        throw new AssertionError();
+    }
+
+    private static String name(Type t) {
+        if (t instanceof Class<?> k) return k.getSimpleName();
+        if (t instanceof ParameterizedType p) return ((Class<?>) p.getRawType()).getSimpleName() + "<String>";
+        throw new AssertionError();
+    }
+
     public static interface Giver {
         public Optional<?> give() throws Exception;
     }
@@ -30,13 +63,14 @@ public class HeavyConverterTest {
         return new Elements<>(k, data);
     }
 
-    private static final List<Class<?>> CVT_CLASSES = List.of(
+    private static final List<Type> CVT_CLASSES = List.of(
             boolean.class, byte.class, short.class, int    .class, long.class, float.class, double.class,
             Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
             BigDecimal.class, BigInteger.class, String.class, OptionalInt.class, OptionalLong.class, OptionalDouble.class,
             Calendar.class, GregorianCalendar.class, java.util.Date.class, java.sql.Date.class, Time.class, java.sql.Timestamp.class,
             LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetDateTime.class, ZonedDateTime.class, OffsetTime.class, Instant.class,
-            Ref.class, RowId.class, Struct.class, java.sql.Array.class
+            Ref.class, RowId.class, Struct.class, java.sql.Array.class,
+            byte[].class, LocalDate[].class, COLLECTION_STRING, LIST_STRING, SET_STRING, OPTIONAL_STRING
     );
 
     private Long lo(BigInteger x) {
@@ -80,8 +114,13 @@ public class HeavyConverterTest {
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
-        var baseWrap = WrapperClass.wrap(base);
-        Map<Class<?>, List<?>> mappings = new HashMap<>(CVT_CLASSES.size());
+        return testIn2(base, lists, m);
+    }
+
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
+    private <E> DynamicNode testIn2(Type base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
+        var baseWrap = base instanceof Class<?> b2 ? WrapperClass.wrap(b2) : base;
+        Map<Type, List<?>> mappings = new HashMap<>(CVT_CLASSES.size());
         for (var a1 : lists) {
             var k = a1.k();
             mappings.put(k, a1.data());
@@ -90,7 +129,8 @@ public class HeavyConverterTest {
         var start = (List<E>) mappings.get(baseWrap);
         List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
         for (var k1 : CVT_CLASSES) {
-            var v1 = mappings.get(WrapperClass.wrap(k1));
+            if (k1 == null) throw new AssertionError();
+            var v1 = mappings.get(k1 instanceof Class<?> k2 ? WrapperClass.wrap(k2) : k1);
             var cvt = ConverterFactory.STD.get(k1);
             List<DynamicNode> nodes2 = new ArrayList<>(start.size());
             for (var i = 0; i < start.size(); i++) {
@@ -99,12 +139,16 @@ public class HeavyConverterTest {
                 var out = v1 == null || i >= v1.size() ? null : v1.get(i);
                 Giver2 ok = exec0 -> {
                         var g = exec0.give().get();
-                        Assertions.assertEquals(out, g);
+                        if (g instanceof byte[] && out instanceof byte[]) {
+                            Assertions.assertArrayEquals((byte[]) out, (byte[]) g);
+                        } else {
+                            Assertions.assertEquals(out, g);
+                        }
                 };
                 Giver2 err1 = exec0 -> {
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
                         Assertions.assertAll(
-                                () -> Assertions.assertEquals("Can't read value as " + k1.getSimpleName() + ".", ce.getMessage()),
+                                () -> Assertions.assertEquals("Can't read value as " + name(k1) + ".", ce.getMessage()),
                                 () -> Assertions.assertEquals(base, ce.getIn()),
                                 () -> Assertions.assertEquals(k1, ce.getOut())
                         );
@@ -112,32 +156,36 @@ public class HeavyConverterTest {
                 Giver2 err2 = exec0 -> {
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
                         Assertions.assertAll(
-                                () -> Assertions.assertEquals("Unsupported " + base.getSimpleName() + ".", ce.getMessage()),
+                                () -> Assertions.assertEquals("Unsupported " + name(base) + ".", ce.getMessage()),
                                 () -> Assertions.assertEquals(base, ce.getIn()),
                                 () -> Assertions.assertEquals(k1, ce.getOut())
                         );
                 };
-                var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class).contains(k1)) ? err2 : out == null ? err1 : ok;
+                var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class, COLLECTION_STRING).contains(k1))
+                        ? err2 : out == null
+                        ? err1 : ok;
                 var inStr = in instanceof Blob ? "<Blob>"
                         : in instanceof NClob ? "<NClob>"
                         : in instanceof Clob ? "<Clob>"
                         : in instanceof SQLXML ? "<SQLXML>"
                         : in instanceof RowId ? "<RowId>"
+                        : in instanceof byte[] x ? "(byte[]) " + new String(x)
+                        : in instanceof Object[] x ? "<Array>"
                         : "" + in;
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " from " + base.getSimpleName() + " - " + inStr + ".",
+                        "Converter for " + name(k1) + " from " + name(base) + " - " + inStr + ".",
                         () -> exec.receive(() -> m.receive(cvt, in))
                 );
                 var nd2 = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " fromObj " + base.getSimpleName() + " - " + inStr + ".",
+                        "Converter for " + name(k1) + " fromObj " + name(base) + " - " + inStr + ".",
                         () -> exec.receive(() -> cvt.fromObj(in))
                 );
                 nodes2.add(nd1);
                 nodes2.add(nd2);
             }
-            nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + k1.getSimpleName() + " from " + base.getSimpleName() + ".", nodes2));
+            nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + name(k1) + " from " + name(base) + ".", nodes2));
         }
-        return DynamicContainer.dynamicContainer("Test convertions from " + base.getSimpleName() + ".", nodes1);
+        return DynamicContainer.dynamicContainer("Test convertions from " + name(base) + ".", nodes1);
     }
 
     @TestFactory

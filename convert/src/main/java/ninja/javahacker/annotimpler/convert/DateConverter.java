@@ -10,7 +10,7 @@ public enum DateConverter implements Converter<Date> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<Date> work() throws ConvertionException;
     }
 

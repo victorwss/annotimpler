@@ -90,7 +90,6 @@ public enum DoubleConverter implements Converter<Double> {
         try {
             var a = Double.valueOf(in);
             var b = StringConverter.INSTANCE.from(a).get();
-            //if (!List.of("NaN", "Infinity", "-Infinity").contains(b) && !b.contains(".")) b += ".0";
             if (!in.equals(b)) throw new ConvertionException(String.class, getType());
             return Optional.of(a);
         } catch (NumberFormatException x) {

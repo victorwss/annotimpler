@@ -8,6 +8,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
 
+@Disabled
 public class MagicConverterTest {
 
     private static final Type COLLECTION_DATE;

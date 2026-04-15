@@ -9,7 +9,7 @@ public enum InstantConverter implements Converter<Instant> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<Instant> work() throws ConvertionException;
     }
 

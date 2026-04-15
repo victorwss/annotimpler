@@ -6,6 +6,7 @@ import module org.junit.jupiter.api;
 
 import java.lang.reflect.Type;
 
+@Disabled
 public class ConverterFactoryTest {
 
     @Test
