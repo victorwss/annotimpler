@@ -55,6 +55,12 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
     @NonNull
     @Override
+    public Optional<Optional<E>> from(boolean in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
     public Optional<Optional<E>> from(byte in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }

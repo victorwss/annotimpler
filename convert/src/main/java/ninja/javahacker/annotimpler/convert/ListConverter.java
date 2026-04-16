@@ -55,6 +55,12 @@ public final class ListConverter<E> implements Converter<List<E>> {
 
     @NonNull
     @Override
+    public Optional<List<E>> from(boolean in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
     public Optional<List<E>> from(byte in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }

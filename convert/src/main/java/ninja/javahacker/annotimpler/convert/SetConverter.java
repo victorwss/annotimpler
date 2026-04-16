@@ -55,6 +55,12 @@ public final class SetConverter<E> implements Converter<Set<E>> {
 
     @NonNull
     @Override
+    public Optional<Set<E>> from(boolean in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
     public Optional<Set<E>> from(byte in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
