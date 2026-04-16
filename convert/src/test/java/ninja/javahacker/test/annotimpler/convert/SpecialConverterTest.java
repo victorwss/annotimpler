@@ -82,6 +82,10 @@ public class SpecialConverterTest {
         all.remove(RowId.class);
         all.remove(String.class);
         all.remove(byte[].class);
+        all.remove(COLLECTION_STRING);
+        all.remove(SET_STRING);
+        all.remove(LIST_STRING);
+        all.remove(OPTIONAL_STRING);
         List<DynamicNode> nodes = new ArrayList<>(500);
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);

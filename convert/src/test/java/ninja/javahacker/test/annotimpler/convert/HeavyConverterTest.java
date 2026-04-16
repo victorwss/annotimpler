@@ -8,30 +8,81 @@ import module org.junit.jupiter.api;
 
 public class HeavyConverterTest {
 
-    private static final Type COLLECTION_STRING;
-    private static final Type LIST_STRING;
-    private static final Type SET_STRING;
-    private static final Type OPTIONAL_STRING;
-    private static final Type POINTLESS;
-    private static final Type MAP_STRING_STRING;
+    private static final List<Type> CVT_TYPES = Stream
+            .of(HeavyConverterTest.class.getDeclaredMethods())
+            .filter(m -> "noop".equals(m.getName()))
+            .flatMap(m -> Stream.of(m.getParameters()))
+            .map(p -> p.getParameterizedType())
+            .toList();
 
-    static {
-        try {
-            var mtd = HeavyConverterTest.class.getDeclaredMethod("noop", Collection.class, List.class, Set.class, Optional.class, Pointless.class, Map.class);
-            COLLECTION_STRING = mtd.getParameters()[0].getParameterizedType();
-            LIST_STRING = mtd.getParameters()[1].getParameterizedType();
-            SET_STRING = mtd.getParameters()[2].getParameterizedType();
-            OPTIONAL_STRING = mtd.getParameters()[3].getParameterizedType();
-            POINTLESS = mtd.getParameters()[4].getParameterizedType();
-            MAP_STRING_STRING = mtd.getParameters()[5].getParameterizedType();
-        } catch (NoSuchMethodException e) {
-            throw new AssertionError(e);
-        }
+    @SuppressWarnings("unchecked")
+    private static final List<Class<?>> CVT_CLASSES = (List<Class<?>>) CVT_TYPES.stream().filter(t -> t instanceof Class<?> tt && !tt.isArray()).map(t -> (Class<?>) t).toList();
+
+    private static void noop(
+            boolean x1, byte x2, short x3, int     x4, long x5, float x6, double x7,
+            Boolean y1, Byte y2, Short y3, Integer y4, Long y5, Float y6, Double y7,
+            BigDecimal z1, BigInteger z2,
+            OptionalInt w1, OptionalLong w2, OptionalDouble w3,
+            Calendar v1, GregorianCalendar v2, java.util.Date v3, java.sql.Date v4, Time v5, java.sql.Timestamp v6,
+            LocalDate u1, LocalDateTime u2, LocalTime u3, OffsetDateTime u4, OffsetTime u5, ZonedDateTime u6, Instant u7,
+            Ref t1, RowId t2, Struct t3, java.sql.Array t4)
+    {
+        throw new AssertionError();
     }
 
-    public static interface Pointless<X> extends List<X> {}
+    private static void noop(
+            boolean[] x1, byte[] x2, short[] x3, int[]     x4, long[] x5, float[] x6, double[] x7,
+            Boolean[] y1, Byte[] y2, Short[] y3, Integer[] y4, Long[] y5, Float[] y6, Double[] y7,
+            BigDecimal[] z1, BigInteger[] z2,
+            OptionalInt[] w1, OptionalLong[] w2, OptionalDouble[] w3,
+            Calendar[] v1, GregorianCalendar[] v2, java.util.Date[] v3, java.sql.Date[] v4, Time[] v5, java.sql.Timestamp[] v6,
+            LocalDate[] u1, LocalDateTime[] u2, LocalTime[] u3, OffsetDateTime[] u4, OffsetTime[] u5, ZonedDateTime[] u6, Instant[] u7,
+            Ref[] t1, RowId[] t2, Struct[] t3, java.sql.Array[] t4)
+    {
+        throw new AssertionError();
+    }
 
-    private static void noop(Collection<String> a, List<String> b, Set<String> c, Optional<String> d, Pointless<String> e, Map<String, String> g) {
+    private static void noop(
+            Collection<Boolean> y1, Collection<Byte> y2, Collection<Short> y3, Collection<Integer> y4, Collection<Long> y5, Collection<Float> y6, Collection<Double> y7,
+            Collection<BigDecimal> z1, Collection<BigInteger> z2,
+            Collection<OptionalInt> w1, Collection<OptionalLong> w2, Collection<OptionalDouble> w3,
+            Collection<Calendar> v1, Collection<GregorianCalendar> v2,Collection< java.util.Date> v3, Collection<java.sql.Date> v4, Collection<Time> v5, Collection<java.sql.Timestamp> v6,
+            Collection<LocalDate> u1, Collection<LocalDateTime> u2, Collection<LocalTime> u3, Collection<OffsetDateTime> u4, Collection<OffsetTime> u5, Collection<ZonedDateTime> u6, Collection<Instant> u7,
+            Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3, Collection<java.sql.Array> t4)
+    {
+        throw new AssertionError();
+    }
+
+    private static void noop(
+            List<Boolean> y1, List<Byte> y2, List<Short> y3, List<Integer> y4, List<Long> y5, List<Float> y6, List<Double> y7,
+            List<BigDecimal> z1, List<BigInteger> z2,
+            List<OptionalInt> w1, List<OptionalLong> w2, List<OptionalDouble> w3,
+            List<Calendar> v1, List<GregorianCalendar> v2,List< java.util.Date> v3, List<java.sql.Date> v4, List<Time> v5, List<java.sql.Timestamp> v6,
+            List<LocalDate> u1, List<LocalDateTime> u2, List<LocalTime> u3, List<OffsetDateTime> u4, List<OffsetTime> u5, List<ZonedDateTime> u6, List<Instant> u7,
+            List<Ref> t1, List<RowId> t2, List<Struct> t3, List<java.sql.Array> t4)
+    {
+        throw new AssertionError();
+    }
+
+    private static void noop(
+            Set<Boolean> y1, Set<Byte> y2, Set<Short> y3, Set<Integer> y4, Set<Long> y5, Set<Float> y6, Set<Double> y7,
+            Set<BigDecimal> z1, Set<BigInteger> z2,
+            Set<OptionalInt> w1, Set<OptionalLong> w2, Set<OptionalDouble> w3,
+            Set<Calendar> v1, Set<GregorianCalendar> v2,Set< java.util.Date> v3, Set<java.sql.Date> v4, Set<Time> v5, Set<java.sql.Timestamp> v6,
+            Set<LocalDate> u1, Set<LocalDateTime> u2, Set<LocalTime> u3, Set<OffsetDateTime> u4, Set<OffsetTime> u5, Set<ZonedDateTime> u6, Set<Instant> u7,
+            Set<Ref> t1, Set<RowId> t2, Set<Struct> t3, Set<java.sql.Array> t4)
+    {
+        throw new AssertionError();
+    }
+
+    private static void noop(
+            Optional<Boolean> y1, Optional<Byte> y2, Optional<Short> y3, Optional<Integer> y4, Optional<Long> y5, Optional<Float> y6, Optional<Double> y7,
+            Optional<BigDecimal> z1, Optional<BigInteger> z2,
+            Optional<OptionalInt> w1, Optional<OptionalLong> w2, Optional<OptionalDouble> w3,
+            Optional<Calendar> v1, Optional<GregorianCalendar> v2,Optional< java.util.Date> v3, Optional<java.sql.Date> v4, Optional<Time> v5, Optional<java.sql.Timestamp> v6,
+            Optional<LocalDate> u1, Optional<LocalDateTime> u2, Optional<LocalTime> u3, Optional<OffsetDateTime> u4, Optional<OffsetTime> u5, Optional<ZonedDateTime> u6, Optional<Instant> u7,
+            Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3, Optional<java.sql.Array> t4)
+    {
         throw new AssertionError();
     }
 
@@ -39,6 +90,13 @@ public class HeavyConverterTest {
         if (t instanceof Class<?> k) return k.getSimpleName();
         if (t instanceof ParameterizedType p) return ((Class<?>) p.getRawType()).getSimpleName() + "<String>";
         throw new AssertionError();
+    }
+
+    private static List<Type> others(Class<?> s) {
+        return CVT_TYPES
+                .stream()
+                .filter(x -> (x instanceof ParameterizedType pt && pt.getRawType() == s) || (x instanceof Class<?> k && (k == s || (k.isArray() && k.getComponentType() == s))))
+                .toList();
     }
 
     public static interface Giver {
@@ -62,16 +120,6 @@ public class HeavyConverterTest {
     public static <E> Elements<E> e(Class<E> k, List<E> data) {
         return new Elements<>(k, data);
     }
-
-    private static final List<Type> CVT_CLASSES = List.of(
-            boolean.class, byte.class, short.class, int    .class, long.class, float.class, double.class,
-            Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
-            BigDecimal.class, BigInteger.class, String.class, OptionalInt.class, OptionalLong.class, OptionalDouble.class,
-            Calendar.class, GregorianCalendar.class, java.util.Date.class, java.sql.Date.class, Time.class, java.sql.Timestamp.class,
-            LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetDateTime.class, ZonedDateTime.class, OffsetTime.class, Instant.class,
-            Ref.class, RowId.class, Struct.class, java.sql.Array.class,
-            byte[].class, LocalDate[].class, COLLECTION_STRING, LIST_STRING, SET_STRING, OPTIONAL_STRING
-    );
 
     private Long lo(BigInteger x) {
         if (x == null) return null;
@@ -112,58 +160,78 @@ public class HeavyConverterTest {
         return x == null ? null : OffsetDateTime.parse(x, DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]][ xxxxx]").withResolverStyle(ResolverStyle.STRICT));
     }
 
-    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
-        return testIn2(base, lists, m);
+    private static void compare(Object a, Object b) {
+        if (a instanceof byte[] a2 && b instanceof byte[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof boolean[] a2 && b instanceof boolean[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof char[] a2 && b instanceof char[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof short[] a2 && b instanceof short[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof int[] a2 && b instanceof int[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof long[] a2 && b instanceof long[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof float[] a2 && b instanceof float[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof double[] a2 && b instanceof double[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof Object[] a2 && b instanceof Object[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else {
+            Assertions.assertEquals(a, b);
+        }
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private <E> DynamicNode testIn2(Type base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
+    private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
         var baseWrap = base instanceof Class<?> b2 ? WrapperClass.wrap(b2) : base;
-        Map<Type, List<?>> mappings = new HashMap<>(CVT_CLASSES.size());
+        Map<Class<?>, List<?>> mappings = new HashMap<>(CVT_CLASSES.size());
         for (var a1 : lists) {
             var k = a1.k();
             mappings.put(k, a1.data());
         }
+
         @SuppressWarnings("unchecked")
         var start = (List<E>) mappings.get(baseWrap);
+
         List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
+
         for (var k1 : CVT_CLASSES) {
             if (k1 == null) throw new AssertionError();
+
+            Giver2 err1 = exec0 -> {
+                var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
+                Assertions.assertAll(
+                        () -> Assertions.assertEquals("Can't read value as " + name(k1) + ".", ce.getMessage()),
+                        () -> Assertions.assertEquals(base, ce.getIn()),
+                        () -> Assertions.assertEquals(k1, ce.getOut())
+                );
+            };
+            Giver2 err2 = exec0 -> {
+                var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
+                Assertions.assertAll(
+                        () -> Assertions.assertEquals("Unsupported " + name(base) + ".", ce.getMessage()),
+                        () -> Assertions.assertEquals(base, ce.getIn()),
+                        () -> Assertions.assertEquals(k1, ce.getOut())
+                );
+            };
+
             var v1 = mappings.get(k1 instanceof Class<?> k2 ? WrapperClass.wrap(k2) : k1);
-            var cvt = ConverterFactory.STD.get(k1);
             List<DynamicNode> nodes2 = new ArrayList<>(start.size());
+
             for (var i = 0; i < start.size(); i++) {
                 var in = start.get(i);
                 if (in == null) continue;
                 var out = v1 == null || i >= v1.size() ? null : v1.get(i);
-                Giver2 ok = exec0 -> {
-                        var g = exec0.give().get();
-                        if (g instanceof byte[] && out instanceof byte[]) {
-                            Assertions.assertArrayEquals((byte[]) out, (byte[]) g);
-                        } else {
-                            Assertions.assertEquals(out, g);
-                        }
-                };
-                Giver2 err1 = exec0 -> {
-                        var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
-                        Assertions.assertAll(
-                                () -> Assertions.assertEquals("Can't read value as " + name(k1) + ".", ce.getMessage()),
-                                () -> Assertions.assertEquals(base, ce.getIn()),
-                                () -> Assertions.assertEquals(k1, ce.getOut())
-                        );
-                };
-                Giver2 err2 = exec0 -> {
-                        var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
-                        Assertions.assertAll(
-                                () -> Assertions.assertEquals("Unsupported " + name(base) + ".", ce.getMessage()),
-                                () -> Assertions.assertEquals(base, ce.getIn()),
-                                () -> Assertions.assertEquals(k1, ce.getOut())
-                        );
-                };
-                var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class, COLLECTION_STRING).contains(k1))
-                        ? err2 : out == null
-                        ? err1 : ok;
+
+                Giver2 ok = exec0 -> compare(out, exec0.give().get());
+
+                var exec = v1 == null && (base != String.class || List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class).contains(k1)) ? err2
+                        : out == null ? err1
+                        : ok;
+
                 var inStr = in instanceof Blob ? "<Blob>"
                         : in instanceof NClob ? "<NClob>"
                         : in instanceof Clob ? "<Clob>"
@@ -172,16 +240,17 @@ public class HeavyConverterTest {
                         : in instanceof byte[] x ? "(byte[]) " + new String(x)
                         : in instanceof Object[] x ? "<Array>"
                         : "" + in;
-                var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + name(k1) + " from " + name(base) + " - " + inStr + ".",
-                        () -> exec.receive(() -> m.receive(cvt, in))
-                );
-                var nd2 = DynamicTest.dynamicTest(
-                        "Converter for " + name(k1) + " fromObj " + name(base) + " - " + inStr + ".",
-                        () -> exec.receive(() -> cvt.fromObj(in))
-                );
-                nodes2.add(nd1);
-                nodes2.add(nd2);
+
+                var ots = /*others(base)*/ List.of(k1);
+                for (var k3 : ots) {
+                    var cvt = ConverterFactory.STD.get(k3);
+                    Giver gr = () -> m.receive(cvt, in);
+                    Giver go = () -> cvt.fromObj(in);
+                    var nd1 = DynamicTest.dynamicTest("Converter for " + name(k1) + " from "    + name(base) + " - " + inStr + ".", () -> exec.receive(gr));
+                    var nd2 = DynamicTest.dynamicTest("Converter for " + name(k1) + " fromObj " + name(base) + " - " + inStr + ".", () -> exec.receive(go));
+                    nodes2.add(nd1);
+                    nodes2.add(nd2);
+                }
             }
             nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + name(k1) + " from " + name(base) + ".", nodes2));
         }
@@ -211,7 +280,7 @@ public class HeavyConverterTest {
                 3.5D, 0.078D, -177.77D, null,
                 Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         ));
-        var strB = e(String.class, List.of("false", "true"));
+        var str1B = e(String.class, List.of("false", "true"));
 
         var bigds      = str1 .map(BigDecimal.class, this::bd);
         var bigis      = str1 .map(BigInteger.class, this::bi);
@@ -225,10 +294,10 @@ public class HeavyConverterTest {
         var optInts    = ints   .map(OptionalInt   .class, x -> x == null ? null : OptionalInt   .of(x));
         var optLongs   = longs  .map(OptionalLong  .class, x -> x == null ? null : OptionalLong  .of(x));
 
-        var all  = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
-        var allB = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, strB);
-        var allC = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
-        var allD = List.of(bools,                                                                                                  strB);
+        var all  = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 );
+        var allB = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1B);
+        var allC = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 );
+        var allD = List.of(bools,                                                                                                  str1B);
 
         var byteNode   = testIn(byte      .class, all , (cvt, in) -> cvt.from(in));
         var intNode    = testIn(int       .class, all , (cvt, in) -> cvt.from(in));
@@ -246,8 +315,8 @@ public class HeavyConverterTest {
 
     @TestFactory
     public List<DynamicNode> testMinusZero() throws Exception {
-        var str1 = e(String.class, List.of("-0"));
-        var floats = e(Float.class, Arrays.asList(-0.0F));
+        var str1    = e(String.class, List.of("-0"));
+        var floats  = e(Float.class, Arrays.asList(-0.0F));
         var doubles = e(Double.class, Arrays.asList(-0.0));
 
         var bigds      = str1 .map(BigDecimal.class, this::bd);
