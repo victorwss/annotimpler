@@ -66,17 +66,17 @@ enum StdConverterFactory implements ConverterFactory {
         if (t instanceof ParameterizedType p) {
             var args = p.getActualTypeArguments();
             if (args.length == 1) {
-                if (p.getRawType() == Collection.class && args[0] instanceof Class<?> k) {
-                    return (Converter<E>) new ListConverter<>(this, k);
+                if (p.getRawType() == Collection.class && args[0] instanceof Class<?>) {
+                    return (Converter<E>) new CollectionConverter<>(this, p);
                 }
-                if (p.getRawType() == List.class && args[0] instanceof Class<?> k) {
-                    return (Converter<E>) new ListConverter<>(this, k);
+                if (p.getRawType() == List.class && args[0] instanceof Class<?>) {
+                    return (Converter<E>) new ListConverter<>(this, p);
                 }
-                if (p.getRawType() == Set.class && args[0] instanceof Class<?> k) {
-                    return (Converter<E>) new SetConverter<>(this, k);
+                if (p.getRawType() == Set.class && args[0] instanceof Class<?>) {
+                    return (Converter<E>) new SetConverter<>(this, p);
                 }
-                if (p.getRawType() == Optional.class && args[0] instanceof Class<?> k) {
-                    return (Converter<E>) new OptionalConverter<>(this, k);
+                if (p.getRawType() == Optional.class && args[0] instanceof Class<?>) {
+                    return (Converter<E>) new OptionalConverter<>(this, p);
                 }
             }
         }

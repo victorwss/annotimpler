@@ -9,39 +9,6 @@ import module org.junit.jupiter.api;
 
 public class NullConverterTest {
 
-    private static final Type COLLECTION_STRING;
-    private static final Type LIST_STRING;
-    private static final Type SET_STRING;
-    private static final Type OPTIONAL_STRING;
-    private static final Type POINTLESS;
-    private static final Type MAP_STRING_STRING;
-
-    static {
-        try {
-            var mtd = NullConverterTest.class.getDeclaredMethod("noop", Collection.class, List.class, Set.class, Optional.class, Pointless.class, Map.class);
-            COLLECTION_STRING = mtd.getParameters()[0].getParameterizedType();
-            LIST_STRING = mtd.getParameters()[1].getParameterizedType();
-            SET_STRING = mtd.getParameters()[2].getParameterizedType();
-            OPTIONAL_STRING = mtd.getParameters()[3].getParameterizedType();
-            POINTLESS = mtd.getParameters()[4].getParameterizedType();
-            MAP_STRING_STRING = mtd.getParameters()[5].getParameterizedType();
-        } catch (NoSuchMethodException e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    public static interface Pointless<X> extends List<X> {}
-
-    private static void noop(Collection<String> a, List<String> b, Set<String> c, Optional<String> d, Pointless<String> e, Map<String, String> g) {
-        throw new AssertionError();
-    }
-
-    private static String name(Type t) {
-        if (t instanceof Class<?> k) return k.getSimpleName();
-        if (t instanceof ParameterizedType p) return ((Class<?>) p.getRawType()).getSimpleName() + "<String>";
-        throw new AssertionError();
-    }
-
     public static interface MethodSpec {
         public Optional<?> receive(Converter<?> cvt) throws Exception;
     }
@@ -49,23 +16,13 @@ public class NullConverterTest {
     public static record NamedSpec(String name, MethodSpec spec, Class<?> base, Class<? extends Exception> err) {
     }
 
-    private static final List<Type> CVT_CLASSES = List.of(
-            boolean.class, byte.class, short.class, int    .class, long.class, float.class, double.class,
-            Boolean.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
-            BigDecimal.class, BigInteger.class, String.class, OptionalInt.class, OptionalLong.class, OptionalDouble.class,
-            Calendar.class, GregorianCalendar.class, java.util.Date.class, java.sql.Date.class, Time.class, java.sql.Timestamp.class,
-            LocalDate.class, LocalTime.class, LocalDateTime.class, OffsetDateTime.class, ZonedDateTime.class, OffsetTime.class, Instant.class,
-            Ref.class, RowId.class, Struct.class, java.sql.Array.class,
-            byte[].class, LocalDate[].class, COLLECTION_STRING, LIST_STRING, SET_STRING, OPTIONAL_STRING
-    );
-
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     private <E> DynamicNode testIn(Class<E> base, MethodSpec m) throws Exception {
-        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
-        for (var k1 : CVT_CLASSES) {
+        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
+        for (var k1 : TestTypes.CVT_CLASSES) {
             var cvt = ConverterFactory.STD.get(k1);
             var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + name(k1) + " from " + base.getSimpleName() + " as null.",
+                    "Converter for " + TestTypes.name(k1) + " from " + base.getSimpleName() + " as null.",
                     () -> ForTests.testNull("in", () -> m.receive(cvt))
             );
             nodes1.add(nd1);
@@ -128,17 +85,17 @@ public class NullConverterTest {
     @TestFactory
     @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public List<DynamicNode> testFromOkNull() throws Exception {
-        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
-        for (var k1 : CVT_CLASSES) {
+        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
+        for (var k1 : TestTypes.CVT_CLASSES) {
             var cvt = ConverterFactory.STD.get(k1);
             var z = Optional.ofNullable(zero(k1));
             var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + name(k1) + " from Object null.",
+                    "Converter for " + TestTypes.name(k1) + " from Object null.",
                     () -> Assertions.assertEquals(z, cvt.fromObj(null))
             );
             nodes1.add(nd1);
             var nd2 = DynamicTest.dynamicTest(
-                    "Converter for " + name(k1) + " fromNull.",
+                    "Converter for " + TestTypes.name(k1) + " fromNull.",
                     () -> Assertions.assertEquals(z, cvt.fromNull())
             );
             nodes1.add(nd2);
@@ -150,16 +107,16 @@ public class NullConverterTest {
     @SuppressWarnings("null")
     public List<DynamicNode> testFromBadJunk() throws Exception {
         MethodSpec m = cvt -> cvt.from("xxx");
-        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
-        for (var k1 : CVT_CLASSES) {
+        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
+        for (var k1 : TestTypes.CVT_CLASSES) {
             if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
             var cvt = ConverterFactory.STD.get(k1);
             var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + name(k1) + " with bad String.",
+                    "Converter for " + TestTypes.name(k1) + " with bad String.",
                     () -> {
                         var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                         Assertions.assertAll(
-                                () -> Assertions.assertEquals("Can't read value as " + name(k1) + ".", ex.getMessage()),
+                                () -> Assertions.assertEquals("Can't read value as " + TestTypes.name(k1) + ".", ex.getMessage()),
                                 () -> Assertions.assertEquals(String.class, ex.getIn()),
                                 () -> Assertions.assertEquals(k1, ex.getOut())
                         );
@@ -174,12 +131,12 @@ public class NullConverterTest {
     @SuppressWarnings("null")
     public List<DynamicNode> testFromEmpty() throws Exception {
         MethodSpec m = cvt -> cvt.from("");
-        List<DynamicNode> nodes1 = new ArrayList<>(CVT_CLASSES.size());
-        for (var k1 : CVT_CLASSES) {
+        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
+        for (var k1 : TestTypes.CVT_CLASSES) {
             if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
             var cvt = ConverterFactory.STD.get(k1);
             var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + name(k1) + " with empty String.",
+                    "Converter for " + TestTypes.name(k1) + " with empty String.",
                     () -> Assertions.assertEquals(Optional.ofNullable(zero(k1)), m.receive(cvt))
             );
             nodes1.add(nd1);

@@ -7,16 +7,45 @@ import module ninja.javahacker.annotimpler.convert;
 
 public final class CollectionConverter<E> implements Converter<Collection<E>> {
     private final Converter<E> cvt;
+    private final ParameterizedType p;
 
-    public CollectionConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass) throws UnavailableConverterException {
+    @SuppressWarnings("unchecked")
+    public CollectionConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType p) throws UnavailableConverterException {
+        var baseClass = p.getActualTypeArguments()[0];
+        if (p.getRawType() != Collection.class) throw new IllegalArgumentException();
+        if (!(baseClass instanceof Class<?>)) {
+            throw new UnavailableConverterException("Only for Collection of class.", baseClass);
+        }
+        this.p = p;
         this.cvt = factory.get(baseClass);
     }
 
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
-    public Class<Collection<E>> getType() {
-        return (Class) Collection.class;
+    public Type getType() {
+        return p;
+    }
+
+    @FunctionalInterface
+    private interface Work<E> {
+        public Optional<E> work() throws ConvertionException;
+
+        public default Optional<Collection<E>> rework(@NonNull Type p) throws ConvertionException {
+            checkNotNull(p);
+            try {
+                return work().map(List::of);
+            } catch (ConvertionException e) {
+                if (e.getMessage().contains("Unsupported ")) {
+                    throw new ConvertionException(e.getMessage(), e, e.getIn(), p);
+                }
+                throw new ConvertionException(e, e.getIn(), p);
+            }
+        }
+    }
+
+    @NonNull
+    private Optional<Collection<E>> wrap(Work<E> e) throws ConvertionException {
+        return e.rework(p);
     }
 
     @NonNull
@@ -28,126 +57,131 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     @NonNull
     @Override
     public Optional<Collection<E>> from(byte in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(short in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(int in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(long in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(float in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(double in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull BigDecimal in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalDate in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalTime in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalDateTime in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull OffsetTime in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull OffsetDateTime in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull String in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull byte[] in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Blob in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Clob in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull NClob in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull SQLXML in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull RowId in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
     }
 
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Ref in) throws ConvertionException {
-        return cvt.from(in).map(List::of);
+        return wrap(() -> cvt.from(in));
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

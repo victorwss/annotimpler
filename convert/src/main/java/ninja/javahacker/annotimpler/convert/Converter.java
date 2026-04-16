@@ -40,7 +40,7 @@ public interface Converter<E> {
     }
 
     @NonNull
-    public Class<E> getType();
+    public Type getType();
 
     @NonNull
     public default Optional<E> fromNull() throws ConvertionException {
