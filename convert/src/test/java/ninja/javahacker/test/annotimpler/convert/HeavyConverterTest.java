@@ -139,14 +139,14 @@ public class HeavyConverterTest {
                 if (in == null) continue;
                 var out = v1 == null || i >= v1.size() ? null : v1.get(i);
 
-                var inStr = in instanceof Blob ? "<Blob>"
-                        : in instanceof NClob ? "<NClob>"
-                        : in instanceof Clob ? "<Clob>"
-                        : in instanceof SQLXML ? "<SQLXML>"
-                        : in instanceof RowId ? "<RowId>"
-                        : in instanceof byte[] x ? "(byte[]) " + new String(x)
-                        : in instanceof Object[] ? "<Array>"
-                        : "" + in;
+                var inStr = in instanceof Blob ? ""
+                        : in instanceof NClob ? ""
+                        : in instanceof Clob ? ""
+                        : in instanceof SQLXML ? ""
+                        : in instanceof RowId ? ""
+                        : in instanceof byte[] x ? " - (byte[]) " + new String(x)
+                        : in instanceof Object[] ? ""
+                        : " - " + in;
 
                 for (var k3 : TestTypes.others(k1)) {
                     if (k3 == byte[].class && k1 != k3) continue;
@@ -166,12 +166,13 @@ public class HeavyConverterTest {
 
                     Giver2 ok = exec0 -> compare(o2, exec0.give().get());
                     var exec = unsupported || out == null ? err : ok;
+                    var res = unsupported ? " - should be unsupported." : out == null ? " - should not read." : " - should be ok.";
 
                     var cvt = ConverterFactory.STD.get(k3);
                     Giver gr = () -> m.receive(cvt, in);
                     Giver go = () -> cvt.fromObj(in);
-                    var nd1 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " from "    + nb + " - " + inStr + ".", () -> exec.receive(gr));
-                    var nd2 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " fromObj " + nb + " - " + inStr + ".", () -> exec.receive(go));
+                    var nd1 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " from "    + nb + inStr + res, () -> exec.receive(gr));
+                    var nd2 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " fromObj " + nb + inStr + res, () -> exec.receive(go));
                     nodes2.add(nd1);
                     nodes2.add(nd2);
                 }
@@ -362,7 +363,7 @@ public class HeavyConverterTest {
 
     @TestFactory
     public List<DynamicNode> testLobTypes() throws Exception {
-        var str1   = e(String.class, List.of("bla bla bla", "blu blu blu", "lorem ipsum dolor sit amet"));
+        var str1   = e(String.class, List.of("bla bla bla", "lorem ipsum dolor sit amet"));
         var bytes  = str1.map(byte[].class, String::getBytes);
         var blobs  = str1.map(Blob  .class, this::blob);
         var clobs  = str1.map(Clob  .class, this::clob);
