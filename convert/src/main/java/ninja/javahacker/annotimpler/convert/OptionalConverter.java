@@ -29,10 +29,11 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     private interface Work<E> {
         public Optional<E> work() throws ConvertionException;
 
+        @NonNull
         public default Optional<Optional<E>> rework(@NonNull Type p) throws ConvertionException {
             checkNotNull(p);
             try {
-                return work().map(Optional::of);
+                return Optional.of(work().map(Optional::of).orElse(Optional.empty()));
             } catch (ConvertionException e) {
                 if (e.getMessage().contains("Unsupported ")) {
                     throw new ConvertionException(e.getMessage(), e, e.getIn(), p);
@@ -176,6 +177,12 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     @NonNull
     @Override
     public Optional<Optional<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
+    public Optional<Optional<E>> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 

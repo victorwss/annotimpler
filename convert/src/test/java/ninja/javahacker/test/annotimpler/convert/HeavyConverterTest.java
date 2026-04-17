@@ -70,46 +70,6 @@ public class HeavyConverterTest {
         return x == null ? null : OffsetDateTime.parse(x, DateTimeFormatter.ofPattern("uuuu-MM-dd HH:mm[:ss[.SSSSSSSSS][.SSSSSS][.SSS][.SS][.S]][ xxxxx]").withResolverStyle(ResolverStyle.STRICT));
     }
 
-    private static Object wrap(Object in, Type t) {
-        if (t instanceof Class<?> k) {
-            if (!k.isArray() || k == byte[].class) return in;
-            var arr = java.lang.reflect.Array.newInstance(k.getComponentType(), in == null ? 0 : 1);
-            if (in != null) java.lang.reflect.Array.set(arr, 0, in);
-            return arr;
-        }
-        if (t instanceof ParameterizedType p) {
-            var r = p.getRawType();
-            if (r == Collection.class || r == List.class) return in == null ? List.of() : List.of(in);
-            if (r == Set.class) return in == null ? Set.of() : Set.of(in);
-            if (r == Optional.class) return in == null ? Optional.empty() : Optional.of(in);
-        }
-        throw new AssertionError();
-    }
-
-    private static void compare(Object a, Object b) {
-        if (a instanceof byte[] a2 && b instanceof byte[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof boolean[] a2 && b instanceof boolean[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof char[] a2 && b instanceof char[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof short[] a2 && b instanceof short[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof int[] a2 && b instanceof int[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof long[] a2 && b instanceof long[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof float[] a2 && b instanceof float[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof double[] a2 && b instanceof double[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof Object[] a2 && b instanceof Object[] b2) {
-            Assertions.assertArrayEquals(a2, b2);
-        } else {
-            Assertions.assertEquals(a, b);
-        }
-    }
-
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
         var nb = TestTypes.name(base);
@@ -150,7 +110,7 @@ public class HeavyConverterTest {
 
                 for (var k3 : TestTypes.others(k1)) {
                     if (k3 == byte[].class && k1 != k3) continue;
-                    var o2 = wrap(out, k3);
+                    var o2 = TestTypes.wrap(out, k3);
                     var e1 = "Can't read value as " + TestTypes.name(k3) + ".";
                     var e2 = "Unsupported " + nb + ".";
                     var unsupported = v1 == null && (base != String.class || TestTypes.SPECIALS.contains(k1));
@@ -164,7 +124,7 @@ public class HeavyConverterTest {
                         );
                     };
 
-                    Giver2 ok = exec0 -> compare(o2, exec0.give().get());
+                    Giver2 ok = exec0 -> TestTypes.compare(o2, exec0.give().get());
                     var exec = unsupported || out == null ? err : ok;
                     var res = unsupported ? " - should be unsupported." : out == null ? " - should not read." : " - should be ok.";
 

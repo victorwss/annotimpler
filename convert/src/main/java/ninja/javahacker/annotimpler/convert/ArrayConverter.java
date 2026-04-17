@@ -31,8 +31,11 @@ public final class ArrayConverter<E> implements Converter<E[]> {
 
     @FunctionalInterface
     private interface Work<E> {
+
+        @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        @NonNull
         public default Optional<E> rework(@NonNull Class<E[]> arrayClass) throws ConvertionException {
             checkNotNull(arrayClass);
             try {
@@ -194,6 +197,12 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @NonNull
     @Override
     public Optional<E[]> from(@NonNull java.sql.Array in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
+    public Optional<E[]> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 

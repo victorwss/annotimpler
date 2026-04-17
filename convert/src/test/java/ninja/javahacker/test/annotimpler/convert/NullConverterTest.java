@@ -20,12 +20,14 @@ public class NullConverterTest {
     private <E> DynamicNode testIn(Class<E> base, MethodSpec m) throws Exception {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
-            var cvt = ConverterFactory.STD.get(k1);
-            var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + TestTypes.name(k1) + " from " + base.getSimpleName() + " as null.",
-                    () -> ForTests.testNull("in", () -> m.receive(cvt))
-            );
-            nodes1.add(nd1);
+            for (var k2 : TestTypes.others(k1)) {
+                var cvt = ConverterFactory.STD.get(k2);
+                var nd1 = DynamicTest.dynamicTest(
+                        "Converter for " + TestTypes.name(k2) + " from " + base.getSimpleName() + " as null.",
+                        () -> ForTests.testNull("in", () -> m.receive(cvt))
+                );
+                nodes1.add(nd1);
+            }
         }
         return DynamicContainer.dynamicContainer("Test convertions from " + base.getSimpleName() + ".", nodes1);
     }
@@ -53,14 +55,34 @@ public class NullConverterTest {
         );
     }
 
-    private static Object zero(Type k) {
+    private static Object zero(Type k, boolean special) {
         Class<?> c;
         if (k instanceof Class<?> cx) {
             c = cx;
         } else if (k instanceof ParameterizedType p) {
             c = (Class<?>) p.getRawType();
+            var pp = p.getActualTypeArguments()[0];
+            var a = List.of(List.class, Collection.class, Set.class, Optional.class).contains(c);
+            var b = List.of(OptionalInt.class, OptionalLong.class, OptionalDouble.class).contains(pp);
+            if (special && a && b) {
+                var z = Map.ofEntries(
+                        Map.entry(OptionalInt.class, OptionalInt.empty()),
+                        Map.entry(OptionalLong.class, OptionalLong.empty()),
+                        Map.entry(OptionalDouble.class, OptionalDouble.empty())
+                ).get(pp);
+                return Map.ofEntries(
+                        Map.entry(Optional.class, Optional.of(z)),
+                        Map.entry(List.class, List.of(z)),
+                        Map.entry(Set.class, Set.of(z)),
+                        Map.entry(Collection.class, List.of(z))
+                ).get(c);
+            }
         } else {
             throw new AssertionError();
+        }
+
+        if (c.isArray()) {
+            return java.lang.reflect.Array.newInstance(c.getComponentType(), 0);
         }
 
         return Map.ofEntries(
@@ -87,18 +109,20 @@ public class NullConverterTest {
     public List<DynamicNode> testFromOkNull() throws Exception {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
-            var cvt = ConverterFactory.STD.get(k1);
-            var z = Optional.ofNullable(zero(k1));
-            var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + TestTypes.name(k1) + " from Object null.",
-                    () -> Assertions.assertEquals(z, cvt.fromObj(null))
-            );
-            nodes1.add(nd1);
-            var nd2 = DynamicTest.dynamicTest(
-                    "Converter for " + TestTypes.name(k1) + " fromNull.",
-                    () -> Assertions.assertEquals(z, cvt.fromNull())
-            );
-            nodes1.add(nd2);
+            for (var k2 : TestTypes.others(k1)) {
+                var cvt = ConverterFactory.STD.get(k2);
+                var z = Optional.ofNullable(zero(k2, false));
+                var nd1 = DynamicTest.dynamicTest(
+                        "Converter for " + TestTypes.name(k2) + " from Object null.",
+                        () -> TestTypes.compare(z, cvt.fromObj(null))
+                );
+                nodes1.add(nd1);
+                var nd2 = DynamicTest.dynamicTest(
+                        "Converter for " + TestTypes.name(k2) + " fromNull.",
+                        () -> TestTypes.compare(z, cvt.fromNull())
+                );
+                nodes1.add(nd2);
+            }
         }
         return nodes1;
     }
@@ -110,19 +134,22 @@ public class NullConverterTest {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
             if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
-            var cvt = ConverterFactory.STD.get(k1);
-            var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + TestTypes.name(k1) + " with bad String.",
-                    () -> {
-                        var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
-                        Assertions.assertAll(
-                                () -> Assertions.assertEquals("Can't read value as " + TestTypes.name(k1) + ".", ex.getMessage()),
-                                () -> Assertions.assertEquals(String.class, ex.getIn()),
-                                () -> Assertions.assertEquals(k1, ex.getOut())
-                        );
-                    }
-            );
-            nodes1.add(nd1);
+            for (var k2 : TestTypes.others(k1)) {
+                if (k2 == byte[].class) continue;
+                var cvt = ConverterFactory.STD.get(k2);
+                var nd1 = DynamicTest.dynamicTest(
+                        "Converter for " + TestTypes.name(k2) + " with bad String.",
+                        () -> {
+                            var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
+                            Assertions.assertAll(
+                                    () -> Assertions.assertEquals("Can't read value as " + TestTypes.name(k2) + ".", ex.getMessage()),
+                                    () -> Assertions.assertEquals(String.class, ex.getIn()),
+                                    () -> Assertions.assertEquals(k2, ex.getOut())
+                            );
+                        }
+                );
+                nodes1.add(nd1);
+            }
         }
         return nodes1;
     }
@@ -134,12 +161,14 @@ public class NullConverterTest {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
             if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
-            var cvt = ConverterFactory.STD.get(k1);
-            var nd1 = DynamicTest.dynamicTest(
-                    "Converter for " + TestTypes.name(k1) + " with empty String.",
-                    () -> Assertions.assertEquals(Optional.ofNullable(zero(k1)), m.receive(cvt))
-            );
-            nodes1.add(nd1);
+            for (var k2 : TestTypes.others(k1)) {
+                var cvt = ConverterFactory.STD.get(k2);
+                var nd1 = DynamicTest.dynamicTest(
+                        "Converter for " + TestTypes.name(k2) + " with empty String.",
+                        () -> TestTypes.compare(Optional.ofNullable(zero(k2, true)), m.receive(cvt))
+                );
+                nodes1.add(nd1);
+            }
         }
         return nodes1;
     }
@@ -236,25 +265,27 @@ public class NullConverterTest {
         var blobs = List.of(String.class, byte[].class);
         List<DynamicNode> nodes1 = new ArrayList<>(blobs.size());
         for (var k1 : blobs) {
-            var cvt = ConverterFactory.STD.get(k1);
-            List<DynamicNode> nodes2 = new ArrayList<>(m.size());
-            for (var k2 : m) {
-                var nd2 = DynamicTest.dynamicTest(
-                        "Converter for " + k1.getSimpleName() + " with " + k2.name() + ".",
-                        () -> {
-                            var ce = Assertions.assertThrows(ConvertionException.class, () -> k2.spec().receive(cvt));
-                            Assertions.assertAll(
-                                    () -> Assertions.assertEquals("Can't read value as " + k1.getSimpleName() + ".", ce.getMessage()),
-                                    () -> Assertions.assertEquals(k2.base(), ce.getIn()),
-                                    () -> Assertions.assertEquals(k1, ce.getOut()),
-                                    () -> Assertions.assertEquals(k2.err(), ce.getCause().getClass()),
-                                    () -> Assertions.assertEquals("test", ce.getCause().getMessage())
-                            );
-                        }
-                );
-                nodes2.add(nd2);
+            for (var k2 : TestTypes.others(k1)) {
+                var cvt = ConverterFactory.STD.get(k2);
+                List<DynamicNode> nodes2 = new ArrayList<>(m.size());
+                for (var k3 : m) {
+                    var nd2 = DynamicTest.dynamicTest(
+                            "Converter for " + TestTypes.name(k2) + " with " + k3.name() + ".",
+                            () -> {
+                                var ce = Assertions.assertThrows(ConvertionException.class, () -> k3.spec().receive(cvt));
+                                Assertions.assertAll(
+                                        () -> Assertions.assertEquals("Can't read value as " + TestTypes.name(k2) + ".", ce.getMessage()),
+                                        () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                                        () -> Assertions.assertEquals(k2, ce.getOut()),
+                                        () -> Assertions.assertEquals(k3.err(), ce.getCause().getClass()),
+                                        () -> Assertions.assertEquals("test", ce.getCause().getMessage())
+                                );
+                            }
+                    );
+                    nodes2.add(nd2);
+                }
+                nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + TestTypes.name(k2) + ".", nodes2));
             }
-            nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + k1.getSimpleName() + ".", nodes2));
         }
         return nodes1;
     }

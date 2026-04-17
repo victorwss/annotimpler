@@ -27,12 +27,15 @@ public final class ListConverter<E> implements Converter<List<E>> {
 
     @FunctionalInterface
     private interface Work<E> {
+
+        @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        @NonNull
         public default Optional<List<E>> rework(@NonNull Type p) throws ConvertionException {
             checkNotNull(p);
             try {
-                return work().map(List::of);
+                return Optional.of(work().map(List::of).orElse(List.of()));
             } catch (ConvertionException e) {
                 if (e.getMessage().contains("Unsupported ")) {
                     throw new ConvertionException(e.getMessage(), e, e.getIn(), p);
@@ -176,6 +179,12 @@ public final class ListConverter<E> implements Converter<List<E>> {
     @NonNull
     @Override
     public Optional<List<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
+    public Optional<List<E>> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 

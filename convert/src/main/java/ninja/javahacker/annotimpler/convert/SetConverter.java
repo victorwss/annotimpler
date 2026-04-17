@@ -27,12 +27,15 @@ public final class SetConverter<E> implements Converter<Set<E>> {
 
     @FunctionalInterface
     private interface Work<E> {
+
+        @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        @NonNull
         public default Optional<Set<E>> rework(@NonNull Type p) throws ConvertionException {
             checkNotNull(p);
             try {
-                return work().map(Set::of);
+                return Optional.of(work().map(Set::of).orElse(Set.of()));
             } catch (ConvertionException e) {
                 if (e.getMessage().contains("Unsupported ")) {
                     throw new ConvertionException(e.getMessage(), e, e.getIn(), p);
@@ -176,6 +179,12 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
+        return wrap(() -> cvt.from(in));
+    }
+
+    @NonNull
+    @Override
+    public Optional<Set<E>> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 

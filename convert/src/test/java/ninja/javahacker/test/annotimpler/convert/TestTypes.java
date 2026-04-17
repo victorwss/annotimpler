@@ -35,7 +35,8 @@ public class TestTypes {
             OptionalInt w1, OptionalLong w2, OptionalDouble w3,
             Calendar v1, GregorianCalendar v2, java.util.Date v3, java.sql.Date v4, Time v5, java.sql.Timestamp v6,
             LocalDate u1, LocalDateTime u2, LocalTime u3, OffsetDateTime u4, OffsetTime u5, ZonedDateTime u6, Instant u7,
-            Ref t1, RowId t2, Struct t3, java.sql.Array t4)
+            Ref t1, RowId t2, Struct t3, java.sql.Array t4,
+            String s1)
     {
         throw new AssertionError();
     }
@@ -47,7 +48,8 @@ public class TestTypes {
             OptionalInt[] w1, OptionalLong[] w2, OptionalDouble[] w3,
             Calendar[] v1, GregorianCalendar[] v2, java.util.Date[] v3, java.sql.Date[] v4, Time[] v5, java.sql.Timestamp[] v6,
             LocalDate[] u1, LocalDateTime[] u2, LocalTime[] u3, OffsetDateTime[] u4, OffsetTime[] u5, ZonedDateTime[] u6, Instant[] u7,
-            Ref[] t1, RowId[] t2, Struct[] t3, java.sql.Array[] t4)
+            Ref[] t1, RowId[] t2, Struct[] t3, java.sql.Array[] t4,
+            String[] s1)
     {
         throw new AssertionError();
     }
@@ -58,7 +60,8 @@ public class TestTypes {
             Collection<OptionalInt> w1, Collection<OptionalLong> w2, Collection<OptionalDouble> w3,
             Collection<Calendar> v1, Collection<GregorianCalendar> v2,Collection< java.util.Date> v3, Collection<java.sql.Date> v4, Collection<Time> v5, Collection<java.sql.Timestamp> v6,
             Collection<LocalDate> u1, Collection<LocalDateTime> u2, Collection<LocalTime> u3, Collection<OffsetDateTime> u4, Collection<OffsetTime> u5, Collection<ZonedDateTime> u6, Collection<Instant> u7,
-            Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3, Collection<java.sql.Array> t4)
+            Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3, Collection<java.sql.Array> t4,
+            Collection<String> s1)
     {
         throw new AssertionError();
     }
@@ -69,7 +72,8 @@ public class TestTypes {
             List<OptionalInt> w1, List<OptionalLong> w2, List<OptionalDouble> w3,
             List<Calendar> v1, List<GregorianCalendar> v2,List< java.util.Date> v3, List<java.sql.Date> v4, List<Time> v5, List<java.sql.Timestamp> v6,
             List<LocalDate> u1, List<LocalDateTime> u2, List<LocalTime> u3, List<OffsetDateTime> u4, List<OffsetTime> u5, List<ZonedDateTime> u6, List<Instant> u7,
-            List<Ref> t1, List<RowId> t2, List<Struct> t3, List<java.sql.Array> t4)
+            List<Ref> t1, List<RowId> t2, List<Struct> t3, List<java.sql.Array> t4,
+            List<String> s1)
     {
         throw new AssertionError();
     }
@@ -80,7 +84,8 @@ public class TestTypes {
             Set<OptionalInt> w1, Set<OptionalLong> w2, Set<OptionalDouble> w3,
             Set<Calendar> v1, Set<GregorianCalendar> v2,Set< java.util.Date> v3, Set<java.sql.Date> v4, Set<Time> v5, Set<java.sql.Timestamp> v6,
             Set<LocalDate> u1, Set<LocalDateTime> u2, Set<LocalTime> u3, Set<OffsetDateTime> u4, Set<OffsetTime> u5, Set<ZonedDateTime> u6, Set<Instant> u7,
-            Set<Ref> t1, Set<RowId> t2, Set<Struct> t3, Set<java.sql.Array> t4)
+            Set<Ref> t1, Set<RowId> t2, Set<Struct> t3, Set<java.sql.Array> t4,
+            Set<String> s1)
     {
         throw new AssertionError();
     }
@@ -91,7 +96,8 @@ public class TestTypes {
             Optional<OptionalInt> w1, Optional<OptionalLong> w2, Optional<OptionalDouble> w3,
             Optional<Calendar> v1, Optional<GregorianCalendar> v2,Optional< java.util.Date> v3, Optional<java.sql.Date> v4, Optional<Time> v5, Optional<java.sql.Timestamp> v6,
             Optional<LocalDate> u1, Optional<LocalDateTime> u2, Optional<LocalTime> u3, Optional<OffsetDateTime> u4, Optional<OffsetTime> u5, Optional<ZonedDateTime> u6, Optional<Instant> u7,
-            Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3, Optional<java.sql.Array> t4)
+            Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3, Optional<java.sql.Array> t4,
+            Optional<String> s1)
     {
         throw new AssertionError();
     }
@@ -113,4 +119,66 @@ public class TestTypes {
         throw new AssertionError();
     }
 
+    public static Object wrap(Object in, Type t) {
+        if (t instanceof Class<?> k) {
+            if (!k.isArray() || k == byte[].class) return in;
+            var arr = java.lang.reflect.Array.newInstance(k.getComponentType(), in == null ? 0 : 1);
+            if (in != null) java.lang.reflect.Array.set(arr, 0, in);
+            return arr;
+        }
+        if (t instanceof ParameterizedType p) {
+            var r = p.getRawType();
+            if (r == Collection.class || r == List.class) return in == null ? List.of() : List.of(in);
+            if (r == Set.class) return in == null ? Set.of() : Set.of(in);
+            if (r == Optional.class) return in == null ? Optional.empty() : Optional.of(in);
+        }
+        throw new AssertionError();
+    }
+
+    public static void compare(Object a, Object b) {
+        if (a instanceof byte[] a2 && b instanceof byte[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof boolean[] a2 && b instanceof boolean[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof char[] a2 && b instanceof char[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof short[] a2 && b instanceof short[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof int[] a2 && b instanceof int[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof long[] a2 && b instanceof long[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof float[] a2 && b instanceof float[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof double[] a2 && b instanceof double[] b2) {
+            Assertions.assertArrayEquals(a2, b2);
+        } else if (a instanceof RowId a2 && b instanceof RowId b2) {
+            Assertions.assertTrue(a2 == b2);
+        } else if (a instanceof Struct a2 && b instanceof Struct b2) {
+            Assertions.assertTrue(a2 == b2);
+        } else if (a instanceof Ref a2 && b instanceof Ref b2) {
+            Assertions.assertTrue(a2 == b2);
+        } else if (a instanceof java.sql.Array a2 && b instanceof java.sql.Array b2) {
+            Assertions.assertTrue(a2 == b2);
+        } else if (a instanceof Optional<?> a2 && b instanceof Optional<?> b2) {
+            compare(a2.orElse(null), b2.orElse(null));
+        } else if (a instanceof Object[] a2 && b instanceof Object[] b2) {
+            Assertions.assertEquals(a2.length, b2.length);
+            Assertions.assertEquals(a2.getClass(), b2.getClass());
+            for (var i = 0; i < a2.length; i++) {
+                compare(a2[i], b2[i]);
+            }
+        } else if (a instanceof Collection<?> a2 && b instanceof Collection<?> b2) {
+            Assertions.assertEquals(a2.size(), b2.size());
+            Assertions.assertEquals(a2 instanceof List<?>, b2 instanceof List<?>);
+            Assertions.assertEquals(a2 instanceof Set<?>, b2 instanceof Set<?>);
+            var a3 = List.copyOf(a2);
+            var b3 = List.copyOf(b2);
+            for (var i = 0; i < a2.size(); i++) {
+                compare(a3.get(i), b3.get(i));
+            }
+        } else {
+            Assertions.assertEquals(a, b);
+        }
+    }
 }

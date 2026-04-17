@@ -14,19 +14,6 @@ public final class RecordMapper {
         this.factory = factory;
     }
 
-    /*@NonNull
-    public <T> Optional<T> forMap(@NonNull Map<String, ?> map, @NonNull Class<T> someClass)
-            throws MagicFactory.CreatorSelectionException,
-            MagicFactory.CreationException,
-            ConverterFactory.UnavailableConverterException,
-            Converter.ConvertionException
-    {
-        if (someClass.isRecord()) return Optional.of(someClass.cast(mapToRecord(map, someClass.asSubclass(Record.class))));
-        if (map.size() != 1) throw new IllegalArgumentException("Failed to create instance.");
-        var value = map.values().iterator().next();
-        return factory.get(someClass).from(value);
-    }*/
-
     @NonNull
     public <T extends Record> T mapToRecord(@NonNull Map<String, ?> map, @NonNull Class<T> recordClass)
             throws MagicFactory.CreatorSelectionException,
@@ -49,6 +36,9 @@ public final class RecordMapper {
             @NonNull Map<String, ?> map)
             throws UnavailableConverterException, ConvertionException
     {
+        checkNotNull(constructor);
+        checkNotNull(map);
+
         var parameters = constructor.getParameters();
         var args = new ArrayList<Object>(parameters.size());
 
@@ -64,6 +54,7 @@ public final class RecordMapper {
 
     @NonNull
     private static String camelCaseToSnakeCase(@NonNull String paramName) {
+        checkNotNull(paramName);
         var tam = paramName.length();
         var sb = new StringBuilder(tam);
         for (var i = 0; i < tam; i++) {
@@ -76,5 +67,10 @@ public final class RecordMapper {
             }
         }
         return sb.toString();
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }
