@@ -71,8 +71,8 @@ public class HeavyConverterTest {
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
-    private <E> DynamicNode testIn(Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
-        var nb = TestTypes.name(base);
+    private <E> DynamicNode testIn(String prefix, Class<E> base, List<? extends Elements<?>> lists, MethodSpec<E> m) throws Exception {
+        var nb = TypeName.of(base);
         var baseWrap = base instanceof Class<?> b2 ? WrapperClass.wrap(b2) : base;
         Map<Class<?>, List<?>> mappings = new HashMap<>(TestTypes.CVT_CLASSES.size() + 1);
         for (var a1 : lists) {
@@ -85,8 +85,9 @@ public class HeavyConverterTest {
 
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size() + 1);
 
-        var special = mappings.get(byte[].class) != null;
-        var toit = !special ? TestTypes.CVT_CLASSES : Stream.concat(Stream.of(byte[].class), TestTypes.CVT_CLASSES.stream()).toList();
+        var toit = TestTypes.CVT_CLASSES;
+        if (mappings.get(byte[].class) != null) toit = Stream.concat(Stream.of(byte[].class), toit.stream()).toList();
+        if (mappings.get(char[].class) != null) toit = Stream.concat(Stream.of(char[].class), toit.stream()).toList();
 
         for (var k1 : toit) {
             if (k1 == null) throw new AssertionError();
@@ -105,13 +106,15 @@ public class HeavyConverterTest {
                         : in instanceof SQLXML ? ""
                         : in instanceof RowId ? ""
                         : in instanceof byte[] x ? " - (byte[]) " + new String(x)
+                        : in instanceof char[] x ? " - (char[]) " + new String(x)
                         : in instanceof Object[] ? ""
                         : " - " + in;
 
                 for (var k3 : TestTypes.others(k1)) {
                     if (k3 == byte[].class && k1 != k3) continue;
+                    if (k3 == char[].class && k1 != k3) continue;
                     var o2 = TestTypes.wrap(out, k3);
-                    var e1 = "Can't read value as " + TestTypes.name(k3) + ".";
+                    var e1 = "Can't read value as " + TypeName.of(k3) + ".";
                     var e2 = "Unsupported " + nb + ".";
                     var unsupported = v1 == null && (base != String.class || TestTypes.SPECIALS.contains(k1));
 
@@ -131,44 +134,48 @@ public class HeavyConverterTest {
                     var cvt = ConverterFactory.STD.get(k3);
                     Giver gr = () -> m.receive(cvt, in);
                     Giver go = () -> cvt.fromObj(in);
-                    var nd1 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " from "    + nb + inStr + res, () -> exec.receive(gr));
-                    var nd2 = DynamicTest.dynamicTest("Converter for " + TestTypes.name(k3) + " fromObj " + nb + inStr + res, () -> exec.receive(go));
+                    var nd1 = DynamicTest.dynamicTest(prefix + " Converter for " + TypeName.of(k3) + " from "    + nb + inStr + res, () -> exec.receive(gr));
+                    var nd2 = DynamicTest.dynamicTest(prefix + " Converter for " + TypeName.of(k3) + " fromObj " + nb + inStr + res, () -> exec.receive(go));
                     nodes2.add(nd1);
                     nodes2.add(nd2);
                 }
             }
-            nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + TestTypes.name(k1) + " from " + nb + ".", nodes2));
+            nodes1.add(DynamicContainer.dynamicContainer(prefix + " Test convertions for " + TypeName.of(k1) + " from " + nb + ".", nodes2));
         }
-        return DynamicContainer.dynamicContainer("Test convertions from " + nb + ".", nodes1);
+        return DynamicContainer.dynamicContainer(prefix + " Test convertions from " + nb + ".", nodes1);
     }
 
     @TestFactory
     public List<DynamicNode> testNumericTypes() throws Exception {
+        var prefix = "[testNumericTypes]";
         var str1 = e(String.class, List.of(
-                "0", "1", "42", "55", "127", "-30", "-128", "32000", "64000",
+                "0", "1", "9", "42", "55", "127", "-30", "-128", "32000", "64000",
                 "489876544", "12345678910", "9876543210987654", "98765432109876543210",
                 "16777217", "9007199254740993",
                 "3.5", "0.078", "-177.77", "98765432109876543210.98765432",
                 "NaN", "Infinity", "-Infinity"
         ));
         var floats = e(Float.class, Arrays.asList(
-                0F, 1F, 42F, 55F, 127F, -30F, -128F, 32000F, 64000F,
+                0F, 1F, 9F, 42F, 55F, 127F, -30F, -128F, 32000F, 64000F,
                 489876544F, null, null, null,
                 null, null,
                 3.5F, 0.078F, -177.77F, null,
                 Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
         ));
         var doubles = e(Double.class, Arrays.asList(
-                0D, 1D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
+                0D, 1D, 9D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
                 489876544D, 12345678910D, 9876543210987654D, null,
                 16777217.0D, null,
                 3.5D, 0.078D, -177.77D, null,
                 Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
         ));
+        var chs = e(Character.class, Arrays.asList('0', '1', '9'));
         var str1B = e(String.class, List.of("false", "true"));
 
         var bigds      = str1 .map(BigDecimal.class, this::bd);
         var bigis      = str1 .map(BigInteger.class, this::bi);
+        var charsArs   = str1 .map(char[]    .class, String::toCharArray);
+        var charsArsB  = str1B.map(char[]    .class, String::toCharArray);
         var longs      = bigis.map(Long      .class, this::lo);
         var bools      = longs.map(Boolean   .class, this::o );
         var bytes      = longs.map(Byte      .class, this::b );
@@ -179,27 +186,28 @@ public class HeavyConverterTest {
         var optInts    = ints   .map(OptionalInt   .class, x -> x == null ? null : OptionalInt   .of(x));
         var optLongs   = longs  .map(OptionalLong  .class, x -> x == null ? null : OptionalLong  .of(x));
 
-        var all  = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 );
-        var allB = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1B);
-        var allC = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 );
-        var allD = List.of(bools,                                                                                                  str1B);
+        var all  = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 , charsArs );
+        var allB = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1B, charsArsB);
+        var allC = List.of(       bytes, shorts, chs,   ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1 , charsArs );
+        var allD = List.of(bools,                                                                                                  str1B, charsArsB);
 
-        var byteNode   = testIn(byte      .class, all , (cvt, in) -> cvt.from(in));
-        var intNode    = testIn(int       .class, all , (cvt, in) -> cvt.from(in));
-        var longNode   = testIn(long      .class, all , (cvt, in) -> cvt.from(in));
-        var shortNode  = testIn(short     .class, all , (cvt, in) -> cvt.from(in));
-        var floatNode  = testIn(float     .class, all , (cvt, in) -> cvt.from(in));
-        var doubleNode = testIn(double    .class, all , (cvt, in) -> cvt.from(in));
-        var bigdNode   = testIn(BigDecimal.class, all , (cvt, in) -> cvt.from(in));
-        var boolNode   = testIn(boolean   .class, allB, (cvt, in) -> cvt.from(in));
-        var str1Node   = testIn(String    .class, allC, (cvt, in) -> cvt.from(in));
-        var str2Node   = testIn(String    .class, allD, (cvt, in) -> cvt.from(in));
+        var byteNode   = testIn(prefix, byte      .class, all , (cvt, in) -> cvt.from(in));
+        var intNode    = testIn(prefix, int       .class, all , (cvt, in) -> cvt.from(in));
+        var longNode   = testIn(prefix, long      .class, all , (cvt, in) -> cvt.from(in));
+        var shortNode  = testIn(prefix, short     .class, all , (cvt, in) -> cvt.from(in));
+        var floatNode  = testIn(prefix, float     .class, all , (cvt, in) -> cvt.from(in));
+        var doubleNode = testIn(prefix, double    .class, all , (cvt, in) -> cvt.from(in));
+        var bigdNode   = testIn(prefix, BigDecimal.class, all , (cvt, in) -> cvt.from(in));
+        var boolNode   = testIn(prefix, boolean   .class, allB, (cvt, in) -> cvt.from(in));
+        var str1Node   = testIn(prefix, String    .class, allC, (cvt, in) -> cvt.from(in));
+        var str2Node   = testIn(prefix, String    .class, allD, (cvt, in) -> cvt.from(in));
 
         return List.of(byteNode, intNode, longNode, shortNode, floatNode, doubleNode, bigdNode, boolNode, str1Node, str2Node);
     }
 
     @TestFactory
     public List<DynamicNode> testMinusZero() throws Exception {
+        var prefix = "[testMinusZero]";
         var str1    = e(String.class, List.of("-0"));
         var floats  = e(Float.class, Arrays.asList(-0.0F));
         var doubles = e(Double.class, Arrays.asList(-0.0));
@@ -217,17 +225,18 @@ public class HeavyConverterTest {
         var optLongs   = longs  .map(OptionalLong  .class, x -> x == null ? null : OptionalLong  .of(x));
 
         var all1 = List.of(bools, bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
-        var all2 = List.of(       bytes, shorts, chars, ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
+        var all2 = List.of(       bytes, shorts,        ints, longs, floats, doubles, bigis, bigds, optInts, optLongs, optDoubles, str1);
 
-        var floatNode  = testIn(float .class, all1, (cvt, in) -> cvt.from(in));
-        var doubleNode = testIn(double.class, all1, (cvt, in) -> cvt.from(in));
-        var strNode    = testIn(String.class, all2, (cvt, in) -> cvt.from(in));
+        var floatNode  = testIn(prefix, float .class, all1, (cvt, in) -> cvt.from(in));
+        var doubleNode = testIn(prefix, double.class, all1, (cvt, in) -> cvt.from(in));
+        var strNode    = testIn(prefix, String.class, all2, (cvt, in) -> cvt.from(in));
 
         return List.of(floatNode, doubleNode, strNode);
     }
 
     @TestFactory
     public List<DynamicNode> testTemporalTypes() throws Exception {
+        var prefix = "[testTemporalTypes]";
         var str1 = e(String.class, List.of(
                 "2026-01-02 03:04:05 +06:13",
                 "2025-10-31 13:14:15.123456 +11:55:44",
@@ -279,16 +288,16 @@ public class HeavyConverterTest {
         var all4 = List.of(                    lts1, ots1,                                     sts1,       str4);
         var all5 = List.of(                    lts1, ots5,                                     sts1,       str5);
 
-        var odtNode  = testIn(OffsetDateTime.class, all1, (cvt, in) -> cvt.from(in));
-        var str1Node = testIn(String        .class, all1, (cvt, in) -> cvt.from(in));
-        var ldtNode  = testIn(LocalDateTime .class, all2, (cvt, in) -> cvt.from(in));
-        var str2Node = testIn(String        .class, all2, (cvt, in) -> cvt.from(in));
-        var ldNode   = testIn(LocalDate     .class, all3, (cvt, in) -> cvt.from(in));
-        var str3Node = testIn(String        .class, all3, (cvt, in) -> cvt.from(in));
-        var otNode   = testIn(OffsetTime    .class, all4, (cvt, in) -> cvt.from(in));
-        var str4Node = testIn(String        .class, all4, (cvt, in) -> cvt.from(in));
-        var ltNode   = testIn(LocalTime     .class, all5, (cvt, in) -> cvt.from(in));
-        var str5Node = testIn(String        .class, all5, (cvt, in) -> cvt.from(in));
+        var odtNode  = testIn(prefix, OffsetDateTime.class, all1, (cvt, in) -> cvt.from(in));
+        var str1Node = testIn(prefix, String        .class, all1, (cvt, in) -> cvt.from(in));
+        var ldtNode  = testIn(prefix, LocalDateTime .class, all2, (cvt, in) -> cvt.from(in));
+        var str2Node = testIn(prefix, String        .class, all2, (cvt, in) -> cvt.from(in));
+        var ldNode   = testIn(prefix, LocalDate     .class, all3, (cvt, in) -> cvt.from(in));
+        var str3Node = testIn(prefix, String        .class, all3, (cvt, in) -> cvt.from(in));
+        var otNode   = testIn(prefix, OffsetTime    .class, all4, (cvt, in) -> cvt.from(in));
+        var str4Node = testIn(prefix, String        .class, all4, (cvt, in) -> cvt.from(in));
+        var ltNode   = testIn(prefix, LocalTime     .class, all5, (cvt, in) -> cvt.from(in));
+        var str5Node = testIn(prefix, String        .class, all5, (cvt, in) -> cvt.from(in));
 
         return List.of(odtNode, ldNode, ldtNode, ltNode, otNode, str1Node, str2Node, str3Node, str4Node, str5Node);
     }
@@ -323,21 +332,23 @@ public class HeavyConverterTest {
 
     @TestFactory
     public List<DynamicNode> testLobTypes() throws Exception {
+        var prefix = "[testLobTypes]";
         var str1   = e(String.class, List.of("bla bla bla", "lorem ipsum dolor sit amet"));
         var bytes  = str1.map(byte[].class, String::getBytes);
+        var chars  = str1.map(char[].class, String::toCharArray);
         var blobs  = str1.map(Blob  .class, this::blob);
         var clobs  = str1.map(Clob  .class, this::clob);
         var nclobs = str1.map(NClob .class, this::nclob);
         var xmls   = str1.map(SQLXML.class, this::sqlxml);
 
-        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls);
+        var all = List.of(str1, bytes, blobs, clobs, nclobs, xmls, chars);
 
-        var strNode   = testIn(String.class, all, (cvt, in) -> cvt.from(in));
-        var bytsNode  = testIn(byte[].class, all, (cvt, in) -> cvt.from(in));
-        var blobNode  = testIn(Blob  .class, all, (cvt, in) -> cvt.from(in));
-        var clobNode  = testIn(Clob  .class, all, (cvt, in) -> cvt.from(in));
-        var nclobNode = testIn(NClob .class, all, (cvt, in) -> cvt.from(in));
-        var xmlNode   = testIn(SQLXML.class, all, (cvt, in) -> cvt.from(in));
+        var strNode   = testIn(prefix, String.class, all, (cvt, in) -> cvt.from(in));
+        var bytsNode  = testIn(prefix, byte[].class, all, (cvt, in) -> cvt.from(in));
+        var blobNode  = testIn(prefix, Blob  .class, all, (cvt, in) -> cvt.from(in));
+        var clobNode  = testIn(prefix, Clob  .class, all, (cvt, in) -> cvt.from(in));
+        var nclobNode = testIn(prefix, NClob .class, all, (cvt, in) -> cvt.from(in));
+        var xmlNode   = testIn(prefix, SQLXML.class, all, (cvt, in) -> cvt.from(in));
 
         return List.of(strNode, bytsNode, blobNode, clobNode, nclobNode, xmlNode);
     }

@@ -22,7 +22,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
 
     @NonNull
     @Override
-    public Type getType() {
+    public ParameterizedType getType() {
         return p;
     }
 
@@ -47,7 +47,8 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     }
 
     @NonNull
-    private Optional<Collection<E>> wrap(Work<E> e) throws ConvertionException {
+    private Optional<Collection<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+        checkNotNull(e);
         return e.rework(p);
     }
 

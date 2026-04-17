@@ -139,52 +139,7 @@ public final class NameDictionary {
         }
 
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
-            checkNotNull(type);
-            checkNotNull(sb);
-            switch (type) {
-                case Class<?> clazz -> {
-                    if (clazz.isArray()) {
-                        formatType(clazz.getComponentType(), sb);
-                        sb.append("[]");
-                    } else {
-                        var c = map1.get(clazz);
-                        checkNotNull(c, klass + "---" + type);
-                        sb.append(c);
-                    }
-                }
-                case ParameterizedType paramType -> {
-                    formatType(paramType.getRawType(), sb);
-                    sb.append("<");
-                    var typeArgs = paramType.getActualTypeArguments();
-                    for (var i = 0; i < typeArgs.length; i++) {
-                        if (i > 0) sb.append(", ");
-                        formatType(typeArgs[i], sb);
-                    }
-                    sb.append(">");
-                }
-                case TypeVariable<?> tv -> sb.append(tv.getName());
-                case GenericArrayType arrayType -> {
-                    formatType(arrayType.getGenericComponentType(), sb);
-                    sb.append("[]");
-                }
-                case WildcardType wildcardType -> {
-                    sb.append("?");
-
-                    var upperBounds = wildcardType.getUpperBounds();
-                    var lowerBounds = wildcardType.getLowerBounds();
-                    assertTrue(upperBounds.length == 1);
-                    assertTrue(lowerBounds.length <= 1);
-
-                    if (upperBounds[0] != Object.class) {
-                        sb.append(" extends ");
-                        formatType(upperBounds[0], sb);
-                    } else if (lowerBounds.length > 0) {
-                        sb.append(" super ");
-                        formatType(lowerBounds[0], sb);
-                    }
-                }
-                default -> throw new AssertionError();
-            }
+            TypeName.formatType(type, map1, sb);
         }
 
         @NonNull
@@ -304,10 +259,5 @@ public final class NameDictionary {
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
-    }
-
-    @Generated
-    private static void checkNotNull(Object obj, String err) {
-        if (obj == null) throw new AssertionError(err);
     }
 }

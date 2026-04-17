@@ -29,8 +29,8 @@ public class TestTypes {
     public static final List<Class<?>> SPECIALS = List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class);
 
     private static void noop(
-            boolean x1, byte x2, short x3, int     x4, long x5, float x6, double x7,
-            Boolean y1, Byte y2, Short y3, Integer y4, Long y5, Float y6, Double y7,
+            boolean x1, byte x2, short x3, int     x4, long x5, float x6, double x7, char      x8,
+            Boolean y1, Byte y2, Short y3, Integer y4, Long y5, Float y6, Double y7, Character y8,
             BigDecimal z1, BigInteger z2,
             OptionalInt w1, OptionalLong w2, OptionalDouble w3,
             Calendar v1, GregorianCalendar v2, java.util.Date v3, java.sql.Date v4, Time v5, java.sql.Timestamp v6,
@@ -42,8 +42,8 @@ public class TestTypes {
     }
 
     private static void noop(
-            boolean[] x1, byte[] x2, short[] x3, int[]     x4, long[] x5, float[] x6, double[] x7,
-            Boolean[] y1, Byte[] y2, Short[] y3, Integer[] y4, Long[] y5, Float[] y6, Double[] y7,
+            boolean[] x1, byte[] x2, short[] x3, int[]     x4, long[] x5, float[] x6, double[] x7, char[]      x8,
+            Boolean[] y1, Byte[] y2, Short[] y3, Integer[] y4, Long[] y5, Float[] y6, Double[] y7, Character[] y8,
             BigDecimal[] z1, BigInteger[] z2,
             OptionalInt[] w1, OptionalLong[] w2, OptionalDouble[] w3,
             Calendar[] v1, GregorianCalendar[] v2, java.util.Date[] v3, java.sql.Date[] v4, Time[] v5, java.sql.Timestamp[] v6,
@@ -55,7 +55,7 @@ public class TestTypes {
     }
 
     private static void noop(
-            Collection<Boolean> y1, Collection<Byte> y2, Collection<Short> y3, Collection<Integer> y4, Collection<Long> y5, Collection<Float> y6, Collection<Double> y7,
+            Collection<Boolean> y1, Collection<Byte> y2, Collection<Short> y3, Collection<Integer> y4, Collection<Long> y5, Collection<Float> y6, Collection<Double> y7, Collection<Character> y8,
             Collection<BigDecimal> z1, Collection<BigInteger> z2,
             Collection<OptionalInt> w1, Collection<OptionalLong> w2, Collection<OptionalDouble> w3,
             Collection<Calendar> v1, Collection<GregorianCalendar> v2,Collection< java.util.Date> v3, Collection<java.sql.Date> v4, Collection<Time> v5, Collection<java.sql.Timestamp> v6,
@@ -67,7 +67,7 @@ public class TestTypes {
     }
 
     private static void noop(
-            List<Boolean> y1, List<Byte> y2, List<Short> y3, List<Integer> y4, List<Long> y5, List<Float> y6, List<Double> y7,
+            List<Boolean> y1, List<Byte> y2, List<Short> y3, List<Integer> y4, List<Long> y5, List<Float> y6, List<Double> y7, List<Character> y8,
             List<BigDecimal> z1, List<BigInteger> z2,
             List<OptionalInt> w1, List<OptionalLong> w2, List<OptionalDouble> w3,
             List<Calendar> v1, List<GregorianCalendar> v2,List< java.util.Date> v3, List<java.sql.Date> v4, List<Time> v5, List<java.sql.Timestamp> v6,
@@ -79,7 +79,7 @@ public class TestTypes {
     }
 
     private static void noop(
-            Set<Boolean> y1, Set<Byte> y2, Set<Short> y3, Set<Integer> y4, Set<Long> y5, Set<Float> y6, Set<Double> y7,
+            Set<Boolean> y1, Set<Byte> y2, Set<Short> y3, Set<Integer> y4, Set<Long> y5, Set<Float> y6, Set<Double> y7, Set<Double> y8,
             Set<BigDecimal> z1, Set<BigInteger> z2,
             Set<OptionalInt> w1, Set<OptionalLong> w2, Set<OptionalDouble> w3,
             Set<Calendar> v1, Set<GregorianCalendar> v2,Set< java.util.Date> v3, Set<java.sql.Date> v4, Set<Time> v5, Set<java.sql.Timestamp> v6,
@@ -91,7 +91,7 @@ public class TestTypes {
     }
 
     private static void noop(
-            Optional<Boolean> y1, Optional<Byte> y2, Optional<Short> y3, Optional<Integer> y4, Optional<Long> y5, Optional<Float> y6, Optional<Double> y7,
+            Optional<Boolean> y1, Optional<Byte> y2, Optional<Short> y3, Optional<Integer> y4, Optional<Long> y5, Optional<Float> y6, Optional<Double> y7, Optional<Double> y8,
             Optional<BigDecimal> z1, Optional<BigInteger> z2,
             Optional<OptionalInt> w1, Optional<OptionalLong> w2, Optional<OptionalDouble> w3,
             Optional<Calendar> v1, Optional<GregorianCalendar> v2,Optional< java.util.Date> v3, Optional<java.sql.Date> v4, Optional<Time> v5, Optional<java.sql.Timestamp> v6,
@@ -109,19 +109,9 @@ public class TestTypes {
                 .toList();
     }
 
-    public static String name(Type t) {
-        if (t instanceof Class<?> k) return k.getSimpleName();
-        if (t instanceof ParameterizedType p) {
-            var a = ((Class<?>) p.getRawType()).getSimpleName();
-            var b = ((Class<?>) p.getActualTypeArguments()[0]).getSimpleName();
-            return a + "<" + b + ">";
-        }
-        throw new AssertionError();
-    }
-
     public static Object wrap(Object in, Type t) {
         if (t instanceof Class<?> k) {
-            if (!k.isArray() || k == byte[].class) return in;
+            if (!k.isArray() || k == byte[].class || k == char[].class) return in;
             var arr = java.lang.reflect.Array.newInstance(k.getComponentType(), in == null ? 0 : 1);
             if (in != null) java.lang.reflect.Array.set(arr, 0, in);
             return arr;

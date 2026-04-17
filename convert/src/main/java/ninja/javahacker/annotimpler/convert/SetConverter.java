@@ -21,7 +21,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
 
     @NonNull
     @Override
-    public Type getType() {
+    public ParameterizedType getType() {
         return p;
     }
 
@@ -46,7 +46,8 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     }
 
     @NonNull
-    private Optional<Set<E>> wrap(Work<E> e) throws ConvertionException {
+    private Optional<Set<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+        checkNotNull(e);
         return e.rework(p);
     }
 

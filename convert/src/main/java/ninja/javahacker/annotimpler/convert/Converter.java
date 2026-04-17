@@ -35,7 +35,7 @@ public interface Converter<E> {
             case Ref b -> from(b);
             case Struct b -> from(b);
             case java.sql.Array b -> from(b);
-            default -> throw new ConvertionException("Unsupported Type: " + in.getClass().getName(), in.getClass(), getType());
+            default -> throw new ConvertionException("Unsupported Type: " + in.getClass().getName() + ".", in.getClass(), getType());
         };
     }
 

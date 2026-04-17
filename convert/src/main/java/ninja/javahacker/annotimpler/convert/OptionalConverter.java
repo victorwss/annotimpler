@@ -21,12 +21,14 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
     @NonNull
     @Override
-    public Type getType() {
+    public ParameterizedType getType() {
         return p;
     }
 
     @FunctionalInterface
     private interface Work<E> {
+
+        @NonNull
         public Optional<E> work() throws ConvertionException;
 
         @NonNull
@@ -44,7 +46,8 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     }
 
     @NonNull
-    private Optional<Optional<E>> wrap(Work<E> e) throws ConvertionException {
+    private Optional<Optional<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+        checkNotNull(e);
         return e.rework(p);
     }
 

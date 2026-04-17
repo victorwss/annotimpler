@@ -45,10 +45,10 @@ public class SpecialConverterTest {
             var r = rowid(in);
             for (var k1 : all) {
                 for (var k2 : TestTypes.others(k1)) {
-                    if (k2 == byte[].class) continue;
+                    if (k2 == byte[].class || k2 == char[].class) continue;
                     var cvt = ConverterFactory.STD.get(k2);
                     var nd = DynamicTest.dynamicTest(
-                            "Converter for " + TestTypes.name(k2) + " from RowId - " + in + ".",
+                            "Converter for " + TypeName.of(k2) + " from RowId - " + in + ".",
                             () -> {
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                                 Assertions.assertAll(
@@ -75,7 +75,7 @@ public class SpecialConverterTest {
             for (var k2 : TestTypes.others(k1)) {
                 var cvt = ConverterFactory.STD.get(k2);
                 var nd = DynamicTest.dynamicTest(
-                        "Converter for " + TestTypes.name(k2) + " from Ref.",
+                        "Converter for " + TypeName.of(k2) + " from Ref.",
                         () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
@@ -101,7 +101,7 @@ public class SpecialConverterTest {
             for (var k2 : TestTypes.others(k1)) {
                 var cvt = ConverterFactory.STD.get(k2);
                 var nd = DynamicTest.dynamicTest(
-                        "Converter for " + TestTypes.name(k2) + " from Struct.",
+                        "Converter for " + TypeName.of(k2) + " from Struct.",
                         () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
@@ -127,7 +127,7 @@ public class SpecialConverterTest {
             for (var k2 : TestTypes.others(k1)) {
                 var cvt = ConverterFactory.STD.get(k2);
                 var nd = DynamicTest.dynamicTest(
-                        "Converter for " + TestTypes.name(k2) + " from Array.",
+                        "Converter for " + TypeName.of(k2) + " from Array.",
                         () -> {
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
@@ -152,7 +152,7 @@ public class SpecialConverterTest {
                 var cvt = ConverterFactory.STD.get(k2);
                 var o2 = TestTypes.wrap(r, k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
-                        "Converter for RowId from RowId - " + in + " - " + TestTypes.name(k2) + ".",
+                        "Converter for RowId from RowId - " + in + " - " + TypeName.of(k2) + ".",
                         () -> Assertions.assertAll(
                                 () -> TestTypes.compare(o2, cvt.from(r).get()),
                                 () -> TestTypes.compare(o2, cvt.fromObj(r).get())
@@ -172,7 +172,7 @@ public class SpecialConverterTest {
             var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
-                    "Converter for Ref from Ref - " + TestTypes.name(k2) + ".",
+                    "Converter for Ref from Ref - " + TypeName.of(k2) + ".",
                     () -> Assertions.assertAll(
                             () -> TestTypes.compare(o2, cvt.from(r).get()),
                             () -> TestTypes.compare(o2, cvt.fromObj(r).get())
@@ -191,7 +191,7 @@ public class SpecialConverterTest {
             var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
-                    "Converter for Struct from Struct - " + TestTypes.name(k2) + ".",
+                    "Converter for Struct from Struct - " + TypeName.of(k2) + ".",
                     () -> Assertions.assertAll(
                             () -> TestTypes.compare(o2, cvt.from(r).get()),
                             () -> TestTypes.compare(o2, cvt.fromObj(r).get())
@@ -210,7 +210,7 @@ public class SpecialConverterTest {
             var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
-                    "Converter for Array from Array - " + TestTypes.name(k2) + ".",
+                    "Converter for Array from Array - " + TypeName.of(k2) + ".",
                     () -> Assertions.assertAll(
                             () -> TestTypes.compare(o2, cvt.from(r).get()),
                             () -> TestTypes.compare(o2, cvt.fromObj(r).get())
@@ -222,7 +222,7 @@ public class SpecialConverterTest {
     }
 
     @TestFactory
-    public List<DynamicNode> testRowIdFromString() throws Exception {
+    public List<DynamicNode> testRowIdFromStringCharArray() throws Exception {
         List<DynamicNode> nodes = new ArrayList<>(3 * 5);
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);
@@ -231,7 +231,29 @@ public class SpecialConverterTest {
                 var cvt = ConverterFactory.STD.get(k2);
                 var o2 = TestTypes.wrap(b.toString(), k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
-                        "Converter for RowId from String - " + in + " - " + TestTypes.name(k2) + ".",
+                        "Converter for RowId from String - " + in + " - " + TypeName.of(k2) + ".",
+                        () -> Assertions.assertAll(
+                                () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                        )
+                );
+                nodes.add(nd);
+            }
+        }
+        return nodes;
+    }
+
+    @TestFactory
+    public List<DynamicNode> testRowIdFromCharArray() throws Exception {
+        List<DynamicNode> nodes = new ArrayList<>(3 * 5);
+        for (var in : List.of("ABCD", "abcde", "1234")) {
+            var r = rowid(in);
+            var b = new BigInteger(r.getBytes());
+            for (var k2 : TestTypes.others(char[].class)) {
+                var cvt = ConverterFactory.STD.get(k2);
+                var o2 = TestTypes.wrap(b.toString().toCharArray(), k2);
+                DynamicNode nd = DynamicTest.dynamicTest(
+                        "Converter for RowId from String - " + in + " - " + TypeName.of(k2) + ".",
                         () -> Assertions.assertAll(
                                 () -> TestTypes.compare(o2, cvt.from(r).get()),
                                 () -> TestTypes.compare(o2, cvt.fromObj(r).get())
@@ -252,7 +274,7 @@ public class SpecialConverterTest {
                 var cvt = ConverterFactory.STD.get(k2);
                 var o2 = TestTypes.wrap(r.getBytes(), k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
-                        "Converter for RowId from byte[] - " + in + " - " + TestTypes.name(k2) + ".",
+                        "Converter for RowId from byte[] - " + in + " - " + TypeName.of(k2) + ".",
                         () -> Assertions.assertAll(
                                 () -> TestTypes.compare(o2, cvt.from(r).get()),
                                 () -> TestTypes.compare(o2, cvt.fromObj(r).get())

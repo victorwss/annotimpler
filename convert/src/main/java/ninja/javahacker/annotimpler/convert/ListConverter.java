@@ -21,7 +21,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
 
     @NonNull
     @Override
-    public Type getType() {
+    public ParameterizedType getType() {
         return p;
     }
 
@@ -46,7 +46,8 @@ public final class ListConverter<E> implements Converter<List<E>> {
     }
 
     @NonNull
-    private Optional<List<E>> wrap(Work<E> e) throws ConvertionException {
+    private Optional<List<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+        checkNotNull(e);
         return e.rework(p);
     }
 

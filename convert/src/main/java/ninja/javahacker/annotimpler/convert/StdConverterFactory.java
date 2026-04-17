@@ -36,6 +36,7 @@ enum StdConverterFactory implements ConverterFactory {
 
             Map.entry(String.class, StringConverter.INSTANCE),
             Map.entry(byte[].class, ByteArrayConverter.INSTANCE),
+            Map.entry(char[].class, CharArrayConverter.INSTANCE),
             Map.entry(java.sql.Array.class, SqlArrayConverter.INSTANCE),
             Map.entry(Ref.class, RefConverter.INSTANCE),
             Map.entry(RowId.class, RowIdConverter.INSTANCE),
@@ -90,7 +91,7 @@ enum StdConverterFactory implements ConverterFactory {
         checkNotNull(klass);
         if (klass.isEnum()) return (Converter<E>) enums((Class) klass);
         if (klass.isRecord()) return (Converter<E>) records((Class) klass);
-        if (klass.isArray() && klass != byte[].class) {
+        if (klass.isArray() && klass != byte[].class && klass != char[].class) {
             var arg = klass.getComponentType();
             if (arg.isArray()) throw new UnavailableConverterException("No converter for multidimensional arrays.", klass);
             return (Converter<E>) array(arg);
