@@ -243,6 +243,15 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     }
 
     @Override
+    public Optional<R> from(@NonNull Struct in) throws ConvertionException {
+        try {
+            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
+        } catch (MagicFactory.CreationException x) {
+            throw new ConvertionException(x.getMessage(), x, Struct.class, recordClass);
+        }
+    }
+
+    @Override
     public Optional<R> from(@NonNull java.sql.Array in) throws ConvertionException {
         try {
             return Optional.of(factory.create(inFactory.from(in).orElse(null)));

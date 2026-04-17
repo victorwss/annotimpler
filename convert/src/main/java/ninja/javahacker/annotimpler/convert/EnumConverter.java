@@ -6,8 +6,6 @@ import module java.base;
 
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
-    private static final String BAD = "Can't read value as an enum object.";
-
     @NonNull
     private final Class<E> enumClass;
 
@@ -26,34 +24,42 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return new EnumConverter<>(enumClass);
     }
 
+    private Optional<E> cvt(Optional<Integer> opt) throws ConvertionException  {
+        return opt.isEmpty() ? Optional.empty() : at(opt.get());
+    }
+
+    private Optional<E> at(int in) throws ConvertionException {
+        return Optional.of(enumClass.getEnumConstants()[in]);
+    }
+
     @NonNull
     @Override
     public Optional<E> from(byte in) throws ConvertionException {
-        return from((int) in);
+        try {
+            return at(in);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, byte.class, enumClass);
+        }
     }
 
     @NonNull
     @Override
     public Optional<E> from(short in) throws ConvertionException {
-        return from((int) in);
-    }
-
-    private Optional<E> cvt(Optional<Integer> opt) throws ConvertionException  {
-        return opt.isEmpty() ? Optional.empty() : Optional.of(at(opt.get()));
-    }
-
-    private E at(int in) throws ConvertionException {
         try {
-            return enumClass.getEnumConstants()[in];
+            return at(in);
         } catch (ArrayIndexOutOfBoundsException e) {
-            throw new ConvertionException(BAD, e, int.class, enumClass);
+            throw new ConvertionException(e, short.class, enumClass);
         }
     }
 
     @NonNull
     @Override
     public Optional<E> from(int in) throws ConvertionException {
-        return Optional.of(at(in));
+        try {
+            return at(in);
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, int.class, enumClass);
+        }
     }
 
     @NonNull
@@ -61,8 +67,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(long in) throws ConvertionException {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, long.class, enumClass);
+        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, long.class, enumClass);
         }
     }
 
@@ -71,8 +77,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(float in) throws ConvertionException {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, float.class, enumClass);
+        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, float.class, enumClass);
         }
     }
 
@@ -81,8 +87,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(double in) throws ConvertionException {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, double.class, enumClass);
+        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, double.class, enumClass);
         }
     }
 
@@ -90,9 +96,9 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(@NonNull BigDecimal in) throws ConvertionException {
         try {
-            return from(in.intValueExact());
-        } catch (ArithmeticException e) {
-            throw new ConvertionException(BAD, e, BigDecimal.class, enumClass);
+            return at(in.intValueExact());
+        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            throw new ConvertionException(e, BigDecimal.class, enumClass);
         }
     }
 
@@ -104,9 +110,9 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
             return Optional.of(Enum.valueOf(enumClass, in));
         } catch (IllegalArgumentException e1) {
             try {
-                return from(Integer.parseInt(in));
-            } catch (NumberFormatException e2) {
-                throw new ConvertionException(BAD, e1, String.class, enumClass);
+                return at(Integer.parseInt(in));
+            } catch (NumberFormatException | ArrayIndexOutOfBoundsException e2) {
+                throw new ConvertionException(e1, String.class, enumClass);
             }
         }
     }
