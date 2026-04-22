@@ -1,6 +1,5 @@
 package ninja.javahacker.annotimpler.convert;
 
-import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -49,10 +48,5 @@ public class ConvertionException extends Exception {
     @NonNull
     public Type getOut() {
         return out;
-    }
-
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
     }
 }

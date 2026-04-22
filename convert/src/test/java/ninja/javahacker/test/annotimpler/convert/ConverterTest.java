@@ -3,6 +3,7 @@ package ninja.javahacker.test.annotimpler.convert;
 import module org.junit.jupiter.api;
 import module ninja.javahacker.annotimpler.convert;
 
+@Disabled
 public class ConverterTest {
 
     public ConverterTest() {

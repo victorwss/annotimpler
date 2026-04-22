@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -20,11 +21,9 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         this.enumClass = enumClass;
     }
 
-    public static <E extends Enum<E>> EnumConverter<E> instance(@NonNull Class<E> enumClass) {
-        return new EnumConverter<>(enumClass);
-    }
-
-    private Optional<E> cvt(Optional<Integer> opt) throws ConvertionException  {
+    @NonNull
+    private Optional<E> cvt(@NonNull Optional<Integer> opt) throws ConvertionException  {
+        checkNotNull(opt);
         return opt.isEmpty() ? Optional.empty() : at(opt.get());
     }
 
@@ -77,7 +76,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(float in) throws ConvertionException {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+        } catch (ConvertionException | ArithmeticException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, float.class, enumClass);
         }
     }
@@ -87,7 +86,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(double in) throws ConvertionException {
         try {
             return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+        } catch (ConvertionException | ArithmeticException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, double.class, enumClass);
         }
     }
@@ -115,5 +114,10 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
                 throw new ConvertionException(e1, String.class, enumClass);
             }
         }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

@@ -7,6 +7,9 @@ import module java.base;
 public enum BooleanConverter implements Converter<Boolean> {
     PRIMITIVE, WRAPPER;
 
+    private static final List<String> FALSE = List.of("false", "FALSE", "0", "-0");
+    private static final List<String> TRUE  = List.of("true" , "TRUE" , "1");
+
     @NonNull
     @Override
     public Class<Boolean> getType() {
@@ -83,8 +86,8 @@ public enum BooleanConverter implements Converter<Boolean> {
     @Override
     public Optional<Boolean> from(@NonNull String in) throws ConvertionException {
         var n = in.toUpperCase(Locale.ROOT);
-        if ("TRUE".equals(n)) return Optional.of(true);
-        if ("FALSE".equals(n)) return Optional.of(false);
+        if (TRUE.contains(n)) return Optional.of(true);
+        if (FALSE.contains(n)) return Optional.of(false);
         if (in.isEmpty()) return this == PRIMITIVE ? Optional.of(false) : Optional.empty();
         throw new ConvertionException(String.class, getType());
     }

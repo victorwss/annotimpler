@@ -453,7 +453,7 @@ public class BadMagicFactoryTest {
         var ex = Assertions.assertThrows(MagicFactory.CreationException.class, () -> magic.create("x"));
         Assertions.assertEquals(BadExample25.class, ex.getRoot());
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
-        Assertions.assertEquals("Creator of BadExample25 was called with the wrong arguments.", ex.getMessage());
+        Assertions.assertEquals("Creator of BadExample25 (method BadExample25 BadExample25.foo(int)) was called with the wrong arguments [x].", ex.getMessage());
     }
 
     @TestFactory
@@ -464,30 +464,30 @@ public class BadMagicFactoryTest {
         var magic28 = MagicFactory.of(BadExample28.class);
         var magic29 = MagicFactory.of(BadExample29.class);
 
-        record Named(String name, Executable exec, Class<?> c) {
+        record Named(String name, Executable exec, Class<?> c, String n, String a) {
         }
 
         var execs = Stream.of(
-                new Named("25-arity-0", () -> magic25.create(         ), BadExample25.class),
-                new Named("25-types"  , () -> magic25.create("x"      ), BadExample25.class),
-                new Named("25-arity-2", () -> magic25.create(5, 7     ), BadExample25.class),
-                new Named("26-arity-0", () -> magic26.create(         ), BadExample26.class),
-                new Named("26-types"  , () -> magic26.create("x"      ), BadExample26.class),
-                new Named("26-arity-2", () -> magic26.create(5, 7     ), BadExample26.class),
-                new Named("27-arity-1", () -> magic27.create("x"      ), BadExample27.class),
-                new Named("28-arity-0", () -> magic28.create(         ), BadExample28.class),
-                new Named("28-arity-1", () -> magic28.create("x"      ), BadExample28.class),
-                new Named("28-types"  , () -> magic28.create(5, "x"   ), BadExample28.class),
-                new Named("28-arity-3", () -> magic28.create("x", 5, 7), BadExample28.class),
-                new Named("29-arity-0", () -> magic29.create(         ), BadExample29.class),
-                new Named("29-types"  , () -> magic29.create("x"      ), BadExample29.class),
-                new Named("29-arity-2", () -> magic29.create(5, 7     ), BadExample29.class)
+                new Named("25-arity-0", () -> magic25.create(         ), BadExample25.class, "method BadExample25 BadExample25.foo(int)", "[]"),
+                new Named("25-types"  , () -> magic25.create("x"      ), BadExample25.class, "method BadExample25 BadExample25.foo(int)", "[x]"),
+                new Named("25-arity-2", () -> magic25.create(5, 7     ), BadExample25.class, "method BadExample25 BadExample25.foo(int)", "[5, 7]"),
+                new Named("26-arity-0", () -> magic26.create(         ), BadExample26.class, "constructor BadExample26(int)", "[]"),
+                new Named("26-types"  , () -> magic26.create("x"      ), BadExample26.class, "constructor BadExample26(int)", "[x]"),
+                new Named("26-arity-2", () -> magic26.create(5, 7     ), BadExample26.class, "constructor BadExample26(int)", "[5, 7]"),
+                new Named("27-arity-1", () -> magic27.create("x"      ), BadExample27.class, "constructor BadExample27()", "[x]"),
+                new Named("28-arity-0", () -> magic28.create(         ), BadExample28.class, "constructor BadExample28(String, int)", "[]"),
+                new Named("28-arity-1", () -> magic28.create("x"      ), BadExample28.class, "constructor BadExample28(String, int)", "[x]"),
+                new Named("28-types"  , () -> magic28.create(5, "x"   ), BadExample28.class, "constructor BadExample28(String, int)", "[5, x]"),
+                new Named("28-arity-3", () -> magic28.create("x", 5, 7), BadExample28.class, "constructor BadExample28(String, int)", "[x, 5, 7]"),
+                new Named("29-arity-0", () -> magic29.create(         ), BadExample29.class, "constructor BadExample29(int)", "[]"),
+                new Named("29-types"  , () -> magic29.create("x"      ), BadExample29.class, "constructor BadExample29(int)", "[x]"),
+                new Named("29-arity-2", () -> magic29.create(5, 7     ), BadExample29.class, "constructor BadExample29(int)", "[5, 7]")
         );
         return execs.map(ex -> {
                 Executable x2 = () -> {
                     var err = Assertions.assertThrows(MagicFactory.CreationException.class, ex.exec);
                     Assertions.assertEquals(ex.c, err.getRoot());
-                    Assertions.assertEquals("Creator of " + ex.c.getSimpleName() + " was called with the wrong arguments.", err.getMessage());
+                    Assertions.assertEquals("Creator of " + ex.c.getSimpleName() + " (" + ex.n + ") was called with the wrong arguments " + ex.a + ".", err.getMessage());
                     Assertions.assertEquals(IllegalArgumentException.class, err.getCause().getClass());
                 };
                 return DynamicTest.dynamicTest(ex.name, x2);

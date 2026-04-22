@@ -36,7 +36,7 @@ public enum CharArrayConverter implements Converter<char[]> {
         return Optional.of(new char[0]);
     }
 
-    @NonNull
+    /*@NonNull
     @Override
     public Optional<char[]> from(boolean in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
@@ -82,7 +82,7 @@ public enum CharArrayConverter implements Converter<char[]> {
     @Override
     public Optional<char[]> from(@NonNull BigDecimal in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
+    }*/
 
     @NonNull
     @Override

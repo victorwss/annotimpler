@@ -37,24 +37,27 @@ public class SpecialConverterTest {
 
     @TestFactory
     public List<DynamicNode> testBadRowId() throws Exception {
-        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(RowId.class);
         all.remove(String.class);
+        all.remove(TestTypes.R4String.class);
+        all.remove(TestTypes.R4byteArray.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);
             for (var k1 : all) {
                 for (var k2 : TestTypes.others(k1)) {
                     if (k2 == byte[].class || k2 == char[].class) continue;
-                    var cvt = ConverterFactory.STD.get(k2);
+                    var k4 = TestTypes.unrecord(k2);
                     var nd = DynamicTest.dynamicTest(
                             "Converter for " + TypeName.of(k2) + " from RowId - " + in + ".",
                             () -> {
+                                var cvt = ConverterFactory.STD.get(k2);
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                                 Assertions.assertAll(
                                         () -> Assertions.assertEquals("Unsupported RowId.", ce.getMessage()),
                                         () -> Assertions.assertEquals(RowId.class, ce.getIn()),
-                                        () -> Assertions.assertEquals(k2, ce.getOut())
+                                        () -> Assertions.assertEquals(k4, ce.getOut())
                                 );
                             }
                     );
@@ -67,21 +70,22 @@ public class SpecialConverterTest {
 
     @TestFactory
     public List<DynamicNode> testBadRef() throws Exception {
-        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(Ref.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         var r = ref();
         for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
-                var cvt = ConverterFactory.STD.get(k2);
+                var k4 = TestTypes.unrecord(k2);
                 var nd = DynamicTest.dynamicTest(
                         "Converter for " + TypeName.of(k2) + " from Ref.",
                         () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Unsupported Ref.", ce.getMessage()),
                                     () -> Assertions.assertEquals(Ref.class, ce.getIn()),
-                                    () -> Assertions.assertEquals(k2, ce.getOut())
+                                    () -> Assertions.assertEquals(k4, ce.getOut())
                             );
                         }
                 );
@@ -93,21 +97,22 @@ public class SpecialConverterTest {
 
     @TestFactory
     public List<DynamicNode> testBadStruct() throws Exception {
-        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(Struct.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         var r = struct();
         for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
-                var cvt = ConverterFactory.STD.get(k2);
+                var k4 = TestTypes.unrecord(k2);
                 var nd = DynamicTest.dynamicTest(
                         "Converter for " + TypeName.of(k2) + " from Struct.",
                         () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Unsupported Struct.", ce.getMessage()),
                                     () -> Assertions.assertEquals(Struct.class, ce.getIn()),
-                                    () -> Assertions.assertEquals(k2, ce.getOut())
+                                    () -> Assertions.assertEquals(k4, ce.getOut())
                             );
                         }
                 );
@@ -119,21 +124,22 @@ public class SpecialConverterTest {
 
     @TestFactory
     public List<DynamicNode> testBadArray() throws Exception {
-        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(java.sql.Array.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         var r = array();
         for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
-                var cvt = ConverterFactory.STD.get(k2);
+                var k4 = TestTypes.unrecord(k2);
                 var nd = DynamicTest.dynamicTest(
                         "Converter for " + TypeName.of(k2) + " from Array.",
                         () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
                             var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.from(r));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Unsupported Array.", ce.getMessage()),
                                     () -> Assertions.assertEquals(java.sql.Array.class, ce.getIn()),
-                                    () -> Assertions.assertEquals(k2, ce.getOut())
+                                    () -> Assertions.assertEquals(k4, ce.getOut())
                             );
                         }
                 );
@@ -149,14 +155,16 @@ public class SpecialConverterTest {
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);
             for (var k2 : TestTypes.others(RowId.class)) {
-                var cvt = ConverterFactory.STD.get(k2);
                 var o2 = TestTypes.wrap(r, k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
                         "Converter for RowId from RowId - " + in + " - " + TypeName.of(k2) + ".",
-                        () -> Assertions.assertAll(
-                                () -> TestTypes.compare(o2, cvt.from(r).get()),
-                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                        )
+                        () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
+                            Assertions.assertAll(
+                                    () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                    () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                            );
+                        }
                 );
                 nodes.add(nd);
             }
@@ -169,14 +177,16 @@ public class SpecialConverterTest {
         var r = ref();
         List<DynamicNode> nodes = new ArrayList<>(5);
         for (var k2 : TestTypes.others(Ref.class)) {
-            var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
                     "Converter for Ref from Ref - " + TypeName.of(k2) + ".",
-                    () -> Assertions.assertAll(
-                            () -> TestTypes.compare(o2, cvt.from(r).get()),
-                            () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                    )
+                    () -> {
+                        var cvt = ConverterFactory.STD.get(k2);
+                        Assertions.assertAll(
+                                () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                        );
+                    }
             );
             nodes.add(nd);
         }
@@ -188,14 +198,16 @@ public class SpecialConverterTest {
         var r = struct();
         List<DynamicNode> nodes = new ArrayList<>(5);
         for (var k2 : TestTypes.others(Struct.class)) {
-            var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
                     "Converter for Struct from Struct - " + TypeName.of(k2) + ".",
-                    () -> Assertions.assertAll(
-                            () -> TestTypes.compare(o2, cvt.from(r).get()),
-                            () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                    )
+                    () -> {
+                        var cvt = ConverterFactory.STD.get(k2);
+                        Assertions.assertAll(
+                                () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                        );
+                    }
             );
             nodes.add(nd);
         }
@@ -207,14 +219,16 @@ public class SpecialConverterTest {
         var r = array();
         List<DynamicNode> nodes = new ArrayList<>(5);
         for (var k2 : TestTypes.others(java.sql.Array.class)) {
-            var cvt = ConverterFactory.STD.get(k2);
             var o2 = TestTypes.wrap(r, k2);
             DynamicNode nd = DynamicTest.dynamicTest(
                     "Converter for Array from Array - " + TypeName.of(k2) + ".",
-                    () -> Assertions.assertAll(
-                            () -> TestTypes.compare(o2, cvt.from(r).get()),
-                            () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                    )
+                    () -> {
+                        var cvt = ConverterFactory.STD.get(k2);
+                        Assertions.assertAll(
+                                () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                        );
+                    }
             );
             nodes.add(nd);
         }
@@ -222,20 +236,24 @@ public class SpecialConverterTest {
     }
 
     @TestFactory
-    public List<DynamicNode> testRowIdFromStringCharArray() throws Exception {
+    public List<DynamicNode> testRowIdFromStringlike() throws Exception {
+        var all = new ArrayList<>(TestTypes.others(String.class));
+        all.add(TestTypes.R4String.class);
         List<DynamicNode> nodes = new ArrayList<>(3 * 5);
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);
             var b = new BigInteger(r.getBytes());
-            for (var k2 : TestTypes.others(String.class)) {
-                var cvt = ConverterFactory.STD.get(k2);
+            for (var k2 : all) {
                 var o2 = TestTypes.wrap(b.toString(), k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
                         "Converter for RowId from String - " + in + " - " + TypeName.of(k2) + ".",
-                        () -> Assertions.assertAll(
-                                () -> TestTypes.compare(o2, cvt.from(r).get()),
-                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                        )
+                        () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
+                            Assertions.assertAll(
+                                    () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                    () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                            );
+                        }
                 );
                 nodes.add(nd);
             }
@@ -250,14 +268,16 @@ public class SpecialConverterTest {
             var r = rowid(in);
             var b = new BigInteger(r.getBytes());
             for (var k2 : TestTypes.others(char[].class)) {
-                var cvt = ConverterFactory.STD.get(k2);
                 var o2 = TestTypes.wrap(b.toString().toCharArray(), k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
                         "Converter for RowId from String - " + in + " - " + TypeName.of(k2) + ".",
-                        () -> Assertions.assertAll(
-                                () -> TestTypes.compare(o2, cvt.from(r).get()),
-                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                        )
+                        () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
+                            Assertions.assertAll(
+                                    () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                    () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                            );
+                        }
                 );
                 nodes.add(nd);
             }
@@ -267,18 +287,23 @@ public class SpecialConverterTest {
 
     @TestFactory
     public List<DynamicNode> testRowIdFromByteArray() throws Exception {
+        var all1 = new ArrayList<>(TestTypes.others(byte[].class));
+        var all2 = new ArrayList<>(TestTypes.others(TestTypes.R4byteArray.class));
+        var all = Stream.of(all1, all2).flatMap(List::stream).toList();
         List<DynamicNode> nodes = new ArrayList<>(3 * 5);
         for (var in : List.of("ABCD", "abcde", "1234")) {
             var r = rowid(in);
-            for (var k2 : TestTypes.others(byte[].class)) {
-                var cvt = ConverterFactory.STD.get(k2);
+            for (var k2 : all) {
                 var o2 = TestTypes.wrap(r.getBytes(), k2);
                 DynamicNode nd = DynamicTest.dynamicTest(
                         "Converter for RowId from byte[] - " + in + " - " + TypeName.of(k2) + ".",
-                        () -> Assertions.assertAll(
-                                () -> TestTypes.compare(o2, cvt.from(r).get()),
-                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                        )
+                        () -> {
+                            var cvt = ConverterFactory.STD.get(k2);
+                            Assertions.assertAll(
+                                    () -> TestTypes.compare(o2, cvt.from(r).get()),
+                                    () -> TestTypes.compare(o2, cvt.fromObj(r).get())
+                            );
+                        }
                 );
                 nodes.add(nd);
             }

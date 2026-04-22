@@ -14,7 +14,7 @@ public class ConverterFactoryTest {
         var ci = ConverterFactory.STD.get(Integer.class).from(42).get();
         Assertions.assertEquals(42, ci);
 
-        var cs = ConverterFactory.stdGet(String.class).from("x").get();
+        var cs = ConverterFactory.STD.get(String.class).from("x").get();
         Assertions.assertEquals("x", cs);
     }
 

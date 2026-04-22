@@ -27,16 +27,20 @@ public final class NameDictionary {
         private final Class<T> klass;
 
         @NonNull
-        private final Map<Class<?>, String> map1;
+        private final Set<Class<?>> seen;
 
         @NonNull
-        private final Map<String, Class<?>> map2;
+        private final Set<Class<?>> fullNameNeeded;
+
+        @NonNull
+        private final Map<String, Class<?>> simpleNamesSeen;
 
         private ClassDictionary(@NonNull Class<T> k) {
             checkNotNull(k);
             this.klass = k;
-            this.map1 = new HashMap<>(20);
-            this.map2 = new HashMap<>(20);
+            this.seen = new HashSet<>(20);
+            this.fullNameNeeded = new HashSet<>(20);
+            this.simpleNamesSeen = new HashMap<>(20);
             var a = Stream.of(k.getDeclaredMethods());
             var b = Stream.of(k.getMethods());
             var c = Stream.of(k.getDeclaredConstructors());
@@ -113,18 +117,22 @@ public final class NameDictionary {
                 add(partial, klass.getComponentType());
                 return;
             }
-            if (map1.containsKey(klass)) return;
+            if (seen.contains(klass)) return;
             var simple = klass.getSimpleName();
-            if (map2.containsKey(simple)) {
-                var conflict = map2.get(simple);
-                map2.remove(simple);
-                map2.put(conflict.getName(), conflict);
-                map1.put(conflict, conflict.getName());
-                map2.put(klass.getName(), klass);
-                map1.put(klass, klass.getName());
+            if (simpleNamesSeen.containsKey(simple)) {
+                var conflict = simpleNamesSeen.get(simple);
+                if (conflict != void.class) {
+                    simpleNamesSeen.put(simple, void.class);
+                    simpleNamesSeen.put(conflict.getName(), conflict);
+                    seen.add(conflict);
+                    fullNameNeeded.add(conflict);
+                }
+                simpleNamesSeen.put(klass.getName(), klass);
+                seen.add(klass);
+                fullNameNeeded.add(klass);
             } else {
-                map2.put(simple, klass);
-                map1.put(klass, simple);
+                simpleNamesSeen.put(simple, klass);
+                seen.add(klass);
             }
         }
 
@@ -139,7 +147,7 @@ public final class NameDictionary {
         }
 
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
-            TypeName.formatType(type, map1, sb);
+            TypeName.formatType(type, fullNameNeeded, sb);
         }
 
         @NonNull

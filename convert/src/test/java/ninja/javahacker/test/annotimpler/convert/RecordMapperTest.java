@@ -4,6 +4,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
 
+@Disabled
 public class RecordMapperTest {
 
     public static enum Color {

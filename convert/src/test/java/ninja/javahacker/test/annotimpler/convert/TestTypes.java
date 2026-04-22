@@ -12,6 +12,64 @@ public class TestTypes {
         throw new AssertionError();
     }
 
+    public enum Color {
+        RED, GREEN, PINK;
+    }
+
+    public record R4boolean(boolean a) {}
+
+    public record R4int(int b) {}
+
+    public record R4long(long c) {}
+
+    public record R4double(double d) {}
+
+    public record R4String(String e) {}
+
+    public record R4byteArray(byte[] f) {
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof R4byteArray o && Arrays.equals(f, o.f);
+        }
+    }
+
+    public record R4Color(Color g) {}
+
+    public record R4DateTime(LocalDateTime h) {}
+
+    public record R4StringList(List<String> i) {}
+
+    public record R4StringArray(String[] j) {
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof R4StringArray o && Arrays.equals(j, o.j);
+        }
+    }
+
+    public record R4Record(R4StringList k) {}
+
+    public record R4RecordDeep(List<R4Record> m) {}
+
+    public record R4RecordDeeper(char[] d) {
+        @Creator
+        public static R4RecordDeeper foo(List<R4RecordDeep> n) {
+            return new R4RecordDeeper(n.get(0).m().get(0).k().i().get(0).concat("xxx").toCharArray());
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof R4RecordDeeper o && Arrays.equals(d, o.d);
+        }
+    }
+
+    public static Type unrecord(Type in) {
+        if (in instanceof Class<?> k && k.isRecord()) return unrecord(k.getRecordComponents()[0].getGenericType());
+        if (in instanceof ParameterizedType p && p.getRawType() == List.class && p.getActualTypeArguments()[0] instanceof Class<?> a && a == R4Record.class) {
+            return R4StringList.class.getRecordComponents()[0].getGenericType();
+        }
+        return in;
+    }
+
     public static final List<Type> CVT_TYPES = Stream
             .of(TestTypes.class.getDeclaredMethods())
             .filter(m -> "noop".equals(m.getName()))
@@ -19,12 +77,14 @@ public class TestTypes {
             .map(p -> p.getParameterizedType())
             .toList();
 
-    @SuppressWarnings("unchecked")
-    public static final List<Class<?>> CVT_CLASSES = (List<Class<?>>) CVT_TYPES
+    public static final List<? extends Class<?>> CVT_CLASSES = CVT_TYPES
             .stream()
-            .filter(t -> t instanceof Class<?> tt && !tt.isArray())
+            .filter(t -> t instanceof Class<?> tt && !tt.isArray() && tt != R4byteArray.class)
             .map(t -> (Class<?>) t)
             .toList();
+
+    public static final List<Class<?>> CVT_CLASSES_WITH_ARRAYS =
+            Stream.concat(CVT_CLASSES.stream(), Stream.of(byte[].class, char[].class, R4byteArray.class)).toList();
 
     public static final List<Class<?>> SPECIALS = List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class);
 
@@ -36,7 +96,7 @@ public class TestTypes {
             Calendar v1, GregorianCalendar v2, java.util.Date v3, java.sql.Date v4, Time v5, java.sql.Timestamp v6,
             LocalDate u1, LocalDateTime u2, LocalTime u3, OffsetDateTime u4, OffsetTime u5, ZonedDateTime u6, Instant u7,
             Ref t1, RowId t2, Struct t3, java.sql.Array t4,
-            String s1)
+            String s1, Color s2)
     {
         throw new AssertionError();
     }
@@ -49,7 +109,7 @@ public class TestTypes {
             Calendar[] v1, GregorianCalendar[] v2, java.util.Date[] v3, java.sql.Date[] v4, Time[] v5, java.sql.Timestamp[] v6,
             LocalDate[] u1, LocalDateTime[] u2, LocalTime[] u3, OffsetDateTime[] u4, OffsetTime[] u5, ZonedDateTime[] u6, Instant[] u7,
             Ref[] t1, RowId[] t2, Struct[] t3, java.sql.Array[] t4,
-            String[] s1)
+            String[] s1, Color[] s2)
     {
         throw new AssertionError();
     }
@@ -61,7 +121,7 @@ public class TestTypes {
             Collection<Calendar> v1, Collection<GregorianCalendar> v2,Collection< java.util.Date> v3, Collection<java.sql.Date> v4, Collection<Time> v5, Collection<java.sql.Timestamp> v6,
             Collection<LocalDate> u1, Collection<LocalDateTime> u2, Collection<LocalTime> u3, Collection<OffsetDateTime> u4, Collection<OffsetTime> u5, Collection<ZonedDateTime> u6, Collection<Instant> u7,
             Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3, Collection<java.sql.Array> t4,
-            Collection<String> s1)
+            Collection<String> s1, Collection<Color> s2)
     {
         throw new AssertionError();
     }
@@ -73,7 +133,7 @@ public class TestTypes {
             List<Calendar> v1, List<GregorianCalendar> v2,List< java.util.Date> v3, List<java.sql.Date> v4, List<Time> v5, List<java.sql.Timestamp> v6,
             List<LocalDate> u1, List<LocalDateTime> u2, List<LocalTime> u3, List<OffsetDateTime> u4, List<OffsetTime> u5, List<ZonedDateTime> u6, List<Instant> u7,
             List<Ref> t1, List<RowId> t2, List<Struct> t3, List<java.sql.Array> t4,
-            List<String> s1)
+            List<String> s1, List<Color> s2)
     {
         throw new AssertionError();
     }
@@ -85,7 +145,7 @@ public class TestTypes {
             Set<Calendar> v1, Set<GregorianCalendar> v2,Set< java.util.Date> v3, Set<java.sql.Date> v4, Set<Time> v5, Set<java.sql.Timestamp> v6,
             Set<LocalDate> u1, Set<LocalDateTime> u2, Set<LocalTime> u3, Set<OffsetDateTime> u4, Set<OffsetTime> u5, Set<ZonedDateTime> u6, Set<Instant> u7,
             Set<Ref> t1, Set<RowId> t2, Set<Struct> t3, Set<java.sql.Array> t4,
-            Set<String> s1)
+            Set<String> s1, Set<Color> s2)
     {
         throw new AssertionError();
     }
@@ -97,19 +157,34 @@ public class TestTypes {
             Optional<Calendar> v1, Optional<GregorianCalendar> v2,Optional< java.util.Date> v3, Optional<java.sql.Date> v4, Optional<Time> v5, Optional<java.sql.Timestamp> v6,
             Optional<LocalDate> u1, Optional<LocalDateTime> u2, Optional<LocalTime> u3, Optional<OffsetDateTime> u4, Optional<OffsetTime> u5, Optional<ZonedDateTime> u6, Optional<Instant> u7,
             Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3, Optional<java.sql.Array> t4,
-            Optional<String> s1)
+            Optional<String> s1, Optional<Color> s2)
+    {
+        throw new AssertionError();
+    }
+
+    private static void noop(
+            R4boolean r1, R4int r2, R4long r3, R4double r4, R4byteArray r5, R4String r6, R4DateTime r7, R4Color r8,
+            R4Record r9, R4RecordDeep r10, R4RecordDeeper r11, R4StringArray r12, R4StringList r13, List<R4RecordDeep> r14, R4Record[] r15
+    )
     {
         throw new AssertionError();
     }
 
     public static List<Type> others(Class<?> s) {
+        var w = WrapperClass.wrap(s);
         return CVT_TYPES
                 .stream()
-                .filter(x -> (x instanceof ParameterizedType pt && pt.getActualTypeArguments()[0] == s) || (x instanceof Class<?> k && (k == s || (k.isArray() && k.getComponentType() == s))))
+                .filter(x -> (x instanceof ParameterizedType pt && pt.getActualTypeArguments()[0] == w) || (x instanceof Class<?> k && (k == s || (k.isArray() && k.getComponentType() == s))))
                 .toList();
     }
 
     public static Object wrap(Object in, Type t) {
+        if (in instanceof byte[] b && t == R4byteArray.class) {
+            return new R4byteArray(b);
+        }
+        if (in instanceof String b && t == R4String.class) {
+            return new R4String(b);
+        }
         if (t instanceof Class<?> k) {
             if (!k.isArray() || k == byte[].class || k == char[].class) return in;
             var arr = java.lang.reflect.Array.newInstance(k.getComponentType(), in == null ? 0 : 1);
@@ -118,6 +193,7 @@ public class TestTypes {
         }
         if (t instanceof ParameterizedType p) {
             var r = p.getRawType();
+            var a = p.getActualTypeArguments()[0];
             if (r == Collection.class || r == List.class) return in == null ? List.of() : List.of(in);
             if (r == Set.class) return in == null ? Set.of() : Set.of(in);
             if (r == Optional.class) return in == null ? Optional.empty() : Optional.of(in);

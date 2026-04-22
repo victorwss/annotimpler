@@ -11,33 +11,31 @@ public final class TypeName {
         throw new UnsupportedOperationException();
     }
 
-    public static void formatType(@NonNull Type type, @NonNull Map<Class<?>, String> mapIn, @NonNull StringBuilder sb) {
-        checkNotNull(type);
-        checkNotNull(sb);
+    public static void formatType(@NonNull Type type, @NonNull Set<Class<?>> fullNameNeeded, @NonNull StringBuilder sb) {
         switch (type) {
             case Class<?> clazz -> {
                 if (clazz.isArray()) {
-                    formatType(clazz.getComponentType(), mapIn, sb);
+                    formatType(clazz.getComponentType(), fullNameNeeded, sb);
                     sb.append("[]");
                 } else {
-                    var c = mapIn.getOrDefault(clazz, clazz.getSimpleName());
+                    var c = fullNameNeeded.contains(clazz) ? clazz.getName() : clazz.getSimpleName();
                     checkNotNull(c);
                     sb.append(c);
                 }
             }
             case ParameterizedType paramType -> {
-                formatType(paramType.getRawType(), mapIn, sb);
+                formatType(paramType.getRawType(), fullNameNeeded, sb);
                 sb.append("<");
                 var typeArgs = paramType.getActualTypeArguments();
                 for (var i = 0; i < typeArgs.length; i++) {
                     if (i > 0) sb.append(", ");
-                    formatType(typeArgs[i], mapIn, sb);
+                    formatType(typeArgs[i], fullNameNeeded, sb);
                 }
                 sb.append(">");
             }
             case TypeVariable<?> tv -> sb.append(tv.getName());
             case GenericArrayType arrayType -> {
-                formatType(arrayType.getGenericComponentType(), mapIn, sb);
+                formatType(arrayType.getGenericComponentType(), fullNameNeeded, sb);
                 sb.append("[]");
             }
             case WildcardType wildcardType -> {
@@ -50,10 +48,10 @@ public final class TypeName {
 
                 if (upperBounds[0] != Object.class) {
                     sb.append(" extends ");
-                    formatType(upperBounds[0], mapIn, sb);
+                    formatType(upperBounds[0], fullNameNeeded, sb);
                 } else if (lowerBounds.length > 0) {
                     sb.append(" super ");
-                    formatType(lowerBounds[0], mapIn, sb);
+                    formatType(lowerBounds[0], fullNameNeeded, sb);
                 }
             }
             default -> throw new AssertionError();
@@ -61,10 +59,15 @@ public final class TypeName {
     }
 
     @NonNull
-    public static String of(@NonNull Type what) {
+    public static String of(@NonNull Type what, @NonNull Set<Class<?>> fullNameNeeded) {
         var sb = new StringBuilder(50);
-        formatType(what, Map.of(), sb);
+        formatType(what, fullNameNeeded, sb);
         return sb.toString();
+    }
+
+    @NonNull
+    public static String of(@NonNull Type what) {
+        return of(what, Set.of());
     }
 
     @Generated

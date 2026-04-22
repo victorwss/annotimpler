@@ -33,7 +33,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         return Optional.of(new byte[] {in});
     }
 
-    @NonNull
+    /*@NonNull
     @Override
     public Optional<byte[]> from(short in) {
         return Optional.of(ByteBuffer.allocate(2).putShort(in).array());
@@ -61,7 +61,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
     @Override
     public Optional<byte[]> from(double in) {
         return Optional.of(ByteBuffer.allocate(8).putDouble(in).array());
-    }
+    }*/
 
     @NonNull
     @Override

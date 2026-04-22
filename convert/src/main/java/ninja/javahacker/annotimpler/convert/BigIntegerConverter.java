@@ -46,9 +46,12 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
     @NonNull
     @Override
     public Optional<BigInteger> from(float in) throws ConvertionException {
+        if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
+            throw new ConvertionException(float.class, BigInteger.class);
+        }
         try {
             return Optional.of(BigDecimal.valueOf(in).toBigIntegerExact());
-        } catch (NumberFormatException | ArithmeticException x) {
+        } catch (ArithmeticException x) {
             throw new ConvertionException(x, float.class, BigInteger.class);
         }
     }
@@ -56,9 +59,12 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
     @NonNull
     @Override
     public Optional<BigInteger> from(double in) throws ConvertionException {
+        if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {
+            throw new ConvertionException(double.class, BigInteger.class);
+        }
         try {
             return Optional.of(BigDecimal.valueOf(in).toBigIntegerExact());
-        } catch (NumberFormatException | ArithmeticException x) {
+        } catch (ArithmeticException x) {
             throw new ConvertionException(x, double.class, BigInteger.class);
         }
     }

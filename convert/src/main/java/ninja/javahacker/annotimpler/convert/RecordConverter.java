@@ -2,6 +2,8 @@ package ninja.javahacker.annotimpler.convert;
 
 import lombok.NonNull;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
@@ -38,7 +40,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
                 var msg = "Non-single value record class where single-valued was expected: " + recordClass.getName();
                 throw new UnavailableConverterException(msg, recordClass);
             }
-            this.inType = recordClass.getRecordComponents()[0].getGenericType();
+            this.inType = factory.getParameterTypes().get(0);
             this.inFactory = cvtf.get(inType);
         } finally {
             n.remove(o);
@@ -53,210 +55,165 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         return recordClass;
     }
 
-    /*@Override
-    public Optional<R> fromNull() throws ConvertionException {
+    @NonNull
+    private Optional<R> wrap(@NonNull Class<?> inClass, @NonNull Optional<?> in2a) throws ConvertionException {
+        checkNotNull(inClass);
+        checkNotNull(in2a);
+        if (in2a.isEmpty()) return Optional.empty();
+        var in2b = in2a.get();
         try {
-            return Optional.of(factory.create(inFactory.fromNull().orElse(null)));
+            return Optional.of(factory.create(in2b));
         } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, factory.getReturnType());
+            throw new ConvertionException(x.getMessage(), x, inClass, recordClass);
         }
-    }*/
+    }
 
+    @NonNull
+    @Override
+    public Optional<R> fromObj(@Nullable Object in) throws ConvertionException {
+        if (in == null) return Optional.empty();
+        return wrap(in.getClass(), inFactory.fromObj(in));
+    }
+
+    @NonNull
     @Override
     public Optional<R> from(boolean in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, boolean.class, recordClass);
-        }
+        return wrap(boolean.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(byte in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, byte.class, recordClass);
-        }
+        return wrap(byte.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(short in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, short.class, recordClass);
-        }
+        return wrap(short.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(int in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, int.class, recordClass);
-        }
+        return wrap(int.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(long in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, long.class, recordClass);
-        }
+        return wrap(long.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(float in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, float.class, recordClass);
-        }
+        return wrap(float.class, inFactory.from(in));
     }
 
     @Override
     public Optional<R> from(double in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, double.class, recordClass);
-        }
+        return wrap(double.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull BigDecimal in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, BigDecimal.class, recordClass);
-        }
+        return wrap(BigDecimal.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull byte[] in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, byte[].class, recordClass);
-        }
+        return wrap(byte[].class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull String in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, String.class, recordClass);
-        }
+        return wrap(String.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull LocalDate in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, LocalDate.class, recordClass);
-        }
+        return wrap(LocalDate.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull LocalTime in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, LocalTime.class, recordClass);
-        }
+        return wrap(LocalTime.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull LocalDateTime in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, LocalDateTime.class, recordClass);
-        }
+        return wrap(LocalDateTime.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull OffsetTime in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, OffsetTime.class, recordClass);
-        }
+        return wrap(OffsetTime.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull OffsetDateTime in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, OffsetDateTime.class, recordClass);
-        }
+        return wrap(OffsetDateTime.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull Blob in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, Blob.class, recordClass);
-        }
+        return wrap(Blob.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull Clob in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, Clob.class, recordClass);
-        }
+        return wrap(Clob.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull NClob in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, NClob.class, recordClass);
-        }
+        return wrap(NClob.class, inFactory.from(in));
     }
 
+    @NonNull
+    @Override
+    public Optional<R> from(@NonNull SQLXML in) throws ConvertionException {
+        return wrap(SQLXML.class, inFactory.from(in));
+    }
+
+    @NonNull
     @Override
     public Optional<R> from(@NonNull RowId in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, RowId.class, recordClass);
-        }
+        return wrap(RowId.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull Ref in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, Ref.class, recordClass);
-        }
+        return wrap(Ref.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull Struct in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, Struct.class, recordClass);
-        }
+        return wrap(Struct.class, inFactory.from(in));
     }
 
+    @NonNull
     @Override
     public Optional<R> from(@NonNull java.sql.Array in) throws ConvertionException {
-        try {
-            return Optional.of(factory.create(inFactory.from(in).orElse(null)));
-        } catch (MagicFactory.CreationException x) {
-            throw new ConvertionException(x.getMessage(), x, java.sql.Array.class, recordClass);
-        }
+        return wrap(java.sql.Array.class, inFactory.from(in));
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

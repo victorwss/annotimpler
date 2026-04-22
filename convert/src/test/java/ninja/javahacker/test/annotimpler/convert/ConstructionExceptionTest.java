@@ -34,7 +34,9 @@ public class ConstructionExceptionTest {
             E[][] l,
             List<E[]> m,
             int[] n,
-            Inner.Inner2 o)
+            Inner.Inner2 o,
+            java.sql.Date p,
+            java.util.Date q)
     {
         throw new AssertionError();
     }
@@ -49,7 +51,7 @@ public class ConstructionExceptionTest {
 
     private static final List<String> TYPE_NAMES = List.of(
             "Float", "Thread", "int", "List<String>", "List<List<Thread>>", "Map<List<String>, Set<Integer>>", "E", "List<E>", "List<?>",
-            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2"
+            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2", "Date", "Date"
     );
 
     private static final Map<Type, String> TYPE_MAP = new HashMap<>();

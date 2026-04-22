@@ -129,7 +129,7 @@ public final class MagicFactory<E> {
         } catch (IllegalAccessException | InstantiationException e) {
             throw new CreationException("Creator of " + klass.getSimpleName() + " doesn't work.", e, klass);
         } catch (IllegalArgumentException e) {
-            throw new CreationException("Creator of " + klass.getSimpleName() + " was called with the wrong arguments.", e, klass);
+            throw new CreationException("Creator of " + klass.getSimpleName() + " (" + wrapper + ") was called with the wrong arguments " + Arrays.asList(args) + ".", e, klass);
         } catch (InvocationTargetException e) {
             throw new CreationException("The instantiation of " + klass.getSimpleName() + " threw an exception.", e.getCause(), klass);
         }
