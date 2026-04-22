@@ -94,6 +94,7 @@ public class HeavyConverterTest {
         throw new AssertionError();
     }
 
+    @SuppressWarnings({"element-type-mismatch", "AssertEqualsBetweenInconvertibleTypes"})
     private static void checkException(ConvertionException ce, boolean unsupported, Type base, Type k1, Type k3) {
         var nbx = name(TestTypes.unrecord(base));
         var k4 = TestTypes.unrecord(k3);
