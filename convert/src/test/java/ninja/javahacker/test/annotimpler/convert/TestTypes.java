@@ -60,14 +60,11 @@ public class TestTypes {
         public boolean equals(Object other) {
             return other instanceof R4RecordDeeper o && Arrays.equals(d, o.d);
         }
-    }
 
-    public static Type unrecord(Type in) {
-        if (in instanceof Class<?> k && k.isRecord()) return unrecord(k.getRecordComponents()[0].getGenericType());
-        if (in instanceof ParameterizedType p && p.getRawType() == List.class && p.getActualTypeArguments()[0] instanceof Class<?> a && a == R4Record.class) {
-            return R4StringList.class.getRecordComponents()[0].getGenericType();
+        @Override
+        public String toString() {
+            return "R4RecordDeeper:" + Arrays.toString(d);
         }
-        return in;
     }
 
     public static final List<Type> CVT_TYPES = Stream
@@ -184,6 +181,21 @@ public class TestTypes {
         }
         if (in instanceof String b && t == R4String.class) {
             return new R4String(b);
+        }
+        if (in instanceof String b && t == R4StringArray.class) {
+            return new R4StringArray(new String[] {b});
+        }
+        if (in instanceof String b && t == R4StringList.class) {
+            return new R4StringList(List.of(b));
+        }
+        if (in instanceof char[] b && t == R4RecordDeeper.class) {
+            return new R4RecordDeeper(b);
+        }
+        if (in instanceof String b && t == R4Record.class) {
+            return new R4Record(new R4StringList(List.of(b)));
+        }
+        if (in instanceof String b && t == R4RecordDeep.class) {
+            return new R4RecordDeep(List.of(new R4Record(new R4StringList(List.of(b)))));
         }
         if (t instanceof Class<?> k) {
             if (!k.isArray() || k == byte[].class || k == char[].class) return in;

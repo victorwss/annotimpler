@@ -58,36 +58,12 @@ public class NullConverterTest {
         );
     }
 
-    private static Object zero(Type k, boolean special) {
-        var zm = Map.ofEntries(
-                Map.entry(OptionalInt.class, OptionalInt.empty()),
-                Map.entry(OptionalLong.class, OptionalLong.empty()),
-                Map.entry(OptionalDouble.class, OptionalDouble.empty()),
-                Map.entry(TestTypes.R4boolean.class, new TestTypes.R4boolean(false)),
-                Map.entry(TestTypes.R4int.class, new TestTypes.R4int(0)),
-                Map.entry(TestTypes.R4long.class, new TestTypes.R4long(0L)),
-                Map.entry(TestTypes.R4double.class, new TestTypes.R4double(0.0)),
-                Map.entry(TestTypes.R4String.class, new TestTypes.R4String(""))
-        );
-
+    private static Object nully(Type k) {
         Class<?> c;
         if (k instanceof Class<?> cx) {
             c = cx;
         } else if (k instanceof ParameterizedType p) {
             c = (Class<?>) p.getRawType();
-            if (special) {
-                var pp = p.getActualTypeArguments()[0];
-                var a = List.of(List.class, Collection.class, Set.class, Optional.class).contains(c);
-                var z = zm.get(pp);
-                if (a && z != null) {
-                    return Map.ofEntries(
-                            Map.entry(Optional.class, Optional.of(z)),
-                            Map.entry(List.class, List.of(z)),
-                            Map.entry(Set.class, Set.of(z)),
-                            Map.entry(Collection.class, List.of(z))
-                    ).get(c);
-                }
-            }
         } else {
             throw new AssertionError();
         }
@@ -96,7 +72,54 @@ public class NullConverterTest {
             return java.lang.reflect.Array.newInstance(c.getComponentType(), 0);
         }
 
-        if (!special && c.isRecord()) return null;
+        return Map.ofEntries(
+                Map.entry(boolean.class, false),
+                Map.entry(int.class, 0),
+                Map.entry(long.class, 0L),
+                Map.entry(short.class, (short) 0),
+                Map.entry(byte.class, (byte) 0),
+                Map.entry(char.class, '\0'),
+                Map.entry(float.class, 0F),
+                Map.entry(double.class, 0D),
+                Map.entry(OptionalInt.class, OptionalInt.empty()),
+                Map.entry(OptionalLong.class, OptionalLong.empty()),
+                Map.entry(OptionalDouble.class, OptionalDouble.empty()),
+                Map.entry(Optional.class, Optional.empty()),
+                Map.entry(List.class, List.of()),
+                Map.entry(Set.class, Set.of()),
+                Map.entry(Collection.class, List.of())
+        ).get(c);
+    }
+
+    private static final TestTypes.R4StringList EMPTY_X1 = new TestTypes.R4StringList(List.of(""));
+    private static final TestTypes.R4Record EMPTY_X2 = new TestTypes.R4Record(EMPTY_X1);
+    private static TestTypes.R4RecordDeep EMPTY_X3 = new TestTypes.R4RecordDeep(List.of(EMPTY_X2));
+    private static TestTypes.R4RecordDeeper EMPTY_X4 = TestTypes.R4RecordDeeper.foo(List.of(EMPTY_X3));
+
+    private static Object empty(Type k) {
+        Class<?> c;
+        if (k instanceof Class<?> cx) {
+            c = cx;
+        } else if (k instanceof ParameterizedType p) {
+            c = (Class<?>) p.getRawType();
+            var pp = p.getActualTypeArguments()[0];
+            var a = List.of(List.class, Collection.class, Set.class, Optional.class).contains(c);
+            var z = empty(pp);
+            if (a && z != null) {
+                return Map.ofEntries(
+                        Map.entry(Optional.class, Optional.of(z)),
+                        Map.entry(List.class, List.of(z)),
+                        Map.entry(Set.class, Set.of(z)),
+                        Map.entry(Collection.class, List.of(z))
+                ).get(c);
+            }
+        } else {
+            throw new AssertionError();
+        }
+
+        if (c.isArray()) {
+            return java.lang.reflect.Array.newInstance(c.getComponentType(), 0);
+        }
 
         return Map.ofEntries(
                 Map.entry(boolean.class, false),
@@ -114,11 +137,16 @@ public class NullConverterTest {
                 Map.entry(List.class, List.of()),
                 Map.entry(Set.class, Set.of()),
                 Map.entry(Collection.class, List.of()),
+                Map.entry(String.class, ""),
                 Map.entry(TestTypes.R4boolean.class, new TestTypes.R4boolean(false)),
                 Map.entry(TestTypes.R4int.class, new TestTypes.R4int(0)),
                 Map.entry(TestTypes.R4long.class, new TestTypes.R4long(0L)),
                 Map.entry(TestTypes.R4double.class, new TestTypes.R4double(0.0)),
-                Map.entry(TestTypes.R4String.class, new TestTypes.R4String(""))
+                Map.entry(TestTypes.R4String.class, new TestTypes.R4String("")),
+                Map.entry(TestTypes.R4StringList.class, EMPTY_X1),
+                Map.entry(TestTypes.R4Record.class, EMPTY_X2),
+                Map.entry(TestTypes.R4RecordDeep.class, EMPTY_X3),
+                Map.entry(TestTypes.R4RecordDeeper.class, EMPTY_X4)
         ).get(c);
     }
 
@@ -128,9 +156,9 @@ public class NullConverterTest {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
             for (var k2 : TestTypes.others(k1)) {
-                var z = Optional.ofNullable(zero(k2, false));
+                var z = Optional.ofNullable(nully(k2));
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " from Object null.",
+                        "[testFromOkNull fromObj] Converter for " + TypeName.of(k2) + " from Object null.",
                         () -> {
                             var cvt = ConverterFactory.STD.get(k2);
                             TestTypes.compare(z, cvt.fromObj(null));
@@ -138,7 +166,7 @@ public class NullConverterTest {
                 );
                 nodes1.add(nd1);
                 var nd2 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " fromNull.",
+                        "[testFromOkNull fromNull] Converter for " + TypeName.of(k2) + " fromNull.",
                         () -> {
                             var cvt = ConverterFactory.STD.get(k2);
                             TestTypes.compare(z, cvt.fromNull());
@@ -153,22 +181,26 @@ public class NullConverterTest {
     @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public List<DynamicNode> testFromBadJunkString() throws Exception {
-        MethodSpec m = cvt -> cvt.from("xxx");
-        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
-        for (var k1 : TestTypes.CVT_CLASSES) {
-            if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class, TestTypes.R4String.class).contains(k1)) continue;
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        all.removeAll(List.of(
+                String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class,
+                TestTypes.R4String.class, TestTypes.R4Record.class, TestTypes.R4RecordDeep.class, TestTypes.R4RecordDeeper.class,
+                TestTypes.R4StringList.class, TestTypes.R4StringArray.class
+        ));
+        MethodSpec m = cvt -> cvt.from("yyy");
+        List<DynamicNode> nodes1 = new ArrayList<>(all.size());
+        for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
                 if (k2 == byte[].class || k2 == char[].class) continue;
-                var k4 = TestTypes.unrecord(k2);
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " with bad String.",
+                        "[testFromBadJunkString] Converter for " + TypeName.of(k2) + " with bad String.",
                         () -> {
                             var cvt = ConverterFactory.STD.get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                             Assertions.assertAll(
-                                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k4) + ".", ex.getMessage()),
+                                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ex.getMessage()),
                                     () -> Assertions.assertEquals(String.class, ex.getIn()),
-                                    () -> Assertions.assertEquals(k4, ex.getOut())
+                                    () -> Assertions.assertEquals(k2, ex.getOut())
                             );
                         }
                 );
@@ -185,16 +217,15 @@ public class NullConverterTest {
         List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
         for (var k1 : TestTypes.CVT_CLASSES) {
             for (var k2 : TestTypes.others(k1)) {
-                var k4 = TestTypes.unrecord(k2);
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " with bad Object.",
+                        "[testFromBadJunkObject] Converter for " + TypeName.of(k2) + " with bad Object.",
                         () -> {
                             var cvt = ConverterFactory.STD.get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Unsupported Type: java.lang.Thread.", ex.getMessage()),
                                     () -> Assertions.assertEquals(Thread.class, ex.getIn()),
-                                    () -> Assertions.assertEquals(k4, ex.getOut())
+                                    () -> Assertions.assertEquals(k2, ex.getOut())
                             );
                         }
                 );
@@ -206,16 +237,17 @@ public class NullConverterTest {
 
     @TestFactory
     public List<DynamicNode> testFromEmpty() throws Exception {
+        var all = new ArrayList<>(TestTypes.CVT_CLASSES);
+        all.removeAll(List.of(Ref.class, Struct.class, RowId.class, java.sql.Array.class));
         MethodSpec m = cvt -> cvt.from("");
-        List<DynamicNode> nodes1 = new ArrayList<>(TestTypes.CVT_CLASSES.size());
-        for (var k1 : TestTypes.CVT_CLASSES) {
-            if (List.of(String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class).contains(k1)) continue;
+        List<DynamicNode> nodes1 = new ArrayList<>(all.size());
+        for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " with empty String.",
+                        "[testFromEmpty] Converter for " + TypeName.of(k2) + " with empty String.",
                         () -> {
                             var cvt = ConverterFactory.STD.get(k2);
-                            TestTypes.compare(Optional.ofNullable(zero(k2, true)), m.receive(cvt));
+                            TestTypes.compare(Optional.ofNullable(empty(k2)), m.receive(cvt));
                         }
                 );
                 nodes1.add(nd1);
@@ -320,7 +352,7 @@ public class NullConverterTest {
                 List<DynamicNode> nodes2 = new ArrayList<>(m.size());
                 for (var k3 : m) {
                     var nd2 = DynamicTest.dynamicTest(
-                            "Converter for " + TypeName.of(k2) + " with " + k3.name() + ".",
+                            "[testFromBadLob] Converter for " + TypeName.of(k2) + " with " + k3.name() + ".",
                             () -> {
                                 var cvt = ConverterFactory.STD.get(k2);
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> k3.spec().receive(cvt));

@@ -96,17 +96,15 @@ public class HeavyConverterTest {
 
     @SuppressWarnings({"element-type-mismatch", "AssertEqualsBetweenInconvertibleTypes"})
     private static void checkException(ConvertionException ce, boolean unsupported, Type base, Type k1, Type k3) {
-        var nbx = name(TestTypes.unrecord(base));
-        var k4 = TestTypes.unrecord(k3);
-        var e1a = "Can't read value as " + TypeName.of(k4) + ".";
+        var e1a = "Can't read value as " + TypeName.of(k3) + ".";
         var e1b = "Can't read value as " + TypeName.of(k1) + ".";
-        var e2 = "Unsupported " + nbx + ".";
+        var e2 = "Unsupported " + name(base) + ".";
         var n = 0;
         for (Throwable k = ce; k != null; k = k.getCause()) {
             n++;
         }
-        var isNumeric = List.of(byte.class, short.class, int.class, long.class, float.class, double.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class).contains(k4);
-        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class, Instant.class).contains(k4);
+        var isNumeric = List.of(byte.class, short.class, int.class, long.class, float.class, double.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class).contains(k3);
+        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class, Instant.class).contains(k3);
         var temporalBack = Map.of(
                 java.util.Date.class, ZonedDateTime.class,
                 Calendar.class, ZonedDateTime.class,
@@ -115,11 +113,11 @@ public class HeavyConverterTest {
                 java.sql.Time.class, LocalTime.class,
                 java.sql.Timestamp.class, LocalDateTime.class
         );
-        var isTemporalLegacy = temporalBack.containsKey(k4);
+        var isTemporalLegacy = temporalBack.containsKey(k3);
         List<Executable> parts = new ArrayList<>(20);
         parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1a, ce.getMessage()));
         parts.add(() -> Assertions.assertEquals(base, ce.getIn()));
-        parts.add(() -> Assertions.assertEquals(k4, ce.getOut()));
+        parts.add(() -> Assertions.assertEquals(k3, ce.getOut()));
         if (n == 1) {
         } else if (n == 2 && isNumeric) {
             var ex = base == String.class ? NumberFormatException.class : ArithmeticException.class;
@@ -127,7 +125,7 @@ public class HeavyConverterTest {
         } else if (n == 2 && isTemporal) {
             //parts.add(() -> Assertions.assertEquals(DateTimeParseException.class, ce.getCause().getClass()));
         } else if (n == 2 && isTemporalLegacy) {
-            var k5 = temporalBack.get(k4);
+            var k5 = temporalBack.get(k3);
             var r = "Can't read value as " + k5.getSimpleName() + ".";
             parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
             parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getMessage()));
@@ -156,7 +154,7 @@ public class HeavyConverterTest {
             parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
             parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
 
-            var k5 = temporalBack.get(k4);
+            var k5 = temporalBack.get(k3);
             var r = "Can't read value as " + k5.getSimpleName() + ".";
             parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getCause().getClass()));
             parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getCause().getMessage()));

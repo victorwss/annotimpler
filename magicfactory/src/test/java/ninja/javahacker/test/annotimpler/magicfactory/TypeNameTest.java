@@ -116,7 +116,7 @@ public class TypeNameTest {
                 DynamicTest.dynamicTest("TypeName.of(1) - what", () -> ForTests.testNull("what", () -> TypeName.of(null))),
                 DynamicTest.dynamicTest("TypeName.of(2) - what", () -> ForTests.testNull("what", () -> TypeName.of(null, Set.<Class<?>>of()))),
                 DynamicTest.dynamicTest("TypeName.of(2) - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.of(Float.class, null))),
-                DynamicTest.dynamicTest("TypeName.formatType - what", () -> ForTests.testNull("what", () -> TypeName.formatType(null, Set.<Class<?>>of(), new StringBuilder(1)))),
+                DynamicTest.dynamicTest("TypeName.formatType - type", () -> ForTests.testNull("type", () -> TypeName.formatType(null, Set.<Class<?>>of(), new StringBuilder(1)))),
                 DynamicTest.dynamicTest("TypeName.formatType - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.formatType(Float.class, null, new StringBuilder(1)))),
                 DynamicTest.dynamicTest("TypeName.formatType - sb", () -> ForTests.testNull("sb", () -> TypeName.formatType(Float.class, Set.<Class<?>>of(), null)))
         );
