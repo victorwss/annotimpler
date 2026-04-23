@@ -104,16 +104,17 @@ public class HeavyConverterTest {
             n++;
         }
         var isNumeric = List.of(byte.class, short.class, int.class, long.class, float.class, double.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class).contains(k3);
-        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class, Instant.class).contains(k3);
+        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class).contains(k3);
         var temporalBack = Map.of(
                 java.util.Date.class, ZonedDateTime.class,
                 Calendar.class, ZonedDateTime.class,
                 GregorianCalendar.class, ZonedDateTime.class,
                 java.sql.Date.class, LocalDate.class,
                 java.sql.Time.class, LocalTime.class,
-                java.sql.Timestamp.class, LocalDateTime.class
+                java.sql.Timestamp.class, LocalDateTime.class,
+                Instant.class, OffsetDateTime.class
         );
-        var isTemporalLegacy = temporalBack.containsKey(k3);
+        var isTemporalDerived = temporalBack.containsKey(k3);
         List<Executable> parts = new ArrayList<>(20);
         parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1a, ce.getMessage()));
         parts.add(() -> Assertions.assertEquals(base, ce.getIn()));
@@ -123,10 +124,20 @@ public class HeavyConverterTest {
             var ex = base == String.class ? NumberFormatException.class : ArithmeticException.class;
             parts.add(() -> Assertions.assertEquals(ex, ce.getCause().getClass()));
         } else if (n == 2 && isTemporal) {
-            //parts.add(() -> Assertions.assertEquals(DateTimeParseException.class, ce.getCause().getClass()));
-        } else if (n == 2 && isTemporalLegacy) {
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
+            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
+        } else if (n == 2 && isTemporalDerived) {
             var k5 = temporalBack.get(k3);
             var r = "Can't read value as " + k5.getSimpleName() + ".";
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
+            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) ce.getCause()).getOut()));
+        } else if (n == 2 && k3 instanceof Class<?> k4 && k4.isRecord()) {
+            var k5 = k4.getRecordComponents()[0].getGenericType();
+            var r = "Can't read value as " + TypeName.of(k5) + ".";
             parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
             parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getMessage()));
             parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
@@ -148,7 +159,7 @@ public class HeavyConverterTest {
             parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
             parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
             parts.add(() -> Assertions.assertEquals(DateTimeParseException.class, ce.getCause().getCause().getClass()));*/
-        } else if (n == 3 && isTemporalLegacy) {
+        } else if (n == 3 && isTemporalDerived) {
             /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
             parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
             parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
