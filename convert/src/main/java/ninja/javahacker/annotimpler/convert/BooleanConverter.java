@@ -31,15 +31,15 @@ public enum BooleanConverter implements Converter<Boolean> {
     @NonNull
     @Override
     public Optional<Boolean> from(byte in) throws ConvertionException {
-        if (in != 0 && in != 1) throw new ConvertionException(byte.class, getType());
-        return Optional.of(in != 0);
+        if (in != (byte) 0 && in != (byte) 1) throw new ConvertionException(byte.class, getType());
+        return Optional.of(in != (byte) 0);
     }
 
     @NonNull
     @Override
     public Optional<Boolean> from(short in) throws ConvertionException {
-        if (in != 0 && in != 1) throw new ConvertionException(short.class, getType());
-        return Optional.of(in != 0);
+        if (in != (short) 0 && in != (short) 1) throw new ConvertionException(short.class, getType());
+        return Optional.of(in != (short) 0);
     }
 
     @NonNull
@@ -52,34 +52,30 @@ public enum BooleanConverter implements Converter<Boolean> {
     @NonNull
     @Override
     public Optional<Boolean> from(long in) throws ConvertionException {
-        if (in != 0 && in != 1) throw new ConvertionException(long.class, getType());
-        return Optional.of(in != 0);
+        if (in != 0L && in != 1L) throw new ConvertionException(long.class, getType());
+        return Optional.of(in != 0L);
     }
 
     @NonNull
     @Override
     public Optional<Boolean> from(float in) throws ConvertionException {
-        if (in != 0 && in != 1) throw new ConvertionException(float.class, getType());
-        return Optional.of(in != 0);
+        if (in != 0F && in != 1F) throw new ConvertionException(float.class, getType());
+        return Optional.of(in != 0F);
     }
 
     @NonNull
     @Override
     public Optional<Boolean> from(double in) throws ConvertionException {
-        if (in != 0 && in != 1) throw new ConvertionException(double.class, getType());
-        return Optional.of(in != 0);
+        if (in != 0D && in != 1D) throw new ConvertionException(double.class, getType());
+        return Optional.of(in != 0D);
     }
 
     @NonNull
     @Override
     public Optional<Boolean> from(@NonNull BigDecimal in) throws ConvertionException {
-        try {
-            var a = in.byteValueExact();
-            if (a != 0 && a != 1) throw new ConvertionException(BigDecimal.class, getType());
-            return Optional.of(a != 0);
-        } catch (ArithmeticException x) {
-            throw new ConvertionException(x, BigDecimal.class, getType());
-        }
+        if (BigDecimal.ZERO.compareTo(in) == 0) return Optional.of(false);
+        if (BigDecimal.ONE.compareTo(in) == 0) return Optional.of(true);
+        throw new ConvertionException(BigDecimal.class, getType());
     }
 
     @NonNull

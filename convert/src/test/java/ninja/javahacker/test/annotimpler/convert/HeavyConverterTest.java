@@ -94,17 +94,27 @@ public class HeavyConverterTest {
         throw new AssertionError();
     }
 
+    private static Object error() {
+        throw new AssertionError();
+    }
+
     @SuppressWarnings({"element-type-mismatch", "AssertEqualsBetweenInconvertibleTypes"})
-    private static void checkException(ConvertionException ce, boolean unsupported, Type base, Type k1, Type k3) {
-        var e1a = "Can't read value as " + TypeName.of(k3) + ".";
+    private static void checkException(ConvertionException ce, boolean unsupported, Type base, Type k1, Type k2, Object in) {
+        var bads = List.of(Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY, Float.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN);
+        var e1a = "Can't read value as " + TypeName.of(k2) + ".";
         var e1b = "Can't read value as " + TypeName.of(k1) + ".";
         var e2 = "Unsupported " + name(base) + ".";
         var n = 0;
         for (Throwable k = ce; k != null; k = k.getCause()) {
             n++;
         }
-        var isNumeric = List.of(byte.class, short.class, int.class, long.class, float.class, double.class, Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, BigDecimal.class, BigInteger.class).contains(k3);
-        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class).contains(k3);
+        if (n > 4) throw new AssertionError();
+        var isNumeric = List.of(
+                byte.class, short.class, int.class, long.class, float.class, double.class,
+                Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+                BigDecimal.class, BigInteger.class
+        ).contains(k2);
+        var isTemporal = List.of(LocalDate.class, LocalDateTime.class, LocalTime.class, OffsetDateTime.class, OffsetTime.class).contains(k2);
         var temporalBack = Map.of(
                 java.util.Date.class, ZonedDateTime.class,
                 Calendar.class, ZonedDateTime.class,
@@ -112,69 +122,70 @@ public class HeavyConverterTest {
                 java.sql.Date.class, LocalDate.class,
                 java.sql.Time.class, LocalTime.class,
                 java.sql.Timestamp.class, LocalDateTime.class,
-                Instant.class, OffsetDateTime.class
+                Instant.class, OffsetDateTime.class,
+                OptionalInt.class, Integer.class,
+                OptionalLong.class, Long.class,
+                OptionalDouble.class, Double.class
         );
-        var isTemporalDerived = temporalBack.containsKey(k3);
+        var isDerived = temporalBack.containsKey(k2);
         List<Executable> parts = new ArrayList<>(20);
         parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1a, ce.getMessage()));
         parts.add(() -> Assertions.assertEquals(base, ce.getIn()));
-        parts.add(() -> Assertions.assertEquals(k3, ce.getOut()));
-        if (n == 1) {
-        } else if (n == 2 && isNumeric) {
-            var ex = base == String.class ? NumberFormatException.class : ArithmeticException.class;
-            parts.add(() -> Assertions.assertEquals(ex, ce.getCause().getClass()));
-        } else if (n == 2 && isTemporal) {
-            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
-        } else if (n == 2 && isTemporalDerived) {
-            var k5 = temporalBack.get(k3);
-            var r = "Can't read value as " + k5.getSimpleName() + ".";
-            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) ce.getCause()).getOut()));
-        } else if (n == 2 && k3 instanceof Class<?> k4 && k4.isRecord()) {
-            var k5 = k4.getRecordComponents()[0].getGenericType();
-            var r = "Can't read value as " + TypeName.of(k5) + ".";
-            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) ce.getCause()).getOut()));
-        } else if (n == 2) {
-            /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));*/
-        } else if (n == 3 && isNumeric) {
-            /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
-            parts.add(() -> Assertions.assertEquals(NumberFormatException.class, ce.getCause().getCause().getClass()));*/
-        } else if (n == 3 && isTemporal) {
-            /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
-            parts.add(() -> Assertions.assertEquals(DateTimeParseException.class, ce.getCause().getCause().getClass()));*/
-        } else if (n == 3 && isTemporalDerived) {
-            /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1b, ce.getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()));
+        parts.add(() -> Assertions.assertEquals(k2, ce.getOut()));
 
-            var k5 = temporalBack.get(k3);
-            var r = "Can't read value as " + k5.getSimpleName() + ".";
-            parts.add(() -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getCause().getClass()));
-            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, ce.getCause().getCause().getMessage()));
-            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) ce.getCause().getCause()).getIn()));
-            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) ce.getCause().getCause()).getOut()));*/
-        } else if (n == 3) {
-        } else if (n == 4) {
-        } else {
-            throw new AssertionError();
+        var last = n == 1 ? ce : n == 2 ? ce.getCause() : n == 3 ? ce.getCause().getCause() : n == 4 ? ce.getCause().getCause().getCause() : (Throwable) error();
+        var mid = n <= 2 ? null : ce.getCause();
+        var mid2 = n <= 3 ? null : ce.getCause().getCause();
+
+        if (n >= 2 && isNumeric) {
+            var ex = base == String.class ? NumberFormatException.class : ArithmeticException.class;
+            parts.add(() -> Assertions.assertEquals(ex, last.getClass()));
+        }
+
+        /*if (n == 2 && !isNumeric) {
+            var k5 = isTemporalDerived ? temporalBack.get(k2) : (k2 instanceof Class<?> k3 && k3.isRecord()) ? k3.getRecordComponents()[0].getGenericType() : k2;
+            var r = "Can't read value as " + TypeName.of(k5) + ".";
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, last.getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, last.getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) last).getIn()));
+            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) last).getOut()));
+        }*/
+
+        var badl = in instanceof Long   v && (v > Integer.MAX_VALUE);
+        var badf = in instanceof Float  v && (v > Integer.MAX_VALUE || v % 1F != 0F);
+        var badd = in instanceof Double v && (v > Integer.MAX_VALUE || v % 1D != 0D);
+
+        if (n == 2 && k2 == TestTypes.Color.class && (badl || badf || badd || bads.contains(in))) {
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, last.getClass()));
+            parts.add(() -> Assertions.assertEquals("Can't read value as int.", last.getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) last).getIn()));
+            parts.add(() -> Assertions.assertEquals(int.class, ((ConvertionException) last).getOut()));
+        } else if (n == 2 && k2 == TestTypes.Color.class) {
+            var ex = base == String.class ? IllegalArgumentException.class : ArrayIndexOutOfBoundsException.class;
+            parts.add(() -> Assertions.assertEquals(ex, last.getClass()));
+        } else if (n == 2 && !isNumeric && (isTemporal || isDerived || (k2 instanceof Class<?> k3 && k3.isRecord()))) {
+            var k5 = isTemporal ? k2 : isDerived ? temporalBack.get(k2) : ((Class<?>) k2).getRecordComponents()[0].getGenericType();
+            var r = "Can't read value as " + TypeName.of(k5) + ".";
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, last.getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, last.getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) last).getIn()));
+            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) last).getOut()));
+        } else if (n == 2 && !isNumeric && k2 instanceof Class<?> k3) {
+            var k5 = k3.isArray() ? k3.getComponentType() : k3 != k1 ? WrapperClass.wrap(k3) : k3;
+            var r = "Can't read value as " + TypeName.of(k5) + ".";
+            parts.add(() -> Assertions.assertEquals(ConvertionException.class, last.getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : r, last.getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) last).getIn()));
+            parts.add(() -> Assertions.assertEquals(k5, ((ConvertionException) last).getOut()));
+        } else if (n == 2) {
+            // ...
+        }
+
+        if (n >= 3) {
+            /*parts.add(() -> Assertions.assertEquals(ConvertionException.class, mid.getClass()));
+            parts.add(() -> Assertions.assertEquals(unsupported ? e2 : e1a, mid.getMessage()));
+            parts.add(() -> Assertions.assertEquals(base, ((ConvertionException) mid).getIn()));
+            parts.add(() -> Assertions.assertEquals(k1, ((ConvertionException) mid).getOut()));*/
         }
         Assertions.assertAll(parts);
     }
@@ -222,34 +233,34 @@ public class HeavyConverterTest {
                         : in instanceof Object[] ? ""
                         : " - " + in;
 
-                var k3all = TestTypes.others(k1);
-                for (var k3 : k3all) {
-                    if (k3 == byte[].class && k1 != k3) continue;
-                    if (k3 == char[].class && k1 != k3) continue;
-                    var o2 = TestTypes.wrap(out, k3);
+                var k2all = TestTypes.others(k1);
+                for (var k2 : k2all) {
+                    if (k2 == byte[].class && k1 != k2) continue;
+                    if (k2 == char[].class && k1 != k2) continue;
+                    var o2 = TestTypes.wrap(out, k2);
                     var unsupported = v1 == null && (base != String.class || TestTypes.SPECIALS.contains(k1));
 
                     Giver2 err = exec0 -> {
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> exec0.give());
-                        checkException(ce, unsupported, base, k1, k3);
+                        checkException(ce, unsupported, base, k1, k2, in);
                     };
 
                     Giver2 ok = exec0 -> TestTypes.compare(o2, exec0.give().get());
                     var exec = unsupported || out == null ? err : ok;
                     var res = unsupported ? " - should be unsupported." : out == null ? " - should not read." : " - should be ok.";
 
-                    var nd1 = DynamicTest.dynamicTest(prefix + " Converter for " + name(k3) + " from "    + nb + inStr + res, () -> {
-                        var cvt = ConverterFactory.STD.get(k3);
+                    var nd1 = DynamicTest.dynamicTest(prefix + " Converter for " + name(k2) + " from "    + nb + inStr + res, () -> {
+                        var cvt = ConverterFactory.STD.get(k2);
                         exec.receive(() -> m.receive(cvt, in));
                     });
-                    var nd2 = DynamicTest.dynamicTest(prefix + " Converter for " + name(k3) + " fromObj " + nb + inStr + res, () -> {
-                        var cvt = ConverterFactory.STD.get(k3);
+                    var nd2 = DynamicTest.dynamicTest(prefix + " Converter for " + name(k2) + " fromObj " + nb + inStr + res, () -> {
+                        var cvt = ConverterFactory.STD.get(k2);
                         exec.receive(() -> cvt.fromObj(in));
                     });
                     nodes2.add(nd1);
                     nodes2.add(nd2);
                 }
-                if (k3all.isEmpty()) {
+                if (k2all.isEmpty()) {
                     var nf = DynamicTest.dynamicTest(prefix + " No types found for " + name(k1) + " from " + nb + ".", () -> { throw new AssertionError(); });
                     nodes2.add(nf);
                 }

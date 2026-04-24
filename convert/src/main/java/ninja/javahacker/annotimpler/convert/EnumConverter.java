@@ -65,8 +65,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(long in) throws ConvertionException {
         try {
-            return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            return cvt(IntegerConverter.PRIMITIVE.from(in));
+        } catch (ConvertionException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, long.class, enumClass);
         }
     }
@@ -75,8 +75,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(float in) throws ConvertionException {
         try {
-            return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ConvertionException | ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            return cvt(IntegerConverter.PRIMITIVE.from(in));
+        } catch (ConvertionException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, float.class, enumClass);
         }
     }
@@ -85,8 +85,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(double in) throws ConvertionException {
         try {
-            return cvt(BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::intValueExact));
-        } catch (ConvertionException | ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            return cvt(IntegerConverter.PRIMITIVE.from(in));
+        } catch (ConvertionException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, double.class, enumClass);
         }
     }
@@ -95,8 +95,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(@NonNull BigDecimal in) throws ConvertionException {
         try {
-            return at(in.intValueExact());
-        } catch (ArithmeticException | ArrayIndexOutOfBoundsException e) {
+            return cvt(IntegerConverter.PRIMITIVE.from(in));
+        } catch (ConvertionException | ArrayIndexOutOfBoundsException e) {
             throw new ConvertionException(e, BigDecimal.class, enumClass);
         }
     }
