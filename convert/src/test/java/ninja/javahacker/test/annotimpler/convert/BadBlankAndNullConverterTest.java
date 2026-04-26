@@ -8,7 +8,7 @@ import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
 
-public class NullConverterTest {
+public class BadBlankAndNullConverterTest {
 
     public static interface MethodSpec {
         public Optional<?> receive(Converter<?> cvt) throws Exception;

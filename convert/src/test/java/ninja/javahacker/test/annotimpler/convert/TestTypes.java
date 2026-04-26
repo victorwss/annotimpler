@@ -85,6 +85,13 @@ public class TestTypes {
 
     public static final List<Class<?>> SPECIALS = List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class);
 
+    public static final Type VERY_SPECIAL = Stream
+            .of(TestTypes.class.getDeclaredMethods())
+            .filter(m -> "nopz".equals(m.getName()))
+            .map(m -> m.getParameters()[0].getParameterizedType())
+            .findFirst()
+            .get();
+
     private static void noop(
             boolean x1, byte x2, short x3, int     x4, long x5, float x6, double x7, char      x8,
             Boolean y1, Byte y2, Short y3, Integer y4, Long y5, Float y6, Double y7, Character y8,
@@ -164,6 +171,10 @@ public class TestTypes {
             R4Record r9, R4RecordDeep r10, R4RecordDeeper r11, R4StringArray r12, R4StringList r13, List<R4RecordDeep> r14, R4Record[] r15
     )
     {
+        throw new AssertionError();
+    }
+
+    private static void nopz(List<R4RecordDeep> r14) {
         throw new AssertionError();
     }
 

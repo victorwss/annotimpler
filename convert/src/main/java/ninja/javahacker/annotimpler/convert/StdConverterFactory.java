@@ -81,7 +81,7 @@ enum StdConverterFactory implements ConverterFactory {
                 }
             }
         }
-        throw new UnavailableConverterException("No converter for " + t.getTypeName(), t);
+        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
     }
 
     @NonNull
@@ -97,7 +97,7 @@ enum StdConverterFactory implements ConverterFactory {
             return (Converter<E>) array(arg);
         }
         var s = MAP.get(klass);
-        if (s == null) throw new UnavailableConverterException("No converter for " + klass.getName(), klass);
+        if (s == null) throw new UnavailableConverterException("No converter for " + klass.getName() + ".", klass);
         return (Converter<E>) s;
     }
 
