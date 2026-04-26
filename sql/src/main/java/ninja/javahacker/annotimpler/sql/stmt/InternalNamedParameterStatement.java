@@ -28,7 +28,6 @@ final class InternalNamedParameterStatement implements NamedParameterStatement {
         this.paramMap = copy;
     }
 
-
     @NonNull
     @Override
     @SuppressWarnings("ReturnOfCollectionOrArrayField") // É garantido imutável.

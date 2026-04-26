@@ -108,7 +108,8 @@ public final class SmartResultSet implements ResultSet {
             case Types.SQLXML                                       -> getSQLXML    (columnIndex);
             case Types.ROWID                                        -> getRowId     (columnIndex);
             case Types.STRUCT                              -> (Struct) getObject    (columnIndex);
-            case Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR , Types.DISTINCT -> getString    (columnIndex);
+            case Types.VARCHAR, Types.CHAR,
+                Types.LONGVARCHAR, Types.DISTINCT                   -> getString    (columnIndex);
             case Types.REF_CURSOR -> throw new UnsupportedOperationException();
             // Types.DATALINK, Types.JAVA_OBJECT, Types.OTHER,
             default                                                 -> getString    (columnIndex);

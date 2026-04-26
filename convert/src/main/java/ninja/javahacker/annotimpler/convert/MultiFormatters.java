@@ -82,6 +82,20 @@ public final class MultiFormatters {
     }
 
     @NonNull
+    public static Instant parseInstant(@NonNull String s) throws ConvertionException {
+        try {
+            return parse(s, (x, d) -> OffsetDateTime.parse(x, d).toInstant(), PATTERNS_DTZ, Instant.class);
+        } catch (ConvertionException a) {
+            try {
+                return parseLocalDateTime(s).atOffset(ZoneOffset.UTC).toInstant();
+            } catch (ConvertionException b) {
+                // Ignore.
+            }
+            throw a;
+        }
+    }
+
+    @NonNull
     public static OffsetDateTime parseOffsetDateTime(@NonNull String s) throws ConvertionException {
         try {
             return parse(s, OffsetDateTime::parse, PATTERNS_DTZ, OffsetDateTime.class);

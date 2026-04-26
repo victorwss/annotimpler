@@ -31,22 +31,22 @@ public enum CalendarConverter implements Converter<Calendar> {
 
     @Override
     public Optional<Calendar> from(@NonNull LocalDate in) {
-        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
     public Optional<Calendar> from(@NonNull LocalDateTime in) {
-        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
     public Optional<Calendar> from(@NonNull OffsetDateTime in) {
-        return GregorianCalendarConverter.INSTANCE.from(in).map(x -> x);
+        return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
     @Override
     public Optional<Calendar> from(@NonNull String in) throws ConvertionException {
-        return rewrap(() -> GregorianCalendarConverter.INSTANCE.from(in).map(x -> x));
+        return rewrap(() -> ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from));
     }
 
     @Generated
