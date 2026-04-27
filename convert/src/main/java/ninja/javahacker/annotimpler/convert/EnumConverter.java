@@ -42,7 +42,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @NonNull
     private Optional<E> cvt(@NonNull Optional<Integer> opt) throws ConvertionException  {
         checkNotNull(opt);
-        return opt.isEmpty() ? Optional.empty() : at(opt.get());
+        return at(assertPresentGet(opt));
     }
 
     private Optional<E> at(int in) throws ConvertionException {
@@ -145,24 +145,27 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     @Override
     public Optional<E> from(@NonNull Blob in) throws ConvertionException {
         var a = rewrap(() -> StringConverter.INSTANCE.from(in));
-        if (a.isEmpty()) return Optional.empty();
-        return from(a.get(), Blob.class);
+        return from(assertPresentGet(a), Blob.class);
     }
 
     @NonNull
     @Override
     public Optional<E> from(@NonNull Clob in) throws ConvertionException {
         var a = rewrap(() -> StringConverter.INSTANCE.from(in));
-        if (a.isEmpty()) return Optional.empty();
-        return from(a.get(), Clob.class);
+        return from(assertPresentGet(a), Clob.class);
     }
 
     @NonNull
     @Override
     public Optional<E> from(@NonNull NClob in) throws ConvertionException {
         var a = rewrap(() -> StringConverter.INSTANCE.from(in));
-        if (a.isEmpty()) return Optional.empty();
-        return from(a.get(), NClob.class);
+        return from(assertPresentGet(a), NClob.class);
+    }
+
+    @Generated
+    private static <E> E assertPresentGet(Optional<E> opt) {
+        if (opt.isEmpty()) throw new AssertionError();
+        return opt.get();
     }
 
     @Generated

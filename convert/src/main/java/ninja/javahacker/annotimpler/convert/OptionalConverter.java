@@ -7,22 +7,21 @@ import module ninja.javahacker.annotimpler.convert;
 
 public final class OptionalConverter<E> implements Converter<Optional<E>> {
     private final Converter<E> cvt;
-    private final ParameterizedType p;
+    private final ParameterizedType baseType;
 
-    public OptionalConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType p) throws UnavailableConverterException {
-        var baseClass = p.getActualTypeArguments()[0];
-        if (p.getRawType() != Optional.class) throw new IllegalArgumentException();
-        if (!(baseClass instanceof Class<?>)) {
-            throw new UnavailableConverterException("Only for Optional of class.", baseClass);
+    public OptionalConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
+        var baseClass = baseType.getActualTypeArguments()[0];
+        if (baseType.getRawType() != Optional.class || !(baseClass instanceof Class<?>)) {
+            throw new UnavailableConverterException("The baseType must be an Optional of some class.", baseClass);
         }
-        this.p = p;
+        this.baseType = baseType;
         this.cvt = factory.get(baseClass);
     }
 
     @NonNull
     @Override
     public ParameterizedType getType() {
-        return p;
+        return baseType;
     }
 
     @FunctionalInterface
@@ -32,15 +31,15 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
         public Optional<E> work() throws ConvertionException;
 
         @NonNull
-        public default Optional<Optional<E>> rework(@NonNull Type p) throws ConvertionException {
-            checkNotNull(p);
+        public default Optional<Optional<E>> rework(@NonNull Type baseType) throws ConvertionException {
+            checkNotNull(baseType);
             try {
                 return Optional.of(work().map(Optional::of).orElse(Optional.empty()));
             } catch (ConvertionException e) {
                 if (e.getMessage().contains("Unsupported ")) {
-                    throw new ConvertionException(e.getMessage(), e, e.getIn(), p);
+                    throw new ConvertionException(e.getMessage(), e, e.getIn(), baseType);
                 }
-                throw new ConvertionException(e, e.getIn(), p);
+                throw new ConvertionException(e, e.getIn(), baseType);
             }
         }
     }
@@ -48,7 +47,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     @NonNull
     private Optional<Optional<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
         checkNotNull(e);
-        return e.rework(p);
+        return e.rework(baseType);
     }
 
     @NonNull

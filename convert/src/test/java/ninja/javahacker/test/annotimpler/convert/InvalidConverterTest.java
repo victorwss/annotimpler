@@ -1,5 +1,8 @@
 package ninja.javahacker.test.annotimpler.convert;
 
+import org.junit.jupiter.api.function.Executable;
+import ninja.javahacker.test.ForTests;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
@@ -8,6 +11,12 @@ import module org.junit.jupiter.api;
 public class InvalidConverterTest {
 
     public static interface Pointless<X> extends List<X> {}
+
+    public static record Foo(int x) {
+    }
+
+    public static enum Bar {
+    }
 
     @SuppressWarnings("rawtypes")
     private static <E> void noop1(
@@ -50,6 +59,10 @@ public class InvalidConverterTest {
 
     @SuppressWarnings("rawtypes")
     private static void noop3(Map v4, Thread v6, Runtime v7, List v8) {
+        throw new AssertionError();
+    }
+
+    private static void noop4(List<String> v1, Set<String> v2, Collection<String> v3, Optional<String> v4, List<List<String>> v5, Set<List<String>> v6, Collection<List<String>> v7, Optional<List<String>> v8) {
         throw new AssertionError();
     }
 
@@ -128,5 +141,52 @@ public class InvalidConverterTest {
     @TestFactory
     public DynamicNode testInvalidFromObj() throws Exception {
         return new HeavyConverterTestSupport().testInBad("[testInvalidFromObj]", TestTypes.CVT_CLASSES_WITH_ARRAYS);
+    }
+
+    private void testBadType(Class<?> expectedRaw, ParameterizedType pt, Executable exec) {
+        var msg = "The baseType must be " + (expectedRaw == Optional.class ? "an " : "a ") + expectedRaw.getSimpleName() + " of some class.";
+        var ex = Assertions.assertThrows(UnavailableConverterException.class, exec);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(msg, ex.getMessage()),
+                () -> Assertions.assertEquals(pt.getActualTypeArguments()[0], ex.getRoot())
+        );
+    }
+
+    @TestFactory
+    public List<DynamicTest> testBadInstantiations() throws Exception {
+        var pt = Stream.of(InvalidConverterTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("noop4"))
+                .map(Method::getParameters)
+                .flatMap(Stream::of)
+                .map(Parameter::getParameterizedType)
+                .map(t -> (ParameterizedType) t)
+                .toList();
+
+        return List.of(
+                DynamicTest.dynamicTest("[testBadInstantiations] RecordConverter-cvtf"        , () -> ForTests.testNull("cvtf"   , () -> new RecordConverter    <>(null, Foo.class))),
+                DynamicTest.dynamicTest("[testBadInstantiations] ArrayConverter-factory"      , () -> ForTests.testNull("factory", () -> new ArrayConverter     <>(null, String.class))),
+                DynamicTest.dynamicTest("[testBadInstantiations] ListConverter-factory"       , () -> ForTests.testNull("factory", () -> new ListConverter      <>(null, pt.get(0)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] SetConverter-factory"        , () -> ForTests.testNull("factory", () -> new SetConverter       <>(null, pt.get(1)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] CollectionConverter-factory" , () -> ForTests.testNull("factory", () -> new CollectionConverter<>(null, pt.get(2)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] OptionalConverter-factory"   , () -> ForTests.testNull("factory", () -> new OptionalConverter  <>(null, pt.get(3)))),
+
+                DynamicTest.dynamicTest("[testBadInstantiations] EnumConverter-enumClass"     , () -> ForTests.testNull("enumClass"  , () -> new EnumConverter      <Bar   >(null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] RecordConverter-recordClass" , () -> ForTests.testNull("recordClass", () -> new RecordConverter    <Foo   >(ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] ArrayConverter-baseClass"    , () -> ForTests.testNull("baseClass"  , () -> new ArrayConverter     <Object>(ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] ListConverter-baseType"      , () -> ForTests.testNull("baseType"   , () -> new ListConverter      <Object>(ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] SetConverter-baseType"       , () -> ForTests.testNull("baseType"   , () -> new SetConverter       <Object>(ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] CollectionConverter-baseType", () -> ForTests.testNull("baseType"   , () -> new CollectionConverter<Object>(ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testBadInstantiations] OptionalConverter-baseType"  , () -> ForTests.testNull("baseType"   , () -> new OptionalConverter  <Object>(ConverterFactory.STD, null))),
+
+                DynamicTest.dynamicTest("[testBadInstantiations] ListConverter-bad-raw"       , () -> testBadType(List      .class, pt.get(1), () -> new ListConverter      <>(ConverterFactory.STD, pt.get(1)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] SetConverter-bad-raw"        , () -> testBadType(Set       .class, pt.get(2), () -> new SetConverter       <>(ConverterFactory.STD, pt.get(2)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] CollectionConverter-bad-raw" , () -> testBadType(Collection.class, pt.get(3), () -> new CollectionConverter<>(ConverterFactory.STD, pt.get(3)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] OptionalConverter-bad-raw"   , () -> testBadType(Optional  .class, pt.get(0), () -> new OptionalConverter  <>(ConverterFactory.STD, pt.get(0)))),
+
+                DynamicTest.dynamicTest("[testBadInstantiations] ListConverter-bad-arg"       , () -> testBadType(List      .class, pt.get(4), () -> new ListConverter      <>(ConverterFactory.STD, pt.get(4)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] SetConverter-bad-arg"        , () -> testBadType(Set       .class, pt.get(5), () -> new SetConverter       <>(ConverterFactory.STD, pt.get(5)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] CollectionConverter-bad-arg" , () -> testBadType(Collection.class, pt.get(6), () -> new CollectionConverter<>(ConverterFactory.STD, pt.get(6)))),
+                DynamicTest.dynamicTest("[testBadInstantiations] OptionalConverter-bad-arg"   , () -> testBadType(Optional  .class, pt.get(7), () -> new OptionalConverter  <>(ConverterFactory.STD, pt.get(7))))
+        );
     }
 }
