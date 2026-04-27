@@ -99,7 +99,7 @@ public class TestTypes {
             OptionalInt w1, OptionalLong w2, OptionalDouble w3,
             Calendar v1, GregorianCalendar v2, java.util.Date v3, java.sql.Date v4, Time v5, java.sql.Timestamp v6,
             LocalDate u1, LocalDateTime u2, LocalTime u3, OffsetDateTime u4, OffsetTime u5, ZonedDateTime u6, Instant u7,
-            Ref t1, RowId t2, Struct t3, java.sql.Array t4,
+            Ref t1, RowId t2, Struct t3,
             String s1, Color s2)
     {
         throw new AssertionError();
@@ -112,7 +112,7 @@ public class TestTypes {
             OptionalInt[] w1, OptionalLong[] w2, OptionalDouble[] w3,
             Calendar[] v1, GregorianCalendar[] v2, java.util.Date[] v3, java.sql.Date[] v4, Time[] v5, java.sql.Timestamp[] v6,
             LocalDate[] u1, LocalDateTime[] u2, LocalTime[] u3, OffsetDateTime[] u4, OffsetTime[] u5, ZonedDateTime[] u6, Instant[] u7,
-            Ref[] t1, RowId[] t2, Struct[] t3, java.sql.Array[] t4,
+            Ref[] t1, RowId[] t2, Struct[] t3,
             String[] s1, Color[] s2)
     {
         throw new AssertionError();
@@ -124,7 +124,7 @@ public class TestTypes {
             Collection<OptionalInt> w1, Collection<OptionalLong> w2, Collection<OptionalDouble> w3,
             Collection<Calendar> v1, Collection<GregorianCalendar> v2,Collection< java.util.Date> v3, Collection<java.sql.Date> v4, Collection<Time> v5, Collection<java.sql.Timestamp> v6,
             Collection<LocalDate> u1, Collection<LocalDateTime> u2, Collection<LocalTime> u3, Collection<OffsetDateTime> u4, Collection<OffsetTime> u5, Collection<ZonedDateTime> u6, Collection<Instant> u7,
-            Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3, Collection<java.sql.Array> t4,
+            Collection<Ref> t1, Collection<RowId> t2, Collection<Struct> t3,
             Collection<String> s1, Collection<Color> s2)
     {
         throw new AssertionError();
@@ -136,7 +136,7 @@ public class TestTypes {
             List<OptionalInt> w1, List<OptionalLong> w2, List<OptionalDouble> w3,
             List<Calendar> v1, List<GregorianCalendar> v2,List< java.util.Date> v3, List<java.sql.Date> v4, List<Time> v5, List<java.sql.Timestamp> v6,
             List<LocalDate> u1, List<LocalDateTime> u2, List<LocalTime> u3, List<OffsetDateTime> u4, List<OffsetTime> u5, List<ZonedDateTime> u6, List<Instant> u7,
-            List<Ref> t1, List<RowId> t2, List<Struct> t3, List<java.sql.Array> t4,
+            List<Ref> t1, List<RowId> t2, List<Struct> t3,
             List<String> s1, List<Color> s2)
     {
         throw new AssertionError();
@@ -148,7 +148,7 @@ public class TestTypes {
             Set<OptionalInt> w1, Set<OptionalLong> w2, Set<OptionalDouble> w3,
             Set<Calendar> v1, Set<GregorianCalendar> v2,Set< java.util.Date> v3, Set<java.sql.Date> v4, Set<Time> v5, Set<java.sql.Timestamp> v6,
             Set<LocalDate> u1, Set<LocalDateTime> u2, Set<LocalTime> u3, Set<OffsetDateTime> u4, Set<OffsetTime> u5, Set<ZonedDateTime> u6, Set<Instant> u7,
-            Set<Ref> t1, Set<RowId> t2, Set<Struct> t3, Set<java.sql.Array> t4,
+            Set<Ref> t1, Set<RowId> t2, Set<Struct> t3,
             Set<String> s1, Set<Color> s2)
     {
         throw new AssertionError();
@@ -160,7 +160,7 @@ public class TestTypes {
             Optional<OptionalInt> w1, Optional<OptionalLong> w2, Optional<OptionalDouble> w3,
             Optional<Calendar> v1, Optional<GregorianCalendar> v2,Optional< java.util.Date> v3, Optional<java.sql.Date> v4, Optional<Time> v5, Optional<java.sql.Timestamp> v6,
             Optional<LocalDate> u1, Optional<LocalDateTime> u2, Optional<LocalTime> u3, Optional<OffsetDateTime> u4, Optional<OffsetTime> u5, Optional<ZonedDateTime> u6, Optional<Instant> u7,
-            Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3, Optional<java.sql.Array> t4,
+            Optional<Ref> t1, Optional<RowId> t2, Optional<Struct> t3,
             Optional<String> s1, Optional<Color> s2)
     {
         throw new AssertionError();

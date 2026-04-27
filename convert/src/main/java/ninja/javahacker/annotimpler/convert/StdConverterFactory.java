@@ -37,7 +37,6 @@ enum StdConverterFactory implements ConverterFactory {
             Map.entry(String.class, StringConverter.INSTANCE),
             Map.entry(byte[].class, ByteArrayConverter.INSTANCE),
             Map.entry(char[].class, CharArrayConverter.INSTANCE),
-            Map.entry(java.sql.Array.class, SqlArrayConverter.INSTANCE),
             Map.entry(Ref.class, RefConverter.INSTANCE),
             Map.entry(RowId.class, RowIdConverter.INSTANCE),
             Map.entry(Struct.class, StructConverter.INSTANCE),
