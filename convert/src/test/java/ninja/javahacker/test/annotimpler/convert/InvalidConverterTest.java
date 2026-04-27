@@ -11,19 +11,35 @@ public class InvalidConverterTest {
 
     @SuppressWarnings("rawtypes")
     private static <E> void noop1(
-            List<List<String>> v1,
-            Map v2,
-            Map<String, String> v3,
-            Thread v4,
-            Runtime v5,
-            List v6,
-            E v7,
-            List<E> v8,
-            List<? extends String> v9,
-            E[] v10,
-            List<E[]> v11,
-            List<?> v12,
-            Pointless<String> v13) {
+            Map v1,
+            Map<String, String> v2,
+            Thread v3,
+            Runtime v4,
+            List v5,
+            E v6,
+            List<List<String>> list1,
+            List<E> list2,
+            List<? extends String> list3,
+            List<E[]> list4,
+            List<?> list5,
+            Set<List<String>> set1,
+            Set<E> set2,
+            Set<? extends String> set3,
+            Set<E[]> set4,
+            Set<?> set5,
+            Collection<List<String>> coll1,
+            Collection<E> coll2,
+            Collection<? extends String> coll3,
+            Collection<E[]> coll4,
+            Collection<?> coll5,
+            Optional<List<String>> opt1,
+            Optional<E> opt2,
+            Optional<? extends String> opt3,
+            Optional<E[]> opt4,
+            Optional<?> opt5,
+            List<String>[] arr1,
+            E[] arr2,
+            Pointless<String> p) {
         throw new AssertionError();
     }
 

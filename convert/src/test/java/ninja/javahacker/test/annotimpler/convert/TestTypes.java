@@ -266,6 +266,8 @@ public class TestTypes {
             for (var i = 0; i < a2.size(); i++) {
                 compare(a3.get(i), b3.get(i));
             }
+        } else if (a instanceof Blob || b instanceof Blob || a instanceof Clob || b instanceof Clob) {
+            Assertions.assertSame(a, b);
         } else {
             Assertions.assertEquals(a, b);
         }

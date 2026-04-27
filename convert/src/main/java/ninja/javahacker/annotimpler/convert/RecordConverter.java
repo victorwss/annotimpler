@@ -63,6 +63,20 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     }
 
     @NonNull
+    private Class<?> unwrap(@NonNull Class<?> inClass) {
+        checkNotNull(inClass);
+        if (NClob.class.isAssignableFrom(inClass)) return NClob.class;
+        if (Clob.class.isAssignableFrom(inClass)) return Clob.class;
+        if (Blob.class.isAssignableFrom(inClass)) return Blob.class;
+        if (SQLXML.class.isAssignableFrom(inClass)) return SQLXML.class;
+        if (RowId.class.isAssignableFrom(inClass)) return RowId.class;
+        if (Ref.class.isAssignableFrom(inClass)) return Ref.class;
+        if (Struct.class.isAssignableFrom(inClass)) return Struct.class;
+        if (java.sql.Array.class.isAssignableFrom(inClass)) return java.sql.Array.class;
+        return WrapperClass.unwrap(inClass);
+    }
+
+    @NonNull
     private Optional<R> wrap(@NonNull Class<?> inClass, @NonNull IntermediateProducer p) throws ConvertionException {
         checkNotNull(inClass);
         checkNotNull(p);
@@ -71,7 +85,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
             in2a = p.produce();
         } catch (ConvertionException e) {
             if (e.getMessage().contains("Unsupported ")) {
-                throw new ConvertionException(e.getMessage(), e, e.getIn(), recordClass);
+                throw new ConvertionException(e.getMessage(), e, inClass, recordClass);
             }
             throw new ConvertionException(e, inClass, recordClass);
         }
@@ -79,7 +93,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         if (in2a.isEmpty()) return Optional.empty();
         var in2b = in2a.get();
         if (in2b.getClass().isArray() && Array.getLength(in2b) == 0) return Optional.empty();
-        if (in2b instanceof Collection<?> c && c.size() == 0) return Optional.empty();
+        if (in2b instanceof Collection<?> c && c.isEmpty()) return Optional.empty();
         if (in2b instanceof Optional<?> c && c.isEmpty()) return Optional.empty();
         try {
             return Optional.of(factory.create(in2b));
@@ -92,7 +106,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     @Override
     public Optional<R> fromObj(@Nullable Object in) throws ConvertionException {
         if (in == null) return Optional.empty();
-        return wrap(WrapperClass.unwrap(in.getClass()), () -> inFactory.fromObj(in));
+        return wrap(unwrap(in.getClass()), () -> inFactory.fromObj(in));
     }
 
     @NonNull

@@ -32,9 +32,13 @@ public final class SmartResultSet implements ResultSet {
         return this.getClass().getSimpleName() + "[" + rs + "]";
     }
 
+    private int[] allFields() throws SQLException {
+        return IntStream.rangeClosed(1, metaData.getColumnCount()).toArray();
+    }
+
     @NonNull
     public Map<String, Object> getMap() throws SQLException {
-        return getMap(IntStream.rangeClosed(1, metaData.getColumnCount()).toArray());
+        return getMap(allFields());
     }
 
     @NonNull
@@ -116,9 +120,31 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
+    public <R extends Record> R getRecord(@NonNull Class<R> k) throws SQLException {
+        return getRecord(k, x -> x, allFields());
+    }
+
     public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+        return getRecord(k, x -> x, fields);
+    }
+
+    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull Function<String, String> remapper) throws SQLException {
+        return getRecord(k, remapper, allFields());
+    }
+
+    public <R extends Record> R getRecord(
+            @NonNull Class<R> k,
+            @NonNull Function<String, String> remapper,
+            @NonNull int... fields)
+            throws SQLException
+    {
+        var map = getMap(fields)
+                .entrySet()
+                .stream()
+                .map(e -> Map.entry(remapper.apply(e.getKey()), e.getValue()))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
         try {
-            return new RecordMapper(factory).mapToRecord(getMap(fields), k);
+            return factory.mapToRecord(map, k);
         } catch (ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | UnavailableConverterException e) {
             throw new SQLException(e);
         }

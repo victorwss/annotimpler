@@ -93,8 +93,8 @@ public class BadBlankAndNullConverterTest {
 
     private static final TestTypes.R4StringList EMPTY_X1 = new TestTypes.R4StringList(List.of(""));
     private static final TestTypes.R4Record EMPTY_X2 = new TestTypes.R4Record(EMPTY_X1);
-    private static TestTypes.R4RecordDeep EMPTY_X3 = new TestTypes.R4RecordDeep(List.of(EMPTY_X2));
-    private static TestTypes.R4RecordDeeper EMPTY_X4 = TestTypes.R4RecordDeeper.foo(List.of(EMPTY_X3));
+    private static final TestTypes.R4RecordDeep EMPTY_X3 = new TestTypes.R4RecordDeep(List.of(EMPTY_X2));
+    private static final TestTypes.R4RecordDeeper EMPTY_X4 = TestTypes.R4RecordDeeper.foo(List.of(EMPTY_X3));
 
     private static Object empty(Type k) {
         Class<?> c;
@@ -333,8 +333,93 @@ public class BadBlankAndNullConverterTest {
         });
     }
 
-    @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
+    private static void checkException(ConvertionException ce, Type k1, Type k2, NamedSpec k3) {
+        var n = 0;
+        for (Throwable k = ce; k != null; k = k.getCause()) {
+            n++;
+        }
+        if (n == 2) {
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                    () -> Assertions.assertEquals(k2, ce.getOut()),
+
+                    () -> Assertions.assertEquals(k3.err(), ce.getCause().getClass()),
+                    () -> Assertions.assertEquals("test", ce.getCause().getMessage())
+            );
+        } else if (n == 3 && k1 != k2) {
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                    () -> Assertions.assertEquals(k2, ce.getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
+                    () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("test", ce.getCause().getCause().getMessage())
+            );
+        } else if (n == 3) {
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                    () -> Assertions.assertEquals(k2, ce.getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as String.", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
+                    () -> Assertions.assertEquals(String.class, ((ConvertionException) ce.getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("test", ce.getCause().getCause().getMessage())
+            );
+        } else if (n == 4 && k2 == TestTypes.R4Color.class) {
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                    () -> Assertions.assertEquals(k2, ce.getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(TestTypes.Color.class) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
+                    () -> Assertions.assertEquals(TestTypes.Color.class, ((ConvertionException) ce.getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as String.", ce.getCause().getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause().getCause()).getIn()),
+                    () -> Assertions.assertEquals(String.class, ((ConvertionException) ce.getCause().getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("test", ce.getCause().getCause().getCause().getMessage())
+            );
+        } else if (n == 4) {
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ce.getIn()),
+                    () -> Assertions.assertEquals(k2, ce.getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
+                    () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("Can't read value as String.", ce.getCause().getCause().getMessage()),
+                    () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause().getCause()).getIn()),
+                    () -> Assertions.assertEquals(String.class, ((ConvertionException) ce.getCause().getCause()).getOut()),
+
+                    () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getCause().getClass()),
+                    () -> Assertions.assertEquals("test", ce.getCause().getCause().getCause().getMessage())
+            );
+        } else {
+            throw new AssertionError();
+        }
+    }
+
+    @TestFactory
     public List<DynamicNode> testFromBadLob() throws Exception {
         List<NamedSpec> m = List.of(
                 new NamedSpec("Blob throws SQLException"  , cvt -> cvt.from(blobSqlex  ()), Blob.class  , SQLException.class),
@@ -345,80 +430,20 @@ public class BadBlankAndNullConverterTest {
                 new NamedSpec("NClob throws IOException"  , cvt -> cvt.from(nclobIoex  ()), NClob.class , IOException .class),
                 new NamedSpec("SQLXML throws SQLException", cvt -> cvt.from(sqlxmlSqlex()), SQLXML.class, SQLException.class)
         );
-        var blobs = List.of(String.class, byte[].class, char[].class);
+        var blobs = List.of(String.class, byte[].class, char[].class, TestTypes.Color.class, TestTypes.R4Color.class);
+        var noSqlxml = List.of(TestTypes.Color.class, TestTypes.R4Color.class);
         List<DynamicNode> nodes1 = new ArrayList<>(blobs.size());
         for (var k1 : blobs) {
             for (var k2 : TestTypes.others(k1)) {
                 List<DynamicNode> nodes2 = new ArrayList<>(m.size());
                 for (var k3 : m) {
+                    if (k3.base() == SQLXML.class && noSqlxml.contains(k1)) continue;
                     var nd2 = DynamicTest.dynamicTest(
                             "[testFromBadLob] Converter for " + TypeName.of(k2) + " with " + k3.name() + ".",
                             () -> {
                                 var cvt = ConverterFactory.STD.get(k2);
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> k3.spec().receive(cvt));
-                                var n = 0;
-                                for (Throwable k = ce; k != null; k = k.getCause()) {
-                                    n++;
-                                }
-                                if (n == 2) {
-                                    Assertions.assertAll(
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ce.getIn()),
-                                            () -> Assertions.assertEquals(k2, ce.getOut()),
-
-                                            () -> Assertions.assertEquals(k3.err(), ce.getCause().getClass()),
-                                            () -> Assertions.assertEquals("test", ce.getCause().getMessage())
-                                    );
-                                } else if (n == 3 && k1 != k2) {
-                                    Assertions.assertAll(
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ce.getIn()),
-                                            () -> Assertions.assertEquals(k2, ce.getOut()),
-
-                                            () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
-                                            () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
-
-                                            () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getClass()),
-                                            () -> Assertions.assertEquals("test", ce.getCause().getCause().getMessage())
-                                    );
-                                } else if (n == 3) {
-                                    Assertions.assertAll(
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ce.getIn()),
-                                            () -> Assertions.assertEquals(k2, ce.getOut()),
-
-                                            () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                                            () -> Assertions.assertEquals("Can't read value as String.", ce.getCause().getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
-                                            () -> Assertions.assertEquals(String.class, ((ConvertionException) ce.getCause()).getOut()),
-
-                                            () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getClass()),
-                                            () -> Assertions.assertEquals("test", ce.getCause().getCause().getMessage())
-                                    );
-                                } else if (n == 4) {
-                                    Assertions.assertAll(
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ce.getIn()),
-                                            () -> Assertions.assertEquals(k2, ce.getOut()),
-
-                                            () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                                            () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
-                                            () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
-
-                                            () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getCause().getClass()),
-                                            () -> Assertions.assertEquals("Can't read value as String.", ce.getCause().getCause().getMessage()),
-                                            () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause().getCause()).getIn()),
-                                            () -> Assertions.assertEquals(String.class, ((ConvertionException) ce.getCause().getCause()).getOut()),
-
-                                            () -> Assertions.assertEquals(k3.err(), ce.getCause().getCause().getCause().getClass()),
-                                            () -> Assertions.assertEquals("test", ce.getCause().getCause().getCause().getMessage())
-                                    );
-                                } else {
-                                    throw new AssertionError();
-                                }
+                                checkException(ce, k1, k2, k3);
                             }
                     );
                     nodes2.add(nd2);

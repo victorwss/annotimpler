@@ -1,5 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -9,6 +12,21 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
     private final Class<E> enumClass;
+
+    @FunctionalInterface
+    public interface Work<T> {
+        public Optional<T> work() throws ConvertionException;
+    }
+
+    @NonNull
+    private <T> Optional<T> rewrap(@NonNull Work<T> w) throws ConvertionException {
+        checkNotNull(w);
+        try {
+            return w.work();
+        } catch (ConvertionException e) {
+            throw new ConvertionException(e, e.getIn(), enumClass);
+        }
+    }
 
     @NonNull
     @Override
@@ -101,9 +119,10 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
-    @NonNull
-    @Override
-    public Optional<E> from(@NonNull String in) throws ConvertionException {
+    private Optional<E> from(@NonNull String in, @NonNull Class<?> inType) throws ConvertionException {
+        checkNotNull(in);
+        checkNotNull(inType);
+
         if (in.isEmpty()) return Optional.empty();
         try {
             return Optional.of(Enum.valueOf(enumClass, in));
@@ -111,9 +130,39 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
             try {
                 return at(Integer.parseInt(in));
             } catch (NumberFormatException | ArrayIndexOutOfBoundsException e2) {
-                throw new ConvertionException(e1, String.class, enumClass);
+                throw new ConvertionException(e1, inType, enumClass);
             }
         }
+    }
+
+    @NonNull
+    @Override
+    public Optional<E> from(@NonNull String in) throws ConvertionException {
+        return from(in, String.class);
+    }
+
+    @NonNull
+    @Override
+    public Optional<E> from(@NonNull Blob in) throws ConvertionException {
+        var a = rewrap(() -> StringConverter.INSTANCE.from(in));
+        if (a.isEmpty()) return Optional.empty();
+        return from(a.get(), Blob.class);
+    }
+
+    @NonNull
+    @Override
+    public Optional<E> from(@NonNull Clob in) throws ConvertionException {
+        var a = rewrap(() -> StringConverter.INSTANCE.from(in));
+        if (a.isEmpty()) return Optional.empty();
+        return from(a.get(), Clob.class);
+    }
+
+    @NonNull
+    @Override
+    public Optional<E> from(@NonNull NClob in) throws ConvertionException {
+        var a = rewrap(() -> StringConverter.INSTANCE.from(in));
+        if (a.isEmpty()) return Optional.empty();
+        return from(a.get(), NClob.class);
     }
 
     @Generated

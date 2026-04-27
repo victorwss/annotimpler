@@ -157,9 +157,4 @@ public enum StringConverter implements Converter<String> {
     public Optional<String> from(@NonNull RowId in) {
         return Optional.of(new BigInteger(in.getBytes()).toString());
     }
-
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
-    }
 }

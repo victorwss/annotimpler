@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -39,8 +40,32 @@ public interface Converter<E> {
         };
     }
 
+    private static boolean typeFilter(@NonNull Type t) {
+        checkNotNull(t);
+        return t instanceof ParameterizedType p ? Converter.class.isAssignableFrom((Class<?>) p.getRawType())
+                : t instanceof Class<?> k && k != Converter.class && Converter.class.isAssignableFrom(k);
+    }
+
+    private static Stream<Type> getAllInterfaces(@NonNull Type t) {
+        checkNotNull(t);
+        List<Type> a;
+        switch (t) {
+            case ParameterizedType p -> a = List.of(((Class<?>) p.getRawType()).getGenericInterfaces());
+            case Class<?> c -> a = List.of(c.getGenericInterfaces());
+            default -> throw new AssertionError();
+        }
+        var b = a.stream().flatMap(Converter::getAllInterfaces).toList();
+        return Stream.concat(a.stream(), b.stream());
+    }
+
     @NonNull
-    public Type getType();
+    public default Type getType() {
+        return getAllInterfaces(getClass())
+                .filter(Converter::typeFilter)
+                .map(iface -> iface instanceof ParameterizedType p ? p.getActualTypeArguments()[0] : (Class<?>) iface)
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("Couldn't determine the type. Please, override this method."));
+    }
 
     @NonNull
     public default Optional<E> fromNull() throws ConvertionException {
@@ -160,5 +185,10 @@ public interface Converter<E> {
     @NonNull
     public default Optional<E> from(@NonNull Ref in) throws ConvertionException {
         throw new ConvertionException("Unsupported Ref.", Ref.class, getType());
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

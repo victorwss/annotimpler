@@ -181,7 +181,9 @@ public class HeavyConverterTestSupport {
                 parts.add(() -> Assertions.assertEquals(inputType, ((ConvertionException) next).getIn()));
                 parts.add(() -> Assertions.assertEquals(int.class, ((ConvertionException) next).getOut()));
             } else {
-                var ex = inputType == String.class ? IllegalArgumentException.class : ArrayIndexOutOfBoundsException.class;
+                var ex = List.of(String.class, Blob.class, Clob.class, NClob.class).contains(inputType)
+                        ? IllegalArgumentException.class
+                        : ArrayIndexOutOfBoundsException.class;
                 parts.add(() -> Assertions.assertEquals(ex, next.getClass()));
             }
             if (n == 3) {
@@ -256,7 +258,7 @@ public class HeavyConverterTestSupport {
                     var o2 = TestTypes.wrap(out, k2);
                     var unsupported = v1 == null && (inputType != String.class || TestTypes.SPECIALS.contains(k1));
                     var ok = !unsupported && out != null;
-                    var res = unsupported ? " - should be unsupported." : out == null ? " - should not read." : " - should be ok.";
+                    var res = ok ? " - should be ok." : unsupported ? " - should be unsupported." : " - should throw ConvertionException.";
                     var errorType = unsupported ? ExceptionType.UNSUPPORTED_VALUE : ExceptionType.CONVERTION;
 
                     Executable nd1Ok = () -> {
