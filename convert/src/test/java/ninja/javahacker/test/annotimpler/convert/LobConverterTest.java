@@ -86,9 +86,9 @@ public class LobConverterTest {
         var green = TestTypes.Color.GREEN;
         var pink = TestTypes.Color.PINK;
         var h = new HeavyConverterTestSupport();
-        var prefix3 = "[testLobTypesWithNumbersToEnum - Blob]";
-        var prefix4 = "[testLobTypesWithNumbersToEnum - Clob]";
-        var prefix5 = "[testLobTypesWithNumbersToEnum - NClob]";
+        var prefix3 = "[testLobTypesToEnum - Blob]";
+        var prefix4 = "[testLobTypesToEnum - Clob]";
+        var prefix5 = "[testLobTypesToEnum - NClob]";
         var strs    = h.e(String.class, List.of("0", "1", "2", "3", "-3.6", "RED", "GREEN", "PINK", "blah blah"));
         var ens     = h.e(TestTypes.Color.class, Arrays.asList(red, green, pink, null, null, red, green, pink, null));
         var blobs   = strs.map(Blob .class, this::blob);
