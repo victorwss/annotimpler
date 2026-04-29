@@ -164,7 +164,7 @@ public enum MultiFormatters {
             return func.apply(input2, format);
         } catch (DateTimeParseException e) {
             throw new DateTimeParseException(
-                    e.getMessage() + " - " + this.name() + "[" + pattern + "]",
+                    e.getMessage() + " - " + this.name() + " [" + pattern + "]",
                     e.getParsedString(),
                     e.getErrorIndex()
             );

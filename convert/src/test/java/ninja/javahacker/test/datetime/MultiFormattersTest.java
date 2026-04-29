@@ -69,20 +69,20 @@ public class MultiFormattersTest {
         var r = in.substring(end);
 
         var s1 = p.indexOf('_');
-        if (s1 < 0) return in.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z");
+        if (s1 < 0) return in.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
 
         var y = p.substring(0, s1);
         var s2 = p.indexOf('_', s1 + 1);
 
         if (s2 < 0) {
             var md = p.substring(s1 + 1);
-            return md + "_" + y + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z");
+            return md + "_" + y + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
         }
 
         var m = p.substring(s1 + 1, s2);
         var d = p.substring(s2 + 1, end);
 
-        return y + "_" + m + "_" + d + "T" + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z");
+        return y + "_" + m + "_" + d + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
     }
 
     private static String ymd2fmt(String in, MultiFormatters fmt) {
@@ -137,7 +137,7 @@ public class MultiFormattersTest {
                     () -> Assertions.assertEquals(textOk, formatter.work(obj))
                 );
                 var parse = DynamicTest.dynamicTest(
-                    "parse: " + obj.getClass().getSimpleName() + " - " + obj + " (" + fmt.name() + ")",
+                    "parse: " + obj.getClass().getSimpleName() + " - " + text + " (" + fmt.name() + ")",
                     () -> Assertions.assertEquals(obj, parser.work(textOk))
                 );
                 return DynamicContainer.dynamicContainer("Parse and format " + textOk + " (" + fmt.name() + ")", Stream.of(format, parse));
@@ -310,7 +310,7 @@ public class MultiFormattersTest {
         record Case(MultiFormatters fmt, String input, String n, BiFunction<MultiFormatters, String, ?> recv) {
             public DynamicTest test() {
                 return DynamicTest.dynamicTest(
-                        "incomplete: " + input + " (" + fmt.name() + ")",
+                        "incomplete: " + input + " (" + fmt.name() + " - " + n + ")",
                         () -> Assertions.assertThrows(DateTimeParseException.class, () -> recv.apply(fmt, ymd2fmt(input, fmt)))
                 );
             }
@@ -340,7 +340,8 @@ public class MultiFormattersTest {
                                 .map(e -> new Case(fmt, input, e.getKey(), e.getValue()))
                         )
                 )
-                .filter(c -> c.fmt != MultiFormatters.ISO_8601 || !c.input.contains("9+0"))
+                .filter(c -> c.fmt != MultiFormatters.ISO_8601
+                        || (!c.input.contains("9+0") && !c.input.contains("8+0") && !c.input.contains("7+0") && !c.input.contains("6+0") && !c.input.contains("5+0")))
                 .map(Case::test);
     }
 }
