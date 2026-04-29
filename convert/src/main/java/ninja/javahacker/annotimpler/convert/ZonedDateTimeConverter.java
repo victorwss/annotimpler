@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
     INSTANCE;
@@ -32,6 +33,10 @@ public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
     @Override
     public Optional<ZonedDateTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        return Optional.of(MultiFormatters.parseZonedDateTime(in));
+        try {
+            return Optional.of(MultiFormatters.YMD_DASH.parseZonedDateTime(in));
+        } catch (DateTimeParseException e) {
+            throw new ConvertionException(e, String.class, getType());
+        }
     }
 }

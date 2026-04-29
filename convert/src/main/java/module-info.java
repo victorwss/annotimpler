@@ -10,4 +10,5 @@ open module ninja.javahacker.annotimpler.convert {
     requires transitive ninja.javahacker.annotimpler.magicfactory;
 
     exports ninja.javahacker.annotimpler.convert;
+    exports ninja.javahacker.datetime;
 }

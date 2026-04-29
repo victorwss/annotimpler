@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum LocalDateTimeConverter implements Converter<LocalDateTime> {
     INSTANCE;
@@ -35,6 +36,10 @@ public enum LocalDateTimeConverter implements Converter<LocalDateTime> {
     @Override
     public Optional<LocalDateTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        return Optional.of(MultiFormatters.parseLocalDateTime(in));
+        try {
+            return Optional.of(MultiFormatters.YMD_DASH.parseLocalDateTime(in));
+        } catch (DateTimeParseException e) {
+            throw new ConvertionException(e, String.class, getType());
+        }
     }
 }

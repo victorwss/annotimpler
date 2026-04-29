@@ -73,31 +73,31 @@ public enum StringConverter implements Converter<String> {
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalDate in) {
-        return Optional.of(MultiFormatters.format(in));
+        return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalTime in) {
-        return Optional.of(MultiFormatters.format(in));
+        return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalDateTime in) {
-        return Optional.of(MultiFormatters.format(in));
+        return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetTime in) {
-        return Optional.of(MultiFormatters.format(in));
+        return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetDateTime in) {
-        return Optional.of(MultiFormatters.format(in));
+        return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
     @NonNull

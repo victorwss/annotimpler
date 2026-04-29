@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum OffsetDateTimeConverter implements Converter<OffsetDateTime> {
     INSTANCE;
@@ -35,6 +36,10 @@ public enum OffsetDateTimeConverter implements Converter<OffsetDateTime> {
     @Override
     public Optional<OffsetDateTime> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        return Optional.of(MultiFormatters.parseOffsetDateTime(in));
+        try {
+            return Optional.of(MultiFormatters.YMD_DASH.parseOffsetDateTime(in));
+        } catch (DateTimeParseException e) {
+            throw new ConvertionException(e, String.class, getType());
+        }
     }
 }

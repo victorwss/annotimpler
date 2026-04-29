@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.convert;
 
 public enum InstantConverter implements Converter<Instant> {
     INSTANCE;
@@ -35,6 +36,10 @@ public enum InstantConverter implements Converter<Instant> {
     @Override
     public Optional<Instant> from(@NonNull String in) throws ConvertionException {
         if (in.isEmpty()) return Optional.empty();
-        return Optional.of(MultiFormatters.parseInstant(in));
+        try {
+            return Optional.of(MultiFormatters.YMD_DASH.parseInstant(in));
+        } catch (DateTimeParseException e) {
+            throw new ConvertionException(e, String.class, getType());
+        }
     }
 }
