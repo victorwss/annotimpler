@@ -32,6 +32,10 @@ public class HeavyConverterTestSupport {
             OptionalDouble.class, Double.class
     );
 
+    private static final Set<Class<?>> TEMPORAL_MODERN = Set.of(
+            Instant.class, ZonedDateTime.class, OffsetDateTime.class, OffsetTime.class,
+            LocalDateTime.class, LocalDate.class, LocalTime.class);
+
     public static interface MethodSpec<E> {
         public Optional<?> receive(Converter<?> cvt, E in) throws Exception;
     }
@@ -198,6 +202,8 @@ public class HeavyConverterTestSupport {
         if (NUMERIC.contains(targetClass)) {
             var ex = inputType == String.class ? NumberFormatException.class : ArithmeticException.class;
             parts.add(() -> Assertions.assertEquals(ex, next.getClass()));
+        } else if (TEMPORAL_MODERN.contains(targetClass)) {
+            parts.add(() -> Assertions.assertEquals(DateTimeParseException.class, next.getClass()));
         } else {
             parts.add(() -> Assertions.assertEquals(ConvertionException.class, next.getClass()));
             parts.add(() -> Assertions.assertEquals(errStr, next.getMessage()));
