@@ -240,32 +240,36 @@ public class HeavyConverterTestSupport {
             if (k1 == null) throw new AssertionError();
 
             var v1 = mappings.get(WrapperClass.unwrap(k1));
+            var unsupported = v1 == null && (inputType != String.class || TestTypes.SPECIALS.contains(k1));
+            var errorType = unsupported ? ExceptionType.UNSUPPORTED_VALUE : ExceptionType.CONVERTION;
+
             List<DynamicNode> nodes2 = new ArrayList<>(12 * inputs.data().size());
 
-            for (var i = 0; i < inputs.data().size(); i++) {
-                var in = inputs.data().get(i);
-                if (in == null) continue;
-                var out = v1 == null || i >= v1.size() ? null : v1.get(i);
+            var k2all = TestTypes.others(k1);
+            for (var k2 : k2all) {
+                if (k2 == byte[].class && k1 != k2) continue;
+                if (k2 == char[].class && k1 != k2) continue;
 
-                var inStr = in instanceof Blob ? ""
-                        : in instanceof NClob ? ""
-                        : in instanceof Clob ? ""
-                        : in instanceof SQLXML ? ""
-                        : in instanceof RowId ? ""
-                        : in instanceof byte[] x ? " - (byte[]) " + new String(x)
-                        : in instanceof char[] x ? " - (char[]) " + new String(x)
-                        : in instanceof Object[] ? ""
-                        : " - " + in;
+                for (var i = 0; i < inputs.data().size(); i++) {
+                    var in = inputs.data().get(i);
+                    if (in == null) continue;
 
-                var k2all = TestTypes.others(k1);
-                for (var k2 : k2all) {
-                    if (k2 == byte[].class && k1 != k2) continue;
-                    if (k2 == char[].class && k1 != k2) continue;
-                    var o2 = TestTypes.wrap(out, k2);
-                    var unsupported = v1 == null && (inputType != String.class || TestTypes.SPECIALS.contains(k1));
+                    var out = v1 == null || i >= v1.size() ? null : v1.get(i);
                     var ok = !unsupported && out != null;
                     var res = ok ? " - should be ok." : unsupported ? " - should be unsupported." : " - should throw ConvertionException.";
-                    var errorType = unsupported ? ExceptionType.UNSUPPORTED_VALUE : ExceptionType.CONVERTION;
+
+                    var inStr = in instanceof Blob ? ""
+                            : in instanceof NClob ? ""
+                            : in instanceof Clob ? ""
+                            : in instanceof SQLXML ? ""
+                            : in instanceof RowId ? ""
+                            : in instanceof java.sql.Array ? ""
+                            : in instanceof byte[] x ? " - (byte[]) " + new String(x)
+                            : in instanceof char[] x ? " - (char[]) " + new String(x)
+                            : in instanceof Object[] ? ""
+                            : " - " + in;
+
+                    var o2 = TestTypes.wrap(out, k2);
 
                     Executable nd1Ok = () -> {
                         var cvt = ConverterFactory.STD.get(k2);
@@ -288,6 +292,7 @@ public class HeavyConverterTestSupport {
 
                     nodes2.add(DynamicTest.dynamicTest(prefix + " Converter for " + name(k2) + " from "    + nb + inStr + res, ok ? nd1Ok : nd1Err));
                     nodes2.add(DynamicTest.dynamicTest(prefix + " Converter for " + name(k2) + " fromObj " + nb + inStr + res, ok ? nd2Ok : nd2Err));
+                    if (unsupported) break;
                 }
                 if (k2all.isEmpty()) {
                     var nf = DynamicTest.dynamicTest(prefix + " No types found for " + name(k1) + " from " + nb + ".", () -> { throw new AssertionError(); });

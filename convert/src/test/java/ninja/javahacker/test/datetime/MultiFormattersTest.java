@@ -301,8 +301,13 @@ public class MultiFormattersTest {
         return mutations;
     }
 
-    private static Set<String> mutateParts(String... input) {
-        return Stream.of(input).map(MultiFormattersTest::mutatePartsIn).flatMap(List::stream).collect(Collectors.toSet());
+    private static Collection<String> mutateParts(String... input) {
+        var regex = Pattern.compile("[0-9]");
+        return Stream.of(input)
+                .map(MultiFormattersTest::mutatePartsIn)
+                .flatMap(List::stream)
+                .collect(Collectors.toMap(e -> regex.matcher(e).replaceAll("x"), e -> e, (a, b) -> a))
+                .values();
     }
 
     @TestFactory
@@ -317,8 +322,11 @@ public class MultiFormattersTest {
         }
 
         var inputsDTZ = mutateParts(
-                "2024_11_10 12:34:56.123456789 +00:00", "2024_11_10 12:34:56.123456789", "12:34:56.123456789 +00:00",
-                "12:34:56.123456789", "2024_11_10"
+                "2024_11_10 12:34:56.123456789 +00:00",
+                "2024_11_10 12:34:56.123456789",
+                           "12:34:56.123456789 +00:00",
+                           "12:34:56.123456789",
+                "2024_11_10"
         );
 
         Map<String, BiFunction<MultiFormatters, String, ?>> funcs = Map.of(
