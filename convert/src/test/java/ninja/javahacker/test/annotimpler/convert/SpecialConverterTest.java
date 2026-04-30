@@ -244,7 +244,14 @@ public class SpecialConverterTest {
         var e = List.of(b);
         var f = Set.of(b);
         var g = Optional.of(b);
-        var ps = Stream.of(SpecialConverterTest.class.getDeclaredMethod("noopz").getParameters()).map(Parameter::getParameterizedType).toList();
+
+        var ps = Stream.of(SpecialConverterTest.class.getDeclaredMethods())
+                .filter(n -> n.getName().equals("noopz"))
+                .map(Method::getParameters)
+                .flatMap(Stream::of)
+                .map(Parameter::getParameterizedType)
+                .toList();
+
         var tLst = ps.get(0);
         var tCol = ps.get(1);
         var tSet = ps.get(2);
