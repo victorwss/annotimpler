@@ -16,7 +16,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
             throw new UnavailableConverterException("The baseType must be a List of some class.", baseClass);
         }
         this.baseType = baseType;
-        this.cvt = factory.get((Class<E>) baseClass);
+        this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
     @NonNull

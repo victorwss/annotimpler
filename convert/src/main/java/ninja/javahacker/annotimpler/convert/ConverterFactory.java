@@ -16,8 +16,8 @@ public interface ConverterFactory {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public default <E> Converter<E> get(@NonNull Class<E> klass) throws UnavailableConverterException {
-        return (Converter<E>) get((Type) klass);
+    public default <E> Converter<E> getOf(@NonNull Class<E> klass) throws UnavailableConverterException {
+        return (Converter<E>) get(klass);
     }
 
     @NonNull

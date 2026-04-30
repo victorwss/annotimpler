@@ -1,5 +1,6 @@
 package ninja.javahacker.test.annotimpler.convert;
 
+import lombok.NonNull;
 import java.lang.reflect.Proxy;
 
 import module java.base;
@@ -230,36 +231,61 @@ public class SpecialConverterTest {
     public static record Foo(int x) {}
     public static record Foo2(Foo f1) {}
 
+    private static void noopz(List<Foo> a, Collection<Foo> b, Set<Foo> c, Optional<Foo> d) {
+        throw new AssertionError();
+    }
+
     @TestFactory
-    public List<DynamicNode> testConversionFromArray() throws Exception {
-        var r = array();
+    public Stream<DynamicNode> testConversionFromArray() throws Exception {
+        var a = array();
+        var b = new Foo(42);
+        var c = new Foo2(b);
+        var d = new Foo[] {b};
+        var e = List.of(b);
+        var f = Set.of(b);
+        var g = Optional.of(b);
+        var ps = Stream.of(SpecialConverterTest.class.getDeclaredMethod("noopz").getParameters()).map(Parameter::getParameterizedType).toList();
+        var tLst = ps.get(0);
+        var tCol = ps.get(1);
+        var tSet = ps.get(2);
+        var tOpt = ps.get(3);
+
+        record Association(Object what, Type type) {}
+
         var testCvt = new Converter<Foo>() {
             @Override
             public Optional<Foo> from(java.sql.Array input) {
-                if (input == r) return Optional.of(new Foo(42));
+                if (input == a) return Optional.of(b);
                 throw new AssertionError();
             }
         };
-        var recCvt = new RecordConverter<>(x -> x == Foo.class ? testCvt : ConverterFactory.STD.get(x), Foo2.class);
-        DynamicNode nd1 = DynamicTest.dynamicTest(
-                "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo.class) + ".",
+
+        ConverterFactory cvtf = new StdConverterFactory() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public <E> Converter<E> simple(@NonNull Class<E> klass) throws UnavailableConverterException {
+                return klass == Foo.class ? (Converter<E>) testCvt : StdConverterFactory.super.simple(klass);
+            }
+        };
+
+        return Stream.of(
+                new Association(b, Foo.class),
+                new Association(c, Foo2.class),
+                new Association(d, Foo2[].class),
+                new Association(e, tLst),
+                new Association(e, tCol),
+                new Association(f, tSet),
+                new Association(g, tOpt)
+        ).map(as -> DynamicTest.dynamicTest(
+                "[testConversionFromArray] Converter for Custom from Array - " + TypeName.of(as.type) + ".",
                 () -> {
+                    var cvt = cvtf.get(as.type);
                     Assertions.assertAll(
-                            () -> TestTypes.compare(new Foo(42), testCvt.from(r).get()),
-                            () -> TestTypes.compare(new Foo(42), testCvt.fromObj(r).get())
+                            () -> TestTypes.compare(as.what, cvt.from(a).get()),
+                            () -> TestTypes.compare(as.what, cvt.fromObj(a).get())
                     );
                 }
-        );
-        DynamicNode nd2 = DynamicTest.dynamicTest(
-                "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo2.class) + ".",
-                () -> {
-                    Assertions.assertAll(
-                            () -> TestTypes.compare(new Foo2(new Foo(42)), recCvt.from(r).get()),
-                            () -> TestTypes.compare(new Foo2(new Foo(42)), recCvt.fromObj(r).get())
-                    );
-                }
-        );
-        return List.of(nd1, nd2);
+        ));
     }
 
     @TestFactory

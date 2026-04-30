@@ -16,7 +16,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
             throw new UnavailableConverterException("The baseType must be an Optional of some class.", baseClass);
         }
         this.baseType = baseType;
-        this.cvt = factory.get((Class<E>) baseClass);
+        this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
     @NonNull

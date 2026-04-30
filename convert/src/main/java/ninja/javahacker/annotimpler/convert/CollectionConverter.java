@@ -16,7 +16,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
             throw new UnavailableConverterException("The baseType must be a Collection of some class.", baseClass);
         }
         this.baseType = baseType;
-        this.cvt = factory.get((Class<E>) baseClass);
+        this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
     @NonNull

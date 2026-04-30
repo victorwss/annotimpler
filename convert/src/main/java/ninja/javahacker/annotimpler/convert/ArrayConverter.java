@@ -19,7 +19,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @SuppressWarnings("unchecked")
     public ArrayConverter(@NonNull ConverterFactory factory, @NonNull Class<E> baseClass) throws UnavailableConverterException {
         this.baseClass = baseClass;
-        this.cvt = factory.get(baseClass);
+        this.cvt = factory.getOf(baseClass);
         this.arrayClass = (Class<E[]>) java.lang.reflect.Array.newInstance(baseClass, 0).getClass();
     }
 
