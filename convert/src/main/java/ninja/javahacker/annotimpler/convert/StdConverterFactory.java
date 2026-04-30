@@ -59,24 +59,23 @@ enum StdConverterFactory implements ConverterFactory {
 
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
-    public <E> Converter<E> get(@NonNull Type t) throws UnavailableConverterException {
+    public Converter<?> get(@NonNull Type t) throws UnavailableConverterException {
         checkNotNull(t);
-        if (t instanceof Class<?> k) return (Converter<E>) get(k);
+        if (t instanceof Class<?> k) return get(k);
         if (t instanceof ParameterizedType p) {
             var args = p.getActualTypeArguments();
             if (args.length == 1) {
                 if (p.getRawType() == Collection.class && args[0] instanceof Class<?>) {
-                    return (Converter<E>) new CollectionConverter<>(this, p);
+                    return new CollectionConverter<>(this, p);
                 }
                 if (p.getRawType() == List.class && args[0] instanceof Class<?>) {
-                    return (Converter<E>) new ListConverter<>(this, p);
+                    return new ListConverter<>(this, p);
                 }
                 if (p.getRawType() == Set.class && args[0] instanceof Class<?>) {
-                    return (Converter<E>) new SetConverter<>(this, p);
+                    return new SetConverter<>(this, p);
                 }
                 if (p.getRawType() == Optional.class && args[0] instanceof Class<?>) {
-                    return (Converter<E>) new OptionalConverter<>(this, p);
+                    return new OptionalConverter<>(this, p);
                 }
             }
         }

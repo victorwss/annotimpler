@@ -69,6 +69,7 @@ public class SpecialConverterTest {
                 }
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -76,6 +77,7 @@ public class SpecialConverterTest {
     public List<DynamicNode> testBadRef() throws Exception {
         var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(Ref.class);
+        all.remove(TestTypes.R4Ref.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         var r = ref();
         for (var k1 : all) {
@@ -95,6 +97,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -102,6 +105,7 @@ public class SpecialConverterTest {
     public List<DynamicNode> testBadStruct() throws Exception {
         var all = new ArrayList<>(TestTypes.CVT_CLASSES_WITH_ARRAYS);
         all.remove(Struct.class);
+        all.remove(TestTypes.R4Struct.class);
         List<DynamicNode> nodes = new ArrayList<>(500);
         var r = struct();
         for (var k1 : all) {
@@ -121,6 +125,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -147,6 +152,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -171,6 +177,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -193,6 +200,7 @@ public class SpecialConverterTest {
             );
             nodes.add(nd);
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -215,29 +223,43 @@ public class SpecialConverterTest {
             );
             nodes.add(nd);
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
+    public static record Foo(int x) {}
+    public static record Foo2(Foo f1) {}
+
     @TestFactory
-    public List<DynamicNode> testArrayFromArray() throws Exception {
-        var all = new ArrayList<>(TestTypes.others(java.sql.Array.class));
+    public List<DynamicNode> testConversionFromArray() throws Exception {
         var r = array();
-        List<DynamicNode> nodes = new ArrayList<>(all.size());
-        for (var k2 : all) {
-            var o2 = TestTypes.wrap(r, k2);
-            DynamicNode nd = DynamicTest.dynamicTest(
-                    "[testArrayFromArray] Converter for Array from Array - " + TypeName.of(k2) + ".",
-                    () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
-                        Assertions.assertAll(
-                                () -> TestTypes.compare(o2, cvt.from(r).get()),
-                                () -> TestTypes.compare(o2, cvt.fromObj(r).get())
-                        );
-                    }
-            );
-            nodes.add(nd);
-        }
-        return nodes;
+        var testCvt = new Converter<Foo>() {
+            @Override
+            public Optional<Foo> from(java.sql.Array input) {
+                if (input == r) return Optional.of(new Foo(42));
+                throw new AssertionError();
+            }
+        };
+        var recCvt = new RecordConverter<>(x -> x == Foo.class ? testCvt : ConverterFactory.STD.get(x), Foo2.class);
+        DynamicNode nd1 = DynamicTest.dynamicTest(
+                "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo.class) + ".",
+                () -> {
+                    Assertions.assertAll(
+                            () -> TestTypes.compare(r, testCvt.from(r).get()),
+                            () -> TestTypes.compare(r, testCvt.fromObj(r).get())
+                    );
+                }
+        );
+        DynamicNode nd2 = DynamicTest.dynamicTest(
+                "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo2.class) + ".",
+                () -> {
+                    Assertions.assertAll(
+                            () -> TestTypes.compare(new Foo(42), recCvt.from(r).get()),
+                            () -> TestTypes.compare(new Foo(42), recCvt.fromObj(r).get())
+                    );
+                }
+        );
+        return List.of(nd1, nd2);
     }
 
     @TestFactory
@@ -267,6 +289,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -293,6 +316,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 
@@ -319,6 +343,7 @@ public class SpecialConverterTest {
                 nodes.add(nd);
             }
         }
+        if (nodes.isEmpty()) throw new AssertionError();
         return nodes;
     }
 }

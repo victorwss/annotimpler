@@ -67,6 +67,10 @@ public class TestTypes {
         }
     }
 
+    public record R4Ref(Ref r) {}
+
+    public record R4Struct(Struct s) {}
+
     public static final List<Type> CVT_TYPES = Stream
             .of(TestTypes.class.getDeclaredMethods())
             .filter(m -> "noop".equals(m.getName()))
@@ -83,7 +87,9 @@ public class TestTypes {
     public static final List<Class<?>> CVT_CLASSES_WITH_ARRAYS =
             Stream.concat(CVT_CLASSES.stream(), Stream.of(byte[].class, char[].class, R4byteArray.class)).toList();
 
-    public static final List<Class<?>> SPECIALS = List.of(Struct.class, RowId.class, Ref.class, java.sql.Array.class);
+    public static final List<Class<?>> SPECIALS = List.of(
+            Struct.class, RowId.class, Ref.class, java.sql.Array.class, R4Struct.class, R4Ref.class
+    );
 
     public static final Type VERY_SPECIAL = Stream
             .of(TestTypes.class.getDeclaredMethods())
@@ -168,7 +174,8 @@ public class TestTypes {
 
     private static void noop(
             R4boolean r1, R4int r2, R4long r3, R4double r4, R4byteArray r5, R4String r6, R4DateTime r7, R4Color r8,
-            R4Record r9, R4RecordDeep r10, R4RecordDeeper r11, R4StringArray r12, R4StringList r13, List<R4RecordDeep> r14, R4Record[] r15
+            R4Record r9, R4RecordDeep r10, R4RecordDeeper r11, R4StringArray r12, R4StringList r13, List<R4RecordDeep> r14, R4Record[] r15,
+            R4Struct r16, R4Ref r17
     )
     {
         throw new AssertionError();
@@ -182,7 +189,8 @@ public class TestTypes {
         var w = WrapperClass.wrap(s);
         return CVT_TYPES
                 .stream()
-                .filter(x -> (x instanceof ParameterizedType pt && pt.getActualTypeArguments()[0] == w) || (x instanceof Class<?> k && (k == s || (k.isArray() && k.getComponentType() == s))))
+                .filter(x -> (x instanceof ParameterizedType pt && pt.getActualTypeArguments()[0] == w)
+                        || (x instanceof Class<?> k && (k == s || (k.isArray() && k.getComponentType() == s))))
                 .toList();
     }
 
@@ -207,6 +215,12 @@ public class TestTypes {
         }
         if (in instanceof String b && t == R4RecordDeep.class) {
             return new R4RecordDeep(List.of(new R4Record(new R4StringList(List.of(b)))));
+        }
+        if (in instanceof Struct b && t == R4Struct.class) {
+            return new R4Struct(b);
+        }
+        if (in instanceof Ref b && t == R4Ref.class) {
+            return new R4Ref(b);
         }
         if (t instanceof Class<?> k) {
             if (!k.isArray() || k == byte[].class || k == char[].class) return in;
@@ -266,7 +280,7 @@ public class TestTypes {
             for (var i = 0; i < a2.size(); i++) {
                 compare(a3.get(i), b3.get(i));
             }
-        } else if (a instanceof Blob || b instanceof Blob || a instanceof Clob || b instanceof Clob) {
+        } else if (Stream.of(Blob.class, Clob.class, Struct.class, Ref.class).filter(c -> c.isInstance(a) || c.isInstance(b)).findAny().isPresent()) {
             Assertions.assertSame(a, b);
         } else {
             Assertions.assertEquals(a, b);

@@ -106,8 +106,8 @@ public class TemporalConverterTest {
         var all1 = List.of(odts1, lds1, ldts1, lts1, ots1, ins1, zdts1, gcs1, cs1, uds1, tss1, sts1, sds1, str1, r4str1A, r4str1B, r4str1C, r4str1D, r4str1E, r4str1F, r4dt1);
         var all2 = List.of(odts2, lds1, ldts1, lts1, ots5, ins2, zdts2, gcs2, cs2, uds2, tss1, sts1, sds1, str2, r4str2A, r4str2B, r4str2C, r4str2D, r4str2E, r4str2F, r4dt1);
         var all3 = List.of(odts3, lds1, ldts3,             ins3, zdts3, gcs3, cs3, uds3, tss3,       sds1, str3, r4str3A, r4str3B, r4str3C, r4str3D, r4str3E, r4str3F, r4dt3);
-        var all4 = List.of(                    lts1, ots1,                                     sts1,       str4, r4str4A, r4str4B, r4str4C, r4str4D, r4str4E, r4str4F);
-        var all5 = List.of(                    lts1, ots5,                                     sts1,       str5, r4str5A, r4str5B, r4str5C, r4str5D, r4str5E, r4str5F);
+        var all4 = List.of(                    lts1, ots1,                                     sts1,       str4, r4str4A, r4str4B, r4str4C, r4str4D, r4str4E, r4str4F       );
+        var all5 = List.of(                    lts1, ots5,                                     sts1,       str5, r4str5A, r4str5B, r4str5C, r4str5D, r4str5E, r4str5F       );
 
         var cvts  = TestTypes.CVT_CLASSES;
         var cvtsx = TestTypes.CVT_CLASSES_WITH_ARRAYS;

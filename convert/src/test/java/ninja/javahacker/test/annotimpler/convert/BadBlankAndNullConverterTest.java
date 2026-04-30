@@ -185,7 +185,7 @@ public class BadBlankAndNullConverterTest {
         all.removeAll(List.of(
                 String.class, Ref.class, Struct.class, RowId.class, java.sql.Array.class,
                 TestTypes.R4String.class, TestTypes.R4Record.class, TestTypes.R4RecordDeep.class, TestTypes.R4RecordDeeper.class,
-                TestTypes.R4StringList.class, TestTypes.R4StringArray.class
+                TestTypes.R4StringList.class, TestTypes.R4StringArray.class, TestTypes.R4Ref.class, TestTypes.R4Struct.class
         ));
         MethodSpec m = cvt -> cvt.from("yyy");
         List<DynamicNode> nodes1 = new ArrayList<>(all.size());
@@ -238,7 +238,7 @@ public class BadBlankAndNullConverterTest {
     @TestFactory
     public List<DynamicNode> testFromEmpty() throws Exception {
         var all = new ArrayList<>(TestTypes.CVT_CLASSES);
-        all.removeAll(List.of(Ref.class, Struct.class, RowId.class, java.sql.Array.class));
+        all.removeAll(List.of(Ref.class, Struct.class, RowId.class, java.sql.Array.class, TestTypes.R4Ref.class, TestTypes.R4Struct.class));
         MethodSpec m = cvt -> cvt.from("");
         List<DynamicNode> nodes1 = new ArrayList<>(all.size());
         for (var k1 : all) {

@@ -12,11 +12,12 @@ public interface ConverterFactory {
     public static final ConverterFactory STD = StdConverterFactory.INSTANCE;
 
     @NonNull
-    public <E> Converter<E> get(@NonNull Type t) throws UnavailableConverterException;
+    public Converter<?> get(@NonNull Type t) throws UnavailableConverterException;
 
     @NonNull
+    @SuppressWarnings("unchecked")
     public default <E> Converter<E> get(@NonNull Class<E> klass) throws UnavailableConverterException {
-        return get((Type) klass);
+        return (Converter<E>) get((Type) klass);
     }
 
     @NonNull

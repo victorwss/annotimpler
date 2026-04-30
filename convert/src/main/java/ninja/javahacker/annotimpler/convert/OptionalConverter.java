@@ -9,13 +9,14 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     private final Converter<E> cvt;
     private final ParameterizedType baseType;
 
+    @SuppressWarnings("unchecked")
     public OptionalConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
         if (baseType.getRawType() != Optional.class || !(baseClass instanceof Class<?>)) {
             throw new UnavailableConverterException("The baseType must be an Optional of some class.", baseClass);
         }
         this.baseType = baseType;
-        this.cvt = factory.get(baseClass);
+        this.cvt = factory.get((Class<E>) baseClass);
     }
 
     @NonNull
