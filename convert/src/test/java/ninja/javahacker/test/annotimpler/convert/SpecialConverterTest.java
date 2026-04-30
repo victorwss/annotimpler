@@ -245,8 +245,8 @@ public class SpecialConverterTest {
                 "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo.class) + ".",
                 () -> {
                     Assertions.assertAll(
-                            () -> TestTypes.compare(r, testCvt.from(r).get()),
-                            () -> TestTypes.compare(r, testCvt.fromObj(r).get())
+                            () -> TestTypes.compare(new Foo(42), testCvt.from(r).get()),
+                            () -> TestTypes.compare(new Foo(42), testCvt.fromObj(r).get())
                     );
                 }
         );
@@ -254,8 +254,8 @@ public class SpecialConverterTest {
                 "[testArrayFromArray] Converter for Custom from Array - " + TypeName.of(Foo2.class) + ".",
                 () -> {
                     Assertions.assertAll(
-                            () -> TestTypes.compare(new Foo(42), recCvt.from(r).get()),
-                            () -> TestTypes.compare(new Foo(42), recCvt.fromObj(r).get())
+                            () -> TestTypes.compare(new Foo2(new Foo(42)), recCvt.from(r).get()),
+                            () -> TestTypes.compare(new Foo2(new Foo(42)), recCvt.fromObj(r).get())
                     );
                 }
         );

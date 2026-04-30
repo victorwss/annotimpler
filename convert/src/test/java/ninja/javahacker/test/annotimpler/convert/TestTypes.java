@@ -255,14 +255,6 @@ public class TestTypes {
             Assertions.assertArrayEquals(a2, b2);
         } else if (a instanceof double[] a2 && b instanceof double[] b2) {
             Assertions.assertArrayEquals(a2, b2);
-        } else if (a instanceof RowId a2 && b instanceof RowId b2) {
-            Assertions.assertTrue(a2 == b2);
-        } else if (a instanceof Struct a2 && b instanceof Struct b2) {
-            Assertions.assertTrue(a2 == b2);
-        } else if (a instanceof Ref a2 && b instanceof Ref b2) {
-            Assertions.assertTrue(a2 == b2);
-        } else if (a instanceof java.sql.Array a2 && b instanceof java.sql.Array b2) {
-            Assertions.assertTrue(a2 == b2);
         } else if (a instanceof Optional<?> a2 && b instanceof Optional<?> b2) {
             compare(a2.orElse(null), b2.orElse(null));
         } else if (a instanceof Object[] a2 && b instanceof Object[] b2) {
@@ -280,8 +272,10 @@ public class TestTypes {
             for (var i = 0; i < a2.size(); i++) {
                 compare(a3.get(i), b3.get(i));
             }
-        } else if (Stream.of(Blob.class, Clob.class, Struct.class, Ref.class).filter(c -> c.isInstance(a) || c.isInstance(b)).findAny().isPresent()) {
-            Assertions.assertSame(a, b);
+        } else if (Stream.of(Blob.class, Clob.class, Struct.class, Ref.class, RowId.class, java.sql.Array.class).filter(c -> c.isInstance(a) || c.isInstance(b)).findAny().isPresent()) {
+            Assertions.assertEquals(a != null, b != null);
+            if (a != null) Assertions.assertEquals(a.getClass(), b.getClass());
+            Assertions.assertTrue(a == b);
         } else {
             Assertions.assertEquals(a, b);
         }
