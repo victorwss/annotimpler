@@ -113,11 +113,12 @@ public interface StdConverterFactory extends ConverterFactory {
     }
 
     @NonNull
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public default <E> Converter<E[]> makeArray(@NonNull Class<E> klass) throws UnavailableConverterException {
         if (!klass.isArray()) throw new IllegalArgumentException();
         var arg = klass.getComponentType();
         if (arg.isArray()) throw new UnavailableConverterException("No converter for multidimensional arrays.", klass);
-        return new ArrayConverter<>(this, klass);
+        return new ArrayConverter(this, arg);
     }
 
     @NonNull
