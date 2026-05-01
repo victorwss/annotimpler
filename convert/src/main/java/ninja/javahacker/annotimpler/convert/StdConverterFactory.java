@@ -61,19 +61,19 @@ public interface StdConverterFactory extends ConverterFactory {
         );
         return t -> Optional
                 .ofNullable(map.get(t))
-                .orElseThrow(() -> new UnavailableConverterException("No converter for " + TypeName.of(t) + ".", t));
+                .orElseThrow(() -> new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t));
     }
 
     public default Converter<?> getOf(@NonNull ParameterizedType p) throws UnavailableConverterException {
         var args = p.getActualTypeArguments();
         if (args.length == 1 && args[0] instanceof Class<?>) {
             var raw = p.getRawType();
-            if (raw == Collection.class) return new CollectionConverter<>(this, p);
-            if (raw == List.class) return new ListConverter<>(this, p);
-            if (raw == Set.class) return new SetConverter<>(this, p);
-            if (raw == Optional.class) return new OptionalConverter<>(this, p);
+            if (raw == Collection.class) return makeCollection(p);
+            if (raw == List.class) return makeList(p);
+            if (raw == Set.class) return makeSet(p);
+            if (raw == Optional.class) return makeOptional(p);
         }
-        throw new UnavailableConverterException("No converter for " + TypeName.of(p) + ".", p);
+        throw new UnavailableConverterException("No converter for " + p.getTypeName() + ".", p);
     }
 
     @NonNull
@@ -84,17 +84,17 @@ public interface StdConverterFactory extends ConverterFactory {
         if (t instanceof WildcardType w) return getOf(w);
         if (t instanceof GenericArrayType g) return getOf(g);
         if (t instanceof TypeVariable<?> V) return getOf(V);
-        throw new UnavailableConverterException("No converter for " + TypeName.of(t) + ".", t);
+        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
     }
 
     @NonNull
     public default Converter<?> getOf(@NonNull GenericArrayType t) throws UnavailableConverterException {
-        throw new UnavailableConverterException("No converter for " + TypeName.of(t) + ".", t);
+        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
     }
 
     @NonNull
     public default Converter<?> getOf(@NonNull WildcardType t) throws UnavailableConverterException {
-        throw new UnavailableConverterException("No converter for " + TypeName.of(t) + ".", t);
+        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
     }
 
     @NonNull

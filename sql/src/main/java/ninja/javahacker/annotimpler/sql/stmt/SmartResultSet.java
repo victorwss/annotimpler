@@ -69,7 +69,7 @@ public final class SmartResultSet implements ResultSet {
     public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
         try {
             var raw = getTypedValue(columnIndex);
-            return factory.get(target).fromObj(raw);
+            return factory.getOf(target).fromObj(raw);
         } catch (ConvertionException | UnavailableConverterException e) {
             throw new SQLException(e);
         }

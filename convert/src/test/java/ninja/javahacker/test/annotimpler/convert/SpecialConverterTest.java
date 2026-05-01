@@ -270,15 +270,15 @@ public class SpecialConverterTest {
         ConverterFactory cvtf = new StdConverterFactory() {
             @Override
             @SuppressWarnings("unchecked")
-            public <E> Converter<E> simple(@NonNull Class<E> klass) throws UnavailableConverterException {
-                return klass == Foo.class ? (Converter<E>) testCvt : StdConverterFactory.super.simple(klass);
+            public <E> Converter<E> getOf(@NonNull Class<E> klass) throws UnavailableConverterException {
+                return klass == Foo.class ? (Converter<E>) testCvt : StdConverterFactory.super.getOf(klass);
             }
         };
 
         return Stream.of(
                 new Association(b, Foo.class),
                 new Association(c, Foo2.class),
-                new Association(d, Foo2[].class),
+                new Association(d, Foo[].class),
                 new Association(e, tLst),
                 new Association(e, tCol),
                 new Association(f, tSet),

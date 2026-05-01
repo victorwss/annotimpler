@@ -25,11 +25,11 @@ public class CustomConverterFactoryTest {
         @Override
         @SneakyThrows
         public Type get() {
-            return ((ParameterizedType) FooConverter.class.getMethod("fromNull").getGenericReturnType()).getActualTypeArguments()[0];
+            return ((ParameterizedType) FooMapConverter.class.getMethod("fromNull").getGenericReturnType()).getActualTypeArguments()[0];
         }
     }).get();
 
-    private static class FooConverter implements Converter<Map<String, Foo>> {
+    private static class FooMapConverter implements Converter<Map<String, Foo>> {
 
         @Override
         public Optional<Map<String, Foo>> fromObj(Object in) throws ConvertionException {
