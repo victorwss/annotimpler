@@ -702,7 +702,7 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testNoInstance() {
+    public void testNoInstance() throws Exception {
         ForTests.testNonInstantiable(AnnotationsImplementor.class);
     }
 

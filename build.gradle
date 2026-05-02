@@ -96,9 +96,6 @@ subprojects {
         testAnnotationProcessor("org.projectlombok:lombok:" + versionLombok)
         testCompileOnly        ("org.projectlombok:lombok:" + versionLombok)
 
-        // Reified-Generics.
-        //api("ninja.javahacker:reified-generic:" + versionReifiedGenerics)
-
         // SLF4J.
         implementation("org.slf4j:slf4j-api:"    + versionSlf4j)
         implementation("org.slf4j:slf4j-simple:" + versionSlf4j)
@@ -278,15 +275,6 @@ subprojects {
             html.required = true
         }
     }
-
-    /*jacocoTestCoverageVerification {
-        violationRules {
-            rule {
-                element = 'METHOD'
-                excludes = ['*.newAssertionError(*)']
-            }
-        }
-    }*/
 
     publishing {
         publications {

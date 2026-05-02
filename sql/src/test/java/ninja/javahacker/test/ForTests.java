@@ -43,12 +43,19 @@ public final class ForTests {
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getCause().getMessage());
     }
 
-    public static void testNonInstantiable(Class<?> klass) {
-        var ite = Assertions.assertThrows(InvocationTargetException.class, () -> {
-            var ctor = klass.getDeclaredConstructor();
-            ctor.setAccessible(true);
-            ctor.newInstance();
-        });
-        Assertions.assertEquals(UnsupportedOperationException.class, ite.getCause().getClass());
+    public static void testNonInstantiable(Class<?> klass) throws Exception {
+        var ctor = klass.getDeclaredConstructor();
+        Assertions.assertAll(
+                () -> {
+                    var ite = Assertions.assertThrows(InvocationTargetException.class, () -> {
+                        ctor.setAccessible(true);
+                        ctor.newInstance();
+                    });
+                    Assertions.assertEquals(UnsupportedOperationException.class, ite.getCause().getClass());
+                },
+                () -> Assertions.assertEquals(List.of(ctor), List.of(klass.getDeclaredConstructors())),
+                () -> Assertions.assertTrue(Modifier.isPrivate(ctor.getModifiers())),
+                () -> Assertions.assertTrue(Modifier.isFinal(klass.getModifiers()))
+        );
     }
 }
