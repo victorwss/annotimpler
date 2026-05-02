@@ -1,12 +1,11 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
 import org.junit.jupiter.api.function.Executable;
+import ninja.javahacker.test.ForTests;
 
 import module java.base;
 import module org.junit.jupiter.api;
 import module ninja.javahacker.annotimpler.magicfactory;
-
-import ninja.javahacker.test.ForTests;
 
 public class NameDictionaryTest {
 
@@ -14,12 +13,29 @@ public class NameDictionaryTest {
         return DynamicTest.dynamicTest(name, ctx);
     }
 
-    public static class Something {
+    public static final class Date {
+        private Date() {
+            throw new AssertionError();
+        }
+    }
+
+    public static final class FooBar {
+        private FooBar() {
+            throw new AssertionError();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public static final class Something {
 
         private int a;
         private java.sql.Date b;
         private java.util.Date c;
         private String d;
+        private NameDictionaryTest.Date e;
+        private Executable f;
+        private java.lang.reflect.Executable g;
+        private FooBar h;
 
         public Something() {
             throw new AssertionError();
@@ -41,7 +57,31 @@ public class NameDictionaryTest {
             throw new AssertionError();
         }
 
-        public int ambig3(java.util.Date a, java.sql.Date b, String c, Something d) {
+        public NameDictionaryTest.Date ambig3() {
+            throw new AssertionError();
+        }
+
+        public int ambig4(java.util.Date a, java.sql.Date b, String c, Something d, NameDictionaryTest.Date e) {
+            throw new AssertionError();
+        }
+
+        public int ambig5(Executable a, java.lang.reflect.Executable b) {
+            throw new AssertionError();
+        }
+
+        public Executable ambig6() {
+            throw new AssertionError();
+        }
+
+        public java.lang.reflect.Executable ambig7() {
+            throw new AssertionError();
+        }
+
+        public FooBar notAmbig1() {
+            throw new AssertionError();
+        }
+
+        public Thread notAmbig2() {
             throw new AssertionError();
         }
     }
@@ -79,7 +119,8 @@ public class NameDictionaryTest {
         var crazyB = "Map<A, Map<C[], Map<String, ? extends List<? super E>>>>";
         var crazyC = "Weird.crazy(D, F, U[], X, List<? extends Cloneable>, List<?>)";
         var crazyX = crazyA + " " + crazyB + " " + crazyC;
-        var ambig3 = Something.class.getMethod("ambig3", java.util.Date.class, java.sql.Date.class, String.class, Something.class);
+        var ambig4 = Something.class.getMethod("ambig4", java.util.Date.class, java.sql.Date.class, String.class, Something.class, NameDictionaryTest.Date.class);
+        var ambig5 = Something.class.getMethod("ambig5", Executable.class, java.lang.reflect.Executable.class);
         var crazy = Stream.of(Weird.class.getMethods()).filter(m -> m.getName().equals("crazy")).findAny().get();
         var parts = List.of(
                 new PartEx(Something.class.getConstructor(), "Something", "Something()"),
@@ -87,8 +128,14 @@ public class NameDictionaryTest {
                 new PartEx(Something.class.getMethod("toString"), "Object", "String Object.toString()"),
                 new PartEx(Something.class.getMethod("ambig1"), "Something", "java.util.Date Something.ambig1()"),
                 new PartEx(Something.class.getMethod("ambig2"), "Something", "java.sql.Date Something.ambig2()"),
-                new PartEx(ambig3, "Something", "int Something.ambig3(java.util.Date, java.sql.Date, String, Something)"),
+                new PartEx(Something.class.getMethod("ambig3"), "Something", NameDictionaryTest.Date.class.getName() + " Something.ambig3()"),
+                new PartEx(ambig4, "Something", "int Something.ambig4(java.util.Date, java.sql.Date, String, Something, " + NameDictionaryTest.Date.class.getName() + ")"),
+                new PartEx(ambig5, "Something", "int Something.ambig5(" + Executable.class.getName() + ", java.lang.reflect.Executable)"),
+                new PartEx(Something.class.getMethod("ambig6"), "Something", Executable.class.getName() + " Something.ambig6()"),
+                new PartEx(Something.class.getMethod("ambig7"), "Something", "java.lang.reflect.Executable Something.ambig7()"),
                 new PartEx(Something.class.getMethod("staticMethod2", int.class, String.class), "Something", "int Something.staticMethod2(int, String)"),
+                new PartEx(Something.class.getMethod("notAmbig1"), "Something", "FooBar Something.notAmbig1()"),
+                new PartEx(Something.class.getMethod("notAmbig2"), "Something", "Thread Something.notAmbig2()"),
                 new PartEx(crazy, "Weird", crazyX)
         );
         var q = parts.stream()
@@ -104,7 +151,8 @@ public class NameDictionaryTest {
                 new PartFi(Something.class.getDeclaredField("a"), "Something", "int Something.a"),
                 new PartFi(Something.class.getDeclaredField("b"), "Something", "java.sql.Date Something.b"),
                 new PartFi(Something.class.getDeclaredField("c"), "Something", "java.util.Date Something.c"),
-                new PartFi(Something.class.getDeclaredField("d"), "Something", "String Something.d")
+                new PartFi(Something.class.getDeclaredField("d"), "Something", "String Something.d"),
+                new PartFi(Something.class.getDeclaredField("e"), "Something", NameDictionaryTest.Date.class.getName() + " Something.e")
         );
         var p = parts.stream()
                 .map(e -> n(e.c, ForTests.checkEquals(e.a, e.b + "/" + e.c, x -> NameDictionary.global().getSimplifiedGenericString(x, true))));
@@ -119,7 +167,7 @@ public class NameDictionaryTest {
         return Stream.of(
             n(
                     "getSimplifiedGenericString(Method)",
-                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((Method) null, false))
+                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((java.lang.reflect.Executable) null, false))
             ),
             n(
                     "getSimplifiedGenericString(Field)",
@@ -127,7 +175,7 @@ public class NameDictionaryTest {
             ),
             n(
                     "getSimplifiedGenericString(Method)",
-                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((Method) null, true))
+                    () -> ForTests.testNull("what", () -> NameDictionary.global().getSimplifiedGenericString((java.lang.reflect.Executable) null, true))
             ),
             n(
                     "getSimplifiedGenericString(Field)",

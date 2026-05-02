@@ -133,7 +133,7 @@ public interface MethodWrapper<E, U> {
         var pub = Modifier.isPublic(what.getModifiers());
         Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
         SimpleMethodWrapper.Call<E> call = args -> {
-            if (args.length != (stt ? 0 : 1)) throw new AssertionError();
+            assertEquals(args.length, stt ? 0 : 1);
             return (E) what.get(stt ? null : args[0]);
         };
         return new SimpleMethodWrapper<>(what, params, types, rt, it, str, stt, false, pub, call, what::getAnnotation);
@@ -147,7 +147,7 @@ public interface MethodWrapper<E, U> {
         var rt = what.getClass();
         var str = String.valueOf(what);
         SimpleMethodWrapper.Call<E> call = args -> {
-            if (args.length != 0) throw new AssertionError();
+            assertEquals(args.length, 0);
             return what;
         };
         return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, false, true, call, ann) {
@@ -156,5 +156,10 @@ public interface MethodWrapper<E, U> {
                 return this.toString();
             }
         };
+    }
+
+    @Generated
+    private static void assertEquals(int a, int b) {
+        if (a != b) throw new AssertionError();
     }
 }

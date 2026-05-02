@@ -1,5 +1,6 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
+import lombok.experimental.PackagePrivate;
 import org.junit.jupiter.api.function.Executable;
 import ninja.javahacker.test.ForTests;
 
@@ -568,5 +569,87 @@ public class BadMagicFactoryTest {
         public static <E> E[] foo() {
             throw new AssertionError();
         }
+    }
+
+    @Test
+    public void testBadPackagePrivateNestedClass() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample32.class));
+        Assertions.assertEquals(BadExample32.class, ex.getRoot());
+        Assertions.assertEquals("The class BadExample32 is not public.", ex.getMessage());
+    }
+
+    @PackagePrivate
+    static class BadExample32 {
+        public BadExample32() {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadPrivateNestedClass() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample33.class));
+        Assertions.assertEquals(BadExample33.class, ex.getRoot());
+        Assertions.assertEquals("The class BadExample33 is not public.", ex.getMessage());
+    }
+
+    private static class BadExample33 {
+        public BadExample33() {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadProtectedNestedClass() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample34.class));
+        Assertions.assertEquals(BadExample34.class, ex.getRoot());
+        Assertions.assertEquals("The class BadExample34 is not public.", ex.getMessage());
+    }
+
+    protected static class BadExample34 {
+        public BadExample34() {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void testBadLocalClass() throws Exception {
+        class BadExample35 {
+            public BadExample35() {
+                throw new AssertionError();
+            }
+        }
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample35.class));
+        Assertions.assertEquals(BadExample35.class, ex.getRoot());
+        Assertions.assertEquals("The class BadExample35 is not public.", ex.getMessage());
+    }
+
+    @Test
+    public void testBadPackagePrivateAuxiliaryClass() throws Exception {
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(BadExample36.class));
+        Assertions.assertEquals(BadExample36.class, ex.getRoot());
+        Assertions.assertEquals("The class BadExample36 is not public.", ex.getMessage());
+    }
+
+    @Test
+    public void testBadAnonymousClass() throws Exception {
+        var x = new Thread() {};
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(x.getClass()));
+        Assertions.assertEquals(x.getClass(), ex.getRoot());
+        Assertions.assertEquals("The class " + x.getClass().getName() + " is not public.", ex.getMessage());
+    }
+
+    @Test
+    public void testBadLambdaClass() throws Exception {
+        Runnable x = () -> {};
+        var ex = Assertions.assertThrows(MagicFactory.CreatorSelectionException.class, () -> MagicFactory.of(x.getClass()));
+        Assertions.assertEquals(x.getClass(), ex.getRoot());
+        Assertions.assertEquals("The class " + x.getClass().getName() + " is not public.", ex.getMessage());
+    }
+}
+
+@PackagePrivate
+class BadExample36 {
+    public BadExample36() {
+        throw new AssertionError();
     }
 }

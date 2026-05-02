@@ -32,7 +32,7 @@ public class MagicFactoryTest {
     public Stream<DynamicTest> testMagicEmptyBeanConstructor() throws Exception {
         var magic = MagicFactory.of(Example1.class);
         var a = Stream.of(n("Example1-result", () -> Assertions.assertEquals(Example1.class, magic.create().getClass())));
-        var b = testSignature("Example1", magic, Example1.class,  List.of(), List.of());
+        var b = testSignature("Example1", magic, Example1.class, List.of(), List.of());
         return Stream.concat(a, b);
     }
 
@@ -52,7 +52,7 @@ public class MagicFactoryTest {
                         () -> Assertions.assertEquals("pineapple", obj.foo123)
                 );
         }));
-        var b = testSignature("Example2", magic, Example2.class,  List.of("foo123"), List.of(String.class));
+        var b = testSignature("Example2", magic, Example2.class, List.of("foo123"), List.of(String.class));
         return Stream.concat(a, b);
     }
 
@@ -76,7 +76,7 @@ public class MagicFactoryTest {
                 );
             })
         );
-        var b = testSignature("Example3", magic, Example3.class,  List.of("foo123", "bar456"), List.of(String.class, int.class));
+        var b = testSignature("Example3", magic, Example3.class, List.of("foo123", "bar456"), List.of(String.class, int.class));
         return Stream.concat(a, b);
     }
 
@@ -104,7 +104,7 @@ public class MagicFactoryTest {
                 );
             })
         );
-        var b = testSignature("Example4", magic, Example4.class,  List.of("foo123", "bar456"), List.of(String.class, int.class));
+        var b = testSignature("Example4", magic, Example4.class, List.of("foo123", "bar456"), List.of(String.class, int.class));
         return Stream.concat(a, b);
     }
 
@@ -138,7 +138,7 @@ public class MagicFactoryTest {
                 );
             })
         );
-        var b = testSignature("Example5", magic, Example5.class,  List.of("foo123", "bar456"), List.of(String.class, int.class));
+        var b = testSignature("Example5", magic, Example5.class, List.of("foo123", "bar456"), List.of(String.class, int.class));
         return Stream.concat(a, b);
     }
 
@@ -374,7 +374,7 @@ public class MagicFactoryTest {
     public Stream<DynamicTest> testDefaultConstructorWithinMultiple() throws Exception {
         var magic = MagicFactory.of(Example17.class);
         var a = Stream.of(n("Example17-result", () -> Assertions.assertEquals(Example17.class, magic.create().getClass())));
-        var b = testSignature("Example17", magic, Example17.class,  List.of(), List.of());
+        var b = testSignature("Example17", magic, Example17.class, List.of(), List.of());
         return Stream.concat(a, b);
     }
 
@@ -384,6 +384,32 @@ public class MagicFactoryTest {
 
         public Example17(int x) {
             throw new AssertionError();
+        }
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testInnerClass() throws Exception {
+        var magic = MagicFactory.of(Example18.class);
+        var a = Stream.of(n("Example18-result", () -> Assertions.assertEquals(Example18.class, magic.create(this).getClass())));
+        var b = testSignature("Example18", magic, Example18.class, List.of("this$0"), List.of(MagicFactoryTest.class));
+        return Stream.concat(a, b);
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testInnerInnerClass() throws Exception {
+        var magic = MagicFactory.of(Example18.Example19.class);
+        var a = Stream.of(n("Example19-result", () -> Assertions.assertEquals(Example18.Example19.class, magic.create(new Example18()).getClass())));
+        var b = testSignature("Example19", magic, Example18.Example19.class, List.of("this$1"), List.of(Example18.class));
+        return Stream.concat(a, b);
+    }
+
+    public /*not-static*/ class Example18 {
+        public Example18() {
+        }
+
+        public /*not-static*/ class Example19 {
+            public Example19() {
+            }
         }
     }
 }

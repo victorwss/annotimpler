@@ -7,13 +7,25 @@ import module ninja.javahacker.annotimpler.convert;
 
 public interface StdConverterFactory extends ConverterFactory {
 
-    public static final StdConverterFactory INSTANCE = new StdConverterFactory() {};
+    public static final StdConverterFactory INSTANCE = start();
 
-    public static final ConverterFactory SIMPLE = simple();
+    private static StdConverterFactory start() {
+        var map = rootMap();
 
+        return new StdConverterFactory() {
+            @NonNull
+            @Override
+            @SuppressWarnings("ReturnOfCollectionOrArrayField")
+            public Map<Class<?>, Converter<?>> directMappings() {
+                return map;
+            }
+        };
+    }
+
+    @NonNull
     @SuppressWarnings("element-type-mismatch")
-    private static ConverterFactory simple() {
-        var map = Map.<Class<?>, Converter<?>>ofEntries(
+    public static Map<Class<?>, Converter<?>> rootMap() {
+        return Map.ofEntries(
                 Map.entry(boolean.class, BooleanConverter.PRIMITIVE),
                 Map.entry(Boolean.class, BooleanConverter.WRAPPER),
                 Map.entry(byte.class, ByteConverter.PRIMITIVE),
@@ -59,21 +71,6 @@ public interface StdConverterFactory extends ConverterFactory {
                 Map.entry(Calendar.class, CalendarConverter.INSTANCE),
                 Map.entry(GregorianCalendar.class, GregorianCalendarConverter.INSTANCE)
         );
-        return t -> Optional
-                .ofNullable(map.get(t))
-                .orElseThrow(() -> new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t));
-    }
-
-    public default Converter<?> getOf(@NonNull ParameterizedType p) throws UnavailableConverterException {
-        var args = p.getActualTypeArguments();
-        if (args.length == 1 && args[0] instanceof Class<?>) {
-            var raw = p.getRawType();
-            if (raw == Collection.class) return makeCollection(p);
-            if (raw == List.class) return makeList(p);
-            if (raw == Set.class) return makeSet(p);
-            if (raw == Optional.class) return makeOptional(p);
-        }
-        throw new UnavailableConverterException("No converter for " + p.getTypeName() + ".", p);
     }
 
     @NonNull
@@ -83,59 +80,87 @@ public interface StdConverterFactory extends ConverterFactory {
         if (t instanceof ParameterizedType p) return getOf(p);
         if (t instanceof WildcardType w) return getOf(w);
         if (t instanceof GenericArrayType g) return getOf(g);
-        if (t instanceof TypeVariable<?> V) return getOf(V);
-        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
+        if (t instanceof TypeVariable<?> v) return getOf(v);
+        return getOfUndetermined(t);
+    }
+
+    @NonNull
+    public default Converter<?> getOf(@NonNull ParameterizedType p) throws UnavailableConverterException {
+        var args = p.getActualTypeArguments();
+        if (args.length == 1 && args[0] instanceof Class<?>) {
+            var raw = p.getRawType();
+            if (raw == Collection.class) return makeCollection(p);
+            if (raw == List.class) return makeList(p);
+            if (raw == Set.class) return makeSet(p);
+            if (raw == Optional.class) return makeOptional(p);
+        }
+        throw UnavailableConverterException.noConverterFor(p);
     }
 
     @NonNull
     public default Converter<?> getOf(@NonNull GenericArrayType t) throws UnavailableConverterException {
-        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
+        throw UnavailableConverterException.noConverterFor(t);
     }
 
     @NonNull
     public default Converter<?> getOf(@NonNull WildcardType t) throws UnavailableConverterException {
-        throw new UnavailableConverterException("No converter for " + t.getTypeName() + ".", t);
+        throw UnavailableConverterException.noConverterFor(t);
     }
 
     @NonNull
     public default <E extends GenericDeclaration> Converter<E> getOf(@NonNull TypeVariable<E> t) throws UnavailableConverterException {
-        throw new UnavailableConverterException("No converter for " + TypeName.of(t) + ".", t);
+        throw UnavailableConverterException.noConverterFor(t);
+    }
+
+    @NonNull
+    public default <E extends GenericDeclaration> Converter<E> getOfUndetermined(@NonNull Type t) throws UnavailableConverterException {
+        throw UnavailableConverterException.noConverterFor(t);
     }
 
     @NonNull
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default <E> Converter<E> getOf(@NonNull Class<E> klass) throws UnavailableConverterException {
-        if (klass.isEnum()) return makeEnum((Class) klass);
-        if (klass.isRecord()) return makeRecord((Class) klass);
-        if (klass.isArray() && klass != byte[].class && klass != char[].class) return (Converter<E>) makeArray(klass);
-        return simple(klass);
+        var x = directMapping(klass);
+        if (x.isPresent()) return x.get();
+
+        x = makeArray(klass);
+        if (x.isPresent()) return x.get();
+
+        x = makeEnum((Class) klass);
+        if (x.isPresent()) return x.get();
+
+        x = makeRecord((Class) klass);
+        if (x.isPresent()) return x.get();
+
+        throw UnavailableConverterException.noConverterFor(klass);
     }
 
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public default <E> Converter<E[]> makeArray(@NonNull Class<E> klass) throws UnavailableConverterException {
-        if (!klass.isArray()) throw new IllegalArgumentException();
+    public default <E> Optional<Converter<E>> makeArray(@NonNull Class<E> klass) throws UnavailableConverterException {
+        if (!klass.isArray()) return Optional.empty();
         var arg = klass.getComponentType();
-        if (arg.isArray()) throw new UnavailableConverterException("No converter for multidimensional arrays.", klass);
-        return new ArrayConverter(this, arg);
+        if (arg.isArray()) return Optional.empty();
+        return Optional.of(new ArrayConverter(this, arg));
     }
 
     @NonNull
-    public default <E extends Enum<E>> Converter<E> makeEnum(@NonNull Class<E> klass) {
-        if (!klass.isEnum()) throw new IllegalArgumentException();
-        return new EnumConverter<>(klass);
+    public default <E extends Enum<E>> Optional<Converter<E>> makeEnum(@NonNull Class<E> klass) throws UnavailableConverterException {
+        if (!klass.isEnum()) return Optional.empty();
+        return Optional.of(new EnumConverter<>(klass));
     }
 
     @NonNull
-    public default <E extends Record> Converter<E> makeRecord(@NonNull Class<E> klass) throws UnavailableConverterException {
-        if (!klass.isRecord()) throw new IllegalArgumentException();
-        return new RecordConverter<>(this, klass);
+    public default <E extends Record> Optional<Converter<E>> makeRecord(@NonNull Class<E> klass) throws UnavailableConverterException {
+        if (!klass.isRecord()) return Optional.empty();
+        return Optional.of(new RecordConverter<>(this, klass));
     }
 
     @NonNull
-    public default <E> Converter<E> simple(@NonNull Class<E> klass) throws UnavailableConverterException {
-        return SIMPLE.getOf(klass);
+    @SuppressWarnings("unchecked")
+    public default <E> Optional<Converter<E>> directMapping(@NonNull Class<E> klass) throws UnavailableConverterException {
+        return Optional.ofNullable((Converter<E>) directMappings().get(klass));
     }
 
     @NonNull
@@ -164,5 +189,25 @@ public interface StdConverterFactory extends ConverterFactory {
     public default Converter<Collection<?>> makeOptional(@NonNull ParameterizedType p) throws UnavailableConverterException {
         if (p.getRawType() != Optional.class) throw new IllegalArgumentException();
         return new OptionalConverter(this, p);
+    }
+
+    @NonNull
+    public default Map<Class<?>, Converter<?>> directMappings() {
+        return rootMap();
+    }
+
+    @NonNull
+    public default <E> StdConverterFactory extend(@NonNull Class<E> klass, @NonNull Converter<E> cvt) {
+        var temp = new HashMap<>(rootMap());
+        temp.put(klass, cvt);
+        var map = Map.copyOf(temp);
+        return new StdConverterFactory() {
+            @NonNull
+            @Override
+            @SuppressWarnings("ReturnOfCollectionOrArrayField")
+            public Map<Class<?>, Converter<?>> directMappings() {
+                return map;
+            }
+        };
     }
 }

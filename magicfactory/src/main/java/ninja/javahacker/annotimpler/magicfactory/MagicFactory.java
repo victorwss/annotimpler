@@ -62,6 +62,13 @@ public final class MagicFactory<E> {
     @SuppressWarnings("PMD.AvoidLiteralsInIfCondition")
     private <E> MethodWrapper<E, Object> creatorFor(@NonNull Class<E> klass) throws CreatorSelectionException {
         checkNotNull(klass);
+
+        if (!Modifier.isPublic(klass.getModifiers())) {
+            var name = klass.isAnonymousClass() || klass.isHidden() ? klass.getName() : klass.getSimpleName();
+            var msg = "The class " + name + " is not public.";
+            throw new CreatorSelectionException(msg, klass);
+        }
+
         var methods = klass.getDeclaredMethods();
         var fields = klass.getDeclaredFields();
         var constructors = klass.getDeclaredConstructors();

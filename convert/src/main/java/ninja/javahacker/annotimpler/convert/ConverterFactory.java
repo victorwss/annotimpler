@@ -9,7 +9,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public interface ConverterFactory {
 
     @NonNull
-    public static final ConverterFactory STD = StdConverterFactory.INSTANCE;
+    public static final StdConverterFactory STD = StdConverterFactory.INSTANCE;
 
     @NonNull
     public Converter<?> get(@NonNull Type t) throws UnavailableConverterException;

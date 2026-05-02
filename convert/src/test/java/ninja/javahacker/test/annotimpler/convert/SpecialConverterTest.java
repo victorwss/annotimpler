@@ -236,14 +236,13 @@ public class SpecialConverterTest {
     }
 
     @TestFactory
-    public Stream<DynamicNode> testConversionFromArray() throws Exception {
-        var a = array();
-        var b = new Foo(42);
-        var c = new Foo2(b);
-        var d = new Foo[] {b};
-        var e = List.of(b);
-        var f = Set.of(b);
-        var g = Optional.of(b);
+    public DynamicNode testConversionFromSpecials() throws Exception {
+        var a = new Foo(42);
+        var b = new Foo2(a);
+        var c = new Foo[] {a};
+        var d = List.of(a);
+        var e = Set.of(a);
+        var f = Optional.of(a);
 
         var ps = Stream.of(SpecialConverterTest.class.getDeclaredMethods())
                 .filter(n -> n.getName().equals("noopz"))
@@ -257,42 +256,80 @@ public class SpecialConverterTest {
         var tSet = ps.get(2);
         var tOpt = ps.get(3);
 
-        record Association(Object what, Type type) {}
+        var a1 = array();
+        var a2 = ref();
+        var a3 = rowid("xxx");
+        var a4 = struct();
 
         var testCvt = new Converter<Foo>() {
             @Override
             public Optional<Foo> from(java.sql.Array input) {
-                if (input == a) return Optional.of(b);
+                if (input == a1) return Optional.of(a);
+                throw new AssertionError();
+            }
+
+            @Override
+            public Optional<Foo> from(Ref input) {
+                if (input == a2) return Optional.of(a);
+                throw new AssertionError();
+            }
+
+            @Override
+            public Optional<Foo> from(RowId input) {
+                if (input == a3) return Optional.of(a);
+                throw new AssertionError();
+            }
+
+            @Override
+            public Optional<Foo> from(Struct input) {
+                if (input == a4) return Optional.of(a);
                 throw new AssertionError();
             }
         };
 
-        ConverterFactory cvtf = new StdConverterFactory() {
-            @Override
-            @SuppressWarnings("unchecked")
-            public <E> Converter<E> getOf(@NonNull Class<E> klass) throws UnavailableConverterException {
-                return klass == Foo.class ? (Converter<E>) testCvt : StdConverterFactory.super.getOf(klass);
-            }
-        };
+        @FunctionalInterface
+        interface MethodSpec {
+            public Object work(Converter<?> cvt) throws Exception;
+        }
 
-        return Stream.of(
-                new Association(b, Foo.class),
-                new Association(c, Foo2.class),
-                new Association(d, Foo[].class),
-                new Association(e, tLst),
-                new Association(e, tCol),
-                new Association(f, tSet),
-                new Association(g, tOpt)
-        ).map(as -> DynamicTest.dynamicTest(
-                "[testConversionFromArray] Converter for Custom from Array - " + TypeName.of(as.type) + ".",
-                () -> {
-                    var cvt = cvtf.get(as.type);
-                    Assertions.assertAll(
-                            () -> TestTypes.compare(as.what, cvt.from(a).get()),
-                            () -> TestTypes.compare(as.what, cvt.fromObj(a).get())
-                    );
-                }
-        ));
+        record Input(Object what, MethodSpec spec, String name) {}
+
+        record Output(Object what, Type type) {}
+
+        List<Input> ins = List.of(
+                new Input(a1, cvt -> cvt.from(a1).get(), "Array"),
+                new Input(a2, cvt -> cvt.from(a2).get(), "Ref"),
+                new Input(a3, cvt -> cvt.from(a3).get(), "RowId"),
+                new Input(a4, cvt -> cvt.from(a4).get(), "Struct")
+        );
+
+        var outs = List.of(
+                new Output(a, Foo.class),
+                new Output(b, Foo2.class),
+                new Output(c, Foo[].class),
+                new Output(d, tLst),
+                new Output(d, tCol),
+                new Output(e, tSet),
+                new Output(f, tOpt)
+        );
+
+        var result = ins.stream().map(input -> {
+
+            ConverterFactory cvtf = ConverterFactory.STD.extend(Foo.class, testCvt);
+
+            var s = outs.stream().map(output -> DynamicTest.dynamicTest(
+                    "[testConversionFromSpecials] Converter for Custom from " + input.name + " to " + TypeName.of(output.type) + ".",
+                    () -> {
+                        var cvt = cvtf.get(output.type);
+                        Assertions.assertAll(
+                                () -> TestTypes.compare(output.what, input.spec.work(cvt)),
+                                () -> TestTypes.compare(output.what, cvt.fromObj(input.what).get())
+                        );
+                    }
+            ));
+            return DynamicContainer.dynamicContainer("[testConversionFromSpecials] Converter for Custom from " + input.name + ".", s);
+        });
+        return DynamicContainer.dynamicContainer("[testConversionFromSpecials] Converter for Custom.", result);
     }
 
     @TestFactory

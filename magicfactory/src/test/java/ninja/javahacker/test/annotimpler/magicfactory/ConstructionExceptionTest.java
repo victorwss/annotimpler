@@ -37,6 +37,7 @@ public class ConstructionExceptionTest {
                 n("CreatorSelectionException-2.root-ok1", () -> Assertions.assertEquals(String.class, new MagicFactory.CreatorSelectionException("foo", String.class).getRoot())),
                 n("CreatorSelectionException-2.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", Test.class).getRoot())),
                 n("CreatorSelectionException-3.root-ok1", () -> Assertions.assertEquals(String.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), String.class).getRoot())),
-                n("CreatorSelectionException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), Test.class).getRoot()))        );
+                n("CreatorSelectionException-3.root-ok2", () -> Assertions.assertEquals(Test.class, new MagicFactory.CreatorSelectionException("foo", new Exception(), Test.class).getRoot()))
+        );
     }
 }

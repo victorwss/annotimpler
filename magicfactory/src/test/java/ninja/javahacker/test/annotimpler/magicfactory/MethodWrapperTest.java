@@ -7,6 +7,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null", "ObjectEqualsNull"})
 public class MethodWrapperTest {
 
     private static DynamicTest n(String name, Executable ctx) {
@@ -55,12 +56,16 @@ public class MethodWrapperTest {
 
     private static final Something SMT = new Something(16);
 
+    public static class SomethingElse {
+    }
+
     @TestFactory
     @DisplayName("testConstructorWrapper")
-    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public Stream<DynamicTest> testConstructorWrapper() throws Exception {
         var c = Something.class.getConstructor(int.class);
         var w = MethodWrapper.of(c);
+        var w2 = MethodWrapper.of(c);
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(1, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -100,16 +105,22 @@ public class MethodWrapperTest {
             n("v2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.paramMap((Object) null))),
             n("w", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("x", () -> Assertions.assertEquals("constructor Something(int)", w.toString())),
-            n("y", () -> Assertions.assertEquals("Constructor Something(int)", w.toStringUp()))
+            n("y", () -> Assertions.assertEquals("Constructor Something(int)", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testStaticMethodWrapper")
-    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public Stream<DynamicTest> testStaticMethodWrapper() throws Exception {
         var c = Something.class.getMethod("foo", int.class, int.class);
         var w = MethodWrapper.of(c);
+        var w2 = MethodWrapper.of(c);
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(2, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -156,17 +167,23 @@ public class MethodWrapperTest {
             n("y2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.call(777, null))),
             n("z", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("aa", () -> Assertions.assertEquals("method int Something.foo(int, int)", w.toString())),
-            n("ab", () -> Assertions.assertEquals("Method int Something.foo(int, int)", w.toStringUp()))
+            n("ab", () -> Assertions.assertEquals("Method int Something.foo(int, int)", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testInstanceMethodWrapper")
-    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public Stream<DynamicTest> testInstanceMethodWrapper() throws Exception {
         var ins = new Something(6);
         var c = Something.class.getMethod("bar", int.class, double.class, String.class);
         var w = MethodWrapper.of(c);
+        var w2 = MethodWrapper.of(c);
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(3, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -218,16 +235,22 @@ public class MethodWrapperTest {
             n("aa2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.paramMap(null, "xxx"))),
             n("ab", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("ac", () -> Assertions.assertEquals("method String Something.bar(int, double, String)", w.toString())),
-            n("ad", () -> Assertions.assertEquals("Method String Something.bar(int, double, String)", w.toStringUp()))
+            n("ad", () -> Assertions.assertEquals("Method String Something.bar(int, double, String)", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testInstanceFieldGetterWrapper")
-    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public Stream<DynamicTest> testInstanceFieldGetterWrapper() throws Exception {
         var c = Something.class.getField("x");
         var w = MethodWrapper.getter(c);
+        var w2 = MethodWrapper.getter(c);
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -261,16 +284,22 @@ public class MethodWrapperTest {
             n("v2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.paramMap((Object) null))),
             n("w", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("x", () -> Assertions.assertEquals("field int Something.x", w.toString())),
-            n("y", () -> Assertions.assertEquals("Field int Something.x", w.toStringUp()))
+            n("y", () -> Assertions.assertEquals("Field int Something.x", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testStaticFieldGetterWrapper")
-    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testStaticFieldGetterWrapper() throws Exception {
         var c = Something.class.getField("XXX");
         var w = MethodWrapper.getter(c);
+        var w2 = MethodWrapper.getter(c);
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -302,15 +331,21 @@ public class MethodWrapperTest {
             n("u2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.paramMap(SMT))),
             n("v", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("w", () -> Assertions.assertEquals("field long Something.XXX", w.toString())),
-            n("x", () -> Assertions.assertEquals("Field long Something.XXX", w.toStringUp()))
+            n("x", () -> Assertions.assertEquals("Field long Something.XXX", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testValueWrapper")
-    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     public Stream<DynamicTest> testValueWrapper() throws Exception {
         var w = MethodWrapper.value("alohomora");
+        var w2 = MethodWrapper.value("alohomora");
+        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -341,13 +376,17 @@ public class MethodWrapperTest {
             n("t2", () -> Assertions.assertThrows(IllegalArgumentException.class, () -> w.paramMap(SMT))),
             n("u", () -> ForTests.testNull("params", () -> w.call((Object[]) null))),
             n("v", () -> Assertions.assertEquals("alohomora", w.toString())),
-            n("w", () -> Assertions.assertEquals("alohomora", w.toStringUp()))
+            n("w", () -> Assertions.assertEquals("alohomora", w.toStringUp())),
+            n("hc1", () -> Assertions.assertEquals(w2.hashCode(), w.hashCode())),
+            n("eq1", () -> Assertions.assertEquals(w2, w)),
+            n("hc2", () -> Assertions.assertNotEquals(w3.hashCode(), w.hashCode())),
+            n("eq2", () -> Assertions.assertNotEquals(w3, w)),
+            n("eqn", () -> Assertions.assertFalse(w.equals(null)))
         );
     }
 
     @TestFactory
     @DisplayName("testNulls")
-    @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
         return Stream.of(
             n("method", () -> ForTests.testNull("what", () -> MethodWrapper.of((Method) null))),

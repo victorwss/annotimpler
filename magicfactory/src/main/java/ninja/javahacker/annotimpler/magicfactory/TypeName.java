@@ -11,14 +11,14 @@ public final class TypeName {
         throw new UnsupportedOperationException();
     }
 
-    public static void formatType(@NonNull Type type, @NonNull Set<Class<?>> fullNameNeeded, @NonNull StringBuilder sb) {
+    public static void formatType(@NonNull Type type, @NonNull Set<? extends Class<?>> fullNameNeeded, @NonNull StringBuilder sb) {
         switch (type) {
             case Class<?> clazz -> {
                 if (clazz.isArray()) {
                     formatType(clazz.getComponentType(), fullNameNeeded, sb);
                     sb.append("[]");
                 } else {
-                    var c = fullNameNeeded.contains(clazz) ? clazz.getName() : clazz.getSimpleName();
+                    var c = fullNameNeeded.contains(clazz) || clazz.isAnonymousClass() || clazz.isHidden() ? clazz.getName() : clazz.getSimpleName();
                     checkNotNull(c);
                     sb.append(c);
                 }
@@ -43,8 +43,8 @@ public final class TypeName {
 
                 var upperBounds = wildcardType.getUpperBounds();
                 var lowerBounds = wildcardType.getLowerBounds();
-                assertTrue(upperBounds.length == 1);
-                assertTrue(lowerBounds.length <= 1);
+                assertEquals(upperBounds.length, 1);
+                assertLE(lowerBounds.length, 1);
 
                 if (upperBounds[0] != Object.class) {
                     sb.append(" extends ");
@@ -59,7 +59,7 @@ public final class TypeName {
     }
 
     @NonNull
-    public static String of(@NonNull Type what, @NonNull Set<Class<?>> fullNameNeeded) {
+    public static String of(@NonNull Type what, @NonNull Set<? extends Class<?>> fullNameNeeded) {
         var sb = new StringBuilder(50);
         formatType(what, fullNameNeeded, sb);
         return sb.toString();
@@ -71,8 +71,13 @@ public final class TypeName {
     }
 
     @Generated
-    private static void assertTrue(boolean b) {
-        if (!b) throw new AssertionError();
+    private static void assertEquals(int a, int b) {
+        if (a != b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void assertLE(int a, int b) {
+        if (a > b) throw new AssertionError();
     }
 
     @Generated

@@ -147,13 +147,15 @@ public final class NameDictionary {
         }
 
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
+            checkNotNull(type);
+            checkNotNull(sb);
             TypeName.formatType(type, fullNameNeeded, sb);
         }
 
         @NonNull
         private String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
             checkNotNull(what);
-            assertTrue(what.getDeclaringClass() == klass);
+            assertSame(what.getDeclaringClass(), klass);
             var sb = new StringBuilder(256);
 
             if (withClassName) {
@@ -169,7 +171,7 @@ public final class NameDictionary {
                     if (i > 0) sb.append(", ");
                     sb.append(typeParams[i].getName());
                     var bounds = typeParams[i].getBounds();
-                    assertTrue(bounds.length > 0);
+                    assertNonZero(bounds.length);
                     var s = (bounds[0] == Object.class) ? 1 : 0;
                     if (bounds.length - s > 0) {
                         sb.append(" extends ");
@@ -206,7 +208,7 @@ public final class NameDictionary {
         @NonNull
         private String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
             checkNotNull(field);
-            assertTrue(field.getDeclaringClass() == klass);
+            assertSame(field.getDeclaringClass(), klass);
             var sb = new StringBuilder(256);
 
             if (withClassName) {
@@ -260,8 +262,13 @@ public final class NameDictionary {
     }
 
     @Generated
-    private static void assertTrue(boolean b) {
-        if (!b) throw new AssertionError();
+    private static void assertSame(Object a, Object b) {
+        if (a != b) throw new AssertionError();
+    }
+
+    @Generated
+    private static void assertNonZero(int a) {
+        if (a == 0) throw new AssertionError();
     }
 
     @Generated

@@ -25,6 +25,14 @@ public class UnavailableConverterException extends Exception {
     }
 
     @NonNull
+    public static UnavailableConverterException noConverterFor(@NonNull Type root) {
+        if (root instanceof Class<?> k && k.isArray() && k.getComponentType().isArray()) {
+            return new UnavailableConverterException("No converter for multidimensional arrays.", root);
+        }
+        return new UnavailableConverterException("No converter for " + root.getTypeName() + ".", root);
+    }
+
+    @NonNull
     public Type getRoot() {
         return root;
     }

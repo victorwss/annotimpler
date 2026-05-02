@@ -24,7 +24,7 @@ public class TypeNameTest {
             int c,
             List<String> d,
             List<List<Thread>> e,
-            Map<List<String>, Set<Integer>> f,
+            Map<List<String>, Set<java.lang.Integer>> f,
             E g,
             List<E> h,
             List<?> i,
@@ -41,7 +41,7 @@ public class TypeNameTest {
     }
 
     private static final List<Type> TYPES = Stream
-            .of(ConstructionExceptionTest.class.getDeclaredMethods())
+            .of(TypeNameTest.class.getDeclaredMethods())
             .filter(m -> m.getName().equals("noop"))
             .map(m -> m.getParameters())
             .flatMap(Stream::of)
@@ -50,7 +50,7 @@ public class TypeNameTest {
 
     private static final List<String> TYPE_NAMES = List.of(
             "Float", "Thread", "int", "List<String>", "List<List<Thread>>", "Map<List<String>, Set<Integer>>", "E", "List<E>", "List<?>",
-            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2", "java.sql.Date", "java.util.Date"
+            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2", "Date", "Date"
     );
 
     private static final Map<Type, String> TYPE_MAP = new HashMap<>();
@@ -64,7 +64,7 @@ public class TypeNameTest {
     @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testTypeNames() {
-        return TYPES.stream().map(t -> n("" + t, () -> Assertions.assertEquals(TYPE_MAP.get(t), TypeName.of(t))));
+        return TYPES.stream().map(t -> n("[testTypeNames] " + t, () -> Assertions.assertEquals(TYPE_MAP.get(t), TypeName.of(t))));
     }
 
     private static final class Integer {}
@@ -75,15 +75,11 @@ public class TypeNameTest {
         var conflict = Set.of(Integer.class, java.lang.Integer.class);
         var all = Stream.concat(TYPES.stream(), conflict.stream());
         return all.map(t -> n(
-                "" + t,
+                "[testTypeNamesConflict] " + (t == Integer.class ? "Fake Integer" : t.getTypeName()),
                 () -> {
-                    if (t == Integer.class) {
-                        Assertions.assertEquals(Integer.class.getName(), TypeName.of(t, conflict));
-                    } else if (t == java.lang.Integer.class) {
-                        Assertions.assertEquals(java.lang.Integer.class.getName(), TypeName.of(t, conflict));
-                    } else {
-                        Assertions.assertEquals(TYPE_MAP.get(t), TypeName.of(t, conflict));
-                    }
+                    var name = conflict.contains(t) ? ((Class<?>) t).getName() : TYPE_MAP.get(t);
+                    if (name.startsWith("Map<")) name = "Map<List<String>, Set<java.lang.Integer>>";
+                    Assertions.assertEquals(name, TypeName.of(t, conflict));
                 }
         ));
     }
@@ -94,19 +90,36 @@ public class TypeNameTest {
         var conflict = Set.of(Integer.class, java.lang.Integer.class);
         var all = Stream.concat(TYPES.stream(), conflict.stream());
         return all.map(t -> n(
-                "" + t,
+                "[testTypeNamesConflictWithStringBuilder] " + (t == Integer.class ? "Fake Integer" : t.getTypeName()),
                 () -> {
+                    var name = conflict.contains(t) ? ((Class<?>) t).getName() : TYPE_MAP.get(t);
+                    if (name.startsWith("Map<")) name = "Map<List<String>, Set<java.lang.Integer>>";
                     var sb = new StringBuilder(25);
                     TypeName.formatType(t, conflict, sb);
-                    if (t == Integer.class) {
-                        Assertions.assertEquals(Integer.class.getName(), sb.toString());
-                    } else if (t == java.lang.Integer.class) {
-                        Assertions.assertEquals(java.lang.Integer.class.getName(), sb.toString());
-                    } else {
-                        Assertions.assertEquals(TYPE_MAP.get(t), sb.toString());
-                    }
+                    Assertions.assertEquals(name, sb.toString());
                 }
         ));
+    }
+
+    @TestFactory
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
+    public List<DynamicTest> testAnonymousClassAndLambdas() {
+        var x1 = new Thread() {};
+        Runnable y1 = () -> {};
+        var x2 = new Thread() {};
+        Runnable y2 = () -> {};
+
+        var s = Set.of(String.class);
+        var u1 = Set.of(x1.getClass(), x2.getClass());
+        var u2 = Set.of(y1.getClass(), y2.getClass());
+
+        var a = n("Anonymous without conflict"       , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass())));
+        var b = n("Lambda without conflict"          , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass())));
+        var c = n("Anonymous with unrelated conflict", () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass(), s)));
+        var d = n("Lambda with unrelated conflict"   , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass(), s)));
+        var e = n("Anonymous with direct conflict"   , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass(), u1)));
+        var f = n("Lambda with direct conflict"      , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass(), u2)));
+        return List.of(a, b, c, d, e, f);
     }
 
     @TestFactory
@@ -118,7 +131,8 @@ public class TypeNameTest {
                 DynamicTest.dynamicTest("TypeName.of(2) - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.of(Float.class, null))),
                 DynamicTest.dynamicTest("TypeName.formatType - type", () -> ForTests.testNull("type", () -> TypeName.formatType(null, Set.<Class<?>>of(), new StringBuilder(1)))),
                 DynamicTest.dynamicTest("TypeName.formatType - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.formatType(Float.class, null, new StringBuilder(1)))),
-                DynamicTest.dynamicTest("TypeName.formatType - sb", () -> ForTests.testNull("sb", () -> TypeName.formatType(Float.class, Set.<Class<?>>of(), null)))
+                DynamicTest.dynamicTest("TypeName.formatType - sb", () -> ForTests.testNull("sb", () -> TypeName.formatType(Float.class, Set.<Class<?>>of(), null))),
+                DynamicTest.dynamicTest("TypeName - no constructor", () -> ForTests.testNonInstantiable(TypeName.class))
         );
     }
 }
