@@ -25,7 +25,7 @@ public class DefaultConverterMethodsTest {
     private <E> DynamicNode testIn(Class<E> base, boolean isObj, Executable m) throws Exception {
         var msg = base == Foo.class ? "Unsupported Type: " + Foo.class.getName() + "." : "Unsupported " + base.getSimpleName() + ".";
         return DynamicTest.dynamicTest(
-                "Unsupported conversion " + (isObj ? "fromObj " : "from ") + base.getSimpleName() + ".",
+                "[testDefaultUnsupportedConvertions] Unsupported conversion " + (isObj ? "fromObj " : "from ") + base.getSimpleName() + ".",
                 () -> {
                     var ex = Assertions.assertThrows(ConvertionException.class, m);
                     Assertions.assertEquals(msg, ex.getMessage());
@@ -98,7 +98,7 @@ public class DefaultConverterMethodsTest {
         }));
     }
 
-    private static <E> void noop(Foo a, Thread b, List<Runtime> c, Optional<?> d, Optional<String>[] e, Method f) {
+    private static <E> void noop(Foo a, Thread b, List<Runtime> c, Optional<?> d, Optional<String>[] e, Method f, Runtime h, Field i) {
         throw new AssertionError();
     }
 
@@ -106,18 +106,39 @@ public class DefaultConverterMethodsTest {
     }
 
     @SuppressWarnings("serial")
-    private static class YyyConverter implements SomeInterface<String>, Converter<Method>, Serializable {
+    private static class Yyy1Converter implements SomeInterface<String>, Converter<Method>, Serializable {
+    }
+
+    @SuppressWarnings({"serial", "rawtypes"})
+    private static class Yyy2Converter implements SomeInterface<String>, Converter, Serializable {
+    }
+
+    private static interface Indirect3 extends Converter<Runtime> {
+    }
+
+    @SuppressWarnings("serial")
+    private static class Yyy3Converter implements SomeInterface<String>, Indirect3, Serializable {
+    }
+
+    private static interface Indirect4<E> extends Converter<E> {
+    }
+
+    @SuppressWarnings("serial")
+    private static class Yyy4Converter implements SomeInterface<String>, Indirect4<Field>, Serializable {
     }
 
     @TestFactory
     public Stream<DynamicNode> testDefaultGetType() throws Exception {
-        var cvt1 = new Converter<Foo>() {};
-        var cvt2 = new Converter<Thread>() {};
-        var cvt3 = new Converter<List<Runtime>>() {};
-        var cvt4 = new Converter<Optional<?>>() {};
-        var cvt5 = new Converter<Optional<String>[]>() {};
-        var cvt6 = new YyyConverter();
-        var cvts = List.of(cvt1, cvt2, cvt3, cvt4, cvt5, cvt6);
+        var cvts = List.of(
+                new Converter<Foo>() {},
+                new Converter<Thread>() {},
+                new Converter<List<Runtime>>() {},
+                new Converter<Optional<?>>() {},
+                new Converter<Optional<String>[]>() {},
+                new Yyy1Converter(),
+                new Yyy3Converter(),
+                new Yyy4Converter()
+        );
         var ints = IntStream.range(0, cvts.size()).mapToObj(i -> i).toList();
         var typs = Stream.of(DefaultConverterMethodsTest.class.getDeclaredMethods())
                 .filter(m -> m.getName().equals("noop"))
@@ -132,8 +153,15 @@ public class DefaultConverterMethodsTest {
 
     @Test
     @SuppressWarnings("rawtypes")
-    public void testBadDefaultGetType() throws Exception {
+    public void testBadDefaultGetType1() throws Exception {
         var cvt = new Converter() {};
+        var ex = Assertions.assertThrows(IllegalStateException.class, () -> cvt.getType());
+        Assertions.assertEquals("Couldn't determine the type. Please, override this method.", ex.getMessage());
+    }
+
+    @Test
+    public void testBadDefaultGetType2() throws Exception {
+        var cvt = new Yyy2Converter();
         var ex = Assertions.assertThrows(IllegalStateException.class, () -> cvt.getType());
         Assertions.assertEquals("Couldn't determine the type. Please, override this method.", ex.getMessage());
     }

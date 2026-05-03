@@ -42,8 +42,7 @@ public interface Converter<E> {
 
     private static boolean typeFilter(@NonNull Type t) {
         checkNotNull(t);
-        return t instanceof ParameterizedType p ? Converter.class.isAssignableFrom((Class<?>) p.getRawType())
-                : t instanceof Class<?> k && k != Converter.class && Converter.class.isAssignableFrom(k);
+        return t instanceof ParameterizedType p && Converter.class.isAssignableFrom((Class<?>) p.getRawType());
     }
 
     private static Stream<Type> getAllInterfaces(@NonNull Type t) {
@@ -62,7 +61,7 @@ public interface Converter<E> {
     public default Type getType() {
         return getAllInterfaces(getClass())
                 .filter(Converter::typeFilter)
-                .map(iface -> iface instanceof ParameterizedType p ? p.getActualTypeArguments()[0] : (Class<?>) iface)
+                .map(iface -> ((ParameterizedType) iface).getActualTypeArguments()[0])
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Couldn't determine the type. Please, override this method."));
     }

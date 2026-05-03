@@ -149,7 +149,41 @@ public class ConstructionExceptionTest {
                 n("3.cause-ok1", () -> Assertions.assertSame(xxx, new UnavailableConverterException("foo", xxx, String.class).getCause())),
                 n("3.cause-ok2", () -> Assertions.assertSame(yyy, new UnavailableConverterException("goo", yyy, Test.class).getCause())),
                 n("3.root-ok1", () -> Assertions.assertEquals(String.class, new UnavailableConverterException("foo", new Exception(), String.class).getRoot())),
-                n("3.root-ok2", () -> Assertions.assertEquals(Test.class, new UnavailableConverterException("foo", new Exception(), Test.class).getRoot()))
+                n("3.root-ok2", () -> Assertions.assertEquals(Test.class, new UnavailableConverterException("foo", new Exception(), Test.class).getRoot())),
+
+                n("noConverterFor-null", () -> ForTests.testNull("root", () -> UnavailableConverterException.noConverterFor(null))),
+                n("noConverterFor.msg-ok-class", () -> Assertions.assertEquals(
+                        "No converter for java.lang.String.",
+                        UnavailableConverterException.noConverterFor(String.class).getMessage()
+                )),
+                n("noConverterFor.root-ok-class", () -> Assertions.assertEquals(
+                        String.class,
+                        UnavailableConverterException.noConverterFor(String.class).getRoot()
+                )),
+                n("noConverterFor.msg-ok-array", () -> Assertions.assertEquals(
+                        "No converter for java.lang.String[].",
+                        UnavailableConverterException.noConverterFor(String[].class).getMessage()
+                )),
+                n("noConverterFor.root-ok-array", () -> Assertions.assertEquals(
+                        String[].class,
+                        UnavailableConverterException.noConverterFor(String[].class).getRoot()
+                )),
+                n("noConverterFor.msg-ok-parameterized", () -> Assertions.assertEquals(
+                        "No converter for java.util.List<java.lang.String>.",
+                        UnavailableConverterException.noConverterFor(TYPES.get(3)).getMessage()
+                )),
+                n("noConverterFor.root-ok-parameterized", () -> Assertions.assertEquals(
+                        TYPES.get(3),
+                        UnavailableConverterException.noConverterFor(TYPES.get(3)).getRoot()
+                )),
+                n("noConverterFor.msg-ok-multidimensional", () -> Assertions.assertEquals(
+                        "No converter for multidimensional arrays.",
+                        UnavailableConverterException.noConverterFor(String[][].class).getMessage()
+                )),
+                n("noConverterFor.root-ok-multidimensional", () -> Assertions.assertEquals(
+                        String[][].class,
+                        UnavailableConverterException.noConverterFor(String[][].class).getRoot()
+                ))
         );
     }
 }
