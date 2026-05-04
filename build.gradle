@@ -320,6 +320,23 @@ subprojects {
     }
 }*/
 
+project(":datetime") {
+    def moduleName = "ninja.javahacker.annotimpler.datetime"
+    description = "Annotimpler Dates and Times"
+
+    jar {
+        archiveBaseName = "annotimpler.datetime"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+    }
+
+    compileJava {
+        dependsOn(":datetime:delombok")
+    }
+}
+
 project(":magicfactory") {
     def moduleName = "ninja.javahacker.annotimpler.magicfactory"
     description = "Annotimpler Magic Factory"
@@ -348,14 +365,20 @@ project(":convert") {
 
     dependencies {
         api(project(":magicfactory"))
+        api(project(":datetime"))
     }
 
     compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
         dependsOn(":convert:delombok")
     }
 
     delombok {
         dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
     }
 }
 
@@ -373,6 +396,8 @@ project(":core") {
     }
 
     compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
         dependsOn(":core:delombok")
     }
 
@@ -392,6 +417,7 @@ project(":sql") {
 
     dependencies {
         api(project(":magicfactory"))
+        api(project(":datetime"))
         api(project(":convert"))
         api(project(":core"))
 
@@ -411,6 +437,14 @@ project(":sql") {
     }
 
     compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
         dependsOn(":sql:delombok")
     }
 
@@ -420,6 +454,7 @@ project(":sql") {
 
     delombok {
         dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
         dependsOn(":convert:jar")
         dependsOn(":core:jar")
     }

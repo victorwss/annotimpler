@@ -4,6 +4,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
+import module ninja.javahacker.annotimpler.datetime;
 
 public enum InstantConverter implements Converter<Instant> {
     INSTANCE;

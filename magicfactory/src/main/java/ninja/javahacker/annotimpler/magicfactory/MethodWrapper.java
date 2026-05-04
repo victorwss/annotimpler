@@ -66,7 +66,11 @@ public interface MethodWrapper<E, U> {
             var p = pp.get(i - base);
             var pt = p.getType();
             var a = args[i];
-            if (a == null ? pt.isPrimitive() : !WrapperClass.wrap(pt).isInstance(a)) throw new IllegalArgumentException();
+            if (a == null) {
+                if (pt.isPrimitive()) throw new IllegalArgumentException();
+            } else {
+                if (!WrapperClass.wrap(pt).isInstance(a)) throw new IllegalArgumentException();
+            }
             map.put(p.getName(), a);
         }
         return map;

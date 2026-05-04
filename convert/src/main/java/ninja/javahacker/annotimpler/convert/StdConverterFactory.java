@@ -153,26 +153,34 @@ public interface StdConverterFactory extends ConverterFactory {
     }
 
     @NonNull
-    public default <E extends Enum<E>> Optional<? extends Converter<E>> makeEnum(@NonNull Class<E> klass) throws UnavailableConverterException {
+    public default <E extends Enum<E>> Optional<? extends Converter<E>> makeEnum(@NonNull Class<E> klass)
+            throws UnavailableConverterException
+    {
         if (!klass.isEnum()) return Optional.empty();
         return Optional.of(new EnumConverter<>(klass));
     }
 
     @NonNull
-    public default <E extends Record> Optional<? extends Converter<E>> makeRecord(@NonNull Class<E> klass) throws UnavailableConverterException {
+    public default <E extends Record> Optional<? extends Converter<E>> makeRecord(@NonNull Class<E> klass)
+            throws UnavailableConverterException
+    {
         if (!klass.isRecord()) return Optional.empty();
         return Optional.of(new RecordConverter<>(this, klass));
     }
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public default <E> Optional<? extends Converter<E>> directMapping(@NonNull Class<E> klass) throws UnavailableConverterException {
+    public default <E> Optional<? extends Converter<E>> directMapping(@NonNull Class<E> klass)
+            throws UnavailableConverterException
+    {
         return Optional.ofNullable((Converter<E>) directMappings().get(klass));
     }
 
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public default Optional<? extends Converter<? extends Collection<?>>> makeCollection(@NonNull ParameterizedType p) throws UnavailableConverterException {
+    public default Optional<? extends Converter<? extends Collection<?>>> makeCollection(@NonNull ParameterizedType p)
+            throws UnavailableConverterException
+    {
         var args = p.getActualTypeArguments();
         if (p.getRawType() != Collection.class) return Optional.empty();
         assertEquals(args.length, 1);
@@ -182,7 +190,9 @@ public interface StdConverterFactory extends ConverterFactory {
 
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public default Optional<? extends Converter<? extends Set<?>>> makeSet(@NonNull ParameterizedType p) throws UnavailableConverterException {
+    public default Optional<? extends Converter<? extends Set<?>>> makeSet(@NonNull ParameterizedType p)
+            throws UnavailableConverterException
+    {
         var args = p.getActualTypeArguments();
         if (p.getRawType() != Set.class) return Optional.empty();
         assertEquals(args.length, 1);
@@ -192,7 +202,9 @@ public interface StdConverterFactory extends ConverterFactory {
 
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public default Optional<? extends Converter<? extends List<?>>> makeList(@NonNull ParameterizedType p) throws UnavailableConverterException {
+    public default Optional<? extends Converter<? extends List<?>>> makeList(@NonNull ParameterizedType p)
+            throws UnavailableConverterException
+    {
         var args = p.getActualTypeArguments();
         if (p.getRawType() != List.class) return Optional.empty();
         assertEquals(args.length, 1);
@@ -202,7 +214,9 @@ public interface StdConverterFactory extends ConverterFactory {
 
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public default Optional<? extends Converter<? extends Optional<?>>> makeOptional(@NonNull ParameterizedType p) throws UnavailableConverterException {
+    public default Optional<? extends Converter<? extends Optional<?>>> makeOptional(@NonNull ParameterizedType p)
+            throws UnavailableConverterException
+    {
         var args = p.getActualTypeArguments();
         if (p.getRawType() != Optional.class) return Optional.empty();
         assertEquals(args.length, 1);
@@ -211,7 +225,9 @@ public interface StdConverterFactory extends ConverterFactory {
     }
 
     @NonNull
-    public default Optional<? extends Converter<? extends Map<?, ?>>> makeMap(@NonNull ParameterizedType p) throws UnavailableConverterException {
+    public default Optional<? extends Converter<? extends Map<?, ?>>> makeMap(@NonNull ParameterizedType p)
+            throws UnavailableConverterException
+    {
         return Optional.empty();
     }
 

@@ -40,17 +40,32 @@ public class TypeNameTest {
         throw new AssertionError();
     }
 
-    private static final List<Type> TYPES = Stream
+    private static final Type WEIRD1 = new Type() {
+        @Override
+        public String toString() {
+            return "blam blam blam";
+        }
+    };
+
+    private static final Type WEIRD2 = new Type() {
+        @Override
+        public String toString() {
+            return "wtf";
+        }
+    };
+
+    private static final Stream<Type> TYPES_A = Stream
             .of(TypeNameTest.class.getDeclaredMethods())
             .filter(m -> m.getName().equals("noop"))
             .map(m -> m.getParameters())
             .flatMap(Stream::of)
-            .map(Parameter::getParameterizedType)
-            .toList();
+            .map(Parameter::getParameterizedType);
+
+    private static final List<Type> TYPES = Stream.concat(TYPES_A, Stream.of(WEIRD1, WEIRD2)).toList();
 
     private static final List<String> TYPE_NAMES = List.of(
             "Float", "Thread", "int", "List<String>", "List<List<Thread>>", "Map<List<String>, Set<Integer>>", "E", "List<E>", "List<?>",
-            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2", "Date", "Date"
+            "List<? extends Number>", "E[]", "E[][]", "List<E[]>", "int[]", "Inner2", "Date", "Date", "blam blam blam", "wtf"
     );
 
     private static final Map<Type, String> TYPE_MAP = new HashMap<>();

@@ -465,4 +465,28 @@ public class ConverterFactoryTest {
                 DynamicTest.dynamicTest("[testExtends] works 3", () -> Assertions.assertSame(StdConverterFactory.INSTANCE.get(LocalDate.class), extended.get(LocalDate.class)))
         );
     }
+
+    @Test
+    public void testNonStd() throws Exception {
+        var a = new Converter<String>() {};
+        var b = new Converter<Integer>() {};
+        ConverterFactory nonStd = t -> {
+            if (t == String.class) return a;
+            if (t == Integer.class) return b;
+            throw new AssertionError();
+        };
+        Assertions.assertAll(
+                () -> Assertions.assertSame(a, nonStd.getOf(String.class)),
+                () -> Assertions.assertSame(b, nonStd.getOf(Integer.class))
+        );
+    }
+
+    @Test
+    @SuppressWarnings("null")
+    public void testNonStdWithNull() throws Exception {
+        ConverterFactory nonStd = t -> {
+            throw new AssertionError();
+        };
+        ForTests.testNull("klass", () -> nonStd.getOf(null));
+    }
 }

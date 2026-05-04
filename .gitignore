@@ -1,7 +1,8 @@
 /build
-/core/build
 /magicfactory/build
+/datetime/build
+/convert/build
+/core/build
 /sql/build
 .gradle
 .maven-repo
-/convert/build

@@ -33,7 +33,9 @@ public final class TypeName {
                 }
                 sb.append(">");
             }
-            case TypeVariable<?> tv -> sb.append(tv.getName());
+            case TypeVariable<?> tv -> {
+                sb.append(tv.getName());
+            }
             case GenericArrayType arrayType -> {
                 formatType(arrayType.getGenericComponentType(), fullNameNeeded, sb);
                 sb.append("[]");
@@ -54,7 +56,9 @@ public final class TypeName {
                     formatType(lowerBounds[0], fullNameNeeded, sb);
                 }
             }
-            default -> throw new AssertionError();
+            default -> {
+                sb.append(type.getTypeName());
+            }
         }
     }
 
