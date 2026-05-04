@@ -45,16 +45,26 @@ public interface Converter<E> {
         return t instanceof ParameterizedType p && Converter.class.isAssignableFrom((Class<?>) p.getRawType());
     }
 
+    @SuppressWarnings("InfiniteRecursion")
+    private static boolean isInvariant(@NonNull Type t) {
+        checkNotNull(t);
+        return t instanceof Class<?>
+                || t instanceof ParameterizedType
+                || (t instanceof GenericArrayType ga && isInvariant(ga.getGenericComponentType()));
+    }
+
     private static Stream<Type> getAllInterfaces(@NonNull Type t) {
         checkNotNull(t);
-        List<Type> a;
-        switch (t) {
-            case ParameterizedType p -> a = List.of(((Class<?>) p.getRawType()).getGenericInterfaces());
-            case Class<?> c -> a = List.of(c.getGenericInterfaces());
-            default -> throw new AssertionError();
-        }
-        var b = a.stream().flatMap(Converter::getAllInterfaces).toList();
-        return Stream.concat(a.stream(), b.stream());
+        assertExtendable(t);
+
+        var e = (Class<?>) (t instanceof ParameterizedType p ? p.getRawType() : t);
+
+        var a = List.of(e.getGenericInterfaces());
+        var sc = e.getGenericSuperclass();
+        var b = sc == null ? Stream.<Type>of() : getAllInterfaces(sc);
+        var c = a.stream().flatMap(Converter::getAllInterfaces);
+
+        return Stream.of(a.stream(), b, c, Stream.of(e)).flatMap(x -> x);
     }
 
     @NonNull
@@ -62,6 +72,7 @@ public interface Converter<E> {
         return getAllInterfaces(getClass())
                 .filter(Converter::typeFilter)
                 .map(iface -> ((ParameterizedType) iface).getActualTypeArguments()[0])
+                .filter(Converter::isInvariant)
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Couldn't determine the type. Please, override this method."));
     }
@@ -189,5 +200,12 @@ public interface Converter<E> {
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
+    }
+
+    @Generated
+    private static void assertExtendable(Type t) {
+        if (t instanceof Class<?>) return;
+        if (t instanceof ParameterizedType) return;
+        throw new AssertionError(t);
     }
 }

@@ -98,7 +98,7 @@ public class DefaultConverterMethodsTest {
         }));
     }
 
-    private static <E> void noop(Foo a, Thread b, List<Runtime> c, Optional<?> d, Optional<String>[] e, Method f, Runtime h, Field i) {
+    private static <E> void noop(Foo a, Thread b, List<Runtime> c, Optional<?> d, Optional<String>[] e, Method f, Runtime h, Field i, Field j, List<String>[] k) {
         throw new AssertionError();
     }
 
@@ -127,6 +127,14 @@ public class DefaultConverterMethodsTest {
     private static class Yyy4Converter implements SomeInterface<String>, Indirect4<Field>, Serializable {
     }
 
+    @SuppressWarnings("serial")
+    private static class Yyy5Converter extends Yyy4Converter {
+    }
+
+    @SuppressWarnings("serial")
+    private static class Yyy6Converter implements Converter<List<String>[]> {
+    }
+
     @TestFactory
     public Stream<DynamicNode> testDefaultGetType() throws Exception {
         var cvts = List.of(
@@ -137,7 +145,9 @@ public class DefaultConverterMethodsTest {
                 new Converter<Optional<String>[]>() {},
                 new Yyy1Converter(),
                 new Yyy3Converter(),
-                new Yyy4Converter()
+                new Yyy4Converter(),
+                new Yyy5Converter(),
+                new Yyy6Converter()
         );
         var ints = IntStream.range(0, cvts.size()).mapToObj(i -> i).toList();
         var typs = Stream.of(DefaultConverterMethodsTest.class.getDeclaredMethods())
@@ -167,9 +177,17 @@ public class DefaultConverterMethodsTest {
     }
 
     @Test
-    public void testDefaultGetTypeIsStillTooLimitedInSomeComplexCases() throws Exception {
-        class XxxConverter<A, B, C> implements Converter<B> {}
-        var cvt = new XxxConverter<Thread, List<String>, Thread>() {};
+    public void testDefaultGetTypeIsStillTooLimitedInSomeComplexCases1() throws Exception {
+        class XxxConverter1<A, B, C> implements Converter<B> {}
+        var cvt = new XxxConverter1<Thread, List<String>, Thread>() {};
+        var ex = Assertions.assertThrows(IllegalStateException.class, () -> cvt.getType());
+        Assertions.assertEquals("Couldn't determine the type. Please, override this method.", ex.getMessage());
+    }
+
+    @Test
+    public void testDefaultGetTypeIsStillTooLimitedInSomeComplexCases2() throws Exception {
+        class XxxConverter2<A, B, C> implements Converter<B[]> {}
+        var cvt = new XxxConverter2<Thread, List<String>, Thread>() {};
         var ex = Assertions.assertThrows(IllegalStateException.class, () -> cvt.getType());
         Assertions.assertEquals("Couldn't determine the type. Please, override this method.", ex.getMessage());
     }
