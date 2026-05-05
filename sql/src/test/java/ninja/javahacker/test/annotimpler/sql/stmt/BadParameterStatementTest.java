@@ -11,7 +11,6 @@ import module org.junit.jupiter.api;
 
 public class BadParameterStatementTest {
 
-
     private static final LocalDate LD = LocalDate.of(2026, 1, 1);
     private static final LocalTime LT = LocalTime.of(10, 0, 0);
     private static final LocalDateTime LDT = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
@@ -578,40 +577,40 @@ public class BadParameterStatementTest {
     @TestFactory
     public Stream<DynamicTest> testInputStreamReaderThrowsException() {
         return Stream.of(1, 2, 3, 4).flatMap(t -> Stream.of(
-                n("setAsciiStream-1-"           + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t)     )))),
-                n("setAsciiStream-2-"           + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t)     )))),
-                n("setAsciiStream-int-1-"       + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t), 10 )))),
-                n("setAsciiStream-int-2-"       + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t), 10 )))),
-                n("setAsciiStream-long-1-"      + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     (1    , ix(t), 10L)))),
-                n("setAsciiStream-long-2-"      + t, () -> testThrows(t, ex (ps -> ps.setAsciiStream     ("bar", ix(t), 10L)))),
-                n("setBinaryStream-1-"          + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t)     )))),
-                n("setBinaryStream-2-"          + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t)     )))),
-                n("setBinaryStream-int-1-"      + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t), 10 )))),
-                n("setBinaryStream-int-2-"      + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t), 10 )))),
-                n("setBinaryStream-long-1-"     + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    (1    , ix(t), 10L)))),
-                n("setBinaryStream-long-2-"     + t, () -> testThrows(t, ex (ps -> ps.setBinaryStream    ("bar", ix(t), 10L)))),
-                n("setCharacterStream-1-"       + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t)     )))),
-                n("setCharacterStream-2-"       + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t)     )))),
-                n("setCharacterStream-int-1-"   + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t), 10 )))),
-                n("setCharacterStream-int-2-"   + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t), 10 )))),
-                n("setCharacterStream-long-1-"  + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream (1    , rx(t), 10L)))),
-                n("setCharacterStream-long-2-"  + t, () -> testThrows(t, ex (ps -> ps.setCharacterStream ("bar", rx(t), 10L)))),
-                n("setNCharacterStream-1-"      + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream(1    , rx(t)     )))),
-                n("setNCharacterStream-2-"      + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream("bar", rx(t)     )))),
-                n("setNCharacterStream-long-1-" + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream(1    , rx(t), 10L)))),
-                n("setNCharacterStream-long-2-" + t, () -> testThrows(t, ex (ps -> ps.setNCharacterStream("bar", rx(t), 10L)))),
-                n("setBlob-InputStream-1-"      + t, () -> testThrows(t, ex (ps -> ps.setBlob            (1    , ix(t)     )))),
-                n("setBlob-InputStream-2-"      + t, () -> testThrows(t, ex (ps -> ps.setBlob            ("bar", ix(t)     )))),
-                n("setBlob-InputStream-long-1-" + t, () -> testThrows(t, ex (ps -> ps.setBlob            (1    , ix(t), 10L)))),
-                n("setBlob-InputStream-long-2-" + t, () -> testThrows(t, ex (ps -> ps.setBlob            ("bar", ix(t), 10L)))),
-                n("setClob-Reader-1-"           + t, () -> testThrows(t, ex (ps -> ps.setClob            (1    , rx(t)     )))),
-                n("setClob-Reader-2-"           + t, () -> testThrows(t, ex (ps -> ps.setClob            ("bar", rx(t)     )))),
-                n("setClob-Reader-long-1-"      + t, () -> testThrows(t, ex (ps -> ps.setClob            (1    , rx(t), 10L)))),
-                n("setClob-Reader-long-2-"      + t, () -> testThrows(t, ex (ps -> ps.setClob            ("bar", rx(t), 10L)))),
-                n("setNClob-Reader-1-"          + t, () -> testThrows(t, ex (ps -> ps.setNClob           (1    , rx(t)     )))),
-                n("setNClob-Reader-2-"          + t, () -> testThrows(t, ex (ps -> ps.setNClob           ("bar", rx(t)     )))),
-                n("setNClob-Reader-long-1-"     + t, () -> testThrows(t, ex (ps -> ps.setNClob           (1    , rx(t), 10L)))),
-                n("setNClob-Reader-long-2-"     + t, () -> testThrows(t, ex (ps -> ps.setNClob           ("bar", rx(t), 10L))))
+                n("setAsciiStream-1-"           + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     (1    , ix(t)     )))),
+                n("setAsciiStream-2-"           + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     ("bar", ix(t)     )))),
+                n("setAsciiStream-int-1-"       + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     (1    , ix(t), 10 )))),
+                n("setAsciiStream-int-2-"       + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     ("bar", ix(t), 10 )))),
+                n("setAsciiStream-long-1-"      + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     (1    , ix(t), 10L)))),
+                n("setAsciiStream-long-2-"      + t, () -> testThrows(t, ex(ps -> ps.setAsciiStream     ("bar", ix(t), 10L)))),
+                n("setBinaryStream-1-"          + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    (1    , ix(t)     )))),
+                n("setBinaryStream-2-"          + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    ("bar", ix(t)     )))),
+                n("setBinaryStream-int-1-"      + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    (1    , ix(t), 10 )))),
+                n("setBinaryStream-int-2-"      + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    ("bar", ix(t), 10 )))),
+                n("setBinaryStream-long-1-"     + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    (1    , ix(t), 10L)))),
+                n("setBinaryStream-long-2-"     + t, () -> testThrows(t, ex(ps -> ps.setBinaryStream    ("bar", ix(t), 10L)))),
+                n("setCharacterStream-1-"       + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream (1    , rx(t)     )))),
+                n("setCharacterStream-2-"       + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream ("bar", rx(t)     )))),
+                n("setCharacterStream-int-1-"   + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream (1    , rx(t), 10 )))),
+                n("setCharacterStream-int-2-"   + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream ("bar", rx(t), 10 )))),
+                n("setCharacterStream-long-1-"  + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream (1    , rx(t), 10L)))),
+                n("setCharacterStream-long-2-"  + t, () -> testThrows(t, ex(ps -> ps.setCharacterStream ("bar", rx(t), 10L)))),
+                n("setNCharacterStream-1-"      + t, () -> testThrows(t, ex(ps -> ps.setNCharacterStream(1    , rx(t)     )))),
+                n("setNCharacterStream-2-"      + t, () -> testThrows(t, ex(ps -> ps.setNCharacterStream("bar", rx(t)     )))),
+                n("setNCharacterStream-long-1-" + t, () -> testThrows(t, ex(ps -> ps.setNCharacterStream(1    , rx(t), 10L)))),
+                n("setNCharacterStream-long-2-" + t, () -> testThrows(t, ex(ps -> ps.setNCharacterStream("bar", rx(t), 10L)))),
+                n("setBlob-InputStream-1-"      + t, () -> testThrows(t, ex(ps -> ps.setBlob            (1    , ix(t)     )))),
+                n("setBlob-InputStream-2-"      + t, () -> testThrows(t, ex(ps -> ps.setBlob            ("bar", ix(t)     )))),
+                n("setBlob-InputStream-long-1-" + t, () -> testThrows(t, ex(ps -> ps.setBlob            (1    , ix(t), 10L)))),
+                n("setBlob-InputStream-long-2-" + t, () -> testThrows(t, ex(ps -> ps.setBlob            ("bar", ix(t), 10L)))),
+                n("setClob-Reader-1-"           + t, () -> testThrows(t, ex(ps -> ps.setClob            (1    , rx(t)     )))),
+                n("setClob-Reader-2-"           + t, () -> testThrows(t, ex(ps -> ps.setClob            ("bar", rx(t)     )))),
+                n("setClob-Reader-long-1-"      + t, () -> testThrows(t, ex(ps -> ps.setClob            (1    , rx(t), 10L)))),
+                n("setClob-Reader-long-2-"      + t, () -> testThrows(t, ex(ps -> ps.setClob            ("bar", rx(t), 10L)))),
+                n("setNClob-Reader-1-"          + t, () -> testThrows(t, ex(ps -> ps.setNClob           (1    , rx(t)     )))),
+                n("setNClob-Reader-2-"          + t, () -> testThrows(t, ex(ps -> ps.setNClob           ("bar", rx(t)     )))),
+                n("setNClob-Reader-long-1-"     + t, () -> testThrows(t, ex(ps -> ps.setNClob           (1    , rx(t), 10L)))),
+                n("setNClob-Reader-long-2-"     + t, () -> testThrows(t, ex(ps -> ps.setNClob           ("bar", rx(t), 10L))))
         ));
     }
 
@@ -634,7 +633,18 @@ public class BadParameterStatementTest {
                 n("setClob-Reader-3-X"          , () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()       )))),
                 n("setClob-Reader-long-3-X"     , () -> testThrows(6, ex2(ps -> ps.setClob            ("bar", r()  , 10L)))),
                 n("setNClob-Reader-3-X"         , () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()       )))),
-                n("setNClob-Reader-long-3-X"    , () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()  , 10L))))
+                n("setNClob-Reader-long-3-X"    , () -> testThrows(6, ex2(ps -> ps.setNClob           ("bar", r()  , 10L)))),
+
+                n("setObject-InputStream-2-X"   , () -> testThrows(5, ex2(ps -> ps.setObject          ("bar", i()                 )))),
+                n("setObject-InputStream-3S-X"  , () -> testThrows(5, ex2(ps -> ps.setObject          ("bar", i(), H2Type.BLOB    )))),
+                n("setObject-InputStream-3i-X"  , () -> testThrows(5, ex2(ps -> ps.setObject          ("bar", i(), Types .BLOB    )))),
+                n("setObject-InputStream-4S-X"  , () -> testThrows(5, ex2(ps -> ps.setObject          ("bar", i(), H2Type.BLOB, 10)))),
+                n("setObject-InputStream-4i-X"  , () -> testThrows(5, ex2(ps -> ps.setObject          ("bar", i(), Types .BLOB, 10)))),
+                n("setObject-Reader-2-X"        , () -> testThrows(6, ex2(ps -> ps.setObject          ("bar", r()                 )))),
+                n("setObject-Reader-3S-X"       , () -> testThrows(6, ex2(ps -> ps.setObject          ("bar", r(), H2Type.BLOB    )))),
+                n("setObject-Reader-3i-X"       , () -> testThrows(6, ex2(ps -> ps.setObject          ("bar", r(), Types .BLOB    )))),
+                n("setObject-Reader-4S-X"       , () -> testThrows(6, ex2(ps -> ps.setObject          ("bar", r(), H2Type.BLOB, 10)))),
+                n("setObject-Reader-4i-X"       , () -> testThrows(6, ex2(ps -> ps.setObject          ("bar", r(), Types .BLOB, 10))))
         );
     }
 
