@@ -169,6 +169,15 @@ public class ConnectionPropertyTests {
         return (E) set(conn, "withCreate", boolean.class, value);
     }
 
+    private static String timezone(Object conn) throws Exception {
+        return (String) get(conn, "timezone");
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <E> E withTimezone(E conn, String value) throws Exception {
+        return (E) set(conn, "withTimezone", String.class, value);
+    }
+
     private static void addTestsConnector(
             @NonNull String id,
             @NonNull List<DynamicTest> tests,
@@ -187,6 +196,7 @@ public class ConnectionPropertyTests {
         var rac = props.get("rac");
         var ssl = props.get("ssl");
         var create = props.get("create");
+        var timezone = props.get("timezone");
         var hashCode = props.get("hashCode");
         var toString = props.get("toString");
 
@@ -194,7 +204,8 @@ public class ConnectionPropertyTests {
         var others = new ArrayList<>(keys);
         var all = List.of(
                 "host", "port", "user", "password", "database", "filename", "directory",
-                "url", "encoding", "rac", "ssl", "create", "subsubprotocol", "hashCode", "toString"
+                "url", "encoding", "rac", "ssl", "create", "subsubprotocol", "timezone",
+                "hashCode", "toString"
         );
         others.removeAll(all);
         if (!others.isEmpty()) throw new AssertionError(others);
@@ -203,7 +214,7 @@ public class ConnectionPropertyTests {
             if (List.of("hashCode", "toString").contains(name)) continue;
             try {
                 conn.getClass().getMethod(name);
-                if (!keys.contains(name)) throw new AssertionError(name);
+                if (!keys.contains(name)) throw new AssertionError(name + "---" + keys);
             } catch (NoSuchMethodException e) {
                 if (keys.contains(name)) {
                     if (List.of("user", "password").contains(name) && conn instanceof UrlConnector) continue;
@@ -313,6 +324,12 @@ public class ConnectionPropertyTests {
             tests.add(n(id + "create", () -> Assertions.assertEquals(createv, create(conn))));
             tests.add(n(id + "createTrue", () -> Assertions.assertEquals(true, create(withCreate(conn, true)))));
             tests.add(n(id + "createFalse", () -> Assertions.assertEquals(false, create(withCreate(conn, false)))));
+        }
+        if (timezone != null) {
+            tests.add(n(id + "timezone", () -> Assertions.assertEquals(timezone, timezone(conn))));
+            var timezone2 = timezone.equals("UTC") ? "'-03:00'" : "UTC";
+            tests.add(n(id + "withTimezone", () -> Assertions.assertEquals(timezone2, timezone(withTimezone(conn, timezone2)))));
+            tests.add(n("withTimezone-null", () -> ForTests.testNullReflective("timezone", () -> withTimezone(conn, null))));
         }
         if (hashCode != null) {
             var hash = Integer.parseInt(hashCode);
@@ -576,31 +593,31 @@ public class ConnectionPropertyTests {
     public Stream<DynamicTest> testH2Props() {
         var url1 = "jdbc:h2:~/test.db";
         Supplier<Connector> obj1 = () -> new H2Connector("admin", "secret", "test.db", false, "");
-        var map1 = Map.of("user", "admin", "password", "secret", "filename", "test.db", "url", url1);
+        var map1 = Map.of("user", "admin", "password", "secret", "filename", "test.db", "url", url1, "timezone", "");
 
         var url2 = "jdbc:h2:~/sample.db";
         Supplier<Connector> obj2 = () -> new H2Connector("master", "pa$$", "sample.db", false, "");
-        var map2 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url2);
+        var map2 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url2, "timezone", "");
 
         var url3 = "jdbc:h2:mem:sample";
         Supplier<Connector> obj3 = () -> new H2Connector("master", "pa$$", "sample", true, "");
-        var map3 = Map.of("user", "master", "password", "pa$$", "filename", "sample", "url", url3);
+        var map3 = Map.of("user", "master", "password", "pa$$", "filename", "sample", "url", url3, "timezone", "");
 
         var url4 = "jdbc:h2:mem:";
         Supplier<Connector> obj4 = () -> new H2Connector("master", "pa$$", "", true, "");
-        var map4 = Map.of("user", "master", "password", "pa$$", "filename", "", "url", url4);
+        var map4 = Map.of("user", "master", "password", "pa$$", "filename", "", "url", url4, "timezone", "");
 
         var url5 = "jdbc:h2:~/sample.db;TIME ZONE=UTC";
         Supplier<Connector> obj5 = () -> new H2Connector("master", "pa$$", "sample.db", false, "UTC");
-        var map5 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url5);
+        var map5 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url5, "timezone", "UTC");
 
         var url6 = "jdbc:h2:~/sample.db;TIME ZONE='-5:00'";
         Supplier<Connector> obj6 = () -> new H2Connector("master", "pa$$", "sample.db", false, "'-5:00'");
-        var map6 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url6);
+        var map6 = Map.of("user", "master", "password", "pa$$", "filename", "sample.db", "url", url6, "timezone", "'-5:00'");
 
         Supplier<Connector> std = () -> H2Connector.std();
         var urls = "jdbc:h2:~/";
-        var maps = Map.of("user", "sa", "password", "password", "filename", "", "url", urls);
+        var maps = Map.of("user", "sa", "password", "password", "filename", "", "url", urls, "timezone", "");
 
         return addTestsConnectors("H2", of(map1, obj1, obj1), of(map2, obj2), of(map3, obj3), of(map4, obj4), of(map5, obj5), of(map6, obj6), of(maps, std));
     }

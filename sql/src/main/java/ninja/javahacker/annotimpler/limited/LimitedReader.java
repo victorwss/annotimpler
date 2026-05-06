@@ -97,7 +97,7 @@ public final class LimitedReader extends Reader {
     @Override
     public boolean ready() throws IOException {
         checkClosed();
-        return position == maxSize || wrapped.ready();
+        return position >= maxSize || wrapped.ready();
     }
 
     @Override

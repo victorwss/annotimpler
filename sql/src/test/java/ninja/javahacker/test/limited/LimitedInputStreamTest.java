@@ -260,6 +260,19 @@ public class LimitedInputStreamTest {
             Assertions.assertEquals(0, limited.available());
             Assertions.assertEquals(-1, limited.read());
         }
+
+        @Test
+        @DisplayName("Should consult wrapped for availability.")
+        void shouldConsultWrappedForAvailability() throws IOException {
+            var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
+            var limited = new LimitedInputStream(wrapped, 50);
+            limited.read(new byte[25]);
+            Assertions.assertEquals(25, limited.available());
+            wrapped.setReady(false);
+            Assertions.assertEquals(0, limited.available());
+            wrapped.setReady(true);
+            Assertions.assertEquals(25, limited.available());
+        }
     }
 
     @Nested

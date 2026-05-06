@@ -249,6 +249,28 @@ public class LimitedReaderTest {
             Assertions.assertTrue(limited.ready()); // Deepseek used assertFalse.
             Assertions.assertEquals(-1, limited.read());
         }
+
+        @Test
+        @DisplayName("Should consult wrapped for readiness.")
+        void shouldConsultWrappedForReadiness() throws IOException {
+            var wrapped = new AssertionReader(TEST_DATA, 50, false);
+            var limited = new LimitedReader(wrapped, 50);
+            limited.read(new char[25]);
+            wrapped.setReady(false);
+            Assertions.assertFalse(limited.ready());
+            wrapped.setReady(true);
+            Assertions.assertTrue(limited.ready());
+        }
+
+        @Test
+        @DisplayName("Should always be ready when finished.")
+        void shouldBeReadyWhenFinished() throws IOException {
+            var wrapped = new AssertionReader(TEST_DATA, 50, false);
+            var limited = new LimitedReader(wrapped, 50);
+            limited.read(new char[50]);
+            wrapped.setReady(false);
+            Assertions.assertTrue(limited.ready());
+        }
     }
 
     @Nested

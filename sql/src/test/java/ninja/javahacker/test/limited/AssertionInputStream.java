@@ -15,6 +15,7 @@ public final class AssertionInputStream extends InputStream {
     private final List<ReadOperation> readOperations;
     private final boolean allowMark;
     private boolean closed;
+    private boolean ready;
 
     public static enum OperationType {
         READ, SKIP, MARK, RESET;
@@ -49,11 +50,13 @@ public final class AssertionInputStream extends InputStream {
         this.markLimit = -1;
         this.allowMark = allowMark;
         this.closed = false;
+        this.ready = true;
     }
 
     @Override
     public int read() throws IOException {
         if (closed) throw new IOException();
+        if (!ready) throw new AssertionError();
         var buffer = new byte[1];
         read(buffer, 0, 1);
         return buffer[0];
@@ -62,6 +65,7 @@ public final class AssertionInputStream extends InputStream {
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         if (closed) throw new IOException();
+        if (!ready) throw new AssertionError();
         readOperations.add(new ReadOperation(position, len, 0, OperationType.READ));
 
         if (len > 0 && position + len > maxAllowedReads) {
@@ -92,6 +96,7 @@ public final class AssertionInputStream extends InputStream {
     @Override
     public long skip(long n) throws IOException {
         if (closed) throw new IOException();
+        if (!ready) throw new AssertionError();
         // Register a skip attempt.
         readOperations.add(new ReadOperation(position, n, 0, OperationType.SKIP));
 
@@ -119,7 +124,7 @@ public final class AssertionInputStream extends InputStream {
     @Override
     public int available() throws IOException {
         if (closed) throw new IOException();
-        return maxAllowedReads - position;
+        return ready ? maxAllowedReads - position : 0;
     }
 
     @Override
@@ -168,5 +173,9 @@ public final class AssertionInputStream extends InputStream {
 
     public boolean isClosed() {
         return closed;
+    }
+
+    public void setReady(boolean ready) {
+        this.ready = ready;
     }
 }
