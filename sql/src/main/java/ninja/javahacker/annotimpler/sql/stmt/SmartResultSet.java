@@ -59,13 +59,11 @@ public final class SmartResultSet implements ResultSet {
     }
 
     @Nullable
-    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws SQLException {
         return getTypedValueOpt(columnIndex, target).orElse(null);
     }
 
     @NonNull
-    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
         try {
             var raw = getTypedValue(columnIndex);
@@ -88,6 +86,7 @@ public final class SmartResultSet implements ResultSet {
     public Object getTypedValue(int columnIndex) throws SQLException {
         var columnType = metaData.getColumnType(columnIndex);
         return switch (columnType) {
+            case Types.REF_CURSOR -> throw new UnsupportedOperationException();
             case Types.NULL -> null;
             case Types.DATE                    -> getObject(columnIndex, LocalDate     .class);
             case Types.TIMESTAMP               -> getObject(columnIndex, LocalDateTime .class);
@@ -113,9 +112,8 @@ public final class SmartResultSet implements ResultSet {
             case Types.ROWID                                        -> getRowId     (columnIndex);
             case Types.STRUCT                              -> (Struct) getObject    (columnIndex);
             case Types.VARCHAR, Types.CHAR,
-                Types.LONGVARCHAR, Types.DISTINCT                   -> getString    (columnIndex);
-            case Types.REF_CURSOR -> throw new UnsupportedOperationException();
-            // Types.DATALINK, Types.JAVA_OBJECT, Types.OTHER,
+                 Types.LONGVARCHAR, Types.DISTINCT, Types.DATALINK,
+                 Types.JAVA_OBJECT, Types.OTHER                     -> getString    (columnIndex);
             default                                                 -> getString    (columnIndex);
         };
     }
