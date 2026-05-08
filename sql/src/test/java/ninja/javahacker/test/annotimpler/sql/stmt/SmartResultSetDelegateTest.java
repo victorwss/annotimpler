@@ -117,10 +117,11 @@ public class SmartResultSetDelegateTest {
         var md = ControlledMock.mock(ResultSetMetaData.class);
         md.setHandler((i, m, a) -> {
             if (m.getName().equals("getColumnCount")) return 3;
-            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, "b"}[(int) a[0] - 1];
+            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
             if (m.getName().equals("getColumnName")) {
                 var p = (int) a[0];
-                if (p == 2) return "wow x";
+                if (p == 2) return "b";
+                if (p == 3) return "c";
                 throw new AssertionError(p);
             }
             throw new AssertionError(m);
@@ -138,10 +139,11 @@ public class SmartResultSetDelegateTest {
         var md = ControlledMock.mock(ResultSetMetaData.class);
         md.setHandler((i, m, a) -> {
             if (m.getName().equals("getColumnCount")) return 3;
-            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, "b"}[(int) a[0] - 1];
+            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
             if (m.getName().equals("getColumnName")) {
                 var p = (int) a[0];
-                if (p == 2) return "wow x";
+                if (p == 2) return "b";
+                if (p == 3) return "c";
                 throw new AssertionError(p);
             }
             throw new AssertionError(m);
