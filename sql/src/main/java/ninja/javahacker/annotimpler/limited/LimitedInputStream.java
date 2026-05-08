@@ -54,8 +54,7 @@ public final class LimitedInputStream extends InputStream {
     }
 
     @Override
-    public int read(@NonNull byte[] b, int off, int len) throws IOException {
-        if (b == null) throw new NullPointerException();
+    public int read(byte[] b, int off, int len) throws IOException {
         checkClosed();
 
         if (b == null) throw new NullPointerException("Buffer cannot be null.");

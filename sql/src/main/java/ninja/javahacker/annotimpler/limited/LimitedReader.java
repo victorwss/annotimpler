@@ -53,8 +53,7 @@ public final class LimitedReader extends Reader {
     }
 
     @Override
-    public int read(@NonNull char[] cbuf, int off, int len) throws IOException {
-        if (cbuf == null) throw new NullPointerException();
+    public int read(char[] cbuf, int off, int len) throws IOException {
         checkClosed();
 
         if (cbuf == null) throw new NullPointerException("Buffer cannot be null.");
