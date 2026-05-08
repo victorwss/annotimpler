@@ -178,7 +178,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * {@inheritDoc}
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used.
      * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
      * {@link LocalDate} as the second parameter.
@@ -201,7 +203,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
      * @param cal {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used. Having a companion {@link Calendar}
      * as a timezone makes things still more confusing and fragile. Further, having a date without time but with a timezone in non-sense.
      * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
@@ -511,7 +515,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * {@inheritDoc}
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used.
      * Prefer the {@link #setLocalTime(int, LocalTime)} method or the {@link #setObject(int, Object)} method passing a
      * {@link LocalTime} as the second parameter.
@@ -534,7 +540,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
      * @param cal {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used. Having a companion {@link Calendar}
      * as a timezone makes things still more confusing and fragile.
      * Prefer the {@link #setOffsetTime(int, OffsetTime)} method or the {@link #setObject(int, Object)} method passing a
@@ -557,7 +565,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * {@inheritDoc}
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link Timestamp} is very badly designed and should never be used.
      * Prefer the {@link #setLocalDateTime(int, LocalDateTime)} method or the {@link #setObject(int, Object)} method passing a
      * {@link LocalDateTime} as the second parameter.
@@ -580,7 +590,9 @@ public interface NamedParameterStatement extends PreparedStatement {
      * @param parameterIndex {@inheritDoc}
      * @param x {@inheritDoc}
      * @param cal {@inheritDoc}
-     * @throws SQLException {@inheritDoc}
+     * @throws SQLException if parameterIndex does not correspond to a parameter
+     * marker in the SQL statement; if a database access error occurs or
+     * this method is called on a closed {@code PreparedStatement}
      * @deprecated The class {@link Timestamp} is very badly designed and should never be used. Having a companion {@link Calendar}
      * as a timezone makes things still more confusing and fragile.
      * Prefer one of the {@link #setOffsetDateTime(int, OffsetDateTime)}, {@link #setZonedDateTime(int, ZonedDateTime)},

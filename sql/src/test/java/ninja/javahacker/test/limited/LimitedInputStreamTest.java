@@ -535,6 +535,7 @@ public class LimitedInputStreamTest {
         }
 
         @Test
+        @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read.")
         void shouldHandleNullBufferInRead() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);

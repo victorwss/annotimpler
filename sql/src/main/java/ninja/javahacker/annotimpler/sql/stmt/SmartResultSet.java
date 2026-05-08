@@ -11,6 +11,7 @@ import module ninja.javahacker.annotimpler.convert;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {
 
+    @NonNull
     private final ConverterFactory factory;
 
     @NonNull
@@ -20,10 +21,18 @@ public final class SmartResultSet implements ResultSet {
     @NonNull
     private final ResultSetMetaData metaData;
 
+    @NonNull
+    private final ColumnMapping mappings;
+
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
+        this(rs, ConverterFactory.STD);
+    }
+
+    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory) throws SQLException {
         this.rs = rs;
-        this.factory = ConverterFactory.STD;
+        this.factory = factory;
         this.metaData = rs.getMetaData();
+        this.mappings = new ColumnMapping(metaData);
     }
 
     @NonNull
@@ -32,6 +41,7 @@ public final class SmartResultSet implements ResultSet {
         return this.getClass().getSimpleName() + "[" + rs + "]";
     }
 
+    @NonNull
     private int[] allFields() throws SQLException {
         return IntStream.rangeClosed(1, metaData.getColumnCount()).toArray();
     }
@@ -41,26 +51,90 @@ public final class SmartResultSet implements ResultSet {
         return getMap(allFields());
     }
 
+    private static final class ColumnMapping {
+        @NonNull
+        private final List<String> columnNames;
+
+        @NonNull
+        private final Map<String, Integer> columnIndexes;
+
+        public ColumnMapping(@NonNull ResultSetMetaData rsmd) throws SQLException {
+            checkNotNull(rsmd);
+            var count = rsmd.getColumnCount();
+            var names = new String[count];
+            var idx = new HashMap<String, Integer>(count);
+            for (int i = 1; i <= count; i++) {
+                var columnName = rsmd.getColumnLabel(i);
+                if (columnName == null || columnName.isEmpty()) {
+                    columnName = rsmd.getColumnName(i);
+                }
+                names[i - 1] = columnName.toUpperCase(Locale.ROOT);
+                idx.put(columnName, i);
+            }
+            this.columnNames = Stream.of(names).toList();
+            this.columnIndexes = Map.copyOf(idx);
+        }
+
+        public int getColumnCount() {
+            return columnNames.size();
+        }
+
+        public int indexOf(@NonNull String columnName) {
+            checkNotNull(columnName);
+            var name = columnName.toUpperCase(Locale.ROOT);
+            var v = columnIndexes.get(name);
+            if (v == null) {
+                throw new IllegalArgumentException("There is no column " + columnName + ".");
+            }
+            return v;
+        }
+
+        @NonNull
+        public String valueOf(int columnIndex) {
+            if (columnIndex < 1 || columnIndex > getColumnCount()) {
+                throw new IllegalArgumentException("There is no column " + columnIndex + ".");
+            }
+            return columnNames.get(columnIndex - 1);
+        }
+    }
+
     @NonNull
     public Map<String, Object> getMap(@NonNull int... fields) throws SQLException {
-        Map<String, Object> row = new HashMap<>(fields.length);
+        var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
-            var columnName = metaData.getColumnLabel(i);
-            if (columnName == null || columnName.isEmpty()) {
-                columnName = metaData.getColumnName(i);
-            }
-
+            var columnName = mappings.valueOf(i);
+            if (row.containsKey(columnName)) continue;
             var value = getTypedValue(i);
             row.put(columnName, value);
         }
 
-        return row;
+        return Map.copyOf(row);
+    }
+
+    @NonNull
+    public Map<String, Object> getMap(@NonNull String... fields) throws SQLException {
+        var row = new HashMap<String, Object>(fields.length);
+
+        for (var i : fields) {
+            var columnIndex = mappings.indexOf(i);
+            var columnName = mappings.valueOf(columnIndex); // Not necessarily equals to i if non case-sensitive.
+            if (row.containsKey(columnName)) continue;
+            var value = getTypedValue(i);
+            row.put(columnName, value);
+        }
+
+        return Map.copyOf(row);
     }
 
     @Nullable
     public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws SQLException {
         return getTypedValueOpt(columnIndex, target).orElse(null);
+    }
+
+    @Nullable
+    public <E> E getTypedValue(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
+        return getTypedValueOpt(columnLabel, target).orElse(null);
     }
 
     @NonNull
@@ -71,6 +145,12 @@ public final class SmartResultSet implements ResultSet {
         } catch (ConvertionException | UnavailableConverterException e) {
             throw new SQLException(e);
         }
+    }
+
+    @NonNull
+    public <E> Optional<E> getTypedValueOpt(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
+        var idx = this.mappings.indexOf(columnLabel);
+        return getTypedValueOpt(idx, target);
     }
 
     @Nullable
@@ -118,6 +198,16 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
+    // Pode retornar null, Long, Integer, Byte, Short, Float, Double, Boolean,
+    // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
+    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId ou Struct.
+    @Nullable
+    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
+    public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
+        var idx = this.mappings.indexOf(columnLabel);
+        return getTypedValue(idx);
+    }
+
     public <R extends Record> R getRecord(@NonNull Class<R> k) throws SQLException {
         return getRecord(k, x -> x, allFields());
     }
@@ -126,8 +216,28 @@ public final class SmartResultSet implements ResultSet {
         return getRecord(k, x -> x, fields);
     }
 
+    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull String... fields) throws SQLException {
+        return getRecord(k, x -> x, fields);
+    }
+
     public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull Function<String, String> remapper) throws SQLException {
         return getRecord(k, remapper, allFields());
+    }
+
+    private <R extends Record> R getRecord(
+            @NonNull Class<R> k,
+            @NonNull Function<String, String> remapper,
+            @NonNull Map<String, Object> map)
+            throws SQLException
+    {
+        checkNotNull(k);
+        checkNotNull(remapper);
+        checkNotNull(map);
+        try {
+            return factory.mapToRecord(map, k);
+        } catch (ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | UnavailableConverterException e) {
+            throw new SQLException(e);
+        }
     }
 
     public <R extends Record> R getRecord(
@@ -136,15 +246,22 @@ public final class SmartResultSet implements ResultSet {
             @NonNull int... fields)
             throws SQLException
     {
-        var map = getMap(fields)
-                .entrySet()
-                .stream()
-                .map(e -> Map.entry(remapper.apply(e.getKey()), e.getValue()))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        try {
-            return factory.mapToRecord(map, k);
-        } catch (ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | UnavailableConverterException e) {
-            throw new SQLException(e);
-        }
+        var map = getMap(fields);
+        return getRecord(k, remapper, map);
+    }
+
+    public <R extends Record> R getRecord(
+            @NonNull Class<R> k,
+            @NonNull Function<String, String> remapper,
+            @NonNull String... fields)
+            throws SQLException
+    {
+        var map = getMap(fields);
+        return getRecord(k, remapper, map);
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

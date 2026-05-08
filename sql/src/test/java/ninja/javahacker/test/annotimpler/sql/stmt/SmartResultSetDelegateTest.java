@@ -1,8 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.stmt;
 
-import lombok.Getter;
-import lombok.Setter;
-import java.lang.reflect.Proxy;
+import ninja.javahacker.test.ControlledMock;
 import ninja.javahacker.test.limited.AssertionInputStream;
 import ninja.javahacker.test.limited.AssertionReader;
 
@@ -11,32 +9,6 @@ import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
 public class SmartResultSetDelegateTest {
-
-    public static final class ControlledMock<E> {
-        @Getter
-        private final E mock;
-
-        @Getter
-        private final Class<E> iface;
-
-        @Getter
-        @Setter
-        private InvocationHandler handler;
-
-        @SuppressWarnings("unchecked")
-        private ControlledMock(Class<E> iface) {
-            this.iface = iface;
-            this.handler = (i, m, a) -> {
-                throw new AssertionError();
-            };
-            var cl = Thread.currentThread().getContextClassLoader();
-            this.mock = (E) Proxy.newProxyInstance(cl, new Class<?>[] {iface}, (i, m, a) -> this.handler.invoke(i, m, a));
-        }
-
-        public static <E> ControlledMock<E> mock(Class<E> iface) {
-            return new ControlledMock<>(iface);
-        }
-    }
 
     private static final class TestA {}
     private static final class TestB {}
@@ -143,10 +115,20 @@ public class SmartResultSetDelegateTest {
     @Test
     public void testGetMetaDataOk() throws Exception {
         var md = ControlledMock.mock(ResultSetMetaData.class);
+        md.setHandler((i, m, a) -> {
+            if (m.getName().equals("getColumnCount")) return 3;
+            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, "b"}[(int) a[0] - 1];
+            if (m.getName().equals("getColumnName")) {
+                var p = (int) a[0];
+                if (p == 2) return "wow x";
+                throw new AssertionError(p);
+            }
+            throw new AssertionError(m);
+        });
         var rs = ControlledMock.mock(ResultSet.class);
         rs.setHandler((i, m, a) -> {
             if (m.getName().equals("getMetaData")) return md.getMock();
-            throw new AssertionError();
+            throw new AssertionError(m);
         });
         SmartResultSet s = new SmartResultSet(rs.getMock());
         Assertions.assertSame(md.getMock(), s.getMetaData());
@@ -154,6 +136,16 @@ public class SmartResultSetDelegateTest {
 
     private void testMethod(Method mt) throws Exception {
         var md = ControlledMock.mock(ResultSetMetaData.class);
+        md.setHandler((i, m, a) -> {
+            if (m.getName().equals("getColumnCount")) return 3;
+            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, "b"}[(int) a[0] - 1];
+            if (m.getName().equals("getColumnName")) {
+                var p = (int) a[0];
+                if (p == 2) return "wow x";
+                throw new AssertionError(p);
+            }
+            throw new AssertionError(m);
+        });
         var rs = ControlledMock.mock(ResultSet.class);
         var lastCall = new Method[1];
         rs.setHandler((i, m, a) -> {

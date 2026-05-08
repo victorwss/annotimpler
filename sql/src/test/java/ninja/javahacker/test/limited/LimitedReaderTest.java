@@ -535,6 +535,7 @@ public class LimitedReaderTest {
         }
 
         @Test
+        @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read.")
         void shouldHandleNullBufferInRead() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
