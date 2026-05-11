@@ -12,11 +12,18 @@ public enum FileSqlFactory implements SqlFactory {
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromFile.class);
         if (anno == null) throw new UnsupportedOperationException();
-        var value = anno.value();
-        return anno.policy().prepare(FileSqlFactory::read, value);
+        return anno.policy().prepare(FileSqlFactory::read, anno);
     }
 
-    private static String read(@NonNull String value) throws IOException {
-        return Files.readString(Path.of(value), StandardCharsets.UTF_8);
+    private static String read(@NonNull SqlFromFile anno) throws IOException {
+        checkNotNull(anno);
+        var value = anno.value();
+        var encoding = CharsetSpec.from(anno.encoding());
+        return Files.readString(Path.of(value), encoding);
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

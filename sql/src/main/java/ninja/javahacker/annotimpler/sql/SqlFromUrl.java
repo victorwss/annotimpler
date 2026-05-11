@@ -9,4 +9,6 @@ import module ninja.javahacker.annotimpler.sql;
 public @interface SqlFromUrl {
     public String value();
     public ReadPolicy policy() default ReadPolicy.EVERY_TIME;
+    public boolean getEncodingFromHeaders() default true;
+    public Class<? extends CharsetSpec> fallbackEncoding() default CharsetSpec.Utf8.class;;
 }

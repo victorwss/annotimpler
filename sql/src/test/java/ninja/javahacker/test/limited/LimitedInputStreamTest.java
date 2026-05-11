@@ -543,6 +543,15 @@ public class LimitedInputStreamTest {
         }
 
         @Test
+        @SuppressWarnings("null")
+        @DisplayName("Should handle null buffer in read evn if closed.")
+        void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
+            var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
+            limited.close();
+            Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
+        }
+
+        @Test
         @DisplayName("Should handle invalid offset and length.")
         void shouldHandleInvalidOffsetAndLength() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);

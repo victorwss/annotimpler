@@ -57,8 +57,8 @@ public final class ParameterSet {
                 @NonNull ParsedQuery query,
                 @NonNull List<? extends SqlNamedParameter.SqlNamedParameterWithValue<?>> parameters)
         {
-            if (query == null) throw new AssertionError();
-            if (parameters == null) throw new AssertionError();
+            checkNotNull(query);
+            checkNotNull(parameters);
             this.query = query;
             this.parameters = parameters;
         }
@@ -101,5 +101,10 @@ public final class ParameterSet {
     @NonNull
     public static ParameterSet parameters(@NonNull ParsedQuery pq, @NonNull Method m) {
         return new ParameterSet(pq, m);
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

@@ -54,10 +54,10 @@ public final class LimitedInputStream extends InputStream {
     }
 
     @Override
-    public int read(byte[] b, int off, int len) throws IOException {
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+        if (b == null) throw new NullPointerException("Buffer cannot be null.");
         checkClosed();
 
-        if (b == null) throw new NullPointerException("Buffer cannot be null.");
         if (off < 0 || len < 0 || off + len > b.length) throw new IndexOutOfBoundsException("Invalid offset or length.");
         if (len == 0) return 0;
         if (position >= maxSize) return -1; // End of stream - limit reached.

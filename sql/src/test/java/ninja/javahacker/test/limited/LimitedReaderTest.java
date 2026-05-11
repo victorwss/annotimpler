@@ -543,6 +543,15 @@ public class LimitedReaderTest {
         }
 
         @Test
+        @SuppressWarnings("null")
+        @DisplayName("Should handle null buffer in read even if closed.")
+        void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
+            var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
+            limited.close();
+            Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
+        }
+
+        @Test
         @DisplayName("Should handle invalid offset and length.")
         void shouldHandleInvalidOffsetAndLength() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);

@@ -53,10 +53,10 @@ public final class LimitedReader extends Reader {
     }
 
     @Override
-    public int read(char[] cbuf, int off, int len) throws IOException {
+    public int read(@NonNull char[] cbuf, int off, int len) throws IOException {
+        if (cbuf == null) throw new NullPointerException("Buffer cannot be null.");
         checkClosed();
 
-        if (cbuf == null) throw new NullPointerException("Buffer cannot be null.");
         if (off < 0 || len < 0 || off + len > cbuf.length) throw new IndexOutOfBoundsException("Invalid offset or length.");
         if (len == 0) return 0;
         if (position >= maxSize) return -1; // End of reader - limit reached.

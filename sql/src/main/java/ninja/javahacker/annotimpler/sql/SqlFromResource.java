@@ -9,4 +9,5 @@ import module ninja.javahacker.annotimpler.sql;
 public @interface SqlFromResource {
     public String value();
     public Class<?> fromClass() default void.class;
+    public Class<? extends CharsetSpec> encoding() default CharsetSpec.Utf8.class;
 }

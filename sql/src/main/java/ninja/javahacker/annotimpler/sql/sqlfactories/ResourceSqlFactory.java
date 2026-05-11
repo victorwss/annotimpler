@@ -12,17 +12,23 @@ public enum ResourceSqlFactory implements SqlFactory {
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromResource.class);
         if (anno == null) throw new UnsupportedOperationException();
-        var value = anno.value();
-        var fromClass = anno.fromClass();
-        var from = fromClass != void.class ? fromClass : m.getDeclaringClass();
-        var r = new Resource(from, value);
+        var r = new Resource(anno, m);
         return ReadPolicy.ON_STARTUP.prepare(ResourceSqlFactory::read, r);
     }
 
     private static String read(@NonNull Resource res) throws IOException {
-        var bs = res.from.getResourceAsStream(res.value).readAllBytes();
+        checkNotNull(res);
+        var value = res.anno().value();
+        var fromClass = res.anno().fromClass();
+        var from = fromClass != void.class ? fromClass : res.m().getDeclaringClass();
+        var bs = from.getResourceAsStream(value).readAllBytes();
         return new String(bs, StandardCharsets.UTF_8);
     }
 
-    private static record Resource(Class<?> from, String value) {}
+    private static record Resource(SqlFromResource anno, Method m) {}
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
+    }
 }

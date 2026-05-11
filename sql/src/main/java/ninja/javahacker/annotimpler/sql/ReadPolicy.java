@@ -9,8 +9,8 @@ import module ninja.javahacker.annotimpler.sql;
 public enum ReadPolicy {
     ON_STARTUP(ReadPolicy::onStartup),
     ON_FIRST_TIME(ReadPolicy::everyTime),
-    ON_FIRST_TIME_DONT_RETRY(ReadPolicy::onFirstTime),
-    EVERY_TIME(ReadPolicy::onFirstTimeDontRetry);
+    ON_FIRST_TIME_DONT_RETRY(ReadPolicy::onFirstTimeDontRetry),
+    EVERY_TIME(ReadPolicy::onFirstTimeThatWorks);
 
     private final InImpl in;
 
@@ -18,49 +18,60 @@ public enum ReadPolicy {
         this.in = in;
     }
 
-    public static interface InImpl {
+    private static interface InImpl {
         public <E> SqlSupplier go(Impl<E> impl, E in) throws BadImplementationException;
     }
 
     public static interface Impl<E> {
-        public String read(E in) throws IOException;
+        public String read(E in) throws IOException, CharsetSpec.BadCharsetSpecException;
     }
 
-    public <E> SqlSupplier prepare(@NonNull Impl<E> impl, @NonNull E value) throws BadImplementationException {
-        return in.go(impl, value);
+    public <E> SqlSupplier prepare(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {
+        return in.go(impl, inputData);
     }
 
-    private static <E> SqlSupplier onStartup(Impl<E> impl, E value) throws BadImplementationException {
+    private static <E> SqlSupplier onStartup(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {
+        checkNotNull(impl);
+        checkNotNull(inputData);
+
         try {
-            var out = impl.read(value);
+            var out = impl.read(inputData);
             return () -> out;
-        } catch (IOException e) {
+        } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
             throw new BadImplementationException("Can't read from source.", e, ReadPolicy.class);
         }
     }
 
-    private static <E> SqlSupplier everyTime(Impl<E> impl, E value) {
+    private static <E> SqlSupplier everyTime(@NonNull Impl<E> impl, @NonNull E inputData) {
+        checkNotNull(impl);
+        checkNotNull(inputData);
+
         return () -> {
             try {
-                return impl.read(value);
-            } catch (IOException e) {
+                return impl.read(inputData);
+            } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
                 throw new SQLException(e);
             }
         };
     }
 
-    private static <E> SqlSupplier onFirstTime(Impl<E> impl, E value) {
+    private static <E> SqlSupplier onFirstTimeThatWorks(@NonNull Impl<E> impl, @NonNull E inputData) {
+        checkNotNull(impl);
+        checkNotNull(inputData);
+
         var sync = new Object();
         var result = new AtomicReference<String>();
+
         return () -> {
             var a = result.get();
             if (a != null) return a;
+
             synchronized (sync) {
                 a = result.get();
                 if (a == null) {
                     try {
-                        a = impl.read(value);
-                    } catch (IOException e) {
+                        a = impl.read(inputData);
+                    } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
                         throw new SQLException(e);
                     }
                     result.set(a);
@@ -70,23 +81,29 @@ public enum ReadPolicy {
         };
     }
 
-    private static <E> SqlSupplier onFirstTimeDontRetry(Impl<E> impl, E value) {
+    private static <E> SqlSupplier onFirstTimeDontRetry(@NonNull Impl<E> impl, @NonNull E inputData) {
+        checkNotNull(impl);
+        checkNotNull(inputData);
+
         var sync = new Object();
         var result = new AtomicReference<String>();
         var ops = new AtomicReference<SQLException>();
+
         return () -> {
             var x = ops.get();
             if (x != null) throw x;
             var a = result.get();
             if (a != null) return a;
+
             synchronized (sync) {
                 x = ops.get();
                 if (x != null) throw x;
                 a = result.get();
+
                 if (a == null) {
                     try {
-                        a = impl.read(value);
-                    } catch (IOException e) {
+                        a = impl.read(inputData);
+                    } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
                         x = new SQLException(e);
                         ops.set(x);
                         throw x;
@@ -96,5 +113,10 @@ public enum ReadPolicy {
                 return a;
             }
         };
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }
