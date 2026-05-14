@@ -18,11 +18,13 @@ public enum ResourceSqlFactory implements SqlFactory {
 
     private static String read(@NonNull Resource res) throws IOException {
         checkNotNull(res);
-        var value = res.anno().value();
-        var fromClass = res.anno().fromClass();
+        var anno = res.anno();
+        var value = anno.value();
+        var fromClass = anno.fromClass();
         var from = fromClass != void.class ? fromClass : res.m().getDeclaringClass();
         var bs = from.getResourceAsStream(value).readAllBytes();
-        return new String(bs, StandardCharsets.UTF_8);
+        var encoding = CharsetSpec.from(anno.encoding());
+        return new String(bs, encoding);
     }
 
     private static record Resource(SqlFromResource anno, Method m) {}
