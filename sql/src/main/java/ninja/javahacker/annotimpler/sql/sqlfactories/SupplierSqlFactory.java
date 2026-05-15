@@ -15,8 +15,12 @@ public enum SupplierSqlFactory implements SqlFactory {
         if (anno == null) throw new UnsupportedOperationException();
         var ref = anno.value();
         try {
-            var implClass = MagicFactory.of(ref);
-            return implClass.create();
+            var factory = MagicFactory.of(ref);
+            if (factory.arity() == 0) {
+                return factory.create();
+            } else {
+                return factory.create(anno.key());
+            }
         } catch (MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
             throw new BadImplementationException("Can't create a SqlSupplier.", e, ref);
         }

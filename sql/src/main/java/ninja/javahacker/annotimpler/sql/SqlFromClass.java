@@ -8,4 +8,5 @@ import module ninja.javahacker.annotimpler.sql;
 @Target(ElementType.METHOD)
 public @interface SqlFromClass {
     public Class<? extends SqlSupplier> value();
+    public String key() default "";
 }

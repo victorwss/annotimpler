@@ -12,6 +12,7 @@ public enum StringSqlFactory implements SqlFactory {
     public SqlSupplier prepare(@NonNull Method m) {
         var anno = m.getAnnotation(Sql.class);
         if (anno == null) throw new UnsupportedOperationException();
-        return () -> anno.value();
+        var v = anno.value();
+        return () -> v;
     }
 }

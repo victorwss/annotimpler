@@ -37,7 +37,7 @@ public enum ReadPolicy {
         try {
             var out = impl.read(inputData);
             return () -> out;
-        } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
+        } catch (IOException e) {
             throw new BadImplementationException("Can't read from source.", e, ReadPolicy.class);
         }
     }
@@ -49,7 +49,7 @@ public enum ReadPolicy {
         return () -> {
             try {
                 return impl.read(inputData);
-            } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
+            } catch (IOException e) {
                 throw new SQLException(e);
             }
         };
@@ -71,7 +71,7 @@ public enum ReadPolicy {
                 if (a == null) {
                     try {
                         a = impl.read(inputData);
-                    } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
+                    } catch (IOException e) {
                         throw new SQLException(e);
                     }
                     result.set(a);
@@ -103,7 +103,7 @@ public enum ReadPolicy {
                 if (a == null) {
                     try {
                         a = impl.read(inputData);
-                    } catch (CharsetSpec.BadCharsetSpecException | IOException e) {
+                    } catch (IOException e) {
                         x = new SQLException(e);
                         ops.set(x);
                         throw x;
