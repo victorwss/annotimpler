@@ -22,9 +22,13 @@ public enum ResourceSqlFactory implements SqlFactory {
         var value = anno.value();
         var fromClass = anno.fromClass();
         var from = fromClass != void.class ? fromClass : res.m().getDeclaringClass();
-        var bs = from.getResourceAsStream(value).readAllBytes();
-        var encoding = CharsetSpec.from(anno.encoding());
-        return new String(bs, encoding);
+        try (var stream = from.getResourceAsStream(value)) {
+            if (stream == null) throw new FileNotFoundException(from.getName() + " - " + value);
+            var bs = stream.readAllBytes();
+            var charset = CharsetSpec.from(anno.encoding());
+            var cb = charset.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bs));
+            return new String(cb.array());
+        }
     }
 
     private static record Resource(SqlFromResource anno, Method m) {}
@@ -32,5 +36,10 @@ public enum ResourceSqlFactory implements SqlFactory {
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
+    }
+
+    @Generated
+    private static void checkNotEquals(Object a, Object b) {
+        if (a == b) throw new AssertionError();
     }
 }

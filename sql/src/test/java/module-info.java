@@ -15,4 +15,6 @@ open module ninja.javahacker.test.annotimpler.sql {
     requires com.h2database;
     requires static lombok;
     requires static com.github.spotbugs.annotations;
+
+    exports ninja.javahacker.test.rsc;
 }

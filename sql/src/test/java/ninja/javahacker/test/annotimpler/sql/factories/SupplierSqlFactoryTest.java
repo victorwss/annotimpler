@@ -10,10 +10,6 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class SupplierSqlFactoryTest {
 
-    private static void empty() {
-        throw new AssertionError();
-    }
-
     public static class SomeSupplier1 implements SqlSupplier {
 
         public SomeSupplier1() {
