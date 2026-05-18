@@ -35,221 +35,111 @@ final class InternalNamedParameterStatement implements NamedParameterStatement {
         return paramMap;
     }
 
-    @Override
+    @FunctionalInterface
+    private static interface HandleVoid {
+        public void doIt() throws Throwable;
+    }
+
     @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
+    public static void handle(@NonNull HandleVoid h) throws SQLException {
+        try {
+            h.doIt();
+        } catch (SQLException e) {
+            throw e;
+        } catch (Throwable e) {
+            throw new SQLException(e);
+        }
+    }
+
+    @Override
     public void setAsciiStream(int parameterIndex, @Nullable InputStream x) throws SQLException {
-        try {
-            statement.setAsciiStream(parameterIndex, x);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setAsciiStream(parameterIndex, x));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setAsciiStream(int parameterIndex, @Nullable InputStream x, int length) throws SQLException {
-        try {
-            statement.setAsciiStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setAsciiStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setAsciiStream(int parameterIndex, @Nullable InputStream x, long length) throws SQLException {
-        try {
-            statement.setAsciiStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setAsciiStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setBinaryStream(int parameterIndex, @Nullable InputStream x) throws SQLException {
-        try {
-            statement.setBinaryStream(parameterIndex, x);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setBinaryStream(parameterIndex, x));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setBinaryStream(int parameterIndex, @Nullable InputStream x, int length) throws SQLException {
-        try {
-            statement.setBinaryStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setBinaryStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setBinaryStream(int parameterIndex, @Nullable InputStream x, long length) throws SQLException {
-        try {
-            statement.setBinaryStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setBinaryStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setCharacterStream(int parameterIndex, @Nullable Reader reader) throws SQLException {
-        try {
-            statement.setCharacterStream(parameterIndex, reader);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setCharacterStream(parameterIndex, reader));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setCharacterStream(int parameterIndex, @Nullable Reader reader, int length) throws SQLException {
-        try {
-            statement.setCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setCharacterStream(int parameterIndex, @Nullable Reader reader, long length) throws SQLException {
-        try {
-            statement.setCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setNCharacterStream(int parameterIndex, @Nullable Reader reader) throws SQLException {
-        try {
-            statement.setNCharacterStream(parameterIndex, reader);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setNCharacterStream(parameterIndex, reader));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setNCharacterStream(int parameterIndex, @Nullable Reader reader, long length) throws SQLException {
-        try {
-            statement.setNCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setNCharacterStream(parameterIndex, LimitedReader.wrapNullable(reader, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setBlob(int parameterIndex, @Nullable InputStream inputStream) throws SQLException {
-        try {
-            statement.setBlob(parameterIndex, inputStream);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setBlob(parameterIndex, inputStream));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setBlob(int parameterIndex, @Nullable InputStream inputStream, long length) throws SQLException {
-        try {
-            statement.setBlob(parameterIndex, LimitedInputStream.wrapNullable(inputStream, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setBlob(parameterIndex, LimitedInputStream.wrapNullable(inputStream, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setClob(int parameterIndex, @Nullable Reader reader) throws SQLException {
-        try {
-            statement.setClob(parameterIndex, reader);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setClob(parameterIndex, reader));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setClob(int parameterIndex, @Nullable Reader reader, long length) throws SQLException {
-        try {
-            statement.setClob(parameterIndex, LimitedReader.wrapNullable(reader, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setClob(parameterIndex, LimitedReader.wrapNullable(reader, length), length));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setNClob(int parameterIndex, @Nullable Reader reader) throws SQLException {
-        try {
-            statement.setNClob(parameterIndex, reader);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setNClob(parameterIndex, reader));
     }
 
     @Override
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setNClob(int parameterIndex, @Nullable Reader reader, long length) throws SQLException {
-        try {
-            statement.setNClob(parameterIndex, LimitedReader.wrapNullable(reader, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setNClob(parameterIndex, LimitedReader.wrapNullable(reader, length), length));
     }
 
     @Override
     @Deprecated
-    @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     public void setUnicodeStream(int parameterIndex, @Nullable InputStream x, int length) throws SQLException {
-        try {
-            statement.setUnicodeStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length);
-        } catch (SQLException e) {
-            throw e;
-        } catch (Throwable e) {
-            throw new SQLException(e);
-        }
+        handle(() -> statement.setUnicodeStream(parameterIndex, LimitedInputStream.wrapNullable(x, length), length));
     }
 
     @Generated

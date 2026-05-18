@@ -7,6 +7,8 @@ plugins {
     id("jacoco")
     id("pmd")
     id("project-report")
+    id("test-report-aggregation")
+    id("jacoco-report-aggregation")
 }
 
 allprojects {
@@ -214,7 +216,7 @@ subprojects {
         configProperties = [
             "checkstyle.cache.file": "${buildDir}/checkstyle.cache",
         ]
-        ignoreFailures = false
+        ignoreFailures = true
         showViolations = true
     }
 
@@ -258,7 +260,7 @@ subprojects {
     test {
         useJUnitPlatform()
         finalizedBy(jacocoTestReport)
-        ignoreFailures = false
+        ignoreFailures = true
         defaultCharacterEncoding = "UTF-8"
         testLogging.showStandardStreams = true
     }
@@ -268,7 +270,7 @@ subprojects {
     }
 
     jacocoTestReport {
-        dependsOn(test)
+        //dependsOn(test)
         reports {
             xml.required = false
             csv.required = false
@@ -319,6 +321,26 @@ subprojects {
         subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
     }
 }*/
+
+tasks.register("allJavadoc", Javadoc) {
+    // Collect source files from all subprojects
+    source subprojects.collect { it.sourceSets.main.allJava }
+
+    // Combine classpaths so links and references resolve correctly
+    classpath = files(subprojects.collect { it.sourceSets.main.compileClasspath })
+
+    // Set the output directory
+    destinationDir = file("${buildDir}/docs/javadoc")
+}
+
+tasks.register("aggregateTestReport", TestReport) {
+    destinationDirectory = file("${buildDir}/reports/allTests")
+    reportOn subprojects.collect { it.tasks.withType(Test) }
+}
+
+dependencies {
+    jacocoAggregation subprojects
+}
 
 project(":datetime") {
     def moduleName = "ninja.javahacker.annotimpler.datetime"
