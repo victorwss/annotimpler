@@ -6,11 +6,11 @@ public class SimpleHttpServer implements AutoCloseable {
 
     private final Object lock;
     private final int port;
-    private final ServerSocket serverSocket;
-    private final Thread serverThread;
+    private volatile Thread serverThread;
     private final Limits limits;
-    private volatile boolean stopped;
     private final RequestHandler handler;
+    private final ServerSocket serverSocket;
+    private volatile boolean stopped;
 
     private static record Limits(
             int maxSingleHeaderSize,
@@ -25,7 +25,7 @@ public class SimpleHttpServer implements AutoCloseable {
         this.handler = handler;
         this.limits = new Limits(8 * 1024, 48 * 1024, 100);
         this.serverSocket = new ServerSocket(port);
-        this.serverThread = new Thread(this::serve);
+        this.serverThread = null;
     }
 
     @Override
@@ -38,11 +38,21 @@ public class SimpleHttpServer implements AutoCloseable {
     }
 
     private void start() {
-        this.serverThread.start();
+        synchronized (lock) {
+            this.serverThread = Thread.startVirtualThread(this::serve);
+        }
+    }
+
+    public static SimpleHttpServer start(int port, RequestHandler handler) throws IOException {
+        var s = new SimpleHttpServer(port, handler);
+        s.start();
+        return s;
     }
 
     private void serve() {
-        if (this.serverThread != Thread.currentThread()) throw new AssertionError();
+        synchronized (lock) {
+            if (this.serverThread != Thread.currentThread()) throw new AssertionError();
+        }
         try (var executor = Executors.newVirtualThreadPerTaskExecutor()) {
             System.out.println("Server started at http://localhost:" + port);
 
@@ -55,18 +65,12 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    public static SimpleHttpServer start(int port, RequestHandler handler) throws IOException {
-        var s = new SimpleHttpServer(port, handler);
-        s.start();
-        return s;
-    }
-
     private static record HeaderLine(byte[] content, boolean completed, int size) {
         public String asString() {
             return new String(content, StandardCharsets.UTF_8);
         }
 
-        private static HeaderLine read(InputStream in, int max) throws IOException {
+        private static HeaderLine read(Input in, int max) throws IOException {
             var b = new byte[max];
             int k;
             int end = 0;
@@ -99,7 +103,7 @@ public class SimpleHttpServer implements AutoCloseable {
             return lines.get(lines.size() - 1).completed();
         }
 
-        private static HeaderSet read(InputStream in, Limits limits) throws IOException {
+        private static HeaderSet read(Input in, Limits limits) throws IOException {
             var headers = new ArrayList<HeaderLine>(limits.maxHeaderCount());
             var soFar = 0;
             for (var i = 0; i < limits.maxHeaderCount(); i++) {
@@ -123,8 +127,8 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    private static record HttpHeaders(String verb, String resource, String version, List<Header> headers) {
-        private static HttpHeaders parse(HeaderSet set) throws MalformedHeaderException {
+    public static record HttpRequestHeaders(String verb, String resource, String version, List<Header> headers) {
+        private static HttpRequestHeaders parse(HeaderSet set) throws MalformedHeaderException {
             if (!set.completed()) throw new MalformedHeaderException();
             var first = set.lines().get(0);
             var parts = first.asString().split(" ");
@@ -138,13 +142,51 @@ public class SimpleHttpServer implements AutoCloseable {
                 if (hname.isEmpty() || hname.startsWith(" ") || hname.endsWith(" ")) throw new MalformedHeaderException();
                 headers.add(new Header(hparts[0], hparts[1]));
             }
-            return new HttpHeaders(parts[0], parts[1], parts[2], List.copyOf(headers));
+            return new HttpRequestHeaders(parts[0], parts[1], parts[2], List.copyOf(headers));
         }
     }
 
     @FunctionalInterface
     public static interface RequestHandler {
-        public void handle(Socket client, HttpHeaders headers, InputStream in, OutputStream out);
+        public void handle(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException;
+    }
+
+    @FunctionalInterface
+    public static interface Input {
+        public int read() throws IOException;
+
+        public default byte[] read(int length) throws IOException {
+            var b = new byte[length];
+            int i;
+            for (i = 0; i < length; i++) {
+                var r = read();
+                if (r < 0) break;
+                b[i] = (byte) r;
+            }
+            if (i == length) return b;
+            var b2 = new byte[i];
+            System.arraycopy(b, 0, b2, 0, i);
+            return b2;
+        }
+
+        public static Input from(InputStream in) {
+            return () -> in.read();
+        }
+    }
+
+    @FunctionalInterface
+    public static interface Output {
+        public void write(byte value) throws IOException;
+
+        public default void write(byte[] values) throws IOException {
+            for (var e : values) {
+                write(e);
+            }
+        }
+
+        public static Output from(OutputStream out) {
+            return b -> out.write(b);
+        }
     }
 
     private void receiveRequest(Socket client) {
@@ -153,27 +195,10 @@ public class SimpleHttpServer implements AutoCloseable {
                 var in = new BufferedInputStream(client.getInputStream());
                 var out = client.getOutputStream()
         ) {
+            var iout = Output.from(out);
+            var iin = Input.from(in);
             try {
-                // Read the request line (e.g., "GET / HTTP/1.1").
-                var rawHeaders = HeaderSet.read(in, limits);
-                if (!rawHeaders.completed()) {
-                    output431(out);
-                    return;
-                }
-
-                var formattedHeaders = HttpHeaders.parse(rawHeaders);
-                handler.handle(client, formattedHeaders, in, out);
-
-                // For this example, we serve a fixed file "index.html".
-                /*var file = new File("index.html");
-                if (!file.exists() || file.isDirectory()) {
-                    output404(out);
-                    return;
-                }
-                var content = Files.readAllBytes(file.toPath());
-                output(out, "text/html; charset=utf-8", content);*/
-            } catch (MalformedHeaderException e) {
-                output400(out);
+                handleRequest(client, iin, iout);
             } finally {
                 out.flush();
             }
@@ -182,19 +207,40 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    private static void output(OutputStream out, String contentType, byte[] content) throws IOException {
-        var head = """
-                   HTTP/1.1 200 OK
-                   Content-Type: $X
-                   Content-Length: $Y
-                   $Z
-                   """;
-        var header = head.replace("$Z", "").replace("$Y", "" + content.length).replace("$X", contentType).replace("\n", "\r\n");
-        out.write(header.getBytes(StandardCharsets.UTF_8));
-        out.write(content);
+    private void handleRequest(Socket client, Input in, Output out) throws IOException {
+        var rawHeaders = HeaderSet.read(in, limits);
+        if (!rawHeaders.completed()) {
+            output431(out);
+            return;
+        }
+
+        HttpRequestHeaders formattedHeaders;
+        try {
+            formattedHeaders = HttpRequestHeaders.parse(rawHeaders);
+        } catch (MalformedHeaderException e) {
+            output400(out);
+            return;
+        }
+
+        try {
+            handler.handle(client, formattedHeaders, in, out);
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            output500(out);
+            return;
+        }
     }
 
-    private static void output404(OutputStream out) throws IOException {
+    public static void output400(Output out) throws IOException {
+        var head = """
+                   HTTP/1.1 400 Bad Request
+                   $Z
+                   Bad Request""";
+        var header = head.replace("$Z", "").replace("\n", "\r\n");
+        out.write(header.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void output404(Output out) throws IOException {
         var head = """
                    HTTP/1.1 404 Not Found
                    $Z
@@ -203,7 +249,7 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void output431(OutputStream out) throws IOException {
+    public static void output431(Output out) throws IOException {
         var head = """
                    HTTP/1.1 431 Request Header Fields Too Large
                    $Z
@@ -212,12 +258,65 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    private static void output400(OutputStream out) throws IOException {
+    public static void output500(Output out) throws IOException {
         var head = """
-                   HTTP/1.1 400 Bad Request
+                   HTTP/1.1 500 Internal Server Error
                    $Z
-                   Bad Reques""";
+                   Internal Server Error""";
         var header = head.replace("$Z", "").replace("\n", "\r\n");
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
+
+    public static record Content(String contentType, byte[] content) {
+        public void output(Output out) throws IOException {
+            var head = """
+                       HTTP/1.1 200 OK
+                       Content-Type: $X
+                       Content-Length: $Y
+                       $Z
+                       $Z""";
+            var header = head.replace("$Z", "").replace("$Y", "" + content.length).replace("$X", contentType).replace("\n", "\r\n");
+            out.write(header.getBytes(StandardCharsets.UTF_8));
+            out.write(content);
+        }
+    }
+
+    public static RequestHandler staticFiles(Map<String, ? extends Supplier<Content>> files) {
+        return (client, headers, in, out) -> {
+            var name = headers.resource();
+            var sup = files.get(name);
+            if (sup == null) sup = () -> null;
+            var c = sup.get();
+            if (c == null) {
+                output404(out);
+                return;
+            }
+            c.output(out);
+        };
+    }
+
+    /*
+        Still lacking:
+        * Response headers
+        * Date headers
+        * keep-alive
+        * cache control
+        * content negotiation
+        * conditional get
+        * chunking
+        * status codes
+        * percent encoding
+        * query string
+        * form data
+        * multipart upload
+        * gzip
+        * TLS
+        * redirect
+        * CORS
+        * QUIC
+        * HTTP 2
+        * HTTP 3
+        * Special handling for ETag, Cookies, User-Agent, referer, etc.
+        * Probably a lot more...
+    */
 }
