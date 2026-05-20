@@ -55,8 +55,9 @@ public class FileSqlFactoryTest {
     @Test
     public void testFileSqlDoesNotExist() throws Exception {
         var mx = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX1")).findAny().get();
-        var ex = Assertions.assertThrows(FileNotFoundException.class, () -> FileSqlFactory.INSTANCE.prepare(mx));
-        Assertions.assertEquals("./test-files/does-not-exist.txt", ex.getMessage());
+        var ex = Assertions.assertThrows(SQLException.class, () -> FileSqlFactory.INSTANCE.prepare(mx).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertEquals("./test-files/does-not-exist.txt", ex.getMessage().replace("\\", "/"));
     }
 
     @Test

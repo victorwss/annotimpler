@@ -1,7 +1,5 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
-import lombok.NonNull;
-
 import java.sql.SQLException;
 
 @FunctionalInterface

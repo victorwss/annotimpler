@@ -46,38 +46,52 @@ public class UrlSqlFactoryTest {
         Map<String, Supplier<SimpleHttpServer.Content>> m = Map.of(
                 "lorem-utf-8.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8)),
                 "lorem-iso-8859-1.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1)),
-                "lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))
+                "lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1)),
+                "ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))
         );
         SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
+        System.out.println("UP!");
     }
 
     @AfterAll
     public static void after() throws Exception {
         SERVER.close();
+        System.out.println("Down!");
     }
 
     @Test
-    public void testFileSql() throws Exception {
+    public void sanityCheck() throws Exception {
+        var url = new URI("http://localhost:8080/ping.txt").toURL();
+        byte[] all;
+        try (var s = url.openStream()) {
+            all = s.readAllBytes();
+        }
+        Assertions.assertEquals("PING!", new String(all, StandardCharsets.UTF_8));
+    }
+
+    @Test
+    public void testUrlSql() throws Exception {
         var m1 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql1")).findAny().get();
         var m2 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql2")).findAny().get();
         var m3 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql3")).findAny().get();
-        var x = FileSqlFactory.INSTANCE.prepare(m1).get();
+        var x = UrlSqlFactory.INSTANCE.prepare(m1).get();
         Assertions.assertEquals(LOREM_UTF_8, x);
-        var y = FileSqlFactory.INSTANCE.prepare(m2).get();
+        var y = UrlSqlFactory.INSTANCE.prepare(m2).get();
         Assertions.assertEquals(LOREM_UTF_8, y);
-        var z = FileSqlFactory.INSTANCE.prepare(m3).get();
+        var z = UrlSqlFactory.INSTANCE.prepare(m3).get();
         Assertions.assertEquals(LOREM_ISO_88591, z);
     }
 
     @Test
-    public void testFileSqlDoesNotExist() throws Exception {
+    public void testUrlSqlDoesNotExist() throws Exception {
         var mx = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX1")).findAny().get();
-        var ex = Assertions.assertThrows(FileNotFoundException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx));
-        Assertions.assertEquals("./test-files/does-not-exist.txt", ex.getMessage());
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertEquals("./test-files/does-not-exist.txt", ex.getMessage().replace("\\", "/"));
     }
 
     @Test
-    public void testFileSqlBadEncoding() throws Exception {
+    public void testUrlSqlBadEncoding() throws Exception {
         var mx = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX2")).findAny().get();
         var ex = Assertions.assertThrows(BadImplementationException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
         Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());

@@ -55,8 +55,9 @@ public class ResourceSqlFactoryTest {
     @Test
     public void testResourceSqlDoesNotExist() throws Exception {
         var mx = Stream.of(ResourceSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX1")).findAny().get();
-        var ex = Assertions.assertThrows(FileNotFoundException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mx));
-        Assertions.assertEquals("/does-not-exist.txt", ex.getMessage());
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mx).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertEquals("Can't read from source.", ex.getMessage());
     }
 
     @Test

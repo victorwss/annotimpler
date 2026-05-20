@@ -50,7 +50,7 @@ public enum ReadPolicy {
             try {
                 return impl.read(inputData);
             } catch (IOException e) {
-                throw new SQLException(e);
+                throw new SQLException(e.getMessage(), e);
             }
         };
     }
@@ -72,7 +72,7 @@ public enum ReadPolicy {
                     try {
                         a = impl.read(inputData);
                     } catch (IOException e) {
-                        throw new SQLException(e);
+                        throw new SQLException(e.getMessage(), e);
                     }
                     result.set(a);
                 }
@@ -104,7 +104,7 @@ public enum ReadPolicy {
                     try {
                         a = impl.read(inputData);
                     } catch (IOException e) {
-                        x = new SQLException(e);
+                        x = new SQLException(e.getMessage(), e);
                         ops.set(x);
                         throw x;
                     }

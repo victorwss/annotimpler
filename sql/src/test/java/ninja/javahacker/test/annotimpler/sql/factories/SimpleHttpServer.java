@@ -190,10 +190,11 @@ public class SimpleHttpServer implements AutoCloseable {
     }
 
     private void receiveRequest(Socket client) {
+        System.out.println("Received connection.");
         try (
                 client;
                 var in = new BufferedInputStream(client.getInputStream());
-                var out = client.getOutputStream()
+                var out = new BufferedOutputStream(client.getOutputStream())
         ) {
             var iout = Output.from(out);
             var iin = Input.from(in);
@@ -205,12 +206,14 @@ public class SimpleHttpServer implements AutoCloseable {
         } catch (IOException e) {
             System.err.println("Error handling client: " + e.getMessage());
         }
+        System.out.println("Finished connection.");
     }
 
     private void handleRequest(Socket client, Input in, Output out) throws IOException {
         var rawHeaders = HeaderSet.read(in, limits);
         if (!rawHeaders.completed()) {
             output431(out);
+            System.out.println("Oops - 431.");
             return;
         }
 
@@ -219,13 +222,16 @@ public class SimpleHttpServer implements AutoCloseable {
             formattedHeaders = HttpRequestHeaders.parse(rawHeaders);
         } catch (MalformedHeaderException e) {
             output400(out);
+            System.out.println("Oops - 400.");
             return;
         }
+        System.out.println("Headers ok. " + formattedHeaders.verb() + " - " + formattedHeaders.resource());
 
         try {
             handler.handle(client, formattedHeaders, in, out);
         } catch (Throwable e) {
             e.printStackTrace(System.err);
+            System.out.println("Oops - 500.");
             output500(out);
             return;
         }
@@ -288,9 +294,11 @@ public class SimpleHttpServer implements AutoCloseable {
             if (sup == null) sup = () -> null;
             var c = sup.get();
             if (c == null) {
+                System.out.println("Oops - 404.");
                 output404(out);
                 return;
             }
+            System.out.println("Ok - 200");
             c.output(out);
         };
     }
