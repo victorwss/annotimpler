@@ -14,27 +14,27 @@ public class ResourceSqlFactoryTest {
 
     private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁";
 
-    @SqlFromResource("/ninja/javahacker/test/lorem-utf-8.txt")
+    @SqlFromResource("/ninja/javahacker/test/rsc/lorem-utf-8.txt")
     private static void withSql1() {
         throw new AssertionError();
     }
 
-    @SqlFromResource(value = "/ninja/javahacker/test/lorem-utf-8.txt", encoding = CharsetSpec.Utf8.class)
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-utf-8.txt", encoding = CharsetSpec.Utf8.class)
     private static void withSql2() {
         throw new AssertionError();
     }
 
-    @SqlFromResource(value = "/ninja/javahacker/test/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591.class)
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591.class)
     private static void withSql3() {
         throw new AssertionError();
     }
 
-    @SqlFromResource("/ninja/javahacker/test/does-not-exist.txt")
+    @SqlFromResource("/ninja/javahacker/test/rsc/does-not-exist.txt")
     private static void withSqlX1() {
         throw new AssertionError();
     }
 
-    @SqlFromResource(value = "/ninja/javahacker/test/lorem-utf-8.txt", encoding = CharsetSpec.Iso88591.class)
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-utf-8.txt", encoding = CharsetSpec.Iso88591.class)
     private static void withSqlX2() {
         throw new AssertionError();
     }

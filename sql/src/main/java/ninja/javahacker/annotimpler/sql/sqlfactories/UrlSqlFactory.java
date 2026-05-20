@@ -22,7 +22,7 @@ public enum UrlSqlFactory implements SqlFactory {
         try (var client = HttpClient.newHttpClient()) {
             var request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
             var response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
-            if (response.statusCode() >= 400) throw new IOException("HTTP Error: " + response.statusCode());
+            if (!isStatusOk(response.statusCode())) throw new IOException("HTTP Error: " + response.statusCode());
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);
             Charset charset;
@@ -32,10 +32,30 @@ public enum UrlSqlFactory implements SqlFactory {
             } else {
                 charset = CharsetSpec.from(anno.fallbackEncoding());
             }
-            var cb = charset.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(response.body()));
-            return new String(cb.array());
+            return make(response.body(), charset);
         } catch (InterruptedException e) {
             throw new IOException("Download was interrupted.", e);
         }
+    }
+
+    private static boolean isStatusOk(int status) {
+        return status >= 200 && status <= 299;
+    }
+
+    private static String make(@NonNull byte[] input, @NonNull Charset charset) throws IOException {
+        checkNotNull(input);
+        checkNotNull(charset);
+        var buf = ByteBuffer.wrap(input);
+        try {
+            var cb = charset.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(buf);
+            return new String(cb.array(), 0, cb.length());
+        } catch (IOException e) {
+            throw new IOException("String can't be coded as " + charset.displayName(Locale.ROOT) + ".");
+        }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

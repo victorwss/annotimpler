@@ -60,8 +60,9 @@ public class SimpleHttpServer implements AutoCloseable {
                 var client = serverSocket.accept();
                 executor.submit(() -> receiveRequest(client));
             }
-        } catch (IOException e) {
+        } catch (Throwable e) {
             System.err.println("Error handling server: " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -87,13 +88,15 @@ public class SimpleHttpServer implements AutoCloseable {
                 if (a == 10) {
                     end = slashR ? 2 : 1;
                     completed = true;
+                    k++;
                     break;
                 }
                 slashR = (a == 13);
             }
 
+            if (k == max) return new HeaderLine(b, false, k);
             var c = new byte[k - end];
-            System.arraycopy(b, 0, c, 0, k);
+            System.arraycopy(b, 0, c, 0, k - end);
             return new HeaderLine(c, completed, k);
         }
     }
@@ -208,36 +211,36 @@ public class SimpleHttpServer implements AutoCloseable {
             ok = true;
         } catch (Throwable e) {
             System.err.println("Error handling client: " + e);
+            e.printStackTrace();
         } finally {
             System.out.println("Finished connection: " + (ok ? "ok" : "error"));
         }
     }
 
     private void handleRequest(Socket client, Input in, Output out) throws IOException {
-        var rawHeaders = HeaderSet.read(in, limits);
-        if (!rawHeaders.completed()) {
-            output431(out);
-            System.out.println("Oops - 431.");
-            return;
-        }
-
-        HttpRequestHeaders formattedHeaders;
         try {
-            formattedHeaders = HttpRequestHeaders.parse(rawHeaders);
-        } catch (MalformedHeaderException e) {
-            output400(out);
-            System.out.println("Oops - 400.");
-            return;
-        }
-        System.out.println("Headers ok. " + formattedHeaders.verb() + " - " + formattedHeaders.resource());
+            var rawHeaders = HeaderSet.read(in, limits);
+            if (!rawHeaders.completed()) {
+                output431(out);
+                System.out.println("Oops - 431.");
+                return;
+            }
 
-        try {
+            HttpRequestHeaders formattedHeaders;
+            try {
+                formattedHeaders = HttpRequestHeaders.parse(rawHeaders);
+            } catch (MalformedHeaderException e) {
+                output400(out);
+                System.out.println("Oops - 400.");
+                return;
+            }
+            System.out.println("Headers ok. " + formattedHeaders.verb() + " - " + formattedHeaders.resource());
+
             handler.handle(client, formattedHeaders, in, out);
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.out.println("Oops - 500.");
             output500(out);
-            return;
         }
     }
 
@@ -287,6 +290,7 @@ public class SimpleHttpServer implements AutoCloseable {
                        $Z""";
             var header = head.replace("$Z", "").replace("$Y", "" + content.length).replace("$X", contentType).replace("\n", "\r\n");
             out.write(header.getBytes(StandardCharsets.UTF_8));
+            System.out.println(Arrays.toString(content));
             out.write(content);
         }
     }
