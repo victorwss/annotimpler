@@ -142,6 +142,7 @@ public class SimpleHttpServer implements AutoCloseable {
                 if (hname.isEmpty() || hname.startsWith(" ") || hname.endsWith(" ")) throw new MalformedHeaderException();
                 headers.add(new Header(hparts[0], hparts[1]));
             }
+            System.out.println(headers);
             return new HttpRequestHeaders(parts[0], parts[1], parts[2], List.copyOf(headers));
         }
     }
@@ -191,6 +192,7 @@ public class SimpleHttpServer implements AutoCloseable {
 
     private void receiveRequest(Socket client) {
         System.out.println("Received connection.");
+        var ok = false;
         try (
                 client;
                 var in = new BufferedInputStream(client.getInputStream());
@@ -203,10 +205,12 @@ public class SimpleHttpServer implements AutoCloseable {
             } finally {
                 out.flush();
             }
-        } catch (IOException e) {
-            System.err.println("Error handling client: " + e.getMessage());
+            ok = true;
+        } catch (Throwable e) {
+            System.err.println("Error handling client: " + e);
+        } finally {
+            System.out.println("Finished connection: " + (ok ? "ok" : "error"));
         }
-        System.out.println("Finished connection.");
     }
 
     private void handleRequest(Socket client, Input in, Output out) throws IOException {
