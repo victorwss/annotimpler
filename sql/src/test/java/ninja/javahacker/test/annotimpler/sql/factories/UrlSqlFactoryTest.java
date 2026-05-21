@@ -67,6 +67,24 @@ public class UrlSqlFactoryTest {
         throw new AssertionError();
     }
 
+    // Test if error 166 (made up) makes it crash.
+    @SqlFromUrl(value = "http://localhost:8080/nuts.txt")
+    private static void withSqlX5() {
+        throw new AssertionError();
+    }
+
+    // Test if error 666 (made up) makes it crash.
+    @SqlFromUrl(value = "http://localhost:8080/devil.txt")
+    private static void withSqlX6() {
+        throw new AssertionError();
+    }
+
+    // Test if error 1234 (made up) makes it crash.
+    @SqlFromUrl(value = "http://localhost:8080/crazy.txt")
+    private static void withSqlX7() {
+        throw new AssertionError();
+    }
+
     @SqlFromUrl(value = "http://localhost:8080/idiot.txt")
     private static void withSqlCrash1() {
         throw new AssertionError();
@@ -92,6 +110,39 @@ public class UrlSqlFactoryTest {
         throw new AssertionError();
     }
 
+    public static void outputNuts(SimpleHttpServer.Output out) throws IOException {
+        var head = """
+                   HTTP/1.1 166 I am Nuts
+                   Content-Type: crash/sorry; charset=utf-8
+                   Connection: Screw up
+                   X-Crazy-Stuff: Stoned
+                   $Z
+                   LOLOL""";
+        var header = head.replace("$Z", "").replace("\n", "\r\n");
+        out.write(header.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void outputDevil(SimpleHttpServer.Output out) throws IOException {
+        var head = """
+                   HTTP/1.1 666 Devil
+                   Content-Type: hell/devil; charset=utf-666
+                   Connection: Death
+                   $Z
+                   What a hell of an error!""";
+        var header = head.replace("$Z", "").replace("\n", "\r\n");
+        out.write(header.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static void outputCrazy(SimpleHttpServer.Output out) throws IOException {
+        var head = """
+                   HTTP/1.1 1234 Way too large status code
+                   X-Crazy-Stuff: Ha ha ha
+                   $Z
+                   Oops!""";
+        var header = head.replace("$Z", "").replace("\n", "\r\n");
+        out.write(header.getBytes(StandardCharsets.UTF_8));
+    }
+
     @BeforeAll
     public static void before() throws Exception {
         Map<String, Supplier<SimpleHttpServer.ProvidesOutput>> m = Map.ofEntries(
@@ -102,11 +153,14 @@ public class UrlSqlFactoryTest {
                 Map.entry("/lorem-iso-8859-1e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
                 Map.entry("/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))),
                 Map.entry("/crash.txt", () -> SimpleHttpServer::output500),
+                Map.entry("/devil.txt", () -> UrlSqlFactoryTest::outputDevil),
+                Map.entry("/crazy.txt", () -> UrlSqlFactoryTest::outputCrazy),
                 Map.entry("/idiot.txt", () -> out -> out.write("blam blam blam".getBytes(StandardCharsets.UTF_8))),
                 Map.entry("/silence.txt", () -> SimpleHttpServer.ProvidesOutput.DO_NOTHING),
                 Map.entry("/no-answer.txt", () -> SimpleHttpServer.ProvidesOutput.ABORT),
                 Map.entry("/vanish.txt", () -> SimpleHttpServer.ProvidesOutput.DROP),
-                Map.entry("/non-sense.txt", () -> out -> out.write(new byte[] {5, 15, 20, -1, -2, 0, 1}))
+                Map.entry("/non-sense.txt", () -> out -> out.write(new byte[] {5, 15, 20, -1, -2, 0, 1})),
+                Map.entry("/nuts.txt", () -> UrlSqlFactoryTest::outputNuts)
         );
         SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
         System.out.println("UP!");
@@ -155,6 +209,22 @@ public class UrlSqlFactoryTest {
         var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
         Assertions.assertTrue(ex.getCause() instanceof IOException);
         Assertions.assertEquals("HTTP Error: 500", ex.getMessage());
+    }
+
+    @Test
+    public void testUrlSqlHasDiabolicError() throws Exception {
+        var m = "withSqlX6";
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertEquals("HTTP Error: 666", ex.getMessage());
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testUrlSqlHasStrangeError() throws Exception {
+        return Stream.of("withSqlX5", "withSqlX7").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+        }));
     }
 
     @TestFactory

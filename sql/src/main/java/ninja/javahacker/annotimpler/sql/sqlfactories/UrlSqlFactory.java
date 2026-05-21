@@ -40,7 +40,7 @@ public enum UrlSqlFactory implements SqlFactory {
     }
 
     private static boolean isStatusOk(int status) {
-        return status >= 200 && status <= 299;
+        return status / 100 == 2;
     }
 
     @Generated
