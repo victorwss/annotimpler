@@ -26,8 +26,7 @@ public enum ResourceSqlFactory implements SqlFactory {
             if (stream == null) throw new FileNotFoundException(from.getName() + " - " + value);
             var bs = stream.readAllBytes();
             var charset = CharsetSpec.from(anno.encoding());
-            var cb = charset.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(ByteBuffer.wrap(bs));
-            return new String(cb.array());
+            return BytesToStringSupport.make(bs, charset);
         }
     }
 
@@ -36,10 +35,5 @@ public enum ResourceSqlFactory implements SqlFactory {
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
-    }
-
-    @Generated
-    private static void checkNotEquals(Object a, Object b) {
-        if (a == b) throw new AssertionError();
     }
 }

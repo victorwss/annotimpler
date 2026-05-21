@@ -18,8 +18,10 @@ public enum FileSqlFactory implements SqlFactory {
     private static String read(@NonNull SqlFromFile anno) throws IOException {
         checkNotNull(anno);
         var value = anno.value();
-        var encoding = CharsetSpec.from(anno.encoding());
-        return Files.readString(Path.of(value), encoding);
+        var charset = CharsetSpec.from(anno.encoding());
+        var path = Path.of(value).normalize().toAbsolutePath();
+        var content = Files.readAllBytes(path);
+        return BytesToStringSupport.make(content, charset);
     }
 
     @Generated

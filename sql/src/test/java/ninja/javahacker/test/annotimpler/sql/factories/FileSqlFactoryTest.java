@@ -1,8 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.factories;
 
-import ninja.javahacker.test.ForTests;
-import lombok.NonNull;
-
 import module java.base;
 import module org.junit.jupiter.api;
 import module ninja.javahacker.annotimpler.sql;
@@ -10,77 +7,67 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class FileSqlFactoryTest {
 
-    private static final String LOREM_ISO_88591 = "Lorem ipsum dolor sit amet - áéíóúñçªº - Lorem ipsum dolor sit amet";
+    private static final String LOREM_ISO_88591 = "Lorem ipsum dolor sit amet - áéíóúñçªº - Lorem ipsum dolor sit amet\n";
 
-    private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁";
+    private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁\n";
 
+    // Tests if it works and defaults to UTF-8.
     @SqlFromFile("./test-files/lorem-utf-8.txt")
     private static void withSql1() {
         throw new AssertionError();
     }
 
+    // Tests if it works with UTF-8.
     @SqlFromFile(value = "./test-files/lorem-utf-8.txt", encoding = CharsetSpec.Utf8.class)
     private static void withSql2() {
         throw new AssertionError();
     }
 
+    // Tests if it works with ISO-8859-1.
     @SqlFromFile(value = "./test-files/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591.class)
     private static void withSql3() {
         throw new AssertionError();
     }
 
+    // Tests for 404.
     @SqlFromFile("./test-files/does-not-exist.txt")
     private static void withSqlX1() {
         throw new AssertionError();
     }
 
-    @SqlFromFile(value = "./test-files/lorem-utf-8.txt", encoding = CharsetSpec.Iso88591.class)
+    // Test if wrong encoding makes it crash.
+    @SqlFromFile(value = "./test-files/lorem-iso-8859-1.txt", encoding = CharsetSpec.Utf8.class)
     private static void withSqlX2() {
         throw new AssertionError();
     }
 
-    @Test
-    public void testFileSql() throws Exception {
-        var m1 = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql1")).findAny().get();
-        var m2 = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql2")).findAny().get();
-        var m3 = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql3")).findAny().get();
-        var x = FileSqlFactory.INSTANCE.prepare(m1).get();
-        Assertions.assertEquals(LOREM_UTF_8, x);
-        var y = FileSqlFactory.INSTANCE.prepare(m2).get();
-        Assertions.assertEquals(LOREM_UTF_8, y);
-        var z = FileSqlFactory.INSTANCE.prepare(m3).get();
-        Assertions.assertEquals(LOREM_ISO_88591, z);
+    private static Method mtd(String name) {
+        return Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals(name)).findAny().get();
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testFileSql() throws Exception {
+        var a = Stream.of("withSql1", "withSql2")
+                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+        var b = Stream.of("withSql3")
+                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+        return Stream.concat(a, b);
     }
 
     @Test
     public void testFileSqlDoesNotExist() throws Exception {
-        var mx = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX1")).findAny().get();
-        var ex = Assertions.assertThrows(SQLException.class, () -> FileSqlFactory.INSTANCE.prepare(mx).get());
+        var m = "withSqlX1";
+        var ex = Assertions.assertThrows(SQLException.class, () -> FileSqlFactory.INSTANCE.prepare(mtd(m)).get());
         Assertions.assertTrue(ex.getCause() instanceof IOException);
-        Assertions.assertEquals("./test-files/does-not-exist.txt", ex.getMessage().replace("\\", "/"));
+        Assertions.assertTrue(ex.getMessage().replace("\\", "/").endsWith("/test-files/does-not-exist.txt"));
     }
 
-    @Test
-    public void testFileSqlBadEncoding() throws Exception {
-        var mx = Stream.of(FileSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX2")).findAny().get();
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> FileSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());
-        Assertions.assertEquals(UnmappableCharacterException.class, ex.getCause().getClass());
+    @TestFactory
+    public Stream<DynamicTest> testFileSqlBadEncoding() throws Exception {
+        return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> FileSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
+        }));
     }
-
-    /*/@Test
-    public void testBadSupplierClass() throws Exception {
-        var mx = Stream.of(ResourceSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX3")).findAny().get();
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());
-        Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, ex.getCause().getClass());
-    }
-
-    @Test
-    public void testBadSupplierCtor() throws Exception {
-        var mx = Stream.of(ResourceSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX4")).findAny().get();
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());
-        Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, ex.getCause().getClass());
-    }/*/
 }

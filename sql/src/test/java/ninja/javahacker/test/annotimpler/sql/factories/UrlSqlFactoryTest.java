@@ -61,15 +61,52 @@ public class UrlSqlFactoryTest {
         throw new AssertionError();
     }
 
+    // Test if error 500 makes it crash.
+    @SqlFromUrl(value = "http://localhost:8080/crash.txt")
+    private static void withSqlX4() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:8080/idiot.txt")
+    private static void withSqlCrash1() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:8080/silence.txt")
+    private static void withSqlCrash2() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:8080/no-answer.txt")
+    private static void withSqlCrash3() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:8080/vanish.txt")
+    private static void withSqlCrash4() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:8080/non-sense.txt")
+    private static void withSqlCrash5() {
+        throw new AssertionError();
+    }
+
     @BeforeAll
     public static void before() throws Exception {
-        Map<String, Supplier<SimpleHttpServer.Content>> m = Map.ofEntries(
+        Map<String, Supplier<SimpleHttpServer.ProvidesOutput>> m = Map.ofEntries(
                 Map.entry("/lorem-utf-8.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
                 Map.entry("/lorem-utf-8e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
                 Map.entry("/lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
                 Map.entry("/lorem-iso-8859-1.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
                 Map.entry("/lorem-iso-8859-1e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
-                Map.entry("/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8)))
+                Map.entry("/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/crash.txt", () -> SimpleHttpServer::output500),
+                Map.entry("/idiot.txt", () -> out -> out.write("blam blam blam".getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/silence.txt", () -> SimpleHttpServer.ProvidesOutput.DO_NOTHING),
+                Map.entry("/no-answer.txt", () -> SimpleHttpServer.ProvidesOutput.ABORT),
+                Map.entry("/vanish.txt", () -> SimpleHttpServer.ProvidesOutput.DROP),
+                Map.entry("/non-sense.txt", () -> out -> out.write(new byte[] {5, 15, 20, -1, -2, 0, 1}))
         );
         SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
         System.out.println("UP!");
@@ -112,6 +149,14 @@ public class UrlSqlFactoryTest {
         Assertions.assertEquals("HTTP Error: 404", ex.getMessage());
     }
 
+    @Test
+    public void testUrlSqlHasError() throws Exception {
+        var m = "withSqlX4";
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertEquals("HTTP Error: 500", ex.getMessage());
+    }
+
     @TestFactory
     public Stream<DynamicTest> testUrlSqlBadEncoding() throws Exception {
         return Stream.of("withSqlX2", "withSqlX3").map(m -> DynamicTest.dynamicTest(m, () -> {
@@ -121,19 +166,21 @@ public class UrlSqlFactoryTest {
         }));
     }
 
-    /*/@Test
-    public void testBadSupplierClass() throws Exception {
-        var mx = Stream.of(ResourceSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX3")).findAny().get();
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());
-        Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, ex.getCause().getClass());
+    @TestFactory
+    public Stream<DynamicTest> testUrlSqlMisbehavingServer1() throws Exception {
+        return Stream.of("withSqlCrash1", "withSqlCrash5").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertTrue(ex.getMessage().startsWith("parsing HTTP/1.1 status line"));
+        }));
     }
 
-    @Test
-    public void testBadSupplierCtor() throws Exception {
-        var mx = Stream.of(ResourceSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX4")).findAny().get();
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertEquals("Can't create a SqlSupplier.", ex.getMessage());
-        Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, ex.getCause().getClass());
-    }/*/
+    @TestFactory
+    public Stream<DynamicTest> testUrlSqlMisbehavingServer2() throws Exception {
+        return Stream.of("withSqlCrash2", "withSqlCrash3", "withSqlCrash4").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertEquals("HTTP/1.1 header parser received no bytes", ex.getMessage());
+        }));
+    }
 }

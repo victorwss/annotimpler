@@ -182,14 +182,37 @@ public class SimpleHttpServer implements AutoCloseable {
     public static interface Output {
         public void write(byte value) throws IOException;
 
+        public default void drop() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
+        public default void abort() throws IOException {
+            throw new UnsupportedOperationException();
+        }
+
         public default void write(byte[] values) throws IOException {
             for (var e : values) {
                 write(e);
             }
         }
 
-        public static Output from(OutputStream out) {
-            return b -> out.write(b);
+        public static Output from(Socket s, OutputStream out) {
+            return new Output() {
+                @Override
+                public void write(byte value) throws IOException {
+                    out.write(value);
+                }
+
+                @Override
+                public void abort() throws IOException {
+                    out.close();
+                }
+
+                @Override
+                public void drop() throws IOException {
+                    s.close();
+                }
+            };
         }
     }
 
@@ -201,7 +224,7 @@ public class SimpleHttpServer implements AutoCloseable {
                 var in = new BufferedInputStream(client.getInputStream());
                 var out = new BufferedOutputStream(client.getOutputStream())
         ) {
-            var iout = Output.from(out);
+            var iout = Output.from(client, out);
             var iin = Input.from(in);
             try {
                 handleRequest(client, iin, iout);
@@ -280,7 +303,21 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static record Content(String contentType, byte[] content) {
+    @FunctionalInterface
+    public static interface ProvidesOutput {
+
+        public static final ProvidesOutput DO_NOTHING = out -> {};
+
+        public static final ProvidesOutput ABORT = Output::abort;
+
+        public static final ProvidesOutput DROP = Output::drop;
+
+        public void output(Output out) throws IOException;
+    }
+
+    public static record Content(String contentType, byte[] content) implements ProvidesOutput {
+
+        @Override
         public void output(Output out) throws IOException {
             var head = """
                        HTTP/1.1 200 OK
@@ -295,7 +332,7 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    public static RequestHandler staticFiles(Map<String, ? extends Supplier<Content>> files) {
+    public static RequestHandler staticFiles(Map<String, ? extends Supplier<? extends ProvidesOutput>> files) {
         return (client, headers, in, out) -> {
             var name = headers.resource();
             var sup = files.get(name);

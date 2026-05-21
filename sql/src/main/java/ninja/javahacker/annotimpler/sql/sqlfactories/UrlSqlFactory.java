@@ -33,7 +33,7 @@ public enum UrlSqlFactory implements SqlFactory {
             } else {
                 charset = CharsetSpec.from(anno.fallbackEncoding());
             }
-            return make(response.body(), charset);
+            return BytesToStringSupport.make(response.body(), charset);
         } catch (InterruptedException e) {
             throw new IOException("Download was interrupted.", e);
         }
@@ -41,18 +41,6 @@ public enum UrlSqlFactory implements SqlFactory {
 
     private static boolean isStatusOk(int status) {
         return status >= 200 && status <= 299;
-    }
-
-    private static String make(@NonNull byte[] input, @NonNull Charset charset) throws IOException {
-        checkNotNull(input);
-        checkNotNull(charset);
-        var buf = ByteBuffer.wrap(input);
-        try {
-            var cb = charset.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(buf);
-            return new String(cb.array(), 0, cb.length());
-        } catch (IOException e) {
-            throw new IOException("String can't be coded as " + charset.displayName(Locale.ROOT) + ".");
-        }
     }
 
     @Generated
