@@ -63,13 +63,13 @@ public class UrlSqlFactoryTest {
 
     @BeforeAll
     public static void before() throws Exception {
-        Map<String, Supplier<SimpleHttpServer.Content>> m = Map.of(
-                "/lorem-utf-8.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8)),
-                "/lorem-utf-8e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8)),
-                "/lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1)),
-                "/lorem-iso-8859-1.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1)),
-                "/lorem-iso-8859-1e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1)),
-                "/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))
+        Map<String, Supplier<SimpleHttpServer.Content>> m = Map.ofEntries(
+                Map.entry("/lorem-utf-8.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/lorem-utf-8e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/lorem-iso-8859-1.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/lorem-iso-8859-1e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8)))
         );
         SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
         System.out.println("UP!");
@@ -91,47 +91,34 @@ public class UrlSqlFactoryTest {
         Assertions.assertEquals("PING!", new String(all, StandardCharsets.UTF_8));
     }
 
-    @Test
-    public void testUrlSql() throws Exception {
-        var m1 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql1")).findAny().get();
-        var m2 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql2")).findAny().get();
-        var m3 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql3")).findAny().get();
-        var m4 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql4")).findAny().get();
-        var m5 = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSql5")).findAny().get();
-        var t1 = UrlSqlFactory.INSTANCE.prepare(m1).get();
-        Assertions.assertEquals(LOREM_UTF_8, t1);
-        var t2 = UrlSqlFactory.INSTANCE.prepare(m2).get();
-        Assertions.assertEquals(LOREM_UTF_8, t2);
-        var t3 = UrlSqlFactory.INSTANCE.prepare(m3).get();
-        Assertions.assertEquals(LOREM_ISO_88591, t3);
-        var t4 = UrlSqlFactory.INSTANCE.prepare(m4).get();
-        Assertions.assertEquals(LOREM_ISO_88591, t4);
-        var t5 = UrlSqlFactory.INSTANCE.prepare(m5).get();
-        Assertions.assertEquals(LOREM_UTF_8, t5);
+    private static Method mtd(String name) {
+        return Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals(name)).findAny().get();
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testUrlSql() throws Exception {
+        var a = Stream.of("withSql1", "withSql2", "withSql5")
+                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+        var b = Stream.of("withSql3", "withSql4")
+                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+        return Stream.concat(a, b);
     }
 
     @Test
     public void testUrlSqlDoesNotExist() throws Exception {
-        var mx = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX1")).findAny().get();
-        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
+        var m = "withSqlX1";
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
         Assertions.assertTrue(ex.getCause() instanceof IOException);
         Assertions.assertEquals("HTTP Error: 404", ex.getMessage());
     }
 
-    @Test
-    public void testUrlSqlBadEncoding1() throws Exception {
-        var mx = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX2")).findAny().get();
-        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertTrue(ex.getCause() instanceof IOException);
-        Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
-    }
-
-    @Test
-    public void testUrlSqlBadEncoding2() throws Exception {
-        var mx = Stream.of(UrlSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("withSqlX3")).findAny().get();
-        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mx).get());
-        Assertions.assertTrue(ex.getCause() instanceof IOException);
-        Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
+    @TestFactory
+    public Stream<DynamicTest> testUrlSqlBadEncoding() throws Exception {
+        return Stream.of("withSqlX2", "withSqlX3").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
+        }));
     }
 
     /*/@Test
