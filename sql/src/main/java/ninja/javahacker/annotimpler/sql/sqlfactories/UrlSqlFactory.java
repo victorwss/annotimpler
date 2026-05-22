@@ -27,7 +27,7 @@ public enum UrlSqlFactory implements SqlFactory {
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);
             Charset charset;
-            if (idx >= 0) {
+            if (idx >= 0 && anno.getEncodingFromHeaders()) {
                  var charsetName = contentType.substring(idx + key.length());
                  charset = Charset.forName(charsetName);
             } else {

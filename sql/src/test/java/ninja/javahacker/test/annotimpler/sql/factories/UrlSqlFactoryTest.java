@@ -43,6 +43,12 @@ public class UrlSqlFactoryTest {
         throw new AssertionError();
     }
 
+    // Test if wrong provided encoding maight be saved by ignoring the provided encoding.
+    @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8x.txt", fallbackEncoding = CharsetSpec.Iso88591.class, getEncodingFromHeaders = false)
+    private static void withSql6() {
+        throw new AssertionError();
+    }
+
     // Tests for 404.
     @SqlFromUrl("http://localhost:8080/does-not-exist.txt")
     private static void withSqlX1() {
@@ -107,6 +113,16 @@ public class UrlSqlFactoryTest {
 
     @SqlFromUrl(value = "http://localhost:8080/non-sense.txt")
     private static void withSqlCrash5() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://nowhere.example.com:8080/whatever.txt")
+    private static void withSqlCrash6() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "http://localhost:9999/wrong-port.txt")
+    private static void withSqlCrash7() {
         throw new AssertionError();
     }
 
@@ -190,7 +206,7 @@ public class UrlSqlFactoryTest {
     public Stream<DynamicTest> testUrlSql() throws Exception {
         var a = Stream.of("withSql1", "withSql2", "withSql5")
                 .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
-        var b = Stream.of("withSql3", "withSql4")
+        var b = Stream.of("withSql3", "withSql4", "withSql6")
                 .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         return Stream.concat(a, b);
     }
@@ -251,6 +267,16 @@ public class UrlSqlFactoryTest {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("HTTP/1.1 header parser received no bytes", ex.getMessage());
+        }));
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testUrlSqlNoServer() throws Exception {
+        return Stream.of("withSqlCrash6", "withSqlCrash7").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            ex.printStackTrace();
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertTrue(ex.getMessage().startsWith("parsing HTTP/1.1 status line"));
         }));
     }
 }
