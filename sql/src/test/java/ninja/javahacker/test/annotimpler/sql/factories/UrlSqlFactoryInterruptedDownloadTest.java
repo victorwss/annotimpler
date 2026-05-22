@@ -76,10 +76,7 @@ public class UrlSqlFactoryInterruptedDownloadTest {
 
     @BeforeAll
     public static void before() throws Exception {
-        Map<String, Supplier<SimpleHttpServer.Content>> m = Map.ofEntries(
-                Map.entry("/hang", HANG::deadlock)
-        );
-        SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
+        SERVER = SimpleHttpServer.start(8080, (s, h, i, o) -> HANG.deadlock());
         System.out.println("UP!");
     }
 

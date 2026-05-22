@@ -50,7 +50,7 @@ public class UrlSqlFactoryTest {
     }
 
     // Tests for 404.
-    @SqlFromUrl("http://localhost:8080/does-not-exist.txt")
+    @SqlFromUrl(value = "http://localhost:8080/does-not-exist.txt")
     private static void withSqlX1() {
         throw new AssertionError();
     }
@@ -126,7 +126,27 @@ public class UrlSqlFactoryTest {
         throw new AssertionError();
     }
 
-    public static void outputNuts(SimpleHttpServer.Output out) throws IOException {
+    @SqlFromUrl(value = "file:///C/foo.txt")
+    private static void withSqlCrash8() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "wtf://foo/bar/crash")
+    private static void withSqlCrash9() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "blamblamblam")
+    private static void withSqlCrash10() {
+        throw new AssertionError();
+    }
+
+    @SqlFromUrl(value = "")
+    private static void withSqlCrash11() {
+        throw new AssertionError();
+    }
+
+    public static void outputNuts(Socket client, SimpleHttpServer.HttpRequestHeaders headers, SimpleHttpServer.Input in, SimpleHttpServer.Output out) throws IOException {
         var head = """
                    HTTP/1.1 166 I am Nuts
                    Content-Type: crash/sorry; charset=utf-8
@@ -138,7 +158,7 @@ public class UrlSqlFactoryTest {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void outputDevil(SimpleHttpServer.Output out) throws IOException {
+    public static void outputDevil(Socket client, SimpleHttpServer.HttpRequestHeaders headers, SimpleHttpServer.Input in, SimpleHttpServer.Output out) throws IOException {
         var head = """
                    HTTP/1.1 666 Devil
                    Content-Type: hell/devil; charset=utf-666
@@ -149,7 +169,7 @@ public class UrlSqlFactoryTest {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void outputCrazy(SimpleHttpServer.Output out) throws IOException {
+    public static void outputCrazy(Socket client, SimpleHttpServer.HttpRequestHeaders headers, SimpleHttpServer.Input in, SimpleHttpServer.Output out) throws IOException {
         var head = """
                    HTTP/1.1 1234 Way too large status code
                    X-Crazy-Stuff: Ha ha ha
@@ -161,24 +181,24 @@ public class UrlSqlFactoryTest {
 
     @BeforeAll
     public static void before() throws Exception {
-        Map<String, Supplier<SimpleHttpServer.ProvidesOutput>> m = Map.ofEntries(
-                Map.entry("/lorem-utf-8.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
-                Map.entry("/lorem-utf-8e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
-                Map.entry("/lorem-utf-8x.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
-                Map.entry("/lorem-iso-8859-1.txt", () -> new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
-                Map.entry("/lorem-iso-8859-1e.txt", () -> new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
-                Map.entry("/ping.txt", () -> new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))),
-                Map.entry("/crash.txt", () -> SimpleHttpServer::output500),
-                Map.entry("/devil.txt", () -> UrlSqlFactoryTest::outputDevil),
-                Map.entry("/crazy.txt", () -> UrlSqlFactoryTest::outputCrazy),
-                Map.entry("/idiot.txt", () -> out -> out.write("blam blam blam".getBytes(StandardCharsets.UTF_8))),
-                Map.entry("/silence.txt", () -> SimpleHttpServer.ProvidesOutput.DO_NOTHING),
-                Map.entry("/no-answer.txt", () -> SimpleHttpServer.ProvidesOutput.ABORT),
-                Map.entry("/vanish.txt", () -> SimpleHttpServer.ProvidesOutput.DROP),
-                Map.entry("/non-sense.txt", () -> out -> out.write(new byte[] {5, 15, 20, -1, -2, 0, 1})),
-                Map.entry("/nuts.txt", () -> UrlSqlFactoryTest::outputNuts)
+        Map<String, SimpleHttpServer.RequestHandler> m = Map.ofEntries(
+                Map.entry("/lorem-utf-8.txt", new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/lorem-utf-8e.txt", new SimpleHttpServer.Content("text/plain", LOREM_UTF_8.getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/lorem-utf-8x.txt", new SimpleHttpServer.Content("text/plain; charset=utf-8", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/lorem-iso-8859-1.txt", new SimpleHttpServer.Content("text/plain; charset=iso-8859-1", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/lorem-iso-8859-1e.txt",new SimpleHttpServer.Content("text/plain", LOREM_ISO_88591.getBytes(StandardCharsets.ISO_8859_1))),
+                Map.entry("/ping.txt", new SimpleHttpServer.Content("text/plain; charset=utf-8", "PING!".getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/crash.txt", SimpleHttpServer::output500),
+                Map.entry("/devil.txt", UrlSqlFactoryTest::outputDevil),
+                Map.entry("/crazy.txt", UrlSqlFactoryTest::outputCrazy),
+                Map.entry("/idiot.txt", (s, h, in, out) -> out.write("blam blam blam".getBytes(StandardCharsets.UTF_8))),
+                Map.entry("/silence.txt", SimpleHttpServer.DO_NOTHING),
+                Map.entry("/no-answer.txt", SimpleHttpServer.ABORT),
+                Map.entry("/vanish.txt", SimpleHttpServer.DROP),
+                Map.entry("/non-sense.txt", (s, h, in, out) -> out.write(new byte[] {5, 15, 20, -1, -2, 0, 1})),
+                Map.entry("/nuts.txt", UrlSqlFactoryTest::outputNuts)
         );
-        SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.staticFiles(m));
+        SERVER = SimpleHttpServer.start(8080, SimpleHttpServer.split(m));
         System.out.println("UP!");
     }
 
@@ -274,9 +294,29 @@ public class UrlSqlFactoryTest {
     public Stream<DynamicTest> testUrlSqlNoServer() throws Exception {
         return Stream.of("withSqlCrash6", "withSqlCrash7").map(m -> DynamicTest.dynamicTest(m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
-            ex.printStackTrace();
             Assertions.assertTrue(ex.getCause() instanceof IOException);
-            Assertions.assertTrue(ex.getMessage().startsWith("parsing HTTP/1.1 status line"));
+            Assertions.assertTrue(ex.getCause().getCause() instanceof SocketException);
+            Assertions.assertEquals("Download failed. Server didn't answer.", ex.getMessage());
+        }));
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testBadUrlSql() throws Exception {
+        return Stream.of("withSqlCrash8", "withSqlCrash9").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertTrue(ex.getCause().getCause() instanceof IllegalArgumentException);
+            Assertions.assertTrue(ex.getCause().getCause().getMessage().startsWith("invalid URI scheme "));
+        }));
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testBadUrlMalformed() throws Exception {
+        return Stream.of("withSqlCrash10", "withSqlCrash11").map(m -> DynamicTest.dynamicTest(m, () -> {
+            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            Assertions.assertTrue(ex.getCause() instanceof IOException);
+            Assertions.assertTrue(ex.getCause().getCause() instanceof IllegalArgumentException);
+            Assertions.assertEquals("URI with undefined scheme", ex.getCause().getCause().getMessage());
         }));
     }
 }

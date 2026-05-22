@@ -12,7 +12,7 @@ public class ResourceSqlFactoryTest {
     private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁";
 
     // Tests if it works and defaults to UTF-8.
-    @SqlFromResource("/ninja/javahacker/test/rsc/lorem-utf-8.txt")
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-utf-8.txt")
     private static void withSql1() {
         throw new AssertionError();
     }
@@ -30,7 +30,7 @@ public class ResourceSqlFactoryTest {
     }
 
     // Tests for 404.
-    @SqlFromResource("/ninja/javahacker/test/rsc/does-not-exist.txt")
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/does-not-exist.txt")
     private static void withSqlX1() {
         throw new AssertionError();
     }

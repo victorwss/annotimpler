@@ -241,33 +241,40 @@ public class SimpleHttpServer implements AutoCloseable {
     }
 
     private void handleRequest(Socket client, Input in, Output out) throws IOException {
+        HttpRequestHeaders formattedHeaders;
         try {
             var rawHeaders = HeaderSet.read(in, limits);
             if (!rawHeaders.completed()) {
-                output431(out);
+                output431(client, null, in, out);
                 System.out.println("Oops - 431.");
                 return;
             }
 
-            HttpRequestHeaders formattedHeaders;
             try {
                 formattedHeaders = HttpRequestHeaders.parse(rawHeaders);
             } catch (MalformedHeaderException e) {
-                output400(out);
+                output400(client, null, in, out);
                 System.out.println("Oops - 400.");
                 return;
             }
             System.out.println("Headers ok. " + formattedHeaders.verb() + " - " + formattedHeaders.resource());
+        } catch (Throwable e) {
+            e.printStackTrace(System.err);
+            System.out.println("Oops - 500.");
+            output500(client, null, in, out);
+            return;
+        }
 
+        try {
             handler.handle(client, formattedHeaders, in, out);
         } catch (Throwable e) {
             e.printStackTrace(System.err);
             System.out.println("Oops - 500.");
-            output500(out);
+            output500(client, formattedHeaders, in, out);
         }
     }
 
-    public static void output400(Output out) throws IOException {
+    public static void output400(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException {
         var head = """
                    HTTP/1.1 400 Bad Request
                    $Z
@@ -276,7 +283,7 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void output404(Output out) throws IOException {
+    public static void output404(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException {
         var head = """
                    HTTP/1.1 404 Not Found
                    $Z
@@ -285,7 +292,7 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void output431(Output out) throws IOException {
+    public static void output431(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException {
         var head = """
                    HTTP/1.1 431 Request Header Fields Too Large
                    $Z
@@ -294,7 +301,7 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    public static void output500(Output out) throws IOException {
+    public static void output500(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException {
         var head = """
                    HTTP/1.1 500 Internal Server Error
                    $Z
@@ -303,22 +310,16 @@ public class SimpleHttpServer implements AutoCloseable {
         out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
-    @FunctionalInterface
-    public static interface ProvidesOutput {
+    public static final RequestHandler DO_NOTHING = (s, h, i, o) -> {};
 
-        public static final ProvidesOutput DO_NOTHING = out -> {};
+    public static final RequestHandler ABORT = (s, h, i, o) -> o.abort();
 
-        public static final ProvidesOutput ABORT = Output::abort;
+    public static final RequestHandler DROP = (s, h, i, o) -> o.drop();
 
-        public static final ProvidesOutput DROP = Output::drop;
-
-        public void output(Output out) throws IOException;
-    }
-
-    public static record Content(String contentType, byte[] content) implements ProvidesOutput {
+    public static record Content(String contentType, byte[] content) implements RequestHandler {
 
         @Override
-        public void output(Output out) throws IOException {
+        public void handle(Socket client, HttpRequestHeaders headers, Input in, Output out) throws IOException {
             var head = """
                        HTTP/1.1 200 OK
                        Content-Type: $X
@@ -332,19 +333,19 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    public static RequestHandler staticFiles(Map<String, ? extends Supplier<? extends ProvidesOutput>> files) {
+    public static RequestHandler split(Map<String, ? extends RequestHandler> handlers) {
         return (client, headers, in, out) -> {
             var name = headers.resource();
-            var sup = files.get(name);
-            if (sup == null) sup = () -> null;
-            var c = sup.get();
-            if (c == null) {
-                System.out.println("Oops - 404.");
-                output404(out);
-                return;
+            var handle = handlers.get(name);
+            if (handle == null) {
+                handle = (c, h, i, o) -> {
+                    System.out.println("Oops - 404.");
+                    output404(client, headers, in, out);
+                };
+            } else {
+                System.out.println("Ok - 200");
             }
-            System.out.println("Ok - 200");
-            c.output(out);
+            handle.handle(client, headers, in, out);
         };
     }
 

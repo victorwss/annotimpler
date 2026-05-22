@@ -8,9 +8,9 @@ import module ninja.javahacker.annotimpler.sql;
 
 public enum ReadPolicy {
     ON_STARTUP(ReadPolicy::onStartup),
-    ON_FIRST_TIME(ReadPolicy::everyTime),
+    ON_FIRST_TIME_THAT_WORKS(ReadPolicy::onFirstTimeThatWorks),
     ON_FIRST_TIME_DONT_RETRY(ReadPolicy::onFirstTimeDontRetry),
-    EVERY_TIME(ReadPolicy::onFirstTimeThatWorks);
+    EVERY_TIME(ReadPolicy::everyTime);
 
     private final InImpl in;
 

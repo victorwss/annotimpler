@@ -21,8 +21,19 @@ public enum UrlSqlFactory implements SqlFactory {
         var key = "charset=";
         var url = anno.value();
         try (var client = HttpClient.newHttpClient()) {
-            var request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-            var response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            HttpRequest request;
+            try {
+                request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+            } catch (IllegalArgumentException e) {
+                throw new IOException(e);
+            }
+            HttpResponse<byte[]> response;
+            try {
+                response = client.send(request, HttpResponse.BodyHandlers.ofByteArray());
+            } catch (IOException e) {
+                if (e.getMessage() == null) throw new IOException("Download failed. Server didn't answer.", e.getCause());
+                throw e;
+            }
             if (!isStatusOk(response.statusCode())) throw new IOException("HTTP Error: " + response.statusCode());
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);

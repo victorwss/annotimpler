@@ -12,7 +12,7 @@ public class FileSqlFactoryTest {
     private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁\n";
 
     // Tests if it works and defaults to UTF-8.
-    @SqlFromFile("./test-files/lorem-utf-8.txt")
+    @SqlFromFile(value = "./test-files/lorem-utf-8.txt")
     private static void withSql1() {
         throw new AssertionError();
     }
@@ -30,7 +30,7 @@ public class FileSqlFactoryTest {
     }
 
     // Tests for 404.
-    @SqlFromFile("./test-files/does-not-exist.txt")
+    @SqlFromFile(value = "./test-files/does-not-exist.txt")
     private static void withSqlX1() {
         throw new AssertionError();
     }
