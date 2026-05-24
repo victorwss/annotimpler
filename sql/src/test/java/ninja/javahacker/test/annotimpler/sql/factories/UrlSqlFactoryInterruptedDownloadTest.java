@@ -91,6 +91,7 @@ public class UrlSqlFactoryInterruptedDownloadTest {
     }
 
     @Test
+    @Timeout(5)
     public void testInterruptedDownload() throws InterruptedException {
         var m = "hang";
         var ex = new Exception[1];

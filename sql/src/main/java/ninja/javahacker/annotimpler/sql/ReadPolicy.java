@@ -59,60 +59,30 @@ public enum ReadPolicy {
         checkNotNull(impl);
         checkNotNull(inputData);
 
-        var sync = new Object();
-        var result = new AtomicReference<String>();
-
-        return () -> {
-            var a = result.get();
-            if (a != null) return a;
-
-            synchronized (sync) {
-                a = result.get();
-                if (a == null) {
-                    try {
-                        a = impl.read(inputData);
-                    } catch (IOException e) {
-                        throw new SQLException(e.getMessage(), e);
-                    }
-                    result.set(a);
-                }
-                return a;
+        return new ThreadTracerSqlSupplier(() -> {
+            try {
+                var a = impl.read(inputData);
+                return () -> a;
+            } catch (IOException e) {
+                throw new SQLException(e.getMessage(), e);
             }
-        };
+        });
     }
 
     private static <E> SqlSupplier onFirstTimeDontRetry(@NonNull Impl<E> impl, @NonNull E inputData) {
         checkNotNull(impl);
         checkNotNull(inputData);
 
-        var sync = new Object();
-        var result = new AtomicReference<String>();
-        var ops = new AtomicReference<SQLException>();
-
-        return () -> {
-            var x = ops.get();
-            if (x != null) throw x;
-            var a = result.get();
-            if (a != null) return a;
-
-            synchronized (sync) {
-                x = ops.get();
-                if (x != null) throw x;
-                a = result.get();
-
-                if (a == null) {
-                    try {
-                        a = impl.read(inputData);
-                    } catch (IOException e) {
-                        x = new SQLException(e.getMessage(), e);
-                        ops.set(x);
-                        throw x;
-                    }
-                    result.set(a);
-                }
-                return a;
+        return new ThreadTracerSqlSupplier(() -> {
+            try {
+                var a = impl.read(inputData);
+                return () -> a;
+            } catch (IOException e) {
+                return () -> {
+                    throw new SQLException(e.getMessage(), e);
+                };
             }
-        };
+        });
     }
 
     @Generated
