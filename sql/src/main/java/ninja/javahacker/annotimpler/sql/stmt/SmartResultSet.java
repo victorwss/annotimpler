@@ -158,9 +158,9 @@ public final class SmartResultSet implements ResultSet {
         return wasNull() ? null : r;
     }
 
-    // Pode retornar null, Long, Integer, Byte, Short, Float, Double, Boolean,
+    // May return null, Long, Integer, Byte, Short, Float, Double, Boolean,
     // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
-    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId ou Struct.
+    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId or Struct.
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(int columnIndex) throws SQLException {
@@ -198,9 +198,9 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
-    // Pode retornar null, Long, Integer, Byte, Short, Float, Double, Boolean,
+    // May return null, Long, Integer, Byte, Short, Float, Double, Boolean,
     // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
-    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId ou Struct.
+    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId or Struct.
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
@@ -235,7 +235,11 @@ public final class SmartResultSet implements ResultSet {
         checkNotNull(map);
         try {
             return factory.mapToRecord(map, k);
-        } catch (ConvertionException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException | UnavailableConverterException e) {
+        } catch (ConvertionException
+                | MagicFactory.CreationException
+                | MagicFactory.CreatorSelectionException
+                | UnavailableConverterException e)
+        {
             throw new SQLException(e);
         }
     }

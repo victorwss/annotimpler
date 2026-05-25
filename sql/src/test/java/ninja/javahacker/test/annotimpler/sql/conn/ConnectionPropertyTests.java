@@ -352,8 +352,8 @@ public class ConnectionPropertyTests {
     private static Stream<DynamicTest> addTestsConnectors(String db, TestSet... sets) {
         var tests = new ArrayList<DynamicTest>(50);
 
-        var sa = sets[0];
-        var a = sa.conns().get(0);
+        var setsA = sets[0];
+        var a = setsA.conns().get(0);
         var i = 1;
         for (var t : sets) {
             addTestsConnector(db + " item " + i + ": ", tests, t.props(), t.conns().get(0).get());
@@ -364,20 +364,20 @@ public class ConnectionPropertyTests {
         tests.add(n(db + " not equals to unrelated", () -> Assertions.assertFalse(a.get().equals("XXX"))));
 
         i = 1;
-        for (var x : sa.conns()) {
+        for (var x : setsA.conns()) {
             var j = i;
-            tests.add(n("item 1-" + j + " equals",() -> Assertions.assertEquals(a.get(), x.get())));
-            tests.add(n("item 1-" + j + " hashCode equals",() -> Assertions.assertEquals(a.get().hashCode(), x.get().hashCode())));
-            tests.add(n("item 1-" + j + " toString equals",() -> Assertions.assertEquals(a.get().toString(), x.get().toString())));
+            tests.add(n(db + "item 1-" + j + " equals",() -> Assertions.assertEquals(a.get(), x.get())));
+            tests.add(n(db + "item 1-" + j + " hashCode equals",() -> Assertions.assertEquals(a.get().hashCode(), x.get().hashCode())));
+            tests.add(n(db + "item 1-" + j + " toString equals",() -> Assertions.assertEquals(a.get().toString(), x.get().toString())));
             i++;
         }
 
-        for (var bs : sets) {
-            if (bs == sa) continue;
-            for (var b : bs.conns()) {
+        for (var setsB : sets) {
+            if (setsB == setsA) continue;
+            for (var b : setsB.conns()) {
                 var j = i;
-                tests.add(n("item 1-" + j + " not equals", () -> Assertions.assertNotEquals(a.get(), b.get())));
-                tests.add(n("item 1-" + j + " toString not equals", () -> Assertions.assertNotEquals(a.get().toString(), b.get().toString())));
+                tests.add(n(db + "item 1-" + j + " not equals", () -> Assertions.assertNotEquals(a.get(), b.get())));
+                tests.add(n(db + "item 1-" + j + " toString not equals", () -> Assertions.assertNotEquals(a.get().toString(), b.get().toString())));
                 i++;
             }
         }

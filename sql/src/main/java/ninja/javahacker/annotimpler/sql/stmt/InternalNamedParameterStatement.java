@@ -42,6 +42,7 @@ final class InternalNamedParameterStatement implements NamedParameterStatement {
 
     @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     private static void handle(@NonNull HandleVoid h) throws SQLException {
+        checkNotNull(h);
         try {
             h.doIt();
         } catch (SQLException e) {

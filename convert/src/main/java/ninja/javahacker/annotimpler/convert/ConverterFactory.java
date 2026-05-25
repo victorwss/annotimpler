@@ -27,6 +27,8 @@ public interface ConverterFactory {
             UnavailableConverterException,
             ConvertionException
     {
+        if (!recordClass.isRecord()) throw new IllegalArgumentException("Not a record class.");
+
         // Select the best constructor or method and look onto its parameters.
         var exec = MagicFactory.of(recordClass);
         var parameters = exec.getParameters();

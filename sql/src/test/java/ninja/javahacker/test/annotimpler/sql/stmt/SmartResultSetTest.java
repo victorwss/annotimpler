@@ -9,7 +9,7 @@ import module java.base;
 import module java.sql;
 import module org.junit.jupiter.api;
 
-public class SmartResultTest {
+public class SmartResultSetTest {
 
     @Test
     public void testConstructorFailure() throws Exception {

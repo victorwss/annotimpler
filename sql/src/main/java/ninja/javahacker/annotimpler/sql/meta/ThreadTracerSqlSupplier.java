@@ -1,17 +1,29 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
+
 import module java.base;
 import module java.sql;
 
 public final class ThreadTracerSqlSupplier implements SqlSupplier {
 
+    @NonNull
     private final Object lockQueue;
+
+    @NonNull
     private final Object lockRes;
+
+    @NonNull
     private final Downstream downstream;
+
+    @NonNull
     private final Set<Thread> waiting;
+
+    @Nullable
     private volatile SqlSupplier result;
 
+    @SuppressWarnings("PMD.NullAssignment")
     public ThreadTracerSqlSupplier(@NonNull Downstream downstream) {
         this.lockQueue = new Object();
         this.lockRes = new Object();

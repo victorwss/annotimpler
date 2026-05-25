@@ -80,13 +80,17 @@ public class RecordMapperTest {
     public void testBadRecordUnavailableFields() throws Exception {
         class Foo {}
         var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "4", "c2", new Foo());
-        Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
+        var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("Map keys mismatch.", ex.getMessage()),
+                () -> Assertions.assertEquals(Map.class, ex.getIn()),
+                () -> Assertions.assertEquals(Fruit.class, ex.getOut())
+        );
     }
 
     @Test
     public void testBadRecordUnconvertibleFields() throws Exception {
-        class Foo {}
-        var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "aaa", "c2", new Foo());
+        var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "aaa", "c2", Color.PINK.ordinal());
         Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
     }
 
@@ -100,5 +104,12 @@ public class RecordMapperTest {
     public void testBadRecordCreation() throws Exception {
         var p = Map.of("name", "dog");
         Assertions.assertThrows(MagicFactory.CreationException.class, () -> ConverterFactory.STD.mapToRecord(p, BadAnimal2.class));
+    }
+
+    @Test
+    public void testBadRecordClass() throws Exception {
+        var p = Map.of("name", "dog");
+        var ex = Assertions.assertThrows(IllegalArgumentException.class, () -> ConverterFactory.STD.mapToRecord(p, (Class) String.class));
+        Assertions.assertEquals("Not a record class.", ex.getMessage());
     }
 }

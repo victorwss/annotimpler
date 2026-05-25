@@ -326,34 +326,73 @@ public class ConnectionCreatorTest {
         var mysql1 = MySqlConnector.std();
         var mysql2 = mysql1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
         var fire1 = FirebirdConnector.std();
-        var fire2 = fire1.withFilename("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass")
-                .withEncoding("UTF16");
+        var fire2 = fire1.withFilename("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass").withEncoding("UTF16");
         var fire3 = fire1.withFilename("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass").withEncoding("");
         var hTwo1 = H2Connector.std();
         var hTwo2 = hTwo1.withFilename("foo").withUser("lol").withPassword("pass");
         var hTwo3 = hTwo2.withMemory(true);
-        var hTwo4 = hTwo2.withTimezone("UTC");
+        var hTwo4 = hTwo1.withFilename("bar").withUser("lol").withPassword("pass").withTimezone("UTC");
         var hsql1 = HsqldbConnector.std();
         var hsql2 = hsql1.withFilename("foo").withUser("lol").withPassword("pass");
         var hsql3 = hsql2.withMemory(true);
         var sqliteMem = SqliteMemoryConnector.std();
-        // TODO: Access, DB2, Oracle, PostgreSQL, SQL Server, SQLite file.
+        var sqlite1 = SqliteConnector.std();
+        var sqlite2 = sqlite1.withFilename("foo.db");
+        var sqlite3 = sqlite1.withFilename("bar.db");
+        var access1 = AccessConnector.std();
+        var access2 = access1.withFilename("foo.mdb");
+        var access3 = access1.withFilename("bar.mdb");
+        var oracle1 = OracleConnector.std();
+        var oracle2 = oracle1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var oracle3 = oracle1.withRac(true);
+        var oracle4 = oracle1.withDatabase("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass").withRac(true);
+        var pgres1 = PostgreSqlConnector.std();
+        var pgres2 = pgres1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var pgres3 = pgres1.withSsl(false);
+        var pgres4 = pgres1.withDatabase("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass").withSsl(false);
+        var sqls1 = SqlServerConnector.std();
+        var sqls2 = sqls1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var sqls3 = sqls1.withDatabase("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass");
+        var dbTwo1 = Db2Connector.std();
+        var dbTwo2 = dbTwo1.withDatabase("foo").withPort(12345).withHost("10.10.10.10").withUser("lol").withPassword("pass");
+        var dbTwo3 = dbTwo1.withDatabase("bar").withPort(44444).withHost("10.11.12.13").withUser("lol").withPassword("pass");
+
         return Stream.of(
-                n("sqlite 1"  , () -> Assertions.assertEquals("jdbc:sqlite::memory:", sqliteMem.url())),
-                n("mariadb 1" , () -> Assertions.assertEquals("jdbc:mariadb://localhost:3306/", maria1.url())),
-                n("mariadb 2" , () -> Assertions.assertEquals("jdbc:mariadb://10.10.10.10:12345/foo", maria2.url())),
-                n("mysql 1"   , () -> Assertions.assertEquals("jdbc:mysql://localhost:3306/", mysql1.url())),
-                n("mysql 2"   , () -> Assertions.assertEquals("jdbc:mysql://10.10.10.10:12345/foo", mysql2.url())),
-                n("firebird 1", () -> Assertions.assertEquals("jdbc:firebird://localhost:3050/?encoding=UTF8", fire1.url())),
-                n("firebird 2", () -> Assertions.assertEquals("jdbc:firebird://10.10.10.10:12345/foo?encoding=UTF16", fire2.url())),
-                n("firebird 3", () -> Assertions.assertEquals("jdbc:firebird://10.11.12.13:44444/bar", fire3.url())),
-                n("h2 1"      , () -> Assertions.assertEquals("jdbc:h2:~/", hTwo1.url())),
-                n("h2 2"      , () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url())),
-                n("h2 3"      , () -> Assertions.assertEquals("jdbc:h2:mem:foo", hTwo3.url())),
-                n("h2 4"      , () -> Assertions.assertEquals("jdbc:h2:~/foo;TIME ZONE=UTC", hTwo4.url())),
-                n("hsqldb 1"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://", hsql1.url())),
-                n("hsqldb 2"  , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
-                n("hsqldb 3"  , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url()))
+                n("sqlite mem"  , () -> Assertions.assertEquals("jdbc:sqlite::memory:", sqliteMem.url())),
+                n("mariadb 1"   , () -> Assertions.assertEquals("jdbc:mariadb://localhost:3306/", maria1.url())),
+                n("mariadb 2"   , () -> Assertions.assertEquals("jdbc:mariadb://10.10.10.10:12345/foo", maria2.url())),
+                n("mysql 1"     , () -> Assertions.assertEquals("jdbc:mysql://localhost:3306/", mysql1.url())),
+                n("mysql 2"     , () -> Assertions.assertEquals("jdbc:mysql://10.10.10.10:12345/foo", mysql2.url())),
+                n("firebird 1"  , () -> Assertions.assertEquals("jdbc:firebird://localhost:3050/?encoding=UTF8", fire1.url())),
+                n("firebird 2"  , () -> Assertions.assertEquals("jdbc:firebird://10.10.10.10:12345/foo?encoding=UTF16", fire2.url())),
+                n("firebird 3"  , () -> Assertions.assertEquals("jdbc:firebird://10.11.12.13:44444/bar", fire3.url())),
+                n("h2 1"        , () -> Assertions.assertEquals("jdbc:h2:~/", hTwo1.url())),
+                n("h2 2"        , () -> Assertions.assertEquals("jdbc:h2:~/foo", hTwo2.url())),
+                n("h2 3"        , () -> Assertions.assertEquals("jdbc:h2:mem:foo", hTwo3.url())),
+                n("h2 4"        , () -> Assertions.assertEquals("jdbc:h2:~/bar;TIME ZONE=UTC", hTwo4.url())),
+                n("hsqldb 1"    , () -> Assertions.assertEquals("jdbc:hsqldb:file://", hsql1.url())),
+                n("hsqldb 2"    , () -> Assertions.assertEquals("jdbc:hsqldb:file://foo", hsql2.url())),
+                n("hsqldb 3"    , () -> Assertions.assertEquals("jdbc:hsqldb:mem:foo", hsql3.url())),
+                n("access 1"    , () -> Assertions.assertEquals("jdbc:ucanaccess:", access1.url())),
+                n("access 2"    , () -> Assertions.assertEquals("jdbc:ucanaccess:foo.mdb", access2.url())),
+                n("access 3"    , () -> Assertions.assertEquals("jdbc:ucanaccess:bar.mdb", access3.url())),
+                n("sqlite 1"    , () -> Assertions.assertEquals("jdbc:sqlite:", sqlite1.url())),
+                n("sqlite 2"    , () -> Assertions.assertEquals("jdbc:sqlite:foo.db", sqlite2.url())),
+                n("sqlite 3"    , () -> Assertions.assertEquals("jdbc:sqlite:bar.db", sqlite3.url())),
+                n("oracle 1"    , () -> Assertions.assertEquals("jdbc:oracle:thin:@localhost:1521:", oracle1.url())),
+                n("oracle 2"    , () -> Assertions.assertEquals("jdbc:oracle:thin:@10.10.10.10:12345:foo", oracle2.url())),
+                n("oracle 3"    , () -> Assertions.assertEquals("jdbc:oracle:thin:@//localhost:1521/", oracle3.url())),
+                n("oracle 4"    , () -> Assertions.assertEquals("jdbc:oracle:thin:@//10.11.12.13:44444/bar", oracle4.url())),
+                n("postgresql 1", () -> Assertions.assertEquals("jdbc:postgresql://localhost:5432/?ssl=true", pgres1.url())),
+                n("postgresql 2", () -> Assertions.assertEquals("jdbc:postgresql://10.10.10.10:12345/foo?ssl=true", pgres2.url())),
+                n("postgresql 3", () -> Assertions.assertEquals("jdbc:postgresql://localhost:5432/", pgres3.url())),
+                n("postgresql 4", () -> Assertions.assertEquals("jdbc:postgresql://10.11.12.13:44444/bar", pgres4.url())),
+                n("sqlserver 1" , () -> Assertions.assertEquals("jdbc:hyperion:sqlserver://localhost:1433;DatabaseName=", sqls1.url())),
+                n("sqlserver 2" , () -> Assertions.assertEquals("jdbc:hyperion:sqlserver://10.10.10.10:12345;DatabaseName=foo", sqls2.url())),
+                n("sqlserver 3" , () -> Assertions.assertEquals("jdbc:hyperion:sqlserver://10.11.12.13:44444;DatabaseName=bar", sqls3.url())),
+                n("db2 1"       , () -> Assertions.assertEquals("jdbc:db2://localhost:50000/", dbTwo1.url())),
+                n("db2 2"       , () -> Assertions.assertEquals("jdbc:db2://10.10.10.10:12345/foo", dbTwo2.url())),
+                n("db2 3"       , () -> Assertions.assertEquals("jdbc:db2://10.11.12.13:44444/bar", dbTwo3.url()))
         );
     }
 }
