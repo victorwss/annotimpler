@@ -32,19 +32,19 @@ public class UrlSqlFactoryTest {
     }
 
     // Tests if fallbackEncoding saves it when is not UTF-8 but no encoding is provided.
-    @SqlFromUrl(value = "http://localhost:8080/lorem-iso-8859-1e.txt", fallbackEncoding = CharsetSpec.Iso88591.class)
+    @SqlFromUrl(value = "http://localhost:8080/lorem-iso-8859-1e.txt", fallbackEncoding = CharsetSpec.Iso88591Strict.class)
     private static void withSql4() {
         throw new AssertionError();
     }
 
     // Tests if fallbackEncoding is ignored when encoding is provided.
-    @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8.txt", fallbackEncoding = CharsetSpec.Iso88591.class)
+    @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8.txt", fallbackEncoding = CharsetSpec.Iso88591Strict.class)
     private static void withSql5() {
         throw new AssertionError();
     }
 
     // Test if wrong provided encoding maight be saved by ignoring the provided encoding.
-    @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8x.txt", fallbackEncoding = CharsetSpec.Iso88591.class, getEncodingFromHeaders = false)
+    @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8x.txt", fallbackEncoding = CharsetSpec.Iso88591Strict.class, getEncodingFromHeaders = false)
     private static void withSql6() {
         throw new AssertionError();
     }

@@ -24,7 +24,7 @@ public class ResourceSqlFactoryTest {
     }
 
     // Tests if it works with ISO-8859-1.
-    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591.class)
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591Strict.class)
     private static void withSql3() {
         throw new AssertionError();
     }

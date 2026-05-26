@@ -21,11 +21,11 @@ public class CommonSqlFactoryTest {
     @TestFactory
     public Stream<DynamicTest> testMissingSqls() throws Exception {
         return Stream.of(
-                DynamicTest.dynamicTest("StringSqlFactory"  , () -> assertRefusesEmpty(StringSqlFactory  .INSTANCE)),
-                DynamicTest.dynamicTest("ResourceSqlFactory", () -> assertRefusesEmpty(ResourceSqlFactory.INSTANCE)),
-                DynamicTest.dynamicTest("FileSqlFactory"    , () -> assertRefusesEmpty(FileSqlFactory    .INSTANCE)),
-                DynamicTest.dynamicTest("SupplierSqlFactory", () -> assertRefusesEmpty(SupplierSqlFactory.INSTANCE)),
-                DynamicTest.dynamicTest("UrlSqlFactory"     , () -> assertRefusesEmpty(UrlSqlFactory     .INSTANCE))
+                DynamicTest.dynamicTest("[testMissingSqls] StringSqlFactory"  , () -> assertRefusesEmpty(StringSqlFactory  .INSTANCE)),
+                DynamicTest.dynamicTest("[testMissingSqls] ResourceSqlFactory", () -> assertRefusesEmpty(ResourceSqlFactory.INSTANCE)),
+                DynamicTest.dynamicTest("[testMissingSqls] FileSqlFactory"    , () -> assertRefusesEmpty(FileSqlFactory    .INSTANCE)),
+                DynamicTest.dynamicTest("[testMissingSqls] SupplierSqlFactory", () -> assertRefusesEmpty(SupplierSqlFactory.INSTANCE)),
+                DynamicTest.dynamicTest("[testMissingSqls] UrlSqlFactory"     , () -> assertRefusesEmpty(UrlSqlFactory     .INSTANCE))
         );
     }
 
@@ -33,11 +33,20 @@ public class CommonSqlFactoryTest {
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
         return Stream.of(
-                DynamicTest.dynamicTest("StringSqlFactory"  , () -> ForTests.testNull("m", () -> StringSqlFactory  .INSTANCE.prepare(null))),
-                DynamicTest.dynamicTest("ResourceSqlFactory", () -> ForTests.testNull("m", () -> ResourceSqlFactory.INSTANCE.prepare(null))),
-                DynamicTest.dynamicTest("FileSqlFactory"    , () -> ForTests.testNull("m", () -> FileSqlFactory    .INSTANCE.prepare(null))),
-                DynamicTest.dynamicTest("SupplierSqlFactory", () -> ForTests.testNull("m", () -> SupplierSqlFactory.INSTANCE.prepare(null))),
-                DynamicTest.dynamicTest("UrlSqlFactory"     , () -> ForTests.testNull("m", () -> UrlSqlFactory     .INSTANCE.prepare(null)))
+                DynamicTest.dynamicTest("[testNulls] StringSqlFactory"  , () -> ForTests.testNull("m", () -> StringSqlFactory  .INSTANCE.prepare(null))),
+                DynamicTest.dynamicTest("[testNulls] ResourceSqlFactory", () -> ForTests.testNull("m", () -> ResourceSqlFactory.INSTANCE.prepare(null))),
+                DynamicTest.dynamicTest("[testNulls] FileSqlFactory"    , () -> ForTests.testNull("m", () -> FileSqlFactory    .INSTANCE.prepare(null))),
+                DynamicTest.dynamicTest("[testNulls] SupplierSqlFactory", () -> ForTests.testNull("m", () -> SupplierSqlFactory.INSTANCE.prepare(null))),
+                DynamicTest.dynamicTest("[testNulls] UrlSqlFactory"     , () -> ForTests.testNull("m", () -> UrlSqlFactory     .INSTANCE.prepare(null)))
+        );
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testReadPolicyNulls() throws Exception {
+        return Stream.of(
+                DynamicTest.dynamicTest("[testReadPolicyNulls] impl"     , () -> ForTests.testNull("impl"     , () -> ReadPolicy.ON_STARTUP.prepare(null, "foo"))),
+                DynamicTest.dynamicTest("[testReadPolicyNulls] inputData", () -> ForTests.testNull("inputData", () -> ReadPolicy.ON_STARTUP.prepare(a -> a, (String) null)))
         );
     }
 }

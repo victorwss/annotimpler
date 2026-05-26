@@ -37,14 +37,15 @@ public enum UrlSqlFactory implements SqlFactory {
             if (!isStatusOk(response.statusCode())) throw new IOException("HTTP Error: " + response.statusCode());
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);
-            Charset charset;
+            CharsetSpec spec;
             if (idx >= 0 && anno.getEncodingFromHeaders()) {
                  var charsetName = contentType.substring(idx + key.length());
-                 charset = Charset.forName(charsetName);
+                 var charset = Charset.forName(charsetName);
+                 spec = () -> charset;
             } else {
-                charset = CharsetSpec.from(anno.fallbackEncoding());
+                spec = CharsetSpec.instance(anno.fallbackEncoding());
             }
-            return BytesToStringSupport.make(response.body(), charset);
+            return spec.decode(response.body());
         } catch (InterruptedException e) {
             throw new IOException("Download was interrupted.", e);
         }

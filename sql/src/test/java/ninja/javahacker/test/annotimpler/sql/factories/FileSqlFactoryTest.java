@@ -24,7 +24,7 @@ public class FileSqlFactoryTest {
     }
 
     // Tests if it works with ISO-8859-1.
-    @SqlFromFile(value = "./test-files/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591.class)
+    @SqlFromFile(value = "./test-files/lorem-iso-8859-1.txt", encoding = CharsetSpec.Iso88591Strict.class)
     private static void withSql3() {
         throw new AssertionError();
     }
