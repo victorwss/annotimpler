@@ -6,6 +6,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings({"ThrowableResultIgnored", "AssertEqualsBetweenInconvertibleTypes"})
 public class RecordMapperTest {
 
     public static enum Color {
@@ -56,7 +57,7 @@ public class RecordMapperTest {
 
     @Test
     public void testBadRecordMapMissingFields() throws Exception {
-        var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "4");
+        var p = Map.of("name", "apple", "c1", Color.BLUE.name(), "size", "4");
         var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals("Map keys mismatch.", ex.getMessage()),
@@ -67,7 +68,7 @@ public class RecordMapperTest {
 
     @Test
     public void testBadRecordMapExtraFields() throws Exception {
-        var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "4", "c2", Color.PINK.ordinal(), "foo", "bar");
+        var p = Map.of("name", "apple", "c1", Color.BLUE.name(), "size", "4", "c2", Color.PINK.ordinal(), "foo", "bar");
         var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
         Assertions.assertAll(
                 () -> Assertions.assertEquals("Map keys mismatch.", ex.getMessage()),
@@ -79,12 +80,12 @@ public class RecordMapperTest {
     @Test
     public void testBadRecordUnavailableFields() throws Exception {
         class Foo {}
-        var p = Map.of("name", "apple", "c1", Color.BLUE, "size", "4", "c2", new Foo());
+        var p = Map.of("name", "apple", "c1", Color.BLUE.name(), "size", "4", "c2", new Foo());
         var ex = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.mapToRecord(p, Fruit.class));
         Assertions.assertAll(
-                () -> Assertions.assertEquals("Map keys mismatch.", ex.getMessage()),
-                () -> Assertions.assertEquals(Map.class, ex.getIn()),
-                () -> Assertions.assertEquals(Fruit.class, ex.getOut())
+                () -> Assertions.assertEquals("Unsupported Type: " + Foo.class.getName() + ".", ex.getMessage()),
+                () -> Assertions.assertEquals(Foo.class, ex.getIn()),
+                () -> Assertions.assertEquals(Color.class, ex.getOut())
         );
     }
 
@@ -109,6 +110,7 @@ public class RecordMapperTest {
     @Test
     public void testBadRecordClass() throws Exception {
         var p = Map.of("name", "dog");
+        @SuppressWarnings("unchecked")
         var ex = Assertions.assertThrows(IllegalArgumentException.class, () -> ConverterFactory.STD.mapToRecord(p, (Class) String.class));
         Assertions.assertEquals("Not a record class.", ex.getMessage());
     }

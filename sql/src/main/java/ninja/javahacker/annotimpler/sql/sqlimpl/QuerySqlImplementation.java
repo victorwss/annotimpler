@@ -78,7 +78,7 @@ public final class QuerySqlImplementation implements Implementation {
             var supplier = SqlFactory.find(m);
 
             return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = supplier.get().associar(a);
+                var params = supplier.get().valuate(a);
                 var work = new SqlWorker(getConnection(), params);
                 return ret.operate(work);
             };

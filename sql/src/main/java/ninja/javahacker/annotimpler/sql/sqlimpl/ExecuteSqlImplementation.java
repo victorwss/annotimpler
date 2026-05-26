@@ -50,11 +50,11 @@ public final class ExecuteSqlImplementation implements Implementation {
             var supplier = SqlFactory.find(m);
 
             return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = supplier.get().associar(a);
+                var params = supplier.get().valuate(a);
                 var work = new SqlWorker(getConnection(), params);
                 var qtd = work.executar();
-                if (qtd == 0L && !es.aceitaZero()) throw new SQLException("Nenhuma linha foi afetada.");
-                if (qtd > 1L && !es.aceitaMulti()) throw new SQLException("Múltiplas linhas foram afetadas.");
+                if (qtd == 0L && !es.aceitaZero()) throw new SQLException("No line was afected.");
+                if (qtd > 1L && !es.aceitaMulti()) throw new SQLException("Multiple lines were afected.");
                 return ret.apply(qtd);
             };
         } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {

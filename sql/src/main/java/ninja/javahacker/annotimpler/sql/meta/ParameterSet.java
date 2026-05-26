@@ -90,17 +90,12 @@ public final class ParameterSet {
     }
 
     @NonNull
-    public ParameterSetWithValues associar(@NonNull Object... args) {
+    public ParameterSetWithValues valuate(@NonNull Object... args) {
         var pp = m.getParameters();
         if (args.length != pp.length) throw new IllegalArgumentException();
         @SuppressWarnings("unchecked")
         var wv = parameters.stream().map(p -> ((SqlNamedParameter<Object>) p).withValue(args[p.getIndex()])).toList();
         return new ParameterSetWithValues(query, wv);
-    }
-
-    @NonNull
-    public static ParameterSet parameters(@NonNull ParsedQuery pq, @NonNull Method m) {
-        return new ParameterSet(pq, m);
     }
 
     @Generated

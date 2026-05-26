@@ -22,8 +22,6 @@ public final class SqlNamedParameter<T> {
             void.class, Void.class
     );
 
-    private static final ConverterFactory cvt = ConverterFactory.STD;
-
     @Getter
     private final int index;
 
