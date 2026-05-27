@@ -28,6 +28,7 @@ public final class Transactor {
     }
 
     private <T> XSupplier<T> operate(@NonNull XSupplier<T> operation) {
+        checkNotNull(operation);
         return () -> {
             var alreadyHas = local.get() != null;
             if (alreadyHas) return operation.get();
@@ -63,10 +64,12 @@ public final class Transactor {
 
     @SuppressWarnings("unchecked")
     public <E, F extends E> E transact(@NonNull F impl) {
-        if (impl instanceof Marker) throw new IllegalArgumentException();
+        if (impl instanceof Marker) throw new IllegalArgumentException("Can't doubly transact an object.");
 
         InvocationHandler ih = (p, m, a) -> {
-            if (Methods.isToString(m) || Methods.isHashCode(m) || Methods.isEquals(m)) return unwrap(() -> m.invoke(impl, a));
+            if (Methods.isToString(m) || Methods.isHashCode(m) || Methods.isEquals(m) || Methods.isFinalize(m) || Methods.isClone(m)) {
+                return unwrap(() -> m.invoke(impl, a));
+            }
             return operate(() -> unwrap(() -> m.invoke(impl, a))).get();
         };
 
@@ -87,7 +90,7 @@ public final class Transactor {
 
     public Transaction currentTransaction() {
         var ret = local.get();
-        if (ret == null) throw new IllegalStateException();
+        if (ret == null) throw new IllegalStateException("No active transaction.");
         return ret;
     }
 

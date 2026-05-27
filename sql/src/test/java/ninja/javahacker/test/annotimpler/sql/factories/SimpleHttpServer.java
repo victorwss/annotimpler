@@ -119,7 +119,7 @@ public class SimpleHttpServer implements AutoCloseable {
         }
     }
 
-    private static record Header(String name, String value) {
+    public static record Header(String name, String value) {
     }
 
     private static class MalformedHeaderException extends Exception {

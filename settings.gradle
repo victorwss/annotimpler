@@ -2,7 +2,7 @@ rootProject.name = "Annotimpler"
 def subDirs = rootDir.listFiles(new FileFilter() {
     @Override
     public boolean accept(File file) {
-        return file.isDirectory() && !["config", "libs", "build"].contains(file.name) && !file.name.contains(".")
+        return file.isDirectory() && !["config", "libs", "build", "test-files"].contains(file.name) && !file.name.contains(".")
     }
 });
 
