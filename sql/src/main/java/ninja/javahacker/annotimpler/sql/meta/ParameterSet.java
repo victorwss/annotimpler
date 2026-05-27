@@ -98,11 +98,6 @@ public final class ParameterSet {
         return new ParameterSetWithValues(query, wv);
     }
 
-    @NonNull
-    public static ParameterSet parameters(@NonNull ParsedQuery pq, @NonNull Method m) {
-        return new ParameterSet(pq, m);
-    }
-
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

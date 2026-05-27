@@ -30,7 +30,7 @@ public interface SqlFactory {
             var sql = sup.get();
             var pq = ParsedQuery.parse(sql);
             if (pq.hasErrors()) throw new SQLException("Malformed SQL for " + nome);
-            return ParameterSet.parameters(pq, m);
+            return new ParameterSet(pq, m);
         };
         if (sqls.lazy()) return checked;
         try {
