@@ -14,6 +14,9 @@ public class SmartResultSetDelegateTest {
     private static final class TestB {}
     private static final class TestC {}
 
+    public SmartResultSetDelegateTest() {
+    }
+
     private static Reader r(int c) {
         return new AssertionReader("aaa" + c, 4, false);
     }
@@ -115,32 +118,77 @@ public class SmartResultSetDelegateTest {
     private static record TypeData(String label, int type) {
     }
 
-    private ControlledMock<ResultSetMetaData> makeMetaData(List<TypeData> types) {
+    private static final List<TypeData> SIMPLE = List.of(
+            new TypeData("f1", Types.INTEGER),
+            new TypeData("f2", Types.VARCHAR),
+            new TypeData("f3", Types.TIMESTAMP)
+    );
+
+    private static final List<TypeData> BAD = List.of(
+            new TypeData("aaai", Types.INTEGER),
+            new TypeData(null, Types.BLOB),
+            new TypeData("", Types.BIGINT),
+            new TypeData("aaai", Types.TIMESTAMP),
+            new TypeData("aAaI", Types.TIMESTAMP_WITH_TIMEZONE),
+            new TypeData("aaaı", Types.VARCHAR) // Dotless lowercase Tukish ı.
+    );
+
+    private static final List<TypeData> VACUOUS = List.of(
+            new TypeData(null, Types.VARCHAR),
+            new TypeData("", Types.BIGINT),
+            new TypeData("", Types.VARCHAR)
+    );
+
+    private static final List<TypeData> EMPTY = List.of();
+
+    private Object implFor(Method m, Object... a) {
+        if (a == null) a = new Object[0];
+        for (var p = 0; p < a.length; p++) {
+            var ret = a[p];
+            var out = STUFF.get(m.getParameterTypes()[p]).get(p + 1);
+            if (ret instanceof Blob || ret instanceof Clob || ret instanceof SQLXML || ret instanceof RowId || ret instanceof Ref || ret instanceof java.sql.Array || ret instanceof Statement) {
+                Assertions.assertSame(ret, out);
+            } else {
+                Assertions.assertEquals(ret, out);
+            }
+        }
+
+        return STUFF.get(m.getReturnType()).get(0);
+    }
+
+    private ControlledMock<ResultSetMetaData> makeMetaData(boolean withTypes, List<TypeData> types) {
         var md = ControlledMock.mock(ResultSetMetaData.class);
         md.setHandler((i, m, a) -> {
             var n = m.getName();
-            if (n.equals("getColumnCount")) return 3;
-            if (n.equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
-            if (n.equals("getColumnType") && types != null) return types.get((int) a[0]).type();
+            if (n.equals("getColumnCount")) return types.size();
+            if (n.equals("getColumnLabel")) return types.get((int) a[0] - 1).label();
+            if (n.equals("getColumnType") && withTypes) return types.get((int) a[0] - 1).type();
             throw new AssertionError(m);
         });
         return md;
     }
 
-    @Test
-    public void testGetMetaDataOk() throws Exception {
-        var md = makeMetaData(null);
+    private SmartResultSet makeMock(boolean withStuff, List<TypeData> types, ConverterFactory factory, Locale loc) throws Exception {
+        var md = makeMetaData(withStuff, types);
         var rs = ControlledMock.mock(ResultSet.class);
         rs.setHandler((i, m, a) -> {
             if (m.getName().equals("getMetaData")) return md.getMock();
+
+            if (withStuff) return implFor(m, a);
             throw new AssertionError(m);
         });
-        SmartResultSet s = new SmartResultSet(rs.getMock());
+        SmartResultSet s = new SmartResultSet(rs.getMock(), factory, loc);
         Assertions.assertSame(md.getMock(), s.getMetaData());
+        return s;
+    }
+
+    @Test
+    public void testGetMetaDataOk() throws Exception {
+        makeMock(false, SIMPLE, ConverterFactory.STD, Locale.ROOT);
     }
 
     private void testDelegateMethod(Method mt) throws Exception {
-        var md = makeMetaData(null);
+        var md = makeMetaData(false, SIMPLE);
         var rs = ControlledMock.mock(ResultSet.class);
         var lastCall = new Method[1];
         rs.setHandler((i, m, a) -> {
@@ -151,18 +199,7 @@ public class SmartResultSetDelegateTest {
             Assertions.assertEquals(mt.getReturnType(), m.getReturnType());
             Assertions.assertArrayEquals(mt.getParameterTypes(), m.getParameterTypes());
 
-            if (a == null) a = new Object[0];
-            for (var p = 0; p < a.length; p++) {
-                var ret = a[p];
-                var out = STUFF.get(mt.getParameterTypes()[p]).get(p + 1);
-                if (ret instanceof Blob || ret instanceof Clob || ret instanceof SQLXML || ret instanceof RowId || ret instanceof Ref || ret instanceof java.sql.Array || ret instanceof Statement) {
-                    Assertions.assertSame(ret, out);
-                } else {
-                    Assertions.assertEquals(ret, out);
-                }
-            }
-
-            return STUFF.get(mt.getReturnType()).get(0);
+            return implFor(m, a);
         });
         SmartResultSet s = new SmartResultSet(rs.getMock());
         var ps = new Object[mt.getParameterCount()];
@@ -184,5 +221,22 @@ public class SmartResultSetDelegateTest {
         return Stream.of(ResultSet.class.getMethods())
                 .filter(mt -> !"getMetaData".equals(mt.getName()))
                 .map(mt -> DynamicTest.dynamicTest("[testDelegateMethods] " + MethodWrapper.of(mt).toString(), () -> testDelegateMethod(mt)));
+    }
+
+    @TestFactory
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
+    public Stream<DynamicTest> testMapping() throws Exception {
+        var map1 = Map.of("F1", 1, "F2", "a", "F3", java.sql.Timestamp.valueOf(LocalDateTime.of(2020, 1, 2, 3, 4, 5)));
+        var map2 = Map.of("AAAI", 1);
+        var map3 = Map.<String, Object>of();
+        var map4 = Map.of("AAAI", 1, "AAAİ", "a");
+        var turkish = Locale.forLanguageTag("TR-tr");
+        return Stream.of(
+                DynamicTest.dynamicTest("[testMapping] simple"  , () -> Assertions.assertEquals(map1, makeMock(true, SIMPLE , ConverterFactory.STD, Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] bad keys", () -> Assertions.assertEquals(map2, makeMock(true, BAD    , ConverterFactory.STD, Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] vacuous" , () -> Assertions.assertEquals(map3, makeMock(true, VACUOUS, ConverterFactory.STD, Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] empty"   , () -> Assertions.assertEquals(map3, makeMock(true, EMPTY  , ConverterFactory.STD, Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] turkish" , () -> Assertions.assertEquals(map4, makeMock(true, SIMPLE , ConverterFactory.STD, turkish    ).getMap()))
+        );
     }
 }

@@ -13,6 +13,9 @@ public class CommonSqlFactoryTest {
         throw new AssertionError();
     }
 
+    public CommonSqlFactoryTest() {
+    }
+
     private void assertRefusesEmpty(SqlFactory f) throws Exception {
         var m = Stream.of(CommonSqlFactoryTest.class.getDeclaredMethods()).filter(e -> e.getName().equals("empty")).findAny().get();
         Assertions.assertThrows(UnsupportedOperationException.class, () -> f.prepare(m));

@@ -14,6 +14,9 @@ import module org.junit.jupiter.api;
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "ThrowableResultIgnored"})
 public class ConnJsonTest {
 
+    public ConnJsonTest() {
+    }
+
     private static final String JSON = """
             {
                 "type": "mariadb",
@@ -28,7 +31,7 @@ public class ConnJsonTest {
         return DynamicTest.dynamicTest(name, ctx);
     }
 
-    public static ObjectMapper mapper() {
+    private static ObjectMapper mapper() {
         return new ObjectMapper()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
             .registerModule(new Jdk8Module())
@@ -122,7 +125,7 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReadBadJson1() throws JsonProcessingException {
+    public void testReadBadJson1() throws Exception {
         var bad = JSON.replace("mariadb", "bad");
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var ex = Assertions.assertThrows(JsonMappingException.class, () -> mapper().readValue(bad, JsonConnector.class));
@@ -136,17 +139,17 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReadBadJson2() throws JsonProcessingException {
+    public void testReadBadJson2() throws Exception {
         Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(""));
     }
 
     @Test
-    public void testReadBadJson3() throws JsonProcessingException {
+    public void testReadBadJson3() throws Exception {
         Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read("{["));
     }
 
     @Test
-    public void testReadBadJson4() throws JsonProcessingException {
+    public void testReadBadJson4() throws Exception {
         var bad = "{\"blah\":46,\"wha\":[]}";
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
@@ -160,13 +163,13 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReadBadJson5() throws JsonProcessingException {
+    public void testReadBadJson5() throws Exception {
         var bad2 = JSON.substring(0, JSON.length() - 1) + ",\"wtf\":\"oops\"}";
         Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(bad2));
     }
 
     @Test
-    public void testReadBadJson6() throws JsonProcessingException {
+    public void testReadBadJson6() throws Exception {
         var bad = "[1,2,3]";
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
@@ -180,18 +183,18 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReadBadJson7() throws JsonProcessingException {
+    public void testReadBadJson7() throws Exception {
         Assertions.assertThrows(IOException.class, () -> JsonConnector.read("null"), "No connector found.");
     }
 
     @Test
     @SuppressWarnings("null")
-    public void testReadBadJsonNull() throws JsonProcessingException {
+    public void testReadBadJsonNull() throws Exception {
         ForTests.testNull("json", () -> JsonConnector.read(null));
     }
 
     @Test
-    public void testWriteBadJson2() throws JsonProcessingException {
+    public void testWriteBadJson2() throws Exception {
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var name2 = BadConnector.class.getName();
         var jsc = new JsonConnector(new BadConnector());
@@ -206,7 +209,7 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testWriteBadJson3() throws JsonProcessingException {
+    public void testWriteBadJson3() throws Exception {
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var name2 = BadConnector.class.getName();
         var jsc = new JsonConnector(new BadConnector());
@@ -222,6 +225,10 @@ public class ConnJsonTest {
 
     @ConnectorJsonKey("foo")
     public static class FooConnector implements Connector {
+
+        public FooConnector() {
+        }
+
         @Override
         public String url() {
             throw new AssertionError();
@@ -235,6 +242,10 @@ public class ConnJsonTest {
 
     @ConnectorJsonKey("bar")
     public static class BarConnector implements Connector {
+
+        public BarConnector() {
+        }
+
         @Override
         public String url() {
             throw new AssertionError();
@@ -248,6 +259,10 @@ public class ConnJsonTest {
 
     @ConnectorJsonKey("goo")
     public static class GooConnector implements Connector {
+
+        public GooConnector() {
+        }
+
         @Override
         public String url() {
             throw new AssertionError();
@@ -261,6 +276,10 @@ public class ConnJsonTest {
 
     @ConnectorJsonKey("firebird")
     public static class FirebirdImposterConnector implements Connector {
+
+        public FirebirdImposterConnector() {
+        }
+
         @Override
         public String url() {
             throw new AssertionError();
@@ -274,6 +293,10 @@ public class ConnJsonTest {
 
     @ConnectorJsonKey("mysql")
     public static class MysqlImposterConnector implements Connector {
+
+        public MysqlImposterConnector() {
+        }
+
         @Override
         public String url() {
             throw new AssertionError();
@@ -303,7 +326,7 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testRegister() throws JsonProcessingException {
+    public void testRegister() throws Exception {
         JsonConnector.register(FooConnector.class, BarConnector.class, FirebirdImposterConnector.class, MysqlImposterConnector.class);
         Assertions.assertAll(
                 () -> {
@@ -322,7 +345,7 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testReset() throws JsonProcessingException {
+    public void testReset() throws Exception {
         JsonConnector.register(FooConnector.class, BarConnector.class, FirebirdImposterConnector.class, MysqlImposterConnector.class);
         Assertions.assertAll(
                 () -> Assertions.assertEquals(Optional.of(FooConnector.class), JsonConnector.find("foo")),
@@ -339,7 +362,7 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testRegisterBad1() throws JsonProcessingException {
+    public void testRegisterBad1() throws Exception {
         JsonConnector.resetRegister();
         Assertions.assertThrows(UnsupportedOperationException.class, () -> JsonConnector.register(GooConnector.class, BadConnector.class));
         Assertions.assertAll(
@@ -357,14 +380,14 @@ public class ConnJsonTest {
     }
 
     @Test
-    public void testRegisterBad2() throws JsonProcessingException {
+    public void testRegisterBad2() throws Exception {
         JsonConnector.resetRegister();
         Assertions.assertThrows(IllegalArgumentException.class, () -> JsonConnector.register(GooConnector.class, JsonConnector.class));
         Assertions.assertEquals(Optional.empty(), JsonConnector.find("goo"));
     }
 
     @Test
-    public void testRegisterBad3() throws JsonProcessingException {
+    public void testRegisterBad3() throws Exception {
         JsonConnector.resetRegister();
         Assertions.assertThrows(IllegalArgumentException.class, () -> JsonConnector.register(GooConnector.class, null));
         Assertions.assertEquals(Optional.empty(), JsonConnector.find("goo"));
@@ -372,7 +395,7 @@ public class ConnJsonTest {
 
     @TestFactory
     @SuppressWarnings("null")
-    public Stream<DynamicTest> testNulls() throws JsonProcessingException {
+    public Stream<DynamicTest> testNulls() throws Exception {
         return Stream.of(
                 n("register", () -> ForTests.testNull("classes", () -> JsonConnector.register((Class<? extends Connector>[]) null))),
                 n("find",     () -> ForTests.testNull("key", () -> JsonConnector.find(null))),

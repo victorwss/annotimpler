@@ -20,10 +20,10 @@ public final class QuerySqlImplementation implements Implementation {
     @NonNull
     private final Locale localizer;
 
-    public QuerySqlImplementation(@NonNull PropertyBag props, @NonNull ConverterFactory cvt, @NonNull Locale localizer) {
-        connect = props.get(SqlKeyProperty.INSTANCE);
-        this.cvt = cvt;
-        this.localizer = localizer;
+    public QuerySqlImplementation(@NonNull PropertyBag dependencies) {
+        this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
+        this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
+        this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);
     }
 
     @NonNull

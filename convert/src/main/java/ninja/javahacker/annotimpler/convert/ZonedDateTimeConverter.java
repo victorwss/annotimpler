@@ -4,7 +4,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
-import module ninja.javahacker.annotimpler.datetime;
+import module ninja.javahacker.datetime;
 
 public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
     INSTANCE;

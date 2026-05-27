@@ -12,6 +12,9 @@ import module org.junit.jupiter.params;
 @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
 public class ExtraParameterStatementTest {
 
+    public ExtraParameterStatementTest() {
+    }
+
     private static class LameException extends RuntimeException {
         private static final long serialVersionUID = 42L;
     }
@@ -129,14 +132,14 @@ public class ExtraParameterStatementTest {
 
         public MockPreparedStatementState(Map<Method, Strategy> actions) throws NoSuchMethodException {
             var mock = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {PreparedStatement.class}, (i, m, a) -> {
-                if (a == null) a = new Object[0];
+                var aa = a == null ? new Object[0] : a;
                 var action = actions.get(m);
-                if (action != null) return action.run(this, a);
+                if (action != null) return action.run(this, aa);
                 if (m.equals(intMethod)) {
-                    if (a.length != 2) throw new AssertionError();
+                    if (aa.length != 2) throw new AssertionError();
                     if (okExecute || okClose) throw new AssertionError();
-                    var idx = (int) a[0];
-                    var num = (int) a[1];
+                    var idx = (int) aa[0];
+                    var num = (int) aa[1];
                     if (idx == 2) {
                         if (ok2) throw new AssertionError();
                         Assertions.assertEquals(84, num);
@@ -146,19 +149,19 @@ public class ExtraParameterStatementTest {
                     throw new AssertionError();
                 }
                 if (m.equals(executeMethod)) {
-                    if (a.length != 0) throw new AssertionError();
+                    if (aa.length != 0) throw new AssertionError();
                     if (!ok1 || !ok2 || !ok3 || okExecute || okClose) throw new AssertionError();
                     okExecute = true;
                     return 1;
                 }
                 if (m.equals(closeMethod)) {
-                    if (a.length != 0) throw new AssertionError();
+                    if (aa.length != 0) throw new AssertionError();
                     if (!expectException && (!ok1 || !ok2 || !ok3 || !okExecute || okClose)) throw new AssertionError();
                     okClose = true;
                     return null;
                 }
                 if (m.equals(getConnectionMethod)) {
-                    if (a.length != 0) throw new AssertionError();
+                    if (aa.length != 0) throw new AssertionError();
                     return con;
                 }
                 throw new AssertionError(m);

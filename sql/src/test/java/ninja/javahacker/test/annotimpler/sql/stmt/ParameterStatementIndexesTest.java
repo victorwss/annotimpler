@@ -10,6 +10,9 @@ import module org.junit.jupiter.api;
 
 public class ParameterStatementIndexesTest {
 
+    public ParameterStatementIndexesTest() {
+    }
+
     private static void testBad(String paramName, Executable runIt) {
         var ex = Assertions.assertThrows(IllegalArgumentException.class, runIt);
         Assertions.assertEquals("Parameter not found: " + paramName, ex.getMessage());

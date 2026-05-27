@@ -19,13 +19,19 @@ public class LimitedInputStreamTest {
         }
     }
 
+    public LimitedInputStreamTest() {
+    }
+
     @Nested
     @DisplayName("Constructor Tests")
-    class ConstructorTests {
+    public class ConstructorTests {
+
+        public ConstructorTests() {
+        }
 
         @TestFactory
         @DisplayName("Should create instance with valid parameters.")
-        Stream<DynamicTest> shouldCreateInstanceWithValidParameters() {
+        public Stream<DynamicTest> shouldCreateInstanceWithValidParameters() {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             var limited = new LimitedInputStream(wrapped, 50);
             return Stream.of(
@@ -39,20 +45,20 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should throw NullPointerException when wrapped stream is null.")
-        void shouldThrowNullPointerExceptionWhenWrappedIsNull() {
+        public void shouldThrowNullPointerExceptionWhenWrappedIsNull() {
             ForTests.testNull("wrapped", () -> new LimitedInputStream(null, 50));
         }
 
         @Test
         @DisplayName("Should throw IllegalArgumentException when maxBytes is negative.")
-        void shouldThrowIllegalArgumentExceptionWhenMaxBytesIsNegative() {
+        public void shouldThrowIllegalArgumentExceptionWhenMaxBytesIsNegative() {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             Assertions.assertThrows(IllegalArgumentException.class, () -> new LimitedInputStream(wrapped, -1));
         }
 
         @Test
         @DisplayName("Should allow maxBytes = 0.")
-        void shouldAllowMaxBytesZero() {
+        public void shouldAllowMaxBytesZero() {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             Assertions.assertDoesNotThrow(() -> new LimitedInputStream(wrapped, 0));
         }
@@ -60,11 +66,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Read Operations Tests")
-    class ReadOperationsTests {
+    public class ReadOperationsTests {
+
+        public ReadOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should read single byte correctly within limit.")
-        void shouldReadSingleByteWithinLimit() throws IOException {
+        public void shouldReadSingleByteWithinLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var firstByte = limited.read();
             Assertions.assertEquals(0, firstByte);
@@ -74,7 +83,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should return -1 when limit is reached.")
-        void shouldReturnMinusOneWhenLimitReached() throws IOException {
+        public void shouldReturnMinusOneWhenLimitReached() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 5);
             var buffer = new byte[10];
             var read = limited.read(buffer);
@@ -88,7 +97,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should read bytes correctly within limit.")
-        void shouldReadBytesWithinLimit() throws IOException {
+        public void shouldReadBytesWithinLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 20);
             var buffer = new byte[15];
             var read = limited.read(buffer);
@@ -105,7 +114,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should not read more than limit.")
-        void shouldNotReadMoreThanLimit() throws IOException {
+        public void shouldNotReadMoreThanLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var buffer = new byte[20];
             var read = limited.read(buffer);
@@ -121,7 +130,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle read with offset correctly.")
-        void shouldHandleReadWithOffsetCorrectly() throws IOException {
+        public void shouldHandleReadWithOffsetCorrectly() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 15);
             var buffer = new byte[20];
             var read = limited.read(buffer, 5, 10);
@@ -138,7 +147,7 @@ public class LimitedInputStreamTest {
         @ParameterizedTest
         @DisplayName("Should read correctly with different buffer sizes.")
         @ValueSource(ints = {1, 5, 10, 20, 50})
-        void shouldReadCorrectlyWithDifferentBufferSizes(int bufferSize) throws IOException {
+        public void shouldReadCorrectlyWithDifferentBufferSizes(int bufferSize) throws IOException {
             var limit = 30;
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), limit);
             var buffer = new byte[bufferSize];
@@ -156,11 +165,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Skip Operations Tests")
-    class SkipOperationsTests {
+    public class SkipOperationsTests {
+
+        public SkipOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should skip bytes within limit.")
-        void shouldSkipBytesWithinLimit() throws IOException {
+        public void shouldSkipBytesWithinLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 20);
             var skipped = limited.skip(10);
 
@@ -175,7 +187,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should not skip more than limit.")
-        void shouldNotSkipMoreThanLimit() throws IOException {
+        public void shouldNotSkipMoreThanLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 15);
             var skipped = limited.skip(20);
 
@@ -186,7 +198,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should skip zero when n is zero.")
-        void shouldSkipZeroWhenNIsZero() throws IOException {
+        public void shouldSkipZeroWhenNIsZero() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var skipped = limited.skip(0);
 
@@ -196,7 +208,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should skip zero when limit is reached.")
-        void shouldSkipZeroWhenLimitReached() throws IOException {
+        public void shouldSkipZeroWhenLimitReached() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 5);
             limited.skip(5);
             var skipped = limited.skip(10);
@@ -207,7 +219,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should skip negative amount.")
-        void shouldSkipNegativeAmount() throws IOException {
+        public void shouldSkipNegativeAmount() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var skipped = limited.skip(-5);
 
@@ -218,11 +230,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Available Operations Tests")
-    class AvailableOperationsTests {
+    public class AvailableOperationsTests {
+
+        public AvailableOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should return correct available bytes within limit.")
-        void shouldReturnCorrectAvailableBytesWithinLimit() throws IOException {
+        public void shouldReturnCorrectAvailableBytesWithinLimit() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 30);
             var available = limited.available();
             Assertions.assertEquals(30, available);
@@ -230,7 +245,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should return zero available when limit is reached.")
-        void shouldReturnZeroAvailableWhenLimitReached() throws IOException {
+        public void shouldReturnZeroAvailableWhenLimitReached() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             limited.read(new byte[10]);
             var available = limited.available();
@@ -239,7 +254,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should update available after reading.")
-        void shouldUpdateAvailableAfterReading() throws IOException {
+        public void shouldUpdateAvailableAfterReading() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 20);
             Assertions.assertEquals(20, limited.available());
 
@@ -255,7 +270,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should return zero for empty data.")
-        void shouldReturnZeroForEmptyData() throws IOException {
+        public void shouldReturnZeroForEmptyData() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(new byte[0]), 10);
             Assertions.assertEquals(0, limited.available());
             Assertions.assertEquals(-1, limited.read());
@@ -263,7 +278,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should consult wrapped for availability.")
-        void shouldConsultWrappedForAvailability() throws IOException {
+        public void shouldConsultWrappedForAvailability() throws IOException {
             var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
             var limited = new LimitedInputStream(wrapped, 50);
             limited.read(new byte[25]);
@@ -277,11 +292,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Mark/Reset Tests")
-    class MarkResetTests {
+    public class MarkResetTests {
+
+        public MarkResetTests() {
+        }
 
         @Test
         @DisplayName("Should support mark when wrapped stream supports it.")
-        void shouldSupportMarkWhenWrappedStreamSupportsIt() throws IOException {
+        public void shouldSupportMarkWhenWrappedStreamSupportsIt() throws IOException {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             var limited = new LimitedInputStream(wrapped, 50);
             Assertions.assertTrue(limited.markSupported());
@@ -289,7 +307,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should not support mark when wrapped stream doesn't support it.")
-        void shouldNotSupportMarkWhenWrappedStreamDoesntSupportIt() throws IOException {
+        public void shouldNotSupportMarkWhenWrappedStreamDoesntSupportIt() throws IOException {
             var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
             var limited = new LimitedInputStream(wrapped, 50);
             Assertions.assertFalse(limited.markSupported());
@@ -297,7 +315,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should fail to mark when wrapped stream doesn't support it.")
-        void shouldFailToMarkWhenWrappedDoesntSupportIt() throws IOException {
+        public void shouldFailToMarkWhenWrappedDoesntSupportIt() throws IOException {
             var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
             var limited = new LimitedInputStream(wrapped, 50);
             limited.mark(20);
@@ -307,7 +325,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should mark and reset correctly.")
-        void shouldMarkAndResetCorrectly() throws IOException {
+        public void shouldMarkAndResetCorrectly() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 50);
 
             // Read first 10 bytes.
@@ -340,7 +358,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should allow reading after reset.")
-        void shouldAllowReadingAfterReset() throws IOException {
+        public void shouldAllowReadingAfterReset() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 50);
 
             // Read and mark.
@@ -359,14 +377,14 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should throw IOException when reset without mark.")
-        void shouldThrowIOExceptionWhenResetWithoutMark() throws IOException {
+        public void shouldThrowIOExceptionWhenResetWithoutMark() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 50);
             Assertions.assertThrows(IOException.class, limited::reset);
         }
 
         @Test
         @DisplayName("Should allow multiple marks and resets.")
-        void shouldAllowMultipleMarksAndResets() throws IOException {
+        public void shouldAllowMultipleMarksAndResets() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 50);
 
             // First mark.
@@ -390,7 +408,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle mark with readlimit parameter.")
-        void shouldHandleMarkWithReadlimitParameter() throws IOException {
+        public void shouldHandleMarkWithReadlimitParameter() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 50);
             limited.read(new byte[5]);
             limited.mark(20); // Allow reading up to 20 bytes before reset.
@@ -408,11 +426,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Close Operations Tests")
-    class CloseOperationsTests {
+    public class CloseOperationsTests {
+
+        public CloseOperationsTests() {
+        }
 
         @TestFactory
         @DisplayName("Should close wrapped stream.")
-        Stream<DynamicTest> shouldCloseWrappedStream() throws IOException {
+        public Stream<DynamicTest> shouldCloseWrappedStream() throws IOException {
             var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
             var limited = new LimitedInputStream(wrapped, 50);
 
@@ -437,7 +458,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should be idempotent when closing multiple times.")
-        void shouldBeIdempotentWhenClosingMultipleTimes() throws IOException {
+        public void shouldBeIdempotentWhenClosingMultipleTimes() throws IOException {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             var limited = new LimitedInputStream(wrapped, 50);
 
@@ -447,7 +468,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should throw IOException when reading after close.")
-        void shouldThrowIOExceptionWhenReadingAfterClose() throws IOException {
+        public void shouldThrowIOExceptionWhenReadingAfterClose() throws IOException {
             var wrapped = new ByteArrayInputStream(TEST_DATA);
             var limited = new LimitedInputStream(wrapped, 50);
 
@@ -459,7 +480,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should work in try-with-resources.")
-        void shouldWorkInTryWithResources() throws IOException {
+        public void shouldWorkInTryWithResources() throws IOException {
             var wrapped = new AssertionInputStream(TEST_DATA, 50, false);
             LimitedInputStream whatWas;
             try (var limited = new LimitedInputStream(wrapped, 50)) {
@@ -478,11 +499,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Edge Cases Tests")
-    class EdgeCasesTests {
+    public class EdgeCasesTests {
+
+        public EdgeCasesTests() {
+        }
 
         @Test
         @DisplayName("Should handle zero max bytes correctly.")
-        void shouldHandleZeroMaxBytesCorrectly() throws IOException {
+        public void shouldHandleZeroMaxBytesCorrectly() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 0);
             Assertions.assertEquals(0, limited.available());
             Assertions.assertEquals(-1, limited.read());
@@ -495,7 +519,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle reading exactly limit.")
-        void shouldHandleReadingExactlyLimit() throws IOException {
+        public void shouldHandleReadingExactlyLimit() throws IOException {
             var limit = 25;
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), limit);
             var buffer = new byte[limit];
@@ -515,7 +539,7 @@ public class LimitedInputStreamTest {
             "10, 15",
             "25, 30"
         })
-        void shouldHandlePartialReadsCorrectly(int limit, int readSize) throws IOException {
+        public void shouldHandlePartialReadsCorrectly(int limit, int readSize) throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), limit);
             var buffer = new byte[readSize];
             var read = limited.read(buffer);
@@ -527,7 +551,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should work with empty input stream.")
-        void shouldWorkWithEmptyInputStream() throws IOException {
+        public void shouldWorkWithEmptyInputStream() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(new byte[0]), 10);
             Assertions.assertEquals(-1, limited.read());
             Assertions.assertEquals(0, limited.skip(5));
@@ -537,7 +561,7 @@ public class LimitedInputStreamTest {
         @Test
         @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read.")
-        void shouldHandleNullBufferInRead() throws IOException {
+        public void shouldHandleNullBufferInRead() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
         }
@@ -545,7 +569,7 @@ public class LimitedInputStreamTest {
         @Test
         @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read evn if closed.")
-        void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
+        public void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             limited.close();
             Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
@@ -553,7 +577,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle invalid offset and length.")
-        void shouldHandleInvalidOffsetAndLength() throws IOException {
+        public void shouldHandleInvalidOffsetAndLength() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var buffer = new byte[10];
 
@@ -564,7 +588,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle reading zero length buffer.")
-        void shouldHandleReadingZeroLengthBuffer() throws IOException {
+        public void shouldHandleReadingZeroLengthBuffer() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             var buffer = new byte[10];
             var read = limited.read(buffer, 0, 0);
@@ -575,7 +599,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle reading after limit with mark/reset.")
-        void shouldHandleReadingAfterLimitWithMarkReset() throws IOException {
+        public void shouldHandleReadingAfterLimitWithMarkReset() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 20);
 
             // Read up to limit.
@@ -598,11 +622,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Integration Tests")
-    class IntegrationTests {
+    public class IntegrationTests {
+
+        public IntegrationTests() {
+        }
 
         @Test
         @DisplayName("Should work with BufferedInputStream.")
-        void shouldWorkWithBufferedReader() throws IOException {
+        public void shouldWorkWithBufferedReader() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 30);
             var buffered = new BufferedInputStream(limited);
             var line = new byte[50];
@@ -612,7 +639,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should maintain byte count correctly with complex operations.")
-        void shouldMaintainByteCountCorrectlyWithComplexOperations() throws IOException {
+        public void shouldMaintainByteCountCorrectlyWithComplexOperations() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 40);
 
             // Mix of different operations.
@@ -640,11 +667,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Tests with AssertionInputStream - Verifying No Excess Reads")
-    class AssertionVerificationTests {
+    public class AssertionVerificationTests {
+
+        public AssertionVerificationTests() {
+        }
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading exactly up to limit.")
-        void shouldNotCauseAssertionErrorWhenReadingExactlyLimit() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingExactlyLimit() throws IOException {
             var limit = 15;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -662,7 +692,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading in chunks up to limit.")
-        void shouldNotCauseAssertionErrorWhenReadingInChunksUpToLimit() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingInChunksUpToLimit() throws IOException {
             var limit = 25;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -685,7 +715,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading one byte at a time.")
-        void shouldNotCauseAssertionErrorWhenReadingOneByteAtATime() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingOneByteAtATime() throws IOException {
             var limit = 20;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -702,7 +732,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when skip is used.")
-        void shouldNotCauseAssertionErrorWhenSkipIsUsed() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenSkipIsUsed() throws IOException {
             var limit = 25;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -722,7 +752,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle mark/reset without causing excess reads.")
-        void shouldHandleMarkResetWithoutExcessReads() throws IOException {
+        public void shouldHandleMarkResetWithoutExcessReads() throws IOException {
             var limit = 40;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -744,7 +774,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that wrapped stream is never read beyond limit.")
-        void shouldVerifyWrappedStreamNeverReadBeyondLimit() throws IOException {
+        public void shouldVerifyWrappedStreamNeverReadBeyondLimit() throws IOException {
             var limit = 30;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -766,7 +796,7 @@ public class LimitedInputStreamTest {
         @ParameterizedTest
         @DisplayName("Should verify read operations never request more than available limit.")
         @ValueSource(ints = {1, 10, 25, 50})
-        void shouldVerifyReadOperationsNeverRequestMoreThanAvailableLimit(int limit) throws IOException {
+        public void shouldVerifyReadOperationsNeverRequestMoreThanAvailableLimit(int limit) throws IOException {
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
 
@@ -808,7 +838,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle mark/reset correctly when near limit.")
-        void shouldHandleMarkResetCorrectlyWhenNearLimit() throws IOException {
+        public void shouldHandleMarkResetCorrectlyWhenNearLimit() throws IOException {
             var limit = 20;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -849,11 +879,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Edge Cases - Boundary Conditions")
-    class BoundaryConditionsTests {
+    public class BoundaryConditionsTests {
+
+        public BoundaryConditionsTests() {
+        }
 
         @Test
         @DisplayName("Should handle read request exactly at limit boundary.")
-        void shouldHandleReadRequestExactlyAtLimitBoundary() throws IOException {
+        public void shouldHandleReadRequestExactlyAtLimitBoundary() throws IOException {
             var limit = 10;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -885,7 +918,7 @@ public class LimitedInputStreamTest {
             "20, 8, 4, 8",
             "15, 3, 7, 5"
         })
-        void shouldHandleReadSkipCombinationsWithoutExceedingLimit(int limit, int initialRead, int skip, int finalRead) throws IOException {
+        public void shouldHandleReadSkipCombinationsWithoutExceedingLimit(int limit, int initialRead, int skip, int finalRead) throws IOException {
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
 
@@ -909,7 +942,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle zero-byte reads correctly.")
-        void shouldHandleZeroByteReadsCorrectly() throws IOException {
+        public void shouldHandleZeroByteReadsCorrectly() throws IOException {
             var limit = 10;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -928,7 +961,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle available() correctly at boundaries.")
-        void shouldHandleReadyCorrectlyAtBoundaries() throws IOException {
+        public void shouldHandleReadyCorrectlyAtBoundaries() throws IOException {
             var limit = 15;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -942,11 +975,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Stress Tests")
-    class StressTests {
+    public class StressTests {
+
+        public StressTests() {
+        }
 
         @Test
         @DisplayName("Should handle many small reads without exceeding limit.")
-        void shouldHandleManySmallReadsWithoutExceedingLimit() throws IOException {
+        public void shouldHandleManySmallReadsWithoutExceedingLimit() throws IOException {
             var limit = 100;
             var smallReadSize = 3;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
@@ -979,7 +1015,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle alternating read and skip operations.")
-        void shouldHandleAlternatingReadAndSkipOperations() throws IOException {
+        public void shouldHandleAlternatingReadAndSkipOperations() throws IOException {
             var limit = 100;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1010,7 +1046,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should handle rapid mark/reset cycles without excess reads.")
-        void shouldHandleRapidMarkResetCyclesWithoutExcessReads() throws IOException {
+        public void shouldHandleRapidMarkResetCyclesWithoutExcessReads() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1043,11 +1079,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Read Operation Verification Tests")
-    class ReadOperationVerificationTests {
+    public class ReadOperationVerificationTests {
+
+        public ReadOperationVerificationTests() {
+        }
 
         @Test
         @DisplayName("Should verify that read operations never exceed requested limit.")
-        void shouldVerifyReadOperationsNeverExceedRequestedLimit() throws IOException {
+        public void shouldVerifyReadOperationsNeverExceedRequestedLimit() throws IOException {
             var limit = 37;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1090,7 +1129,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that skip operations are properly reduced near limit.")
-        void shouldVerifySkipOperationsProperlyReducedNearLimit() throws IOException {
+        public void shouldVerifySkipOperationsProperlyReducedNearLimit() throws IOException {
             var limit = 25;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1119,7 +1158,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that no read operations occur after limit is reached.")
-        void shouldVerifyNoReadOperationsAfterLimitReached() throws IOException {
+        public void shouldVerifyNoReadOperationsAfterLimitReached() throws IOException {
             var limit = 20;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1145,7 +1184,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that partial reads respect the limit precisely.")
-        void shouldVerifyPartialReadsRespectLimitPrecisely() throws IOException {
+        public void shouldVerifyPartialReadsRespectLimitPrecisely() throws IOException {
             var limit = 23;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1180,7 +1219,7 @@ public class LimitedInputStreamTest {
     
         @Test
         @DisplayName("Should verify that resets re-reads the same data again.")
-        void shouldVerifyThatMultipleResetsRereadsTheSameDataAgain() throws IOException {
+        public void shouldVerifyThatMultipleResetsRereadsTheSameDataAgain() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1210,7 +1249,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from inside.")
-        void shouldVerifyMarkLimitBoundaryFromInside() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromInside() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1247,7 +1286,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from outside on read.")
-        void shouldVerifyMarkLimitBoundaryFromOutsideRead() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromOutsideRead() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1272,7 +1311,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from outside on skip.")
-        void shouldVerifyMarkLimitBoundaryFromOutsideSkip() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromOutsideSkip() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1296,7 +1335,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should verify that reset won't work after mark boundary.")
-        void shouldVerifyThatResetWontWorkAfterMarkBoundaryTooFarMark() throws IOException {
+        public void shouldVerifyThatResetWontWorkAfterMarkBoundaryTooFarMark() throws IOException {
             var limit = 50;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1312,11 +1351,14 @@ public class LimitedInputStreamTest {
 
     @Nested
     @DisplayName("Limit Integration Tests")
-    class LimitIntegrationTests {
+    public class LimitIntegrationTests {
+
+        public LimitIntegrationTests() {
+        }
 
         @Test
         @DisplayName("Should work correctly in general.")
-        void shouldWorkCorrectlyInGeneral() throws IOException {
+        public void shouldWorkCorrectlyInGeneral() throws IOException {
             var limit = 30;
             var asserting = new AssertionInputStream(TEST_DATA, limit, false);
             var limited = new LimitedInputStream(asserting, limit);
@@ -1333,7 +1375,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @DisplayName("Should maintain correct position after complex operations.")
-        void shouldMaintainCorrectPositionAfterComplexOperations() throws IOException {
+        public void shouldMaintainCorrectPositionAfterComplexOperations() throws IOException {
             var limit = 45;
             var asserting = new AssertionInputStream(TEST_DATA, limit, true);
             var limited = new LimitedInputStream(asserting, limit);

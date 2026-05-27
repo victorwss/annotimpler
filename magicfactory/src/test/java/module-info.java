@@ -2,6 +2,7 @@
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
 open module ninja.javahacker.test.annotimpler.magicfactory {
+    requires java.sql;
     requires ninja.javahacker.annotimpler.magicfactory;
 
     requires org.junit.jupiter.api;

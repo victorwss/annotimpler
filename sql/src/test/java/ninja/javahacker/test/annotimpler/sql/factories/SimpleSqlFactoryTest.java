@@ -9,6 +9,9 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class SimpleSqlFactoryTest {
 
+    public SimpleSqlFactoryTest() {
+    }
+
     @Sql("abc123")
     private static void withSql1() {
         throw new AssertionError();

@@ -13,6 +13,9 @@ public class UrlSqlFactoryTest {
 
     private static SimpleHttpServer SERVER;
 
+    public UrlSqlFactoryTest() {
+    }
+
     // Tests if it works with UTF-8.
     @SqlFromUrl(value = "http://localhost:8080/lorem-utf-8.txt")
     private static void withSql1() {

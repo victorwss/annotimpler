@@ -10,6 +10,9 @@ import module org.junit.jupiter.api;
 
 public class ConnectionPropertyTests {
 
+    public ConnectionPropertyTests() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }
@@ -178,6 +181,7 @@ public class ConnectionPropertyTests {
         return (E) set(conn, "withTimezone", String.class, value);
     }
 
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     private static void addTestsConnector(
             @NonNull String id,
             @NonNull List<DynamicTest> tests,
@@ -349,6 +353,7 @@ public class ConnectionPropertyTests {
         return new TestSet(props, List.of(conns));
     }
 
+    @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     private static Stream<DynamicTest> addTestsConnectors(String db, TestSet... sets) {
         var tests = new ArrayList<DynamicTest>(50);
 

@@ -2,10 +2,10 @@
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
 open module ninja.javahacker.test.annotimpler.sql {
-    requires ninja.javahacker.annotimpler.sql;
+    requires transitive ninja.javahacker.annotimpler.sql;
 
-    requires org.junit.jupiter.api;
-    requires org.junit.jupiter.params;
+    requires transitive org.junit.jupiter.api;
+    requires transitive org.junit.jupiter.params;
     requires com.fasterxml.jackson.core;
     requires com.fasterxml.jackson.databind;
     requires com.fasterxml.jackson.datatype.jdk8;
@@ -16,5 +16,11 @@ open module ninja.javahacker.test.annotimpler.sql {
     requires static lombok;
     requires static com.github.spotbugs.annotations;
 
+    exports ninja.javahacker.test;
+    exports ninja.javahacker.test.annotimpler.sql;
+    exports ninja.javahacker.test.annotimpler.sql.conn;
+    exports ninja.javahacker.test.annotimpler.sql.factories;
+    exports ninja.javahacker.test.annotimpler.sql.stmt;
+    exports ninja.javahacker.test.limited;
     exports ninja.javahacker.test.rsc;
 }

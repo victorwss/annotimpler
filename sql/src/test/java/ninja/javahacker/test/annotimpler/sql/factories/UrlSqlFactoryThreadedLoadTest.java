@@ -19,18 +19,21 @@ public class UrlSqlFactoryThreadedLoadTest {
     private volatile int works = -1;
     private SimpleHttpServer server;
 
-    @SqlFromUrl(value = "http://localhost:8080/on_first_time_that_works.txt", policy = ReadPolicy.ON_FIRST_TIME_THAT_WORKS)
+    public UrlSqlFactoryThreadedLoadTest() {
+    }
+
+    @SqlFromUrl(value = "http://localhost:8083/on_first_time_that_works.txt", policy = ReadPolicy.ON_FIRST_TIME_THAT_WORKS)
     private static void withSqlOnFirstTimeThatWorks() {
         throw new AssertionError();
     }
 
-    @SqlFromUrl(value = "http://localhost:8080/on_first_time_dont_retry.txt", policy = ReadPolicy.ON_FIRST_TIME_DONT_RETRY)
+    @SqlFromUrl(value = "http://localhost:8083/on_first_time_dont_retry.txt", policy = ReadPolicy.ON_FIRST_TIME_DONT_RETRY)
     private static void withSqlOnFirstTimeDontRetry() {
         throw new AssertionError();
     }
 
     private SimpleHttpServer makeServer() throws IOException {
-        return SimpleHttpServer.start(8080, (s, h, i, o) -> {
+        return SimpleHttpServer.start(8083, (s, h, i, o) -> {
             var w = works;
             if (w == -1) throw new AssertionError();
             synchronized (lock) {

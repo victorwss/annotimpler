@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.sql.meta;
 import lombok.NonNull;
 
 import module java.base;
+import module java.sql;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 
@@ -42,7 +43,7 @@ public interface SqlFactory {
     }
 
     @FunctionalInterface
-    public interface ParsedSqlSupplier {
+    public static interface ParsedSqlSupplier {
         public ParameterSet get() throws SQLException;
     }
 }

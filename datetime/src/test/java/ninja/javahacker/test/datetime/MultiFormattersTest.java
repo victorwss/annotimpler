@@ -2,7 +2,7 @@ package ninja.javahacker.test.datetime;
 
 import module java.base;
 import module org.junit.jupiter.api;
-import module ninja.javahacker.annotimpler.datetime;
+import module ninja.javahacker.datetime;
 
 import org.junit.jupiter.api.function.Executable;
 

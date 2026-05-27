@@ -37,12 +37,14 @@ public final class ForTests {
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getMessage());
     }
 
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public static void testNullReflective(String paramName, Executable runIt) {
         var ex = Assertions.assertThrows(InvocationTargetException.class, runIt);
         Assertions.assertEquals(IllegalArgumentException.class, ex.getCause().getClass());
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getCause().getMessage());
     }
 
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public static void testNonInstantiable(Class<?> klass) throws Exception {
         var ctor = klass.getDeclaredConstructor();
         Assertions.assertAll(

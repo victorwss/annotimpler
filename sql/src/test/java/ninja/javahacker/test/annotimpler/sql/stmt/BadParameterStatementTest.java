@@ -71,6 +71,9 @@ public class BadParameterStatementTest {
         }
     }
 
+    public BadParameterStatementTest() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }
@@ -238,11 +241,6 @@ public class BadParameterStatementTest {
         Assertions.assertEquals("Feature not supported: \"" + what + "\" [50100-240]", ex.getMessage());
     }
 
-    private static void testBadIndex(int idx, Executable runIt) {
-        var ex = Assertions.assertThrows(SQLException.class, runIt);
-        Assertions.assertEquals("Invalid value \"" + idx + "\" for parameter \"parameterIndex\" [90008-240]", ex.getMessage());
-    }
-
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     private static void testThrows(int t, Executable runIt) {
         var ex = Assertions.assertThrows(SQLException.class, runIt);
@@ -337,7 +335,6 @@ public class BadParameterStatementTest {
     @TestFactory
     @SuppressWarnings("deprecation")
     public Stream<DynamicTest> testSimpleEmpties() {
-        var d = LocalDateTime.of(2026, 1, 1, 10, 0, 0);
         return Stream.of(
                 n("setBoolean-false"    , () -> testBad("", ex(ps -> ps.setBoolean       ("", false                  )))),
                 n("setBoolean-true"     , () -> testBad("", ex(ps -> ps.setBoolean       ("", true                   )))),

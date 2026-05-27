@@ -6,6 +6,9 @@ import module org.junit.jupiter.api;
 
 public class SetNullParameterSatatementTest {
 
+    public SetNullParameterSatatementTest() {
+    }
+
     @FunctionalInterface
     public static interface StatementContext {
         public void doIt(NamedParameterStatement con) throws Exception;

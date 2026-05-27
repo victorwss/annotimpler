@@ -8,6 +8,9 @@ import module org.junit.jupiter.api;
 
 public class ConnectionStartConfigTest {
 
+    public ConnectionStartConfigTest() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }
@@ -44,7 +47,7 @@ public class ConnectionStartConfigTest {
     private static DynamicTest testPort(Config x) {
         return n(x.key(), () -> {
             var conn = x.conn().get();
-            var port = (Integer) conn.getClass().getMethod("port").invoke(conn);
+            int port = (Integer) conn.getClass().getMethod("port").invoke(conn);
             Assertions.assertEquals(x.port(), port);
         });
     }

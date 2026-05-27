@@ -11,6 +11,9 @@ public class ResourceSqlFactoryTest {
 
     private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁";
 
+    public ResourceSqlFactoryTest() {
+    }
+
     // Tests if it works and defaults to UTF-8.
     @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-utf-8.txt")
     private static void withSql1() {

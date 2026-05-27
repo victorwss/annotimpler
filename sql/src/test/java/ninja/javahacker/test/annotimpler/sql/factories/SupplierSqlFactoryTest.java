@@ -10,6 +10,9 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class SupplierSqlFactoryTest {
 
+    public SupplierSqlFactoryTest() {
+    }
+
     public static class SomeSupplier1 implements SqlSupplier {
 
         public SomeSupplier1() {
@@ -80,6 +83,8 @@ public class SupplierSqlFactoryTest {
     }
 
     public static abstract class SomeSupplierX3 implements SqlSupplier {
+        public SomeSupplierX3() {
+        }
     }
 
     @SqlFromClass(value = SomeSupplierX3.class, key = "duh")

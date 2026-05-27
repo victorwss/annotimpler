@@ -7,6 +7,7 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.reflect.Array;
 
 import module java.base;
+import module java.sql;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 public class RecordConverter<R extends Record> implements Converter<R> {

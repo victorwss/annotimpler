@@ -11,6 +11,9 @@ import module org.junit.jupiter.api;
 
 public class SmartResultSetTest {
 
+    public SmartResultSetTest() {
+    }
+
     @Test
     public void testConstructorFailure() throws Exception {
         var rs = ControlledMock.mock(ResultSet.class);
@@ -26,20 +29,20 @@ public class SmartResultSetTest {
     private static record TypeData(String label, int type) {
     }
 
-    private ControlledMock<ResultSetMetaData> makeMetaData(List<TypeData> types) {
+    private ControlledMock<ResultSetMetaData> makeMetaData(boolean withTypes, List<TypeData> types) {
         var md = ControlledMock.mock(ResultSetMetaData.class);
         md.setHandler((i, m, a) -> {
             var n = m.getName();
             if (n.equals("getColumnCount")) return types.size();
-            if (n.equals("getColumnLabel")) return types.get((int) a[0]).label();
-            if (n.equals("getColumnType") && types != null) return types.get((int) a[0]).type();
+            if (n.equals("getColumnLabel")) return types.get((int) a[0] - 1).label();
+            if (n.equals("getColumnType") && withTypes) return types.get((int) a[0] - 1).type();
             throw new AssertionError(m);
         });
         return md;
     }
 
-    private SmartResultSet makeMock(List<TypeData> types) throws Exception {
-        var md = makeMetaData(types);
+    private SmartResultSet makeMock(boolean withTypes, List<TypeData> types) throws Exception {
+        var md = makeMetaData(withTypes, types);
         var rs = ControlledMock.mock(ResultSet.class);
         rs.setHandler((i, m, a) -> {
             if (m.getName().equals("getMetaData")) return md.getMock();
@@ -49,33 +52,8 @@ public class SmartResultSetTest {
     }
 
     private SmartResultSet mock0() throws Exception {
-        return makeMock(null);
+        return makeMock(false, List.of(new TypeData("X", Types.VARCHAR)));
     }
-
-    private SmartResultSet mock1() throws Exception {
-        return makeMock(List.of(
-                new TypeData("a", Types.INTEGER),
-                new TypeData("b", Types.VARCHAR),
-                new TypeData("c", Types.TIMESTAMP)
-        ));
-    }
-
-    private SmartResultSet mockBad() throws Exception {
-        return makeMock(List.of(
-                new TypeData("aaai", Types.INTEGER),
-                new TypeData(null, Types.VARCHAR),
-                new TypeData("", Types.BIGINT),
-                new TypeData("aaai", Types.TIMESTAMP),
-                new TypeData("aAaI", Types.TIMESTAMP_WITH_TIMEZONE),
-                new TypeData("aaaı", Types.BLOB) // Dotless lowercase Tukish ı.
-        ));
-    }
-
-    /*public Stream<DynamicTest> testMapping() throws Exception {
-        var map = Map.of("a", Types.INTEGER, "b", Types.VARCHAR, "c", Types.TIMESTAMP);
-        return Stream.of(
-                DynamicTest.dynamicTest("[testMapping] int-1", () -> mock1().getMap()
-    }*/
 
     @TestFactory
     @SuppressWarnings("null")

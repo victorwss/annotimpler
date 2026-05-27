@@ -16,13 +16,19 @@ public class LimitedReaderTest {
             Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
             """;
 
+    public LimitedReaderTest() {
+    }
+
     @Nested
     @DisplayName("Constructor Tests")
-    class ConstructorTests {
+    public class ConstructorTests {
+
+        public ConstructorTests() {
+        }
 
         @TestFactory
         @DisplayName("Should create instance with valid parameters.")
-        Stream<DynamicTest> shouldCreateInstanceWithValidParameters() {
+        public Stream<DynamicTest> shouldCreateInstanceWithValidParameters() {
             var wrapped = new StringReader(TEST_DATA);
             var limited = new LimitedReader(wrapped, 50);
             return Stream.of(
@@ -36,20 +42,20 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should throw NullPointerException when wrapped reader is null.")
-        void shouldThrowNullPointerExceptionWhenWrappedIsNull() {
+        public void shouldThrowNullPointerExceptionWhenWrappedIsNull() {
             ForTests.testNull("wrapped", () -> new LimitedReader(null, 50));
         }
 
         @Test
         @DisplayName("Should throw IllegalArgumentException when maxChars is negative.")
-        void shouldThrowIllegalArgumentExceptionWhenMaxCharsIsNegative() {
+        public void shouldThrowIllegalArgumentExceptionWhenMaxCharsIsNegative() {
             var wrapped = new StringReader(TEST_DATA);
             Assertions.assertThrows(IllegalArgumentException.class, () -> new LimitedReader(wrapped, -1));
         }
 
         @Test
         @DisplayName("Should allow maxChars = 0")
-        void shouldAllowMaxCharsZero() {
+        public void shouldAllowMaxCharsZero() {
             var wrapped = new StringReader(TEST_DATA);
             Assertions.assertDoesNotThrow(() -> new LimitedReader(wrapped, 0));
         }
@@ -57,11 +63,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Read Operations Tests")
-    class ReadOperationsTests {
+    public class ReadOperationsTests {
+
+        public ReadOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should read single character correctly within limit.")
-        void shouldReadSingleCharacterWithinLimit() throws IOException {
+        public void shouldReadSingleCharacterWithinLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var firstChar = limited.read();
             Assertions.assertEquals('L', firstChar);
@@ -71,7 +80,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should return -1 when limit is reached.")
-        void shouldReturnMinusOneWhenLimitReached() throws IOException {
+        public void shouldReturnMinusOneWhenLimitReached() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 5);
             var buffer = new char[10];
             var read = limited.read(buffer);
@@ -85,7 +94,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should read characters correctly within limit.")
-        void shouldReadCharactersWithinLimit() throws IOException {
+        public void shouldReadCharactersWithinLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 20);
             var buffer = new char[15];
             var read = limited.read(buffer);
@@ -101,7 +110,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should not read more than limit.")
-        void shouldNotReadMoreThanLimit() throws IOException {
+        public void shouldNotReadMoreThanLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var buffer = new char[20];
             var read = limited.read(buffer);
@@ -116,7 +125,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle read with offset correctly.")
-        void shouldHandleReadWithOffsetCorrectly() throws IOException {
+        public void shouldHandleReadWithOffsetCorrectly() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 15);
             var buffer = new char[20];
             var read = limited.read(buffer, 5, 10);
@@ -132,7 +141,7 @@ public class LimitedReaderTest {
         @ParameterizedTest
         @DisplayName("Should read correctly with different buffer sizes.")
         @ValueSource(ints = {1, 5, 10, 20, 50})
-        void shouldReadCorrectlyWithDifferentBufferSizes(int bufferSize) throws IOException {
+        public void shouldReadCorrectlyWithDifferentBufferSizes(int bufferSize) throws IOException {
             var limit = 30;
             var limited = new LimitedReader(new StringReader(TEST_DATA), limit);
             var buffer = new char[bufferSize];
@@ -150,11 +159,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Skip Operations Tests")
-    class SkipOperationsTests {
+    public class SkipOperationsTests {
+
+        public SkipOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should skip characters within limit.")
-        void shouldSkipCharactersWithinLimit() throws IOException {
+        public void shouldSkipCharactersWithinLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 20);
             var skipped = limited.skip(10);
 
@@ -169,7 +181,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should not skip more than limit.")
-        void shouldNotSkipMoreThanLimit() throws IOException {
+        public void shouldNotSkipMoreThanLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 15);
             var skipped = limited.skip(20);
 
@@ -180,7 +192,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should skip zero when n is zero.")
-        void shouldSkipZeroWhenNIsZero() throws IOException {
+        public void shouldSkipZeroWhenNIsZero() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var skipped = limited.skip(0);
 
@@ -190,7 +202,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should skip zero when limit is reached.")
-        void shouldSkipZeroWhenLimitReached() throws IOException {
+        public void shouldSkipZeroWhenLimitReached() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 5);
             limited.skip(5);
             var skipped = limited.skip(10);
@@ -201,7 +213,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should skip negative amount.")
-        void shouldSkipNegativeAmount() throws IOException {
+        public void shouldSkipNegativeAmount() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var skipped = limited.skip(-5);
 
@@ -212,18 +224,21 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Ready Operations Tests")
-    class ReadyOperationsTests {
+    public class ReadyOperationsTests {
+
+        public ReadyOperationsTests() {
+        }
 
         @Test
         @DisplayName("Should return true when data is available within limit.")
-        void shouldReturnTrueWhenDataAvailableWithinLimit() throws IOException {
+        public void shouldReturnTrueWhenDataAvailableWithinLimit() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 30);
             Assertions.assertTrue(limited.ready());
         }
 
         @Test
         @DisplayName("Should return true when limit is reached.")
-        void shouldReturnTrueWhenLimitReached() throws IOException {
+        public void shouldReturnTrueWhenLimitReached() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             limited.read(new char[10]);
             Assertions.assertTrue(limited.ready()); // Deepseek used assertFalse.
@@ -231,7 +246,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should be ready after reading.")
-        void shouldBeReadyAfterReading() throws IOException {
+        public void shouldBeReadyAfterReading() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 20);
             Assertions.assertTrue(limited.ready());
 
@@ -244,7 +259,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should return true for empty data.")
-        void shouldReturnTrueForEmptyData() throws IOException {
+        public void shouldReturnTrueForEmptyData() throws IOException {
             var limited = new LimitedReader(new StringReader(""), 10);
             Assertions.assertTrue(limited.ready()); // Deepseek used assertFalse.
             Assertions.assertEquals(-1, limited.read());
@@ -252,7 +267,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should consult wrapped for readiness.")
-        void shouldConsultWrappedForReadiness() throws IOException {
+        public void shouldConsultWrappedForReadiness() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, false);
             var limited = new LimitedReader(wrapped, 50);
             limited.read(new char[25]);
@@ -264,7 +279,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should always be ready when finished.")
-        void shouldBeReadyWhenFinished() throws IOException {
+        public void shouldBeReadyWhenFinished() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, false);
             var limited = new LimitedReader(wrapped, 50);
             limited.read(new char[50]);
@@ -275,11 +290,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Mark/Reset Tests")
-    class MarkResetTests {
+    public class MarkResetTests {
+
+        public MarkResetTests() {
+        }
 
         @Test
         @DisplayName("Should support mark when wrapped reader supports it.")
-        void shouldSupportMarkWhenWrappedReaderSupportsIt() throws IOException {
+        public void shouldSupportMarkWhenWrappedReaderSupportsIt() throws IOException {
             var wrapped = new StringReader(TEST_DATA);
             var limited = new LimitedReader(wrapped, 50);
             Assertions.assertTrue(limited.markSupported());
@@ -287,7 +305,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should not support mark when wrapped reader doesn't support it.")
-        void shouldNotSupportMarkWhenWrappedReaderDoesntSupportIt() throws IOException {
+        public void shouldNotSupportMarkWhenWrappedReaderDoesntSupportIt() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, false);
             var limited = new LimitedReader(wrapped, 50);
             Assertions.assertFalse(limited.markSupported());
@@ -295,7 +313,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should fail to mark when wrapped reader doesn't support it.")
-        void shouldFailToMarkWhenWrappedDoesntSupportIt() throws IOException {
+        public void shouldFailToMarkWhenWrappedDoesntSupportIt() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, false);
             var limited = new LimitedReader(wrapped, 50);
             Assertions.assertThrows(IOException.class, () -> limited.mark(20));
@@ -305,7 +323,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should mark and reset correctly.")
-        void shouldMarkAndResetCorrectly() throws IOException {
+        public void shouldMarkAndResetCorrectly() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 50);
 
             // Read first 10 characters.
@@ -340,7 +358,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should allow reading after reset.")
-        void shouldAllowReadingAfterReset() throws IOException {
+        public void shouldAllowReadingAfterReset() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 50);
 
             // Read and mark.
@@ -359,14 +377,14 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should throw IOException when reset without mark.")
-        void shouldThrowIOExceptionWhenResetWithoutMark() throws IOException {
+        public void shouldThrowIOExceptionWhenResetWithoutMark() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 50);
             Assertions.assertThrows(IOException.class, limited::reset);
         }
 
         @Test
         @DisplayName("Should allow multiple marks and resets.")
-        void shouldAllowMultipleMarksAndResets() throws IOException {
+        public void shouldAllowMultipleMarksAndResets() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 50);
 
             // First mark.
@@ -390,7 +408,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle mark with readlimit parameter.")
-        void shouldHandleMarkWithReadlimitParameter() throws IOException {
+        public void shouldHandleMarkWithReadlimitParameter() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 50);
             limited.read(new char[5]);
             limited.mark(20); // Allow reading up to 20 chars before reset.
@@ -408,11 +426,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Close Operations Tests")
-    class CloseOperationsTests {
+    public class CloseOperationsTests {
+
+        public CloseOperationsTests() {
+        }
 
         @TestFactory
         @DisplayName("Should close wrapped reader.")
-        Stream<DynamicTest> shouldCloseWrappedReader() throws IOException {
+        public Stream<DynamicTest> shouldCloseWrappedReader() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, true);
             var limited = new LimitedReader(wrapped, 50);
 
@@ -437,7 +458,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should be idempotent when closing multiple times.")
-        void shouldBeIdempotentWhenClosingMultipleTimes() throws IOException {
+        public void shouldBeIdempotentWhenClosingMultipleTimes() throws IOException {
             var wrapped = new StringReader(TEST_DATA);
             var limited = new LimitedReader(wrapped, 50);
 
@@ -447,7 +468,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should throw IOException when reading after close.")
-        void shouldThrowIOExceptionWhenReadingAfterClose() throws IOException {
+        public void shouldThrowIOExceptionWhenReadingAfterClose() throws IOException {
             var wrapped = new StringReader(TEST_DATA);
             var limited = new LimitedReader(wrapped, 50);
 
@@ -459,7 +480,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should work in try-with-resources.")
-        void shouldWorkInTryWithResources() throws IOException {
+        public void shouldWorkInTryWithResources() throws IOException {
             var wrapped = new AssertionReader(TEST_DATA, 50, false);
             LimitedReader whatWas;
             try (var limited = new LimitedReader(wrapped, 50)) {
@@ -478,11 +499,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Edge Cases Tests")
-    class EdgeCasesTests {
+    public class EdgeCasesTests {
+
+        public EdgeCasesTests() {
+        }
 
         @Test
         @DisplayName("Should handle zero max characters correctly.")
-        void shouldHandleZeroMaxCharactersCorrectly() throws IOException {
+        public void shouldHandleZeroMaxCharactersCorrectly() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 0);
             Assertions.assertTrue(limited.ready());
             Assertions.assertEquals(-1, limited.read());
@@ -495,7 +519,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle reading exactly limit.")
-        void shouldHandleReadingExactlyLimit() throws IOException {
+        public void shouldHandleReadingExactlyLimit() throws IOException {
             var limit = 25;
             var limited = new LimitedReader(new StringReader(TEST_DATA), limit);
             var buffer = new char[limit];
@@ -515,7 +539,7 @@ public class LimitedReaderTest {
             "10, 15",
             "25, 30"
         })
-        void shouldHandlePartialReadsCorrectly(int limit, int readSize) throws IOException {
+        public void shouldHandlePartialReadsCorrectly(int limit, int readSize) throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), limit);
             var buffer = new char[readSize];
             var read = limited.read(buffer);
@@ -527,7 +551,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should work with empty reader.")
-        void shouldWorkWithEmptyReader() throws IOException {
+        public void shouldWorkWithEmptyReader() throws IOException {
             var limited = new LimitedReader(new StringReader(""), 10);
             Assertions.assertEquals(-1, limited.read());
             Assertions.assertEquals(0, limited.skip(5));
@@ -537,7 +561,7 @@ public class LimitedReaderTest {
         @Test
         @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read.")
-        void shouldHandleNullBufferInRead() throws IOException {
+        public void shouldHandleNullBufferInRead() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
         }
@@ -545,7 +569,7 @@ public class LimitedReaderTest {
         @Test
         @SuppressWarnings("null")
         @DisplayName("Should handle null buffer in read even if closed.")
-        void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
+        public void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             limited.close();
             Assertions.assertThrows(NullPointerException.class, () -> limited.read(null, 0, 10));
@@ -553,7 +577,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle invalid offset and length.")
-        void shouldHandleInvalidOffsetAndLength() throws IOException {
+        public void shouldHandleInvalidOffsetAndLength() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var buffer = new char[10];
 
@@ -564,7 +588,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle reading zero length buffer.")
-        void shouldHandleReadingZeroLengthBuffer() throws IOException {
+        public void shouldHandleReadingZeroLengthBuffer() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 10);
             var buffer = new char[10];
             var read = limited.read(buffer, 0, 0);
@@ -575,7 +599,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle reading after limit with mark/reset.")
-        void shouldHandleReadingAfterLimitWithMarkReset() throws IOException {
+        public void shouldHandleReadingAfterLimitWithMarkReset() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 20);
 
             // Read up to limit.
@@ -598,11 +622,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Integration Tests")
-    class IntegrationTests {
+    public class IntegrationTests {
+
+        public IntegrationTests() {
+        }
 
         @Test
         @DisplayName("Should work with BufferedReader.")
-        void shouldWorkWithBufferedReader() throws IOException {
+        public void shouldWorkWithBufferedReader() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 30);
             var buffered = new BufferedReader(limited);
             var line = new char[50];
@@ -612,7 +639,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should work with BufferedReader lines.")
-        void shouldWorkWithBufferedReaderLines() throws IOException {
+        public void shouldWorkWithBufferedReaderLines() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 30);
             var buffered = new BufferedReader(limited);
             var line = buffered.readLine();
@@ -622,7 +649,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should maintain character count correctly with complex operations.")
-        void shouldMaintainCharacterCountCorrectlyWithComplexOperations() throws IOException {
+        public void shouldMaintainCharacterCountCorrectlyWithComplexOperations() throws IOException {
             var limited = new LimitedReader(new StringReader(TEST_DATA), 40);
 
             // Mix of different operations.
@@ -650,11 +677,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Tests with AssertionReader - Verifying No Excess Reads")
-    class AssertionVerificationTests {
+    public class AssertionVerificationTests {
+
+        public AssertionVerificationTests() {
+        }
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading exactly up to limit.")
-        void shouldNotCauseAssertionErrorWhenReadingExactlyLimit() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingExactlyLimit() throws IOException {
             var limit = 15;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -670,7 +700,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading in chunks up to limit.")
-        void shouldNotCauseAssertionErrorWhenReadingInChunksUpToLimit() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingInChunksUpToLimit() throws IOException {
             var limit = 25;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -693,7 +723,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when reading one char at a time.")
-        void shouldNotCauseAssertionErrorWhenReadingOneCharAtATime() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenReadingOneCharAtATime() throws IOException {
             var limit = 20;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -710,7 +740,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should NOT cause AssertionError when skip is used.")
-        void shouldNotCauseAssertionErrorWhenSkipIsUsed() throws IOException {
+        public void shouldNotCauseAssertionErrorWhenSkipIsUsed() throws IOException {
             var limit = 25;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -730,7 +760,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle mark/reset without causing excess reads.")
-        void shouldHandleMarkResetWithoutExcessReads() throws IOException {
+        public void shouldHandleMarkResetWithoutExcessReads() throws IOException {
             var limit = 40;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -752,7 +782,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that wrapped reader is never read beyond limit.")
-        void shouldVerifyWrappedReaderNeverReadBeyondLimit() throws IOException {
+        public void shouldVerifyWrappedReaderNeverReadBeyondLimit() throws IOException {
             var limit = 30;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -774,7 +804,7 @@ public class LimitedReaderTest {
         @ParameterizedTest
         @DisplayName("Should verify read operations never request more than available limit.")
         @ValueSource(ints = {1, 10, 25, 50})
-        void shouldVerifyReadOperationsNeverRequestMoreThanAvailableLimit(int limit) throws IOException {
+        public void shouldVerifyReadOperationsNeverRequestMoreThanAvailableLimit(int limit) throws IOException {
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
 
@@ -816,7 +846,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle mark/reset correctly when near limit.")
-        void shouldHandleMarkResetCorrectlyWhenNearLimit() throws IOException {
+        public void shouldHandleMarkResetCorrectlyWhenNearLimit() throws IOException {
             var limit = 20;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -857,11 +887,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Edge Cases - Boundary Conditions")
-    class BoundaryConditionsTests {
+    public class BoundaryConditionsTests {
+
+        public BoundaryConditionsTests() {
+        }
 
         @Test
         @DisplayName("Should handle read request exactly at limit boundary.")
-        void shouldHandleReadRequestExactlyAtLimitBoundary() throws IOException {
+        public void shouldHandleReadRequestExactlyAtLimitBoundary() throws IOException {
             var limit = 10;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -893,7 +926,7 @@ public class LimitedReaderTest {
             "20, 8, 4, 8",
             "15, 3, 7, 5"
         })
-        void shouldHandleReadSkipCombinationsWithoutExceedingLimit(int limit, int initialRead, int skip, int finalRead) throws IOException {
+        public void shouldHandleReadSkipCombinationsWithoutExceedingLimit(int limit, int initialRead, int skip, int finalRead) throws IOException {
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
 
@@ -917,7 +950,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle zero-length reads correctly.")
-        void shouldHandleZeroLengthReadsCorrectly() throws IOException {
+        public void shouldHandleZeroLengthReadsCorrectly() throws IOException {
             var limit = 10;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -936,7 +969,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle ready() correctly at boundaries.")
-        void shouldHandleReadyCorrectlyAtBoundaries() throws IOException {
+        public void shouldHandleReadyCorrectlyAtBoundaries() throws IOException {
             var limit = 15;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -950,11 +983,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Stress Tests")
-    class StressTests {
+    public class StressTests {
+
+        public StressTests() {
+        }
 
         @Test
         @DisplayName("Should handle many small reads without exceeding limit.")
-        void shouldHandleManySmallReadsWithoutExceedingLimit() throws IOException {
+        public void shouldHandleManySmallReadsWithoutExceedingLimit() throws IOException {
             var limit = 100;
             var smallReadSize = 3;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
@@ -987,7 +1023,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle alternating read and skip operations.")
-        void shouldHandleAlternatingReadAndSkipOperations() throws IOException {
+        public void shouldHandleAlternatingReadAndSkipOperations() throws IOException {
             var limit = 100;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1018,7 +1054,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should handle rapid mark/reset cycles without excess reads.")
-        void shouldHandleRapidMarkResetCyclesWithoutExcessReads() throws IOException {
+        public void shouldHandleRapidMarkResetCyclesWithoutExcessReads() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1051,11 +1087,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Read Operation Verification Tests")
-    class ReadOperationVerificationTests {
+    public class ReadOperationVerificationTests {
+
+        public ReadOperationVerificationTests() {
+        }
 
         @Test
         @DisplayName("Should verify that read operations never exceed requested limit.")
-        void shouldVerifyReadOperationsNeverExceedRequestedLimit() throws IOException {
+        public void shouldVerifyReadOperationsNeverExceedRequestedLimit() throws IOException {
             var limit = 37;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1098,7 +1137,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that skip operations are properly reduced near limit.")
-        void shouldVerifySkipOperationsProperlyReducedNearLimit() throws IOException {
+        public void shouldVerifySkipOperationsProperlyReducedNearLimit() throws IOException {
             var limit = 25;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1127,7 +1166,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that no read operations occur after limit is reached.")
-        void shouldVerifyNoReadOperationsAfterLimitReached() throws IOException {
+        public void shouldVerifyNoReadOperationsAfterLimitReached() throws IOException {
             var limit = 20;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1153,7 +1192,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that partial reads respect the limit precisely.")
-        void shouldVerifyPartialReadsRespectLimitPrecisely() throws IOException {
+        public void shouldVerifyPartialReadsRespectLimitPrecisely() throws IOException {
             var limit = 23;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1188,7 +1227,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that resets re-reads the same data again.")
-        void shouldVerifyThatMultipleResetsRereadsTheSameDataAgain() throws IOException {
+        public void shouldVerifyThatMultipleResetsRereadsTheSameDataAgain() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1218,7 +1257,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from inside.")
-        void shouldVerifyMarkLimitBoundaryFromInside() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromInside() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1255,7 +1294,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from outside on read.")
-        void shouldVerifyMarkLimitBoundaryFromOutsideRead() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromOutsideRead() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1280,7 +1319,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that the mark limit boundary is respected from outside on skip.")
-        void shouldVerifyMarkLimitBoundaryFromOutsideSkip() throws IOException {
+        public void shouldVerifyMarkLimitBoundaryFromOutsideSkip() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1304,7 +1343,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should verify that reset won't work after mark boundary.")
-        void shouldVerifyThatResetWontWorkAfterMarkBoundaryTooFarMark() throws IOException {
+        public void shouldVerifyThatResetWontWorkAfterMarkBoundaryTooFarMark() throws IOException {
             var limit = 50;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);
@@ -1320,11 +1359,14 @@ public class LimitedReaderTest {
 
     @Nested
     @DisplayName("Limit Integration Tests")
-    class LimitIntegrationTests {
+    public class LimitIntegrationTests {
+
+        public LimitIntegrationTests() {
+        }
 
         @Test
         @DisplayName("Should work correctly in general.")
-        void shouldWorkCorrectlyInGeneral() throws IOException {
+        public void shouldWorkCorrectlyInGeneral() throws IOException {
             var limit = 30;
             var asserting = new AssertionReader(TEST_DATA, limit, false);
             var limited = new LimitedReader(asserting, limit);
@@ -1339,7 +1381,7 @@ public class LimitedReaderTest {
 
         @Test
         @DisplayName("Should maintain correct position after complex operations.")
-        void shouldMaintainCorrectPositionAfterComplexOperations() throws IOException {
+        public void shouldMaintainCorrectPositionAfterComplexOperations() throws IOException {
             var limit = 45;
             var asserting = new AssertionReader(TEST_DATA, limit, true);
             var limited = new LimitedReader(asserting, limit);

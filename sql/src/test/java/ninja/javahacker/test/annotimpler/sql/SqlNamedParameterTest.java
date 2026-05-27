@@ -46,6 +46,9 @@ public class SqlNamedParameterTest {
     private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
     private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
 
+    public SqlNamedParameterTest() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }

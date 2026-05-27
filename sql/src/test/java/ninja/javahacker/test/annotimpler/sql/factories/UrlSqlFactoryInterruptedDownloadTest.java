@@ -11,7 +11,10 @@ public class UrlSqlFactoryInterruptedDownloadTest {
 
     private static final Deadlock HANG = new Deadlock();
 
-    @SqlFromUrl(value = "http://localhost:8080/hang")
+    public UrlSqlFactoryInterruptedDownloadTest() {
+    }
+
+    @SqlFromUrl(value = "http://localhost:8082/hang")
     private static void hang() {
         throw new AssertionError();
     }
@@ -76,7 +79,7 @@ public class UrlSqlFactoryInterruptedDownloadTest {
 
     @BeforeAll
     public static void before() throws Exception {
-        SERVER = SimpleHttpServer.start(8080, (s, h, i, o) -> HANG.deadlock());
+        SERVER = SimpleHttpServer.start(8082, (s, h, i, o) -> HANG.deadlock());
         System.out.println("UP!");
     }
 

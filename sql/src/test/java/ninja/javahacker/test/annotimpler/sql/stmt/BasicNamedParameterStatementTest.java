@@ -42,6 +42,9 @@ public class BasicNamedParameterStatementTest {
         public void doIt(ResultSet con) throws Exception;
     }
 
+    public BasicNamedParameterStatementTest() {
+    }
+
     private static Executable singleLineApply(
             List<String> prepare,
             String sql,

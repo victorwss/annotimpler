@@ -28,11 +28,11 @@ public final class SmartResultSet implements ResultSet {
         this(rs, ConverterFactory.STD, Locale.ROOT);
     }
 
-    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory, @NonNull Locale localizator) throws SQLException {
+    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory, @NonNull Locale localizer) throws SQLException {
         this.rs = rs;
         this.factory = factory;
         this.metaData = rs.getMetaData();
-        this.mappings = new ColumnMapping(metaData, localizator);
+        this.mappings = new ColumnMapping(metaData, localizer);
     }
 
     @NonNull
@@ -58,9 +58,9 @@ public final class SmartResultSet implements ResultSet {
         @NonNull
         private final Map<String, Integer> columnIndexes;
 
-        public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizator) throws SQLException {
+        public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizer) throws SQLException {
             checkNotNull(rsmd);
-            checkNotNull(localizator);
+            checkNotNull(localizer);
 
             var count = rsmd.getColumnCount();
             var keys = new String[count];
@@ -73,7 +73,7 @@ public final class SmartResultSet implements ResultSet {
                 if (columnName == null) columnName = "";
 
                 // Column names that are duplicated or that vary only by capitalization should not happen either.
-                columnName = columnName.toUpperCase(localizator);
+                columnName = columnName.toUpperCase(localizer);
 
                 /* Should never fail in sane JDBC implementations, which should not contain columns that are:
                    a) Null-named;

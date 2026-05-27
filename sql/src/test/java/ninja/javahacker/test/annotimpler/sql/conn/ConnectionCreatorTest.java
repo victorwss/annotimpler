@@ -9,6 +9,9 @@ import module org.junit.jupiter.api;
 
 public class ConnectionCreatorTest {
 
+    public ConnectionCreatorTest() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }
@@ -70,6 +73,7 @@ public class ConnectionCreatorTest {
             return create(replace(props, new Object[replaces.length], true));
         }
 
+        @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
         public Stream<DynamicTest> createAll(E model) {
             var original = destructure.work(model);
             var p = (int) Math.pow(2, replaces.length);
@@ -124,6 +128,7 @@ public class ConnectionCreatorTest {
         return list.stream();
     }
 
+    @SuppressWarnings({"UseSpecificCatch", "BroadCatchBlock", "TooBroadCatch"})
     private static <E extends Connector> E model(Class<E> k) {
         try {
             return k.cast(k.getMethod("std").invoke(null));
@@ -292,10 +297,10 @@ public class ConnectionCreatorTest {
                 var c = rs.getInt("pk");
                 var d = rs.getString("blah");
                 Assertions.assertAll(
-                        () -> Assertions.assertEquals(a, 1),
-                        () -> Assertions.assertEquals(b, "whoa"),
-                        () -> Assertions.assertEquals(c, 2),
-                        () -> Assertions.assertEquals(d, "lol")
+                        () -> Assertions.assertEquals(1, a),
+                        () -> Assertions.assertEquals("whoa", b),
+                        () -> Assertions.assertEquals(2, c),
+                        () -> Assertions.assertEquals("lol", d)
                 );
             }
         }

@@ -3,11 +3,11 @@
 })
 open module ninja.javahacker.annotimpler.convert {
     requires transitive java.sql;
-    requires ninja.javahacker.annotimpler.datetime;
 
     requires transitive static com.github.spotbugs.annotations;
     requires transitive static lombok;
 
+    requires ninja.javahacker.datetime;
     requires transitive ninja.javahacker.annotimpler.magicfactory;
 
     exports ninja.javahacker.annotimpler.convert;

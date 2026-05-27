@@ -9,6 +9,9 @@ import module org.junit.jupiter.api;
 
 public class ParsedQueryTest {
 
+    public ParsedQueryTest() {
+    }
+
     private static DynamicTest n(String name, Executable ctx) {
         return DynamicTest.dynamicTest(name, ctx);
     }

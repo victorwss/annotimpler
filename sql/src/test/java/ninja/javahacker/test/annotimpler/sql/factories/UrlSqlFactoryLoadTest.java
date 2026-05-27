@@ -10,28 +10,31 @@ public class UrlSqlFactoryLoadTest {
     private static volatile int works = -1;
     private static SimpleHttpServer server;
 
-    @SqlFromUrl(value = "http://localhost:8080/on_first_time_that_works.txt", policy = ReadPolicy.ON_FIRST_TIME_THAT_WORKS)
+    public UrlSqlFactoryLoadTest() {
+    }
+
+    @SqlFromUrl(value = "http://localhost:8081/on_first_time_that_works.txt", policy = ReadPolicy.ON_FIRST_TIME_THAT_WORKS)
     private static void withSqlOnFirstTimeThatWorks() {
         throw new AssertionError();
     }
 
-    @SqlFromUrl(value = "http://localhost:8080/on_startup.txt", policy = ReadPolicy.ON_STARTUP)
+    @SqlFromUrl(value = "http://localhost:8081/on_startup.txt", policy = ReadPolicy.ON_STARTUP)
     private static void withSqlOnStartup() {
         throw new AssertionError();
     }
 
-    @SqlFromUrl(value = "http://localhost:8080/every_time.txt", policy = ReadPolicy.EVERY_TIME)
+    @SqlFromUrl(value = "http://localhost:8081/every_time.txt", policy = ReadPolicy.EVERY_TIME)
     private static void withSqlOnEveryTime() {
         throw new AssertionError();
     }
 
-    @SqlFromUrl(value = "http://localhost:8080/on_first_time_dont_retry.txt", policy = ReadPolicy.ON_FIRST_TIME_DONT_RETRY)
+    @SqlFromUrl(value = "http://localhost:8081/on_first_time_dont_retry.txt", policy = ReadPolicy.ON_FIRST_TIME_DONT_RETRY)
     private static void withSqlOnFirstTimeDontRetry() {
         throw new AssertionError();
     }
 
     private static SimpleHttpServer makeServer() throws IOException {
-        return SimpleHttpServer.start(8080, (s, h, i, o) -> {
+        return SimpleHttpServer.start(8081, (s, h, i, o) -> {
             if (works == -1) {
                 throw new AssertionError();
             }

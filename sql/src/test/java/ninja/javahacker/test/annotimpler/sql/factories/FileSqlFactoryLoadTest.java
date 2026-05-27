@@ -7,6 +7,9 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class FileSqlFactoryLoadTest {
 
+    public FileSqlFactoryLoadTest() {
+    }
+
     @SqlFromFile(value = "./test-files/lorem-1.txt", policy = ReadPolicy.ON_FIRST_TIME_THAT_WORKS)
     private static void withSqlOnFirstTimeThatWorks() {
         throw new AssertionError();
