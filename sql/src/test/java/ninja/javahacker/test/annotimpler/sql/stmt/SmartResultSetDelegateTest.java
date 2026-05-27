@@ -112,20 +112,24 @@ public class SmartResultSetDelegateTest {
             Map.entry(Map.class, Arrays.asList(null, null, Map.of("bla", TestA.class)))
     );
 
-    @Test
-    public void testGetMetaDataOk() throws Exception {
+    private static record TypeData(String label, int type) {
+    }
+
+    private ControlledMock<ResultSetMetaData> makeMetaData(List<TypeData> types) {
         var md = ControlledMock.mock(ResultSetMetaData.class);
         md.setHandler((i, m, a) -> {
-            if (m.getName().equals("getColumnCount")) return 3;
-            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
-            if (m.getName().equals("getColumnName")) {
-                var p = (int) a[0];
-                if (p == 2) return "b";
-                if (p == 3) return "c";
-                throw new AssertionError(p);
-            }
+            var n = m.getName();
+            if (n.equals("getColumnCount")) return 3;
+            if (n.equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
+            if (n.equals("getColumnType") && types != null) return types.get((int) a[0]).type();
             throw new AssertionError(m);
         });
+        return md;
+    }
+
+    @Test
+    public void testGetMetaDataOk() throws Exception {
+        var md = makeMetaData(null);
         var rs = ControlledMock.mock(ResultSet.class);
         rs.setHandler((i, m, a) -> {
             if (m.getName().equals("getMetaData")) return md.getMock();
@@ -135,19 +139,8 @@ public class SmartResultSetDelegateTest {
         Assertions.assertSame(md.getMock(), s.getMetaData());
     }
 
-    private void testMethod(Method mt) throws Exception {
-        var md = ControlledMock.mock(ResultSetMetaData.class);
-        md.setHandler((i, m, a) -> {
-            if (m.getName().equals("getColumnCount")) return 3;
-            if (m.getName().equals("getColumnLabel")) return new String[] {"a", null, ""}[(int) a[0] - 1];
-            if (m.getName().equals("getColumnName")) {
-                var p = (int) a[0];
-                if (p == 2) return "b";
-                if (p == 3) return "c";
-                throw new AssertionError(p);
-            }
-            throw new AssertionError(m);
-        });
+    private void testDelegateMethod(Method mt) throws Exception {
+        var md = makeMetaData(null);
         var rs = ControlledMock.mock(ResultSet.class);
         var lastCall = new Method[1];
         rs.setHandler((i, m, a) -> {
@@ -190,6 +183,6 @@ public class SmartResultSetDelegateTest {
     public Stream<DynamicTest> testDelegateMethods() throws Exception {
         return Stream.of(ResultSet.class.getMethods())
                 .filter(mt -> !"getMetaData".equals(mt.getName()))
-                .map(mt -> DynamicTest.dynamicTest("[testDelegateMethods] " + MethodWrapper.of(mt).toString(), () -> testMethod(mt)));
+                .map(mt -> DynamicTest.dynamicTest("[testDelegateMethods] " + MethodWrapper.of(mt).toString(), () -> testDelegateMethod(mt)));
     }
 }

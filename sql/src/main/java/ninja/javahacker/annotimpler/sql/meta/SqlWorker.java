@@ -7,19 +7,33 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
 public final class SqlWorker {
+
     @NonNull
     private final Connection con;
 
     @NonNull
     private final ParameterSet.ParameterSetWithValues args;
 
-    public SqlWorker(@NonNull Connection con, @NonNull ParameterSet.ParameterSetWithValues args) {
+    @NonNull
+    private final ConverterFactory factory;
+
+    @NonNull
+    private final Locale localizator;
+
+    public SqlWorker(
+            @NonNull Connection con,
+            @NonNull ParameterSet.ParameterSetWithValues args,
+            @NonNull ConverterFactory factory,
+            @NonNull Locale localizator) {
         this.con = con;
         this.args = args;
+        this.factory = factory;
+        this.localizator = localizator;
     }
 
     @NonNull
     private static int[] defaultRange(@NonNull Class<?> k) {
+        checkNotNull(k);
         return IntStream.rangeClosed(1, k.isRecord() ? k.getRecordComponents().length : 1).toArray();
     }
 
@@ -36,52 +50,56 @@ public final class SqlWorker {
     }
 
     @NonNull
-    private <R extends Record> Optional<R> lerRecord(@NonNull Class<R> k, @NonNull int... campos)
-            throws SQLException
-    {
+    private <R extends Record> Optional<R> readRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+        checkNotNull(k);
+        checkNotNull(fields);
+
         try (var ps = open()) {
-            args.preencher(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery())) {
+            args.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
                 if (!rs.next()) return Optional.empty();
-                return Optional.of(rs.getRecord(k, campos));
+                return Optional.of(rs.getRecord(k, fields));
             }
         }
     }
 
     @NonNull
-    private <R> Optional<R> lerSimples(@NonNull Class<R> k, int campo) throws SQLException {
+    private <R> Optional<R> readSimple(@NonNull Class<R> k, int field) throws SQLException {
+        checkNotNull(k);
+
         try (var ps = open()) {
-            args.preencher(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery())) {
+            args.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
                 if (!rs.next()) return Optional.empty();
-                return Optional.of(rs.getTypedValue(campo, k));
+                return Optional.of(rs.getTypedValue(field, k));
             }
         }
     }
 
     @NonNull
-    public <R> Optional<R> ler(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
-        var camposFinal = campos.length == 0 ? defaultRange(k) : campos;
-        if (k.isRecord()) return lerRecord(k.asSubclass(Record.class), camposFinal).map(k::cast);
-        if (camposFinal.length != 1) throw new UnsupportedOperationException();
-        return lerSimples(k, camposFinal[0]);
+    public <R> Optional<R> read(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+        var fieldsFinal = fields.length == 0 ? defaultRange(k) : fields;
+        if (k.isRecord()) return readRecord(k.asSubclass(Record.class), fieldsFinal).map(k::cast);
+        if (fieldsFinal.length != 1) throw new UnsupportedOperationException();
+        return readSimple(k, fieldsFinal[0]);
     }
 
     @NonNull
-    public <R> Optional<R> ler(@NonNull Class<R> k) throws SQLException {
-        return ler(k, defaultRange(k));
+    public <R> Optional<R> read(@NonNull Class<R> k) throws SQLException {
+        return read(k, defaultRange(k));
     }
 
     @NonNull
-    private <R extends Record> List<R> listarRecord(@NonNull Class<R> k, @NonNull int... campos)
-            throws SQLException
-    {
+    private <R extends Record> List<R> listRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+        checkNotNull(k);
+        checkNotNull(fields);
+
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
-            args.preencher(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery())) {
+            args.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
                 while (rs.next()) {
-                    t.add(rs.getRecord(k, campos));
+                    t.add(rs.getRecord(k, fields));
                 }
                 return t;
             }
@@ -89,13 +107,15 @@ public final class SqlWorker {
     }
 
     @NonNull
-    private <R> List<R> listarSimples(@NonNull Class<R> k, int campo) throws SQLException {
+    private <R> List<R> listSimple(@NonNull Class<R> k, int field) throws SQLException {
+        checkNotNull(k);
+
         try (var ps = open()) {
-            args.preencher(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery())) {
+            args.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
                 List<R> t = new ArrayList<>(10);
                 while (rs.next()) {
-                    t.add(rs.getTypedValue(campo, k));
+                    t.add(rs.getTypedValue(field, k));
                 }
                 return t;
             }
@@ -104,31 +124,31 @@ public final class SqlWorker {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public <R> List<R> listar(@NonNull Class<R> k, @NonNull int... campos) throws SQLException {
-        var camposFinal = campos.length == 0 ? defaultRange(k) : campos;
-        if (k.isRecord()) return (List<R>) listarRecord(k.asSubclass(Record.class), camposFinal);
-        if (camposFinal.length != 1) throw new UnsupportedOperationException();
-        return listarSimples(k, camposFinal[0]);
+    public <R> List<R> listar(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+        var fieldsFinal = fields.length == 0 ? defaultRange(k) : fields;
+        if (k.isRecord()) return (List<R>) listRecord(k.asSubclass(Record.class), fieldsFinal);
+        if (fieldsFinal.length != 1) throw new UnsupportedOperationException();
+        return listSimple(k, fieldsFinal[0]);
     }
 
     @NonNull
-    public <R> List<R> listar(@NonNull Class<R> k) throws SQLException {
+    public <R> List<R> list(@NonNull Class<R> k) throws SQLException {
         return listar(k, defaultRange(k));
     }
 
-    public long executar() throws SQLException {
+    public long execute() throws SQLException {
         try (var ps = open()) {
-            args.preencher(ps);
+            args.fillIn(ps);
             return ps.executeLargeUpdate();
         }
     }
 
     @NonNull
-    public OptionalInt gerar() throws SQLException {
+    public OptionalInt generate() throws SQLException {
         try (var ps = openGenerate()) {
-            args.preencher(ps);
+            args.fillIn(ps);
             var qtd = ps.executeLargeUpdate();
-            if (qtd > 1L) throw new SQLException("Mais de um resultado.");
+            if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
                 if (!rs.next()) return OptionalInt.empty();
                 return OptionalInt.of(rs.getInt(1));
@@ -137,9 +157,9 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public List<Integer> gerarLista() throws SQLException {
+    public List<Integer> generateList() throws SQLException {
         try (var ps = openGenerate()) {
-            args.preencher(ps);
+            args.fillIn(ps);
             var qtd = ps.executeUpdate();
             List<Integer> r = new ArrayList<>(qtd);
             try (var rs = ps.getGeneratedKeys()) {
@@ -152,11 +172,11 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public OptionalLong gerarLong() throws SQLException {
+    public OptionalLong generateLong() throws SQLException {
         try (var ps = openGenerate()) {
-            args.preencher(ps);
+            args.fillIn(ps);
             var qtd = ps.executeLargeUpdate();
-            if (qtd > 1L) throw new SQLException("Mais de um resultado.");
+            if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
                 if (!rs.next()) return OptionalLong.empty();
                 return OptionalLong.of(rs.getLong(1));
@@ -165,9 +185,9 @@ public final class SqlWorker {
     }
 
     @NonNull
-    public List<Long> gerarListaLong() throws SQLException {
+    public List<Long> generateLongList() throws SQLException {
         try (var ps = openGenerate()) {
-            args.preencher(ps);
+            args.fillIn(ps);
             var qtd = ps.executeUpdate();
             try (var rs = ps.getGeneratedKeys()) {
                 List<Long> r = new ArrayList<>(qtd);
@@ -177,5 +197,10 @@ public final class SqlWorker {
                 return r;
             }
         }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

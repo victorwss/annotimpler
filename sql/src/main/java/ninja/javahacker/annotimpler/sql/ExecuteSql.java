@@ -7,6 +7,6 @@ import module ninja.javahacker.annotimpler.sql;
 @Retention(RetentionPolicy.RUNTIME)
 @ImplementedBy(ExecuteSqlImplementation.class)
 public @interface ExecuteSql {
-    public boolean aceitaZero() default false;
-    public boolean aceitaMulti() default false;
+    public boolean acceptsZero() default false;
+    public boolean acceptsMulti() default false;
 }

@@ -82,7 +82,7 @@ public final class ParameterSet {
         }
 
         @NonNull
-        public void preencher(@NonNull NamedParameterStatement ps) throws SQLException {
+        public void fillIn(@NonNull NamedParameterStatement ps) throws SQLException {
             for (var p : parameters) {
                 p.handle(ps);
             }
@@ -90,7 +90,7 @@ public final class ParameterSet {
     }
 
     @NonNull
-    public ParameterSetWithValues associar(@NonNull Object... args) {
+    public ParameterSetWithValues withValues(@NonNull Object... args) {
         var pp = m.getParameters();
         if (args.length != pp.length) throw new IllegalArgumentException();
         @SuppressWarnings("unchecked")

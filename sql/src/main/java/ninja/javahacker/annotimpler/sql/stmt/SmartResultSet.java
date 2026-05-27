@@ -25,14 +25,14 @@ public final class SmartResultSet implements ResultSet {
     private final ColumnMapping mappings;
 
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
-        this(rs, ConverterFactory.STD);
+        this(rs, ConverterFactory.STD, Locale.ROOT);
     }
 
-    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory) throws SQLException {
+    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory, @NonNull Locale localizator) throws SQLException {
         this.rs = rs;
         this.factory = factory;
         this.metaData = rs.getMetaData();
-        this.mappings = new ColumnMapping(metaData);
+        this.mappings = new ColumnMapping(metaData, localizator);
     }
 
     @NonNull
@@ -58,20 +58,35 @@ public final class SmartResultSet implements ResultSet {
         @NonNull
         private final Map<String, Integer> columnIndexes;
 
-        public ColumnMapping(@NonNull ResultSetMetaData rsmd) throws SQLException {
+        public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizator) throws SQLException {
             checkNotNull(rsmd);
+            checkNotNull(localizator);
+
             var count = rsmd.getColumnCount();
-            var names = new String[count];
+            var keys = new String[count];
             var idx = new HashMap<String, Integer>(count);
+
             for (int i = 1; i <= count; i++) {
                 var columnName = rsmd.getColumnLabel(i);
-                if (columnName == null || columnName.isEmpty()) {
-                    columnName = rsmd.getColumnName(i);
-                }
-                names[i - 1] = columnName.toUpperCase(Locale.ROOT);
-                idx.put(columnName, i);
+
+                // A null column label should never happen in sane JDBC implementations, but we defend against it anyway.
+                if (columnName == null) columnName = "";
+
+                // Column names that are duplicated or that vary only by capitalization should not happen either.
+                columnName = columnName.toUpperCase(localizator);
+
+                /* Should never fail in sane JDBC implementations, which should not contain columns that are:
+                   a) Null-named;
+                   b) Empty-named;
+                   c) Duplicated;
+                   d) Varying only by capitalization;
+                   e) Varying in name only due to the use of Turkish/Azerbaijani dotted vs dotless I.
+                   When it fails due to any of those things happening, the field is simply ommited.
+                */
+                if (!columnName.isEmpty() && !idx.containsKey(columnName)) idx.put(columnName, i);
             }
-            this.columnNames = Stream.of(names).toList();
+
+            this.columnNames = Stream.of(keys).toList();
             this.columnIndexes = Map.copyOf(idx);
         }
 
@@ -204,7 +219,7 @@ public final class SmartResultSet implements ResultSet {
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
-        var idx = this.mappings.indexOf(columnLabel);
+        var idx = this.mappings.indexOf(columnLabel.toUpperCase(Locale.ROOT));
         return getTypedValue(idx);
     }
 

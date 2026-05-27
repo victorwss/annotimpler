@@ -96,7 +96,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf16_LE implements CharsetSpec {
+    public static enum Utf16LittleEndian implements CharsetSpec {
         @Creator
         INSTANCE;
 
@@ -106,7 +106,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf16_BE implements CharsetSpec {
+    public static enum Utf16BigEndian implements CharsetSpec {
         @Creator
         INSTANCE;
 
@@ -116,7 +116,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf16_Bom implements CharsetSpec {
+    public static enum Utf16Bom implements CharsetSpec {
         @Creator
         INSTANCE;
 
@@ -126,7 +126,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf32_LE implements CharsetSpec {
+    public static enum Utf32LittleEndian implements CharsetSpec {
         @Creator
         INSTANCE;
 
@@ -136,7 +136,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf32_BE implements CharsetSpec {
+    public static enum Utf32BigEndian implements CharsetSpec {
         @Creator
         INSTANCE;
 
@@ -146,7 +146,7 @@ public interface CharsetSpec {
         }
     }
 
-    public static enum Utf32_Bom implements CharsetSpec {
+    public static enum Utf32Bom implements CharsetSpec {
         @Creator
         INSTANCE;
 

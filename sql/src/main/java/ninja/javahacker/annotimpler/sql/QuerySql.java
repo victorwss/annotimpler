@@ -7,5 +7,5 @@ import module ninja.javahacker.annotimpler.sql;
 @Retention(RetentionPolicy.RUNTIME)
 @ImplementedBy(QuerySqlImplementation.class)
 public @interface QuerySql {
-    public int[] campos() default {};
+    public int[] fields() default {};
 }
