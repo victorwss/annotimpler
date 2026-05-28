@@ -62,10 +62,12 @@ public final class ExecuteSqlImplementation implements Implementation {
 
         try {
             var supplier = SqlFactory.find(m);
+            var parset = new ParameterSet(m);
 
             return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = supplier.get().withValues(a);
-                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                var params = parset.withValues(a);
+                var pq = supplier.get();
+                var work = new SqlWorker(getConnection(), pq, params, cvt, localizer);
                 var qtd = work.execute();
                 if (qtd == 0L && !es.acceptsZero()) throw new SQLException("No line was affected.");
                 if (qtd > 1L && !es.acceptsMulti()) throw new SQLException("Multipe lines were affected.");

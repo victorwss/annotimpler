@@ -12,6 +12,9 @@ public final class SqlWorker {
     private final Connection con;
 
     @NonNull
+    private final ParsedQuery pq;
+
+    @NonNull
     private final ParameterSet.ParameterSetWithValues args;
 
     @NonNull
@@ -22,13 +25,17 @@ public final class SqlWorker {
 
     public SqlWorker(
             @NonNull Connection con,
+            @NonNull ParsedQuery pq,
             @NonNull ParameterSet.ParameterSetWithValues args,
             @NonNull ConverterFactory factory,
-            @NonNull Locale localizator) {
+            @NonNull Locale localizator)
+    {
         this.con = con;
+        this.pq = pq;
         this.args = args;
         this.factory = factory;
         this.localizator = localizator;
+        // TODO: Check if pq and args match.
     }
 
     @NonNull
@@ -37,16 +44,16 @@ public final class SqlWorker {
         return IntStream.rangeClosed(1, k.isRecord() ? k.getRecordComponents().length : 1).toArray();
     }
 
+    @NonNull
     private NamedParameterStatement open() throws SQLException {
-        var q = args.getQuery();
-        var ps = con.prepareStatement(q.parsed());
-        return NamedParameterStatement.wrap(ps, q.params());
+        var ps = con.prepareStatement(pq.parsed());
+        return NamedParameterStatement.wrap(ps, pq.params());
     }
 
+    @NonNull
     private NamedParameterStatement openGenerate() throws SQLException {
-        var q = args.getQuery();
-        var ps = con.prepareStatement(q.parsed(), Statement.RETURN_GENERATED_KEYS);
-        return NamedParameterStatement.wrap(ps, q.params());
+        var ps = con.prepareStatement(pq.parsed(), Statement.RETURN_GENERATED_KEYS);
+        return NamedParameterStatement.wrap(ps, pq.params());
     }
 
     @NonNull

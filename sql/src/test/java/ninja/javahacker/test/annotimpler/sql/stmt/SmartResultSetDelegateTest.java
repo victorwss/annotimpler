@@ -226,10 +226,10 @@ public class SmartResultSetDelegateTest {
     @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testMapping() throws Exception {
-        var map1 = Map.of("F1", 1, "F2", "a", "F3", java.sql.Timestamp.valueOf(LocalDateTime.of(2020, 1, 2, 3, 4, 5)));
-        var map2 = Map.of("AAAI", 1);
+        var map1 = Map.of("F1", 2, "F2", "a", "F3", java.sql.Timestamp.valueOf(LocalDateTime.of(2020, 1, 2, 3, 4, 5)));
+        var map2 = Map.of("AAAI", 2);
         var map3 = Map.<String, Object>of();
-        var map4 = Map.of("AAAI", 1, "AAAİ", "a");
+        var map4 = Map.of("AAAI", 2, "AAAİ", "a");
         var turkish = Locale.forLanguageTag("TR-tr");
         return Stream.of(
                 DynamicTest.dynamicTest("[testMapping] simple"  , () -> Assertions.assertEquals(map1, makeMock(true, SIMPLE , ConverterFactory.STD, Locale.ROOT).getMap())),

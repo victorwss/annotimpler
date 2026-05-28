@@ -7,17 +7,17 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class UrlSqlFactoryThreadedLoadTest {
 
-    private final Object lock = new Object();
-    private volatile boolean okA;
-    private volatile boolean okB;
-    private volatile String r1;
-    private volatile String r2;
-    private volatile String r3;
-    private volatile Throwable x1;
-    private volatile Throwable x2;
-    private volatile Throwable x3;
-    private volatile int works = -1;
-    private SimpleHttpServer server;
+    private static final Object lock = new Object();
+    private static volatile boolean okA;
+    private static volatile boolean okB;
+    private static volatile String r1;
+    private static volatile String r2;
+    private static volatile String r3;
+    private static volatile Throwable x1;
+    private static volatile Throwable x2;
+    private static volatile Throwable x3;
+    private static volatile int works = -1;
+    private static SimpleHttpServer server;
 
     public UrlSqlFactoryThreadedLoadTest() {
     }
@@ -32,7 +32,7 @@ public class UrlSqlFactoryThreadedLoadTest {
         throw new AssertionError();
     }
 
-    private SimpleHttpServer makeServer() throws IOException {
+    private static SimpleHttpServer makeServer() throws IOException {
         return SimpleHttpServer.start(8083, (s, h, i, o) -> {
             var w = works;
             if (w == -1) throw new AssertionError();
@@ -72,16 +72,28 @@ public class UrlSqlFactoryThreadedLoadTest {
         Assertions.assertEquals("HTTP Error: 444", ex.getMessage());
     }
 
-    @BeforeEach
-    public void before() throws Exception {
+    @BeforeAll
+    public static void beforeAll() throws Exception {
         server = makeServer();
         System.out.println("UP!");
     }
 
-    @AfterEach
-    public void after() throws Exception {
+    @AfterAll
+    public static void after() throws Exception {
         server.close();
         System.out.println("Down!");
+    }
+
+    @BeforeEach
+    public void beforeEach() throws Exception {
+        okA = false;
+        okB = false;
+        r1 = null;
+        r2 = null;
+        r3 = null;
+        x1 = null;
+        x2 = null;
+        x3 = null;
     }
 
     private static Method mtd(String name) {

@@ -77,10 +77,12 @@ public final class GenerateSqlImplementation implements Implementation {
         var ret = findWork(m);
         try {
             var supplier = SqlFactory.find(m);
+            var parset = new ParameterSet(m);
 
             return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = supplier.get().withValues(a);
-                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                var params = parset.withValues(a);
+                var pq = supplier.get();
+                var work = new SqlWorker(getConnection(), pq, params, cvt, localizer);
                 return ret.operate(work);
             };
         } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {

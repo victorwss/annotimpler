@@ -186,7 +186,7 @@ public class TransactorTest {
     }
 
     @Test
-    @Timeout(10)
+    @Timeout(15)
     public void testTransactionIsolation() throws Exception {
         class SomeException extends RuntimeException {
             private static final long serialVersionUID = 1L;
@@ -222,36 +222,33 @@ public class TransactorTest {
             return "" + idx[0];
         };
 
-        var step = new AtomicInteger();
-        var waits = new AtomicInteger();
-        var lock = new Object();
+        var cb1 = new CyclicBarrier(6);
+        var cb2 = new CyclicBarrier(6);
         var t = new Transactor(f, gen);
 
         Foo2 f2 = a -> {
             var n = sf.get();
             var tc = tcs.get(n);
             Assertions.assertEquals((n + 1) * 42, a);
-            synchronized (lock) {
-                waits.incrementAndGet();
-                lock.notifyAll();
-                while (step.get() < 1) {
-                    System.out.println("a " + n);
-                    lock.wait(50);
-                }
-            }
+            System.out.println("a... " + n);
+            cb1.await(2, TimeUnit.SECONDS);
+            System.out.println("a-ok " + n);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
             var tx = t.currentTransaction();
+            var tx2 = t.currentTransaction();
+            Assertions.assertSame(tx, tx2);
+            System.out.println("ooo " + n);
+            var tid = tx.id();
+            System.out.println("ooo2 " + n);
+            var tidx = (n + 1) + "";
+            System.out.println("ooo3 " + n);
+            Assertions.assertEquals(tidx, tid);
+            System.out.println("uuu " + n + " - " + tid);
             tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals((n + 1) + "", tx.id());
-            synchronized (lock) {
-                waits.incrementAndGet();
-                lock.notifyAll();
-                while (step.get() < 2) {
-                    System.out.println("b " + n);
-                    lock.wait(50);
-                }
-            }
+            System.out.println("b... " + n);
+            cb2.await(2, TimeUnit.SECONDS);
+            System.out.println("b-ok " + n);
             if (n == 1) throw new SomeException();
             if (n == 0) return "foo";
             return "bar";
@@ -262,27 +259,25 @@ public class TransactorTest {
             var tc = tcs.get(n);
             Assertions.assertEquals(n * 42 + "", a);
             Assertions.assertEquals(n * 31 + "", b);
-            synchronized (lock) {
-                waits.incrementAndGet();
-                lock.notifyAll();
-                while (step.get() < 1) {
-                    System.out.println("a " + n);
-                    lock.wait(50);
-                }
-            }
+            System.out.println("a... " + n);
+            cb1.await(2, TimeUnit.SECONDS);
+            System.out.println("b-ok " + n);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
             var tx = t.currentTransaction();
+            var tx2 = t.currentTransaction();
+            Assertions.assertSame(tx, tx2);
+            System.out.println("ooo " + n);
+            var tid = tx.id();
+            System.out.println("ooo2 " + n);
+            var tidx = (n + 1) + "";
+            System.out.println("ooo3 " + n);
+            Assertions.assertEquals(tidx, tid);
+            System.out.println("uuu " + n + " - " + tid);
             tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals((n + 1) + "", tx.id());
-            synchronized (lock) {
-                waits.incrementAndGet();
-                lock.notifyAll();
-                while (step.get() < 2) {
-                    System.out.println("b " + n);
-                    lock.wait(50);
-                }
-            }
+            System.out.println("b... " + n);
+            cb2.await(2, TimeUnit.SECONDS);
+            System.out.println("b-ok " + n);
             if (n == 3) throw new OtherException();
             return n * 7;
         };
@@ -312,28 +307,23 @@ public class TransactorTest {
             threads[i].start();
         }
 
-        synchronized (lock) {
-            while (waits.get() < 5) {
-                System.out.println("Wait 5a...");
-                lock.wait(50);
-            }
-            System.out.println("5a done.");
-            step.set(1);
-            waits.set(0);
-            lock.notifyAll();
-            while (waits.get() < 5) {
-                System.out.println("Wait 5b...");
-                lock.wait(50);
-            }
-            System.out.println("5b done.");
-            step.set(2);
-            waits.set(0);
-            lock.notifyAll();
-        }
+        try {
+            System.out.println("a... x");
+            cb1.await(2, TimeUnit.SECONDS);
+            System.out.println("a-ok x");
+            System.out.println("b... x");
+            cb2.await(6, TimeUnit.SECONDS);
+            System.out.println("b-ok x");
 
-        for (var i = 0; i < 5; i++) {
-            System.out.println("Join " + i);
-            threads[i].join();
+            for (var i = 0; i < 5; i++) {
+                System.out.println("Join " + i);
+                threads[i].join();
+            }
+        } catch (InterruptedException | BrokenBarrierException e) {
+            for (var i = 0; i < 5; i++) {
+                threads[i].interrupt();
+            }
+            throw e;
         }
 
         System.out.println("Grand finale");

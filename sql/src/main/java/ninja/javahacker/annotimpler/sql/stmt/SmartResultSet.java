@@ -53,7 +53,7 @@ public final class SmartResultSet implements ResultSet {
 
     private static final class ColumnMapping {
         @NonNull
-        private final List<String> columnNames;
+        private final List<Optional<String>> columnNames;
 
         @NonNull
         private final Map<String, Integer> columnIndexes;
@@ -63,7 +63,7 @@ public final class SmartResultSet implements ResultSet {
             checkNotNull(localizer);
 
             var count = rsmd.getColumnCount();
-            var keys = new String[count];
+            var keys = new ArrayList<Optional<String>>(count);
             var idx = new HashMap<String, Integer>(count);
 
             for (int i = 1; i <= count; i++) {
@@ -83,10 +83,15 @@ public final class SmartResultSet implements ResultSet {
                    e) Varying in name only due to the use of Turkish/Azerbaijani dotted vs dotless I.
                    When it fails due to any of those things happening, the field is simply ommited.
                 */
-                if (!columnName.isEmpty() && !idx.containsKey(columnName)) idx.put(columnName, i);
+                if (!columnName.isEmpty() && !idx.containsKey(columnName)) {
+                    idx.put(columnName, i);
+                    keys.add(Optional.of(columnName));
+                } else {
+                    keys.add(Optional.empty());
+                }
             }
 
-            this.columnNames = Stream.of(keys).toList();
+            this.columnNames = List.copyOf(keys);
             this.columnIndexes = Map.copyOf(idx);
         }
 
@@ -105,7 +110,7 @@ public final class SmartResultSet implements ResultSet {
         }
 
         @NonNull
-        public String valueOf(int columnIndex) {
+        public Optional<String> valueOf(int columnIndex) {
             if (columnIndex < 1 || columnIndex > getColumnCount()) {
                 throw new IllegalArgumentException("There is no column " + columnIndex + ".");
             }
@@ -119,9 +124,9 @@ public final class SmartResultSet implements ResultSet {
 
         for (var i : fields) {
             var columnName = mappings.valueOf(i);
-            if (row.containsKey(columnName)) continue;
+            if (columnName.isEmpty() || row.containsKey(columnName.get())) continue;
             var value = getTypedValue(i);
-            row.put(columnName, value);
+            row.put(columnName.get(), value);
         }
 
         return Map.copyOf(row);
@@ -133,7 +138,9 @@ public final class SmartResultSet implements ResultSet {
 
         for (var i : fields) {
             var columnIndex = mappings.indexOf(i);
-            var columnName = mappings.valueOf(columnIndex); // Not necessarily equals to i if non case-sensitive.
+            var columnNameOpt = mappings.valueOf(columnIndex); // Not necessarily equals to i if non case-sensitive.
+            if (columnNameOpt.isEmpty()) continue;
+            var columnName = columnNameOpt.get();
             if (row.containsKey(columnName)) continue;
             var value = getTypedValue(i);
             row.put(columnName, value);

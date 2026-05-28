@@ -36,6 +36,7 @@ public final class SqlNamedParameter<T> {
     @Getter
     private final boolean flat;
 
+    @NonNull
     private final NameHandlerStrategy<T> strategy;
 
     @SuppressWarnings("unchecked")
@@ -49,22 +50,48 @@ public final class SqlNamedParameter<T> {
         this.strategy = (NameHandlerStrategy<T>) makeStrategy(type, name, flat);
     }
 
+    @NonNull
     private static SqlNamedParameter<?> forParam(int index, @NonNull Parameter p) {
         checkNotNull(p);
         return new SqlNamedParameter<>(index, p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
     }
 
+    @NonNull
     public static List<? extends SqlNamedParameter<?>> forMethod(@NonNull Method m) {
         var pp = m.getParameters();
         return IntStream.range(0, pp.length).mapToObj(i -> SqlNamedParameter.forParam(i, pp[i])).toList();
     }
 
+    @NonNull
+    private List<Object> state() {
+        return List.of(index, type, name, flat);
+    }
+
+    @Override
+    public int hashCode() {
+        return state().hashCode();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        if (other == this) return true;
+        if (!(other instanceof SqlNamedParameter<?> p)) return false;
+        return Objects.equals(this.state(), p.state());
+    }
+
+    @NonNull
+    @Override
+    public String toString() {
+        return this.getClass().getSimpleName() + state();
+    }
+
     @FunctionalInterface
     @SuppressWarnings({"checkstyle:ParenPad"})
-    interface Handler<T> {
+    private static interface Handler<T> {
 
         public void handle(@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable T value) throws SQLException;
 
+        @NonNull
         public default NamedHandler<T> named(@NonNull String name) {
             return (ps, value) -> handle(ps, name, value);
         }
@@ -210,6 +237,7 @@ public final class SqlNamedParameter<T> {
         };
     }
 
+    @NonNull
     @SuppressWarnings("unchecked")
     private static <E> NamedHandler<E> forClass(@NonNull Class<E> k, @NonNull String name, boolean flat) {
         checkNotNull(k);
@@ -224,6 +252,7 @@ public final class SqlNamedParameter<T> {
         return (NamedHandler<E>) h.named(name);
     }
 
+    @NonNull
     private static Predicate<Object> acceptor(@NonNull Class<?> k) {
         checkNotNull(k);
         if (k == void.class || k == Void.class) return v -> v == null;
@@ -235,6 +264,7 @@ public final class SqlNamedParameter<T> {
         throw new IllegalArgumentException();
     }
 
+    @NonNull
     private static NameHandlerStrategy<?> makeStrategy(@NonNull Type type, @NonNull String name, boolean flat) {
         checkNotNull(type);
         checkNotNull(name);
@@ -249,6 +279,17 @@ public final class SqlNamedParameter<T> {
             }
         }
         throw new UnsupportedOperationException("" + type);
+    }
+
+    @NonNull
+    public SqlNamedParameterWithValue<T> withValue(@Nullable T value) {
+        return new SqlNamedParameterWithValue<>(this, value);
+    }
+
+    @NonNull
+    public static Class<?> wrap(@NonNull Class<?> k) {
+        checkNotNull(k);
+        return WRAPPERS.get(k);
     }
 
     public static final class SqlNamedParameterWithValue<T> {
@@ -287,17 +328,27 @@ public final class SqlNamedParameter<T> {
         public boolean isFlat() {
             return inner.isFlat();
         }
-    }
 
-    @NonNull
-    public SqlNamedParameterWithValue<T> withValue(@Nullable T value) {
-        return new SqlNamedParameterWithValue<>(this, value);
-    }
+        @NonNull
+        private List<Object> state() {
+            return Stream.concat(inner.state().stream(), Stream.of(value)).toList();
+        }
 
-    @NonNull
-    public static Class<?> wrap(@NonNull Class<?> k) {
-        checkNotNull(k);
-        return WRAPPERS.get(k);
+        @Override
+        public int hashCode() {
+            return state().hashCode();
+        }
+
+        @Override
+        public boolean equals(@Nullable Object other) {
+            return other instanceof SqlNamedParameterWithValue<?> ps && Objects.equals(this.state(), ps.state());
+        }
+
+        @NonNull
+        @Override
+        public String toString() {
+            return this.getClass().getSimpleName() + state();
+        }
     }
 
     @Generated
