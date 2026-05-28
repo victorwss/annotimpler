@@ -1,4 +1,4 @@
-package ninja.javahacker.test.annotimpler.sql;
+package ninja.javahacker.test.annotimpler.sql.meta;
 
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;

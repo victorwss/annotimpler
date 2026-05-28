@@ -43,6 +43,15 @@ public final class ParameterSet {
         return parameters.hashCode();
     }
 
+    @NonNull
+    public ParameterSetWithValues withValues(@NonNull Object... args) {
+        var pp = m.getParameters();
+        if (args.length != pp.length) throw new IllegalArgumentException();
+        @SuppressWarnings("unchecked")
+        var wv = parameters.stream().map(p -> ((SqlNamedParameter<Object>) p).withValue(args[p.getIndex()])).toList();
+        return new ParameterSetWithValues(query, wv);
+    }
+
     public static final class ParameterSetWithValues {
 
         @Getter
@@ -87,15 +96,6 @@ public final class ParameterSet {
                 p.handle(ps);
             }
         }
-    }
-
-    @NonNull
-    public ParameterSetWithValues withValues(@NonNull Object... args) {
-        var pp = m.getParameters();
-        if (args.length != pp.length) throw new IllegalArgumentException();
-        @SuppressWarnings("unchecked")
-        var wv = parameters.stream().map(p -> ((SqlNamedParameter<Object>) p).withValue(args[p.getIndex()])).toList();
-        return new ParameterSetWithValues(query, wv);
     }
 
     @Generated
