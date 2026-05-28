@@ -9,9 +9,9 @@ import module java.base;
 import module java.sql;
 import module org.junit.jupiter.api;
 
-public class SmartResultSetTest {
+public class SmartResultSetFailureTest {
 
-    public SmartResultSetTest() {
+    public SmartResultSetFailureTest() {
     }
 
     @Test
