@@ -14,23 +14,25 @@ public interface SqlFactory {
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException;
 
     @NonNull
-    public static ParsedSqlSupplier find(@NonNull Method m)
-            throws BadImplementationException, MagicFactory.CreatorSelectionException, MagicFactory.CreationException
-    {
+    public static ParsedSqlSupplier find(@NonNull Method m) throws BadImplementationException {
         var annos = Stream.of(m.getAnnotations()).filter(a -> a.annotationType().isAnnotationPresent(SqlSource.class)).toList();
-        var nome = NameDictionary.global().getSimplifiedGenericString(m, true);
-        if (annos.isEmpty()) throw new BadImplementationException("No SQL annotation found on " + nome, m.getDeclaringClass());
-        if (annos.size() > 1) throw new BadImplementationException("More than one SQL annotation found on " + nome, m.getDeclaringClass());
+        var name = NameDictionary.global().getSimplifiedGenericString(m, true);
+        if (annos.isEmpty()) throw new BadImplementationException("No SQL annotation found on " + name, m.getDeclaringClass());
+        if (annos.size() > 1) throw new BadImplementationException("More than one SQL annotation found on " + name, m.getDeclaringClass());
         var sqls = annos.getFirst().annotationType().getAnnotation(SqlSource.class);
         if (sqls == null) throw new AssertionError();
         var cls = sqls.factory();
-        var magic = MagicFactory.of(cls);
-        var factory = magic.create();
+        SqlFactory factory;
+        try {
+            factory = MagicFactory.of(cls).create();
+        } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException x) {
+            throw new BadImplementationException("Can't instantiate " + cls.getSimpleName() + " to handle " + name, m.getDeclaringClass());
+        }
         var sup = factory.prepare(m);
         ParsedSqlSupplier checked = () -> {
             var sql = sup.get();
             var pq = ParsedQuery.parse(sql);
-            if (pq.hasErrors()) throw new SQLException("Malformed SQL for " + nome);
+            if (pq.hasErrors()) throw new SQLException("Malformed SQL for " + name);
             return pq;
         };
         if (sqls.lazy()) return checked;
@@ -38,7 +40,7 @@ public interface SqlFactory {
             var eager = checked.get();
             return () -> eager;
         } catch (SQLException x) {
-            throw new BadImplementationException("Malformed SQL for " + nome, m.getDeclaringClass());
+            throw new BadImplementationException("Malformed SQL for " + name, m.getDeclaringClass());
         }
     }
 

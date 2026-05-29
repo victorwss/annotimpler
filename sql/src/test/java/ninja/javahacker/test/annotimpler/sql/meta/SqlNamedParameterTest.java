@@ -22,12 +22,12 @@ public class SqlNamedParameterTest {
 
     private static final BigDecimal FIVE = new BigDecimal(5);
     private static final List<? extends SqlNamedParameter<?>> S1 = SqlNamedParameter.forMethod(TEST_METHOD_1);
-    private static final ParameterSet P1 = new ParameterSet(TEST_METHOD_1);
+    private static final ParameterSet P1;
     private static final SqlNamedParameter<String> X0 = (SqlNamedParameter<String>) S1.get(0);
     private static final SqlNamedParameter<Integer> Y0 = (SqlNamedParameter<Integer>) S1.get(1);
     private static final SqlNamedParameter<Double> Z0 = (SqlNamedParameter<Double>) S1.get(2);
     private static final List<? extends SqlNamedParameter<?>> S2 = SqlNamedParameter.forMethod(TEST_METHOD_2);
-    private static final ParameterSet P2 = new ParameterSet(TEST_METHOD_2);
+    private static final ParameterSet P2;
     private static final Type OPT_BD = TEST_METHOD_2.getParameters()[0].getParameterizedType();
     private static final SqlNamedParameter<Optional<BigDecimal>> A0 = (SqlNamedParameter<Optional<BigDecimal>>) S2.get(0);
     private static final SqlNamedParameter<OptionalInt> B0 = (SqlNamedParameter<OptionalInt>) S2.get(1);
@@ -47,6 +47,15 @@ public class SqlNamedParameterTest {
     private static final SqlNamedParameterWithValue<OptionalInt> B1 = B0.withValue(OptionalInt.of(6));
     private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
     private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
+
+    static {
+        try {
+            P1 = new ParameterSet(TEST_METHOD_1);
+            P2 = new ParameterSet(TEST_METHOD_2);
+        } catch (Exception e) {
+            throw new ExceptionInInitializerError(e);
+        }
+    }
 
     public SqlNamedParameterTest() {
     }
@@ -155,8 +164,8 @@ public class SqlNamedParameterTest {
     }
 
     private static String name(ParameterSet.ParameterSetWithValues obj) {
-        if (obj.getMethod() == P1.getMethod()) return "P1V";
-        if (obj.getMethod() == P2.getMethod()) return "P2V";
+        if (obj.getSet() == P1) return "P1V";
+        if (obj.getSet() == P2) return "P2V";
         throw new AssertionError();
     }
 
@@ -255,8 +264,8 @@ public class SqlNamedParameterTest {
                 """;
         a = a.replace("\n", " ").replaceAll(" +", " ").trim();
         b = b.replace("\n", " ").replaceAll(" +", " ").trim();
-        if (obj.getMethod() == P1.getMethod()) return a;
-        if (obj.getMethod() == P2.getMethod()) return b;
+        if (obj.getSet() == P1) return a;
+        if (obj.getSet() == P2) return b;
         throw new AssertionError();
     }
 
@@ -384,9 +393,9 @@ public class SqlNamedParameterTest {
     }
 
     @TestFactory
-    public Stream<DynamicTest> testToStringSetValues() {
-        var v1 = P1.withValues("x", 45, 3.3);
-        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
+    public Stream<DynamicTest> testToStringSetValues() throws Exception {
+        var v1 = P1.withValues(false, "x", 45, 3.3);
+        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(v1, v2).map(x -> n(
                 "[testToStringSetValues] " + name(x),
                 () -> Assertions.assertEquals(toString(x), x.toString())
@@ -423,7 +432,7 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
-    public Stream<DynamicTest> testEqualsSet() {
+    public Stream<DynamicTest> testEqualsSet() throws Exception {
         var p1Copy = new ParameterSet(TEST_METHOD_1);
         return Stream.of(
                 n("[testEqualsSet] a", () -> Assertions.assertTrue(P1.equals(P1))),
@@ -437,10 +446,10 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
-    public Stream<DynamicTest> testEqualsSetValues() {
-        var v1 = P1.withValues("x", 45, 3.3);
-        var v1Copy = P1.withValues("x", 45, 3.3);
-        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
+    public Stream<DynamicTest> testEqualsSetValues() throws Exception {
+        var v1 = P1.withValues(false, "x", 45, 3.3);
+        var v1Copy = P1.withValues(false, "x", 45, 3.3);
+        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(
                 n("[testEqualsSetValues] a", () -> Assertions.assertTrue(v1.equals(v1))),
                 n("[testEqualsSetValues] b", () -> Assertions.assertTrue(v1.equals(v1Copy))),
@@ -474,7 +483,7 @@ public class SqlNamedParameterTest {
     }
 
     @TestFactory
-    public Stream<DynamicTest> testHashCodeSet() {
+    public Stream<DynamicTest> testHashCodeSet()throws Exception  {
         var p1Copy = new ParameterSet(TEST_METHOD_1);
         return Stream.of(
                 n("[testHashCodeSet] a", () -> Assertions.assertEquals(P1.hashCode(), P1.hashCode())),
@@ -486,10 +495,10 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
-    public Stream<DynamicTest> testHashCodeValues() {
-        var v1 = P1.withValues("x", 45, 3.3);
-        var v1Copy = P1.withValues("x", 45, 3.3);
-        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
+    public Stream<DynamicTest> testHashCodeValues()throws Exception  {
+        var v1 = P1.withValues(false, "x", 45, 3.3);
+        var v1Copy = P1.withValues(false, "x", 45, 3.3);
+        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(
                 n("[testHashCodeValues] a", () -> Assertions.assertEquals(v1.hashCode(), v1.hashCode())),
                 n("[testHashCodeValues] b", () -> Assertions.assertEquals(v1.hashCode(), v1Copy.hashCode())),

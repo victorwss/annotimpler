@@ -12,30 +12,24 @@ public final class SqlWorker {
     private final Connection con;
 
     @NonNull
-    private final ParsedQuery pq;
-
-    @NonNull
-    private final ParameterSet.ParameterSetWithValues args;
+    private final ParameterSet.ParameterSetWithValues ppq;
 
     @NonNull
     private final ConverterFactory factory;
 
     @NonNull
-    private final Locale localizator;
+    private final Locale localizer;
 
     public SqlWorker(
             @NonNull Connection con,
-            @NonNull ParsedQuery pq,
-            @NonNull ParameterSet.ParameterSetWithValues args,
+            @NonNull ParameterSet.ParameterSetWithValues ppq,
             @NonNull ConverterFactory factory,
-            @NonNull Locale localizator)
+            @NonNull Locale localizer)
     {
         this.con = con;
-        this.pq = pq;
-        this.args = args;
+        this.ppq = ppq;
         this.factory = factory;
-        this.localizator = localizator;
-        // TODO: Check if pq and args match.
+        this.localizer = localizer;
     }
 
     @NonNull
@@ -46,14 +40,14 @@ public final class SqlWorker {
 
     @NonNull
     private NamedParameterStatement open() throws SQLException {
-        var ps = con.prepareStatement(pq.parsed());
-        return NamedParameterStatement.wrap(ps, pq.params());
+        var ps = con.prepareStatement(ppq.parsed());
+        return NamedParameterStatement.wrap(ps, ppq.params());
     }
 
     @NonNull
     private NamedParameterStatement openGenerate() throws SQLException {
-        var ps = con.prepareStatement(pq.parsed(), Statement.RETURN_GENERATED_KEYS);
-        return NamedParameterStatement.wrap(ps, pq.params());
+        var ps = con.prepareStatement(ppq.parsed(), Statement.RETURN_GENERATED_KEYS);
+        return NamedParameterStatement.wrap(ps, ppq.params());
     }
 
     @NonNull
@@ -62,8 +56,8 @@ public final class SqlWorker {
         checkNotNull(fields);
 
         try (var ps = open()) {
-            args.fillIn(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
+            ppq.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getRecord(k, fields));
             }
@@ -75,8 +69,8 @@ public final class SqlWorker {
         checkNotNull(k);
 
         try (var ps = open()) {
-            args.fillIn(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
+            ppq.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getTypedValue(field, k));
             }
@@ -103,8 +97,8 @@ public final class SqlWorker {
 
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
-            args.fillIn(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
+            ppq.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 while (rs.next()) {
                     t.add(rs.getRecord(k, fields));
                 }
@@ -118,8 +112,8 @@ public final class SqlWorker {
         checkNotNull(k);
 
         try (var ps = open()) {
-            args.fillIn(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizator)) {
+            ppq.fillIn(ps);
+            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 List<R> t = new ArrayList<>(10);
                 while (rs.next()) {
                     t.add(rs.getTypedValue(field, k));
@@ -131,7 +125,7 @@ public final class SqlWorker {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    public <R> List<R> listar(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+    public <R> List<R> list(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
         var fieldsFinal = fields.length == 0 ? defaultRange(k) : fields;
         if (k.isRecord()) return (List<R>) listRecord(k.asSubclass(Record.class), fieldsFinal);
         if (fieldsFinal.length != 1) throw new UnsupportedOperationException();
@@ -140,12 +134,12 @@ public final class SqlWorker {
 
     @NonNull
     public <R> List<R> list(@NonNull Class<R> k) throws SQLException {
-        return listar(k, defaultRange(k));
+        return list(k, defaultRange(k));
     }
 
     public long execute() throws SQLException {
         try (var ps = open()) {
-            args.fillIn(ps);
+            ppq.fillIn(ps);
             return ps.executeLargeUpdate();
         }
     }
@@ -153,7 +147,7 @@ public final class SqlWorker {
     @NonNull
     public OptionalInt generate() throws SQLException {
         try (var ps = openGenerate()) {
-            args.fillIn(ps);
+            ppq.fillIn(ps);
             var qtd = ps.executeLargeUpdate();
             if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
@@ -166,7 +160,7 @@ public final class SqlWorker {
     @NonNull
     public List<Integer> generateList() throws SQLException {
         try (var ps = openGenerate()) {
-            args.fillIn(ps);
+            ppq.fillIn(ps);
             var qtd = ps.executeUpdate();
             List<Integer> r = new ArrayList<>(qtd);
             try (var rs = ps.getGeneratedKeys()) {
@@ -181,7 +175,7 @@ public final class SqlWorker {
     @NonNull
     public OptionalLong generateLong() throws SQLException {
         try (var ps = openGenerate()) {
-            args.fillIn(ps);
+            ppq.fillIn(ps);
             var qtd = ps.executeLargeUpdate();
             if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
@@ -194,7 +188,7 @@ public final class SqlWorker {
     @NonNull
     public List<Long> generateLongList() throws SQLException {
         try (var ps = openGenerate()) {
-            args.fillIn(ps);
+            ppq.fillIn(ps);
             var qtd = ps.executeUpdate();
             try (var rs = ps.getGeneratedKeys()) {
                 List<Long> r = new ArrayList<>(qtd);

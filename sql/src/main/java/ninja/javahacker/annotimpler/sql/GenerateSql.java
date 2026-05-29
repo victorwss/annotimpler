@@ -8,4 +8,5 @@ import module ninja.javahacker.annotimpler.sql;
 @Retention(RetentionPolicy.RUNTIME)
 @ImplementedBy(GenerateSqlImplementation.class)
 public @interface GenerateSql {
+    public SqlPreValidation validate() default SqlPreValidation.ON_LOAD;
 }

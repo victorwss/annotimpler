@@ -32,7 +32,7 @@ public final class Methods {
         }
         INTRINSICS = Set.copyOf(sketch);
     }
- 
+
     private Methods() {
         throw new UnsupportedOperationException();
     }

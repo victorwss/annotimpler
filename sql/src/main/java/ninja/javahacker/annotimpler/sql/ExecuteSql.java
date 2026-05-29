@@ -10,4 +10,5 @@ import module ninja.javahacker.annotimpler.sql;
 public @interface ExecuteSql {
     public boolean acceptsZero() default false;
     public boolean acceptsMulti() default false;
+    public SqlPreValidation validate() default SqlPreValidation.ON_LOAD;
 }

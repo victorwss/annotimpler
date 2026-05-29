@@ -42,9 +42,13 @@ public final class QuerySqlImplementation implements Implementation {
     }
 
     @NonNull
-    private static SpecialFunc findWork(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
+    private static SpecialFunc selectOperation(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
         checkNotNull(m);
         checkNotNull(q);
+
+        if (Methods.isSimple(m)) {
+            throw new BadImplementationException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
+        }
 
         var fields = q.fields();
         var rtb = m.getGenericReturnType();
@@ -72,7 +76,7 @@ public final class QuerySqlImplementation implements Implementation {
         } else if (fields.length > 1) {
             throw new BadImplementationException("Mismatch single-field return @Query record on: " + name(m), m.getDeclaringClass());
         }
-        if (rtb == List.class) return work -> work.listar(rt, fields);
+        if (rtb == List.class) return work -> work.list(rt, fields);
         if (rtb == Optional.class) return work -> work.read(rt, fields);
         if (rtb == OptionalInt.class) return work -> asInt(work.read(Integer.class, fields));
         if (rtb == OptionalLong.class) return work -> asLong(work.read(Long.class, fields));
@@ -85,21 +89,18 @@ public final class QuerySqlImplementation implements Implementation {
     public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
         var q = m.getAnnotation(QuerySql.class);
         if (q == null) throw new IllegalArgumentException();
-        var ret = findWork(m, q);
 
-        try {
-            var supplier = SqlFactory.find(m);
-            var parset = new ParameterSet(m);
+        var operation = selectOperation(m, q);
+        var parset = new ParameterSet(q.validate() == SqlPreValidation.ON_LOAD, m);
 
-            return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = parset.withValues(a);
-                var pq = supplier.get();
-                var work = new SqlWorker(getConnection(), pq, params, cvt, localizer);
-                return ret.operate(work);
-            };
-        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
-            throw new BadImplementationException("", e, QuerySqlImplementation.class);
-        }
+        return new CallContext<>() {
+            @Override
+            public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
+                var params = parset.withValues(q.validate() == SqlPreValidation.ON_EXECUTE, a);
+                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                return operation.operate(work);
+            }
+        };
     }
 
     @Nullable

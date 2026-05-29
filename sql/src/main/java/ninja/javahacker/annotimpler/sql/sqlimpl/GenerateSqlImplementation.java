@@ -42,15 +42,12 @@ public final class GenerateSqlImplementation implements Implementation {
     }
 
     @NonNull
-    private static SpecialFunc findWork(@NonNull Method m) throws BadImplementationException {
+    private static SpecialFunc selectOperation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m);
 
         var rtb = m.getGenericReturnType();
         var raw = m.getReturnType();
 
-        if (Methods.isSimple(m)) {
-            throw new BadImplementationException("Unsupported annotation @Generate on method: " + name(m), m.getDeclaringClass());
-        }
         if (rtb == long.class) return work -> work.generateLong().getAsLong();
         if (rtb == Long.class) return work -> getOrNull(work.generateLong());
         if (rtb == OptionalLong.class) return work -> work.generateLong();
@@ -74,20 +71,18 @@ public final class GenerateSqlImplementation implements Implementation {
     public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
         var g = m.getAnnotation(GenerateSql.class);
         if (g == null) throw new IllegalArgumentException();
-        var ret = findWork(m);
-        try {
-            var supplier = SqlFactory.find(m);
-            var parset = new ParameterSet(m);
 
-            return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = parset.withValues(a);
-                var pq = supplier.get();
-                var work = new SqlWorker(getConnection(), pq, params, cvt, localizer);
-                return ret.operate(work);
-            };
-        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
-            throw new BadImplementationException("", e, QuerySqlImplementation.class);
-        }
+        var operation = selectOperation(m);
+        var parset = new ParameterSet(g.validate() == SqlPreValidation.ON_LOAD, m);
+
+        return new CallContext<>() {
+            @Override
+            public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
+                var params = parset.withValues(g.validate() == SqlPreValidation.ON_EXECUTE, a);
+                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                return operation.operate(work);
+            }
+        };
     }
 
     @Nullable

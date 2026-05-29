@@ -36,7 +36,7 @@ public final class ExecuteSqlImplementation implements Implementation {
     }
 
     @NonNull
-    private static LongFunction<Object> findWork(@NonNull Method m) throws BadImplementationException {
+    private static LongFunction<Object> selectOperation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m);
         var rtb = m.getReturnType();
 
@@ -55,27 +55,20 @@ public final class ExecuteSqlImplementation implements Implementation {
         var es = m.getAnnotation(ExecuteSql.class);
         if (es == null) throw new IllegalArgumentException();
 
-        if (Methods.isSimple(m)) {
-            throw new BadImplementationException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
-        }
-        var ret = findWork(m);
+        var operation = selectOperation(m);
+        var parset = new ParameterSet(es.validate() == SqlPreValidation.ON_LOAD, m);
 
-        try {
-            var supplier = SqlFactory.find(m);
-            var parset = new ParameterSet(m);
-
-            return (@NonNull E instance, @NonNull Object... a) -> {
-                var params = parset.withValues(a);
-                var pq = supplier.get();
-                var work = new SqlWorker(getConnection(), pq, params, cvt, localizer);
+        return new CallContext<>() {
+            @Override
+            public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
+                var params = parset.withValues(es.validate() == SqlPreValidation.ON_EXECUTE, a);
+                var work = new SqlWorker(getConnection(), params, cvt, localizer);
                 var qtd = work.execute();
                 if (qtd == 0L && !es.acceptsZero()) throw new SQLException("No line was affected.");
                 if (qtd > 1L && !es.acceptsMulti()) throw new SQLException("Multipe lines were affected.");
-                return ret.apply(qtd);
-            };
-        } catch (BadImplementationException | MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
-            throw new BadImplementationException("", e, QuerySqlImplementation.class);
-        }
+                return operation.apply(qtd);
+            }
+        };
     }
 
     @Generated

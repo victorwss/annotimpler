@@ -62,8 +62,9 @@ public record ParsedQuery(
     }
 
     @NonNull
+    @SuppressWarnings("AssignmentToForLoopParameter")
     public static ParsedQuery parse(@NonNull String original) {
-        var lacunas = new HashMap<String, List<Integer>>(10);
+        var params = new HashMap<String, List<Integer>>(10);
         var unnamedParameters = 0;
         var length = original.length();
         var parsedQuery = new StringBuilder(length);
@@ -92,10 +93,10 @@ public record ParsedQuery(
                     if (COLON_STRING.equals(name)) {
                         loneColonsSoFar++;
                     } else {
-                        c = QMARK; // Substitui o parâmetro por um ponto de interrogação.
-                        i += name.length(); // Pula o resto do parâmetro.
+                        c = QMARK; // Replaces the parameter with a question mark.
+                        i += name.length(); // Skip the rest of the parameter.
                         var p = index;
-                        lacunas.compute(name, (k, v) -> {
+                        params.compute(name, (k, v) -> {
                             var v2 = v == null ? new ArrayList<Integer>(10) : v;
                             v2.add(p);
                             return v2;
@@ -110,7 +111,7 @@ public record ParsedQuery(
         return new ParsedQuery(
                 original,
                 parsedQuery.toString(),
-                lacunas,
+                params,
                 index - 1,
                 unnamedParameters > 0,
                 inSingleQuote || inDoubleQuote,
