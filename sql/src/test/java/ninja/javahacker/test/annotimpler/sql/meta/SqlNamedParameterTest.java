@@ -50,8 +50,8 @@ public class SqlNamedParameterTest {
 
     static {
         try {
-            P1 = new ParameterSet(TEST_METHOD_1);
-            P2 = new ParameterSet(TEST_METHOD_2);
+            P1 = new ParameterSet(false, TEST_METHOD_1);
+            P2 = new ParameterSet(false, TEST_METHOD_2);
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -163,7 +163,7 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    private static String name(ParameterSet.ParameterSetWithValues obj) {
+    private static String name(ParameterSetWithValues obj) {
         if (obj.getSet() == P1) return "P1V";
         if (obj.getSet() == P2) return "P2V";
         throw new AssertionError();
@@ -250,7 +250,7 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    private static String toString(ParameterSet.ParameterSetWithValues obj) {
+    private static String toString(ParameterSetWithValues obj) {
         var a = """
                 ParameterSetWithValues - void SqlNamedParameterTest.testMethod1(String, Integer, double)
                 - [SqlNamedParameterWithValue[0, class java.lang.String, x, false, x],
@@ -433,7 +433,7 @@ public class SqlNamedParameterTest {
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testEqualsSet() throws Exception {
-        var p1Copy = new ParameterSet(TEST_METHOD_1);
+        var p1Copy = new ParameterSet(false, TEST_METHOD_1);
         return Stream.of(
                 n("[testEqualsSet] a", () -> Assertions.assertTrue(P1.equals(P1))),
                 n("[testEqualsSet] b", () -> Assertions.assertTrue(P1.equals(p1Copy))),
@@ -484,7 +484,7 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     public Stream<DynamicTest> testHashCodeSet()throws Exception  {
-        var p1Copy = new ParameterSet(TEST_METHOD_1);
+        var p1Copy = new ParameterSet(false, TEST_METHOD_1);
         return Stream.of(
                 n("[testHashCodeSet] a", () -> Assertions.assertEquals(P1.hashCode(), P1.hashCode())),
                 n("[testHashCodeSet] b", () -> Assertions.assertEquals(P1.hashCode(), p1Copy.hashCode())),

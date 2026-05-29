@@ -14,6 +14,7 @@ public final class ParameterSet {
     @NonNull
     private final Method method;
 
+    @Getter
     @NonNull
     private final SqlFactory.ParsedSqlSupplier supplier;
 
@@ -37,7 +38,7 @@ public final class ParameterSet {
     @NonNull
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + " - " + name(method);
+        return this.getClass().getSimpleName() + " - " + methodName();
     }
 
     @NonNull
@@ -56,8 +57,7 @@ public final class ParameterSet {
     }
 
     @NonNull
-    private static String name(@NonNull Method method) {
-        checkNotNull(method);
+    public String methodName() {
         return NameDictionary.global().getSimplifiedGenericString(method, false);
     }
 
@@ -70,74 +70,11 @@ public final class ParameterSet {
         return new ParameterSetWithValues(validate, this, wv);
     }
 
-    private boolean testParameters(@NonNull Set<String> keys) {
+    public boolean testParameters(@NonNull Set<String> keys) {
         for (var p : parameters) {
             if (!p.testParameter(keys)) return false;
         }
         return true;
-    }
-
-    public static final class ParameterSetWithValues {
-
-        @Getter
-        @NonNull
-        private final ParameterSet set;
-
-        @NonNull
-        private final ParsedQuery query;
-
-        @NonNull
-        private final List<? extends SqlNamedParameter.SqlNamedParameterWithValue<?>> parameters;
-
-        @NonNull
-        private ParameterSetWithValues(
-                boolean validate,
-                @NonNull ParameterSet set,
-                @NonNull List<? extends SqlNamedParameter.SqlNamedParameterWithValue<?>> parameters)
-                throws SQLException
-        {
-            checkNotNull(set);
-            checkNotNull(parameters);
-            this.set = set;
-            this.parameters = parameters;
-            this.query = set.supplier.get();
-            if (validate) set.testParameters(query.params().keySet());
-        }
-
-        @NonNull
-        @Override
-        public String toString() {
-            return this.getClass().getSimpleName() + " - " + name(set.method) + " - " + parameters;
-        }
-
-        @NonNull
-        private List<Object> state() {
-            return List.of(set, parameters);
-        }
-
-        @Override
-        public int hashCode() {
-            return state().hashCode();
-        }
-
-        @Override
-        public boolean equals(@Nullable Object other) {
-            return other instanceof ParameterSetWithValues ps && Objects.equals(this.state(), ps.state());
-        }
-
-        public String parsed() {
-            return query.parsed();
-        }
-
-        public Map<String, List<Integer>> params() {
-            return query.params();
-        }
-
-        public void fillIn(@NonNull NamedParameterStatement ps) throws SQLException {
-            for (var p : parameters) {
-                p.handle(ps);
-            }
-        }
     }
 
     @Generated

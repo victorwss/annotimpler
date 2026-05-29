@@ -12,7 +12,7 @@ public final class SqlWorker {
     private final Connection con;
 
     @NonNull
-    private final ParameterSet.ParameterSetWithValues ppq;
+    private final ParameterSetWithValues ppq;
 
     @NonNull
     private final ConverterFactory factory;
@@ -22,7 +22,7 @@ public final class SqlWorker {
 
     public SqlWorker(
             @NonNull Connection con,
-            @NonNull ParameterSet.ParameterSetWithValues ppq,
+            @NonNull ParameterSetWithValues ppq,
             @NonNull ConverterFactory factory,
             @NonNull Locale localizer)
     {
