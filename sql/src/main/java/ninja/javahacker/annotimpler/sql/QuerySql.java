@@ -8,5 +8,5 @@ import module ninja.javahacker.annotimpler.sql;
 @ImplementedBy(QuerySqlImplementation.class)
 public @interface QuerySql {
     public int[] fields() default {};
-    public SqlPreValidation validate() default SqlPreValidation.ON_LOAD;
+    public boolean validate() default true;
 }

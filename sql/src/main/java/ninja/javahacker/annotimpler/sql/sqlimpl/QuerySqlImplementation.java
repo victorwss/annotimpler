@@ -76,6 +76,7 @@ public final class QuerySqlImplementation implements Implementation {
         } else if (fields.length > 1) {
             throw new BadImplementationException("Mismatch single-field return @Query record on: " + name(m), m.getDeclaringClass());
         }
+
         if (rtb == List.class) return work -> work.list(rt, fields);
         if (rtb == Optional.class) return work -> work.read(rt, fields);
         if (rtb == OptionalInt.class) return work -> asInt(work.read(Integer.class, fields));
@@ -91,13 +92,16 @@ public final class QuerySqlImplementation implements Implementation {
         if (q == null) throw new IllegalArgumentException();
 
         var operation = selectOperation(m, q);
-        var parset = new ParameterSet(q.validate() == SqlPreValidation.ON_LOAD, m);
+        var parset = new ParameterSet(m);
+        var strict = q.validate();
+        var supplier = ParsedSqlSupplier.find(strict, parset);
 
         return new CallContext<>() {
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
-                var params = parset.withValues(q.validate() == SqlPreValidation.ON_EXECUTE, a);
-                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                var query = supplier.get();
+                var params = parset.withValues(a);
+                var work = new SqlWorker(getConnection(), params, query, cvt, localizer);
                 return operation.operate(work);
             }
         };

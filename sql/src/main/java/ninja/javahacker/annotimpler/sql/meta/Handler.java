@@ -42,7 +42,11 @@ interface Handler<T> {
 
     @NonNull
     public default NamedHandler<T> named(@NonNull String name) {
-        return (ps, value) -> handle(ps, name, value);
+        return (@NonNull NamedParameterStatement ps, @NonNull T value) -> {
+            checkNotNull(ps);
+            checkNotNull(value);
+            handle(ps, name, value);
+        };
     }
 
     @NonNull
@@ -50,6 +54,9 @@ interface Handler<T> {
         checkNotNull(k);
         checkNotNull(h);
         return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
+            checkNotNull(ps);
+            checkNotNull(name);
+            checkNotNull(value);
             if (value == null) {
                 ps.setNull(name, type);
             } else {

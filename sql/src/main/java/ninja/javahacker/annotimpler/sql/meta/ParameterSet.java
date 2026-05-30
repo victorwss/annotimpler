@@ -14,25 +14,12 @@ public final class ParameterSet {
     @NonNull
     private final Method method;
 
-    @Getter
-    @NonNull
-    private final SqlFactory.ParsedSqlSupplier supplier;
-
     @NonNull
     private final List<? extends SqlNamedParameter<?>> parameters;
 
-    public ParameterSet(boolean preValidate, @NonNull Method method) throws BadImplementationException {
+    public ParameterSet(@NonNull Method method) throws BadImplementationException {
         this.method = method;
         this.parameters = SqlNamedParameter.forMethod(method);
-        this.supplier = SqlFactory.find(method);
-        if (preValidate) {
-            try {
-                var query = supplier.get();
-                testParameters(query.params().keySet());
-            } catch (SQLException e) {
-                throw new BadImplementationException("SQL prevalidation failed.", e, ParameterSet.class);
-            }
-        }
     }
 
     @NonNull
@@ -62,12 +49,12 @@ public final class ParameterSet {
     }
 
     @NonNull
-    public ParameterSetWithValues withValues(boolean validate, @NonNull Object... args) throws SQLException {
+    public ParameterSetWithValues withValues(@NonNull Object... args) throws SQLException {
         var pp = method.getParameters();
         if (args.length != pp.length) throw new IllegalArgumentException();
         @SuppressWarnings("unchecked")
         var wv = parameters.stream().map(p -> ((SqlNamedParameter<Object>) p).withValue(args[p.getIndex()])).toList();
-        return new ParameterSetWithValues(validate, this, wv);
+        return new ParameterSetWithValues(this, wv);
     }
 
     public boolean testParameters(@NonNull Set<String> keys) {
@@ -75,10 +62,5 @@ public final class ParameterSet {
             if (!p.testParameter(keys)) return false;
         }
         return true;
-    }
-
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
     }
 }

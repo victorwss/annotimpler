@@ -17,15 +17,11 @@ public final class ParameterSetWithValues {
     private final ParameterSet set;
 
     @NonNull
-    private final ParsedQuery query;
-
-    @NonNull
     private final List<? extends SqlNamedParameterWithValue<?>> parameters;
 
     @NonNull
     @PackagePrivate
     ParameterSetWithValues(
-            boolean validate,
             @NonNull ParameterSet set,
             @NonNull List<? extends SqlNamedParameterWithValue<?>> parameters)
             throws SQLException
@@ -34,8 +30,6 @@ public final class ParameterSetWithValues {
         checkNotNull(parameters);
         this.set = set;
         this.parameters = parameters;
-        this.query = set.getSupplier().get();
-        if (validate) set.testParameters(query.params().keySet());
     }
 
     @NonNull
@@ -57,14 +51,6 @@ public final class ParameterSetWithValues {
     @Override
     public boolean equals(@Nullable Object other) {
         return other instanceof ParameterSetWithValues ps && Objects.equals(this.state(), ps.state());
-    }
-
-    public String parsed() {
-        return query.parsed();
-    }
-
-    public Map<String, List<Integer>> params() {
-        return query.params();
     }
 
     public void fillIn(@NonNull NamedParameterStatement ps) throws SQLException {

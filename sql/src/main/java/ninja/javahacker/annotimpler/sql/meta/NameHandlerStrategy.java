@@ -9,7 +9,9 @@ import module ninja.javahacker.annotimpler.sql;
 
 @PackagePrivate
 record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Object> p, @NonNull NameTester tester) {
+
     public void handle(@NonNull NamedParameterStatement ps, @Nullable T value) throws SQLException {
+        checkNotNull(ps);
         if (!test(value)) throw new IllegalArgumentException();
         h.handle(ps, value);
     }
@@ -19,6 +21,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
     }
 
     public boolean testName(@NonNull Set<String> keys) {
+        checkNotNull(keys);
         return tester.test(keys);
     }
 
@@ -32,6 +35,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         var all = Stream.of(rcs).map(rc -> forComponent(rc, name, single, flat)).toList();
 
         NamedHandler<E> h = (@NonNull NamedParameterStatement ps, @Nullable E value) -> {
+            checkNotNull(ps);
             for (var each : all) {
                 each.handle(ps, value);
             }
@@ -54,6 +58,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         var inner = (NameHandlerStrategy<Object>) makeStrategy(rct, paramName, flat);
 
         NamedHandler<Object> h = (@NonNull NamedParameterStatement ps, @Nullable Object value) -> {
+            checkNotNull(ps);
             Object innerValue;
             try {
                 innerValue = rc.getAccessor().invoke(value);
@@ -71,6 +76,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         checkNotNull(name);
 
         NamedHandler<E> h = (@NonNull NamedParameterStatement ps, @Nullable E value) -> {
+            checkNotNull(ps);
             if (value == null) {
                 ps.setNull(name, Types.INTEGER);
             } else {
@@ -81,11 +87,18 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
     }
 
     @NonNull
-    public static <E> NamedHandler<Optional<E>> forOptional(@NonNull Class<E> k, @NonNull String name, boolean flat) {
+    public static <E> NameHandlerStrategy<Optional<E>> forOptional(@NonNull Class<E> k, @NonNull String name, boolean flat) {
         checkNotNull(k);
         checkNotNull(name);
+
         var in = forClass(k, name, flat);
-        return (@NonNull NamedParameterStatement ps, @Nullable Optional<E> value) -> in.handle(ps, value == null ? null : value.get());
+        NamedHandler<Optional<E>> h = (@NonNull NamedParameterStatement ps, @Nullable Optional<E> value) -> {
+            checkNotNull(ps);
+            in.handle(ps, value == null ? null : value.get());
+        };
+
+        Predicate<Object> p2 = v -> v == null || (v instanceof Optional<?> opt && in.test(opt.orElse(null)));
+        return new NameHandlerStrategy<>(h, p2, in.tester());
     }
 
     @NonNull
@@ -93,6 +106,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         checkNotNull(name);
 
         NamedHandler<Void> h = (@NonNull NamedParameterStatement ps, @Nullable Void value) -> {
+            checkNotNull(ps);
             ps.setNull(name, Types.NULL);
         };
         return new NameHandlerStrategy<>(h, v -> v == null, keys -> keys.contains(name));
@@ -108,9 +122,9 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         if (k.isRecord()) return (NameHandlerStrategy<E>) forRecord(k.asSubclass(Record.class), name, flat);
         if (k.isEnum()) return (NameHandlerStrategy<E>) forEnum(k.asSubclass(Enum.class), name);
 
-        var h = Handler.ENTRIES.get(k);
+        var h = (Handler<E>) Handler.ENTRIES.get(k);
         if (h == null) throw new UnsupportedOperationException();
-        return (NameHandlerStrategy<E>) new NameHandlerStrategy<>(h.named(name), acceptor(k), keys -> keys.contains(name));
+        return new NameHandlerStrategy<>(h.named(name), acceptor(k), keys -> keys.contains(name));
     }
 
     @NonNull
@@ -137,11 +151,7 @@ record NameHandlerStrategy<T>(@NonNull NamedHandler<T> h, @NonNull Predicate<Obj
         }
         if (type instanceof ParameterizedType pt && pt.getRawType() == Optional.class) {
             var ptt = pt.getActualTypeArguments();
-            if (ptt.length == 1 && ptt[0] instanceof Class<?> ok) {
-                var in = forOptional(ok, name, flat);
-                Predicate<Object> p = v -> v == null || (v instanceof Optional<?> opt && (opt.isEmpty() || ok.isInstance(opt.get())));
-                return new NameHandlerStrategy<>(in, p, keys -> keys.contains(name));
-            }
+            if (ptt.length == 1 && ptt[0] instanceof Class<?> ok) return forOptional(ok, name, flat);
         }
         throw new UnsupportedOperationException("" + type);
     }

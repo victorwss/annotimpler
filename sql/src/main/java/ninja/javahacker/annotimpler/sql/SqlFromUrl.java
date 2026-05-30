@@ -3,7 +3,7 @@ package ninja.javahacker.annotimpler.sql;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 
-@SqlSource(factory = UrlSqlFactory.class, lazy = false)
+@SqlSource(UrlSqlFactory.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 public @interface SqlFromUrl {

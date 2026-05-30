@@ -56,13 +56,17 @@ public final class ExecuteSqlImplementation implements Implementation {
         if (es == null) throw new IllegalArgumentException();
 
         var operation = selectOperation(m);
-        var parset = new ParameterSet(es.validate() == SqlPreValidation.ON_LOAD, m);
+        var parset = new ParameterSet(m);
+        var strict = es.validate();
+        var supplier = ParsedSqlSupplier.find(strict, parset);
 
         return new CallContext<>() {
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
-                var params = parset.withValues(es.validate() == SqlPreValidation.ON_EXECUTE, a);
-                var work = new SqlWorker(getConnection(), params, cvt, localizer);
+                //if (es.validate() == SqlPreValidation.ON_EXECUTE) parset.prevalidate();
+                var params = parset.withValues(a);
+                var query = supplier.get();
+                var work = new SqlWorker(getConnection(), params, query, cvt, localizer);
                 var qtd = work.execute();
                 if (qtd == 0L && !es.acceptsZero()) throw new SQLException("No line was affected.");
                 if (qtd > 1L && !es.acceptsMulti()) throw new SQLException("Multipe lines were affected.");

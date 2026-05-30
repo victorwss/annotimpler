@@ -10,7 +10,8 @@ import module java.sql;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 
-public class SqlNamedParameterWithValue<T> {
+public final class SqlNamedParameterWithValue<T> {
+
     @NonNull
     private final SqlNamedParameter<T> inner;
 

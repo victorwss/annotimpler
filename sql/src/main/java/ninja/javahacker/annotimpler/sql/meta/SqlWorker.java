@@ -15,6 +15,9 @@ public final class SqlWorker {
     private final ParameterSetWithValues ppq;
 
     @NonNull
+    private final ParsedQuery pq;
+
+    @NonNull
     private final ConverterFactory factory;
 
     @NonNull
@@ -23,11 +26,13 @@ public final class SqlWorker {
     public SqlWorker(
             @NonNull Connection con,
             @NonNull ParameterSetWithValues ppq,
+            @NonNull ParsedQuery pq,
             @NonNull ConverterFactory factory,
             @NonNull Locale localizer)
     {
         this.con = con;
         this.ppq = ppq;
+        this.pq = pq;
         this.factory = factory;
         this.localizer = localizer;
     }
@@ -40,14 +45,14 @@ public final class SqlWorker {
 
     @NonNull
     private NamedParameterStatement open() throws SQLException {
-        var ps = con.prepareStatement(ppq.parsed());
-        return NamedParameterStatement.wrap(ps, ppq.params());
+        var ps = con.prepareStatement(pq.parsed());
+        return NamedParameterStatement.wrap(ps, pq.params());
     }
 
     @NonNull
     private NamedParameterStatement openGenerate() throws SQLException {
-        var ps = con.prepareStatement(ppq.parsed(), Statement.RETURN_GENERATED_KEYS);
-        return NamedParameterStatement.wrap(ps, ppq.params());
+        var ps = con.prepareStatement(pq.parsed(), Statement.RETURN_GENERATED_KEYS);
+        return NamedParameterStatement.wrap(ps, pq.params());
     }
 
     @NonNull

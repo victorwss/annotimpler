@@ -50,8 +50,8 @@ public class SqlNamedParameterTest {
 
     static {
         try {
-            P1 = new ParameterSet(false, TEST_METHOD_1);
-            P2 = new ParameterSet(false, TEST_METHOD_2);
+            P1 = new ParameterSet(TEST_METHOD_1);
+            P2 = new ParameterSet(TEST_METHOD_2);
         } catch (Exception e) {
             throw new ExceptionInInitializerError(e);
         }
@@ -394,8 +394,8 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     public Stream<DynamicTest> testToStringSetValues() throws Exception {
-        var v1 = P1.withValues(false, "x", 45, 3.3);
-        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
+        var v1 = P1.withValues("x", 45, 3.3);
+        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(v1, v2).map(x -> n(
                 "[testToStringSetValues] " + name(x),
                 () -> Assertions.assertEquals(toString(x), x.toString())
@@ -433,7 +433,7 @@ public class SqlNamedParameterTest {
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testEqualsSet() throws Exception {
-        var p1Copy = new ParameterSet(false, TEST_METHOD_1);
+        var p1Copy = new ParameterSet(TEST_METHOD_1);
         return Stream.of(
                 n("[testEqualsSet] a", () -> Assertions.assertTrue(P1.equals(P1))),
                 n("[testEqualsSet] b", () -> Assertions.assertTrue(P1.equals(p1Copy))),
@@ -447,9 +447,9 @@ public class SqlNamedParameterTest {
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testEqualsSetValues() throws Exception {
-        var v1 = P1.withValues(false, "x", 45, 3.3);
-        var v1Copy = P1.withValues(false, "x", 45, 3.3);
-        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
+        var v1 = P1.withValues("x", 45, 3.3);
+        var v1Copy = P1.withValues("x", 45, 3.3);
+        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(
                 n("[testEqualsSetValues] a", () -> Assertions.assertTrue(v1.equals(v1))),
                 n("[testEqualsSetValues] b", () -> Assertions.assertTrue(v1.equals(v1Copy))),
@@ -484,7 +484,7 @@ public class SqlNamedParameterTest {
 
     @TestFactory
     public Stream<DynamicTest> testHashCodeSet()throws Exception  {
-        var p1Copy = new ParameterSet(false, TEST_METHOD_1);
+        var p1Copy = new ParameterSet(TEST_METHOD_1);
         return Stream.of(
                 n("[testHashCodeSet] a", () -> Assertions.assertEquals(P1.hashCode(), P1.hashCode())),
                 n("[testHashCodeSet] b", () -> Assertions.assertEquals(P1.hashCode(), p1Copy.hashCode())),
@@ -496,9 +496,9 @@ public class SqlNamedParameterTest {
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testHashCodeValues()throws Exception  {
-        var v1 = P1.withValues(false, "x", 45, 3.3);
-        var v1Copy = P1.withValues(false, "x", 45, 3.3);
-        var v2 = P2.withValues(false, Optional.of(FIVE), OptionalInt.of(7));
+        var v1 = P1.withValues("x", 45, 3.3);
+        var v1Copy = P1.withValues("x", 45, 3.3);
+        var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
         return Stream.of(
                 n("[testHashCodeValues] a", () -> Assertions.assertEquals(v1.hashCode(), v1.hashCode())),
                 n("[testHashCodeValues] b", () -> Assertions.assertEquals(v1.hashCode(), v1Copy.hashCode())),
