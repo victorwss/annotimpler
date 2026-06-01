@@ -25,6 +25,7 @@ public final class SmartResultSet implements ResultSet {
     private final ColumnMapping mappings;
 
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
+        List.of(rs); // Force lombok do the check before the constructor call.
         this(rs, ConverterFactory.STD, Locale.ROOT);
     }
 
@@ -46,17 +47,15 @@ public final class SmartResultSet implements ResultSet {
         return IntStream.rangeClosed(1, metaData.getColumnCount()).toArray();
     }
 
-    @NonNull
-    public Map<String, Object> getMap() throws SQLException {
-        return getMap(allFields());
-    }
-
     private static final class ColumnMapping {
         @NonNull
         private final List<Optional<String>> columnNames;
 
         @NonNull
         private final Map<String, Integer> columnIndexes;
+
+        @NonNull
+        private final Locale localizer;
 
         public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizer) throws SQLException {
             checkNotNull(rsmd);
@@ -93,6 +92,7 @@ public final class SmartResultSet implements ResultSet {
 
             this.columnNames = List.copyOf(keys);
             this.columnIndexes = Map.copyOf(idx);
+            this.localizer = localizer;
         }
 
         public int getColumnCount() {
@@ -101,10 +101,10 @@ public final class SmartResultSet implements ResultSet {
 
         public int indexOf(@NonNull String columnName) {
             checkNotNull(columnName);
-            var name = columnName.toUpperCase(Locale.ROOT);
+            var name = columnName.toUpperCase(localizer);
             var v = columnIndexes.get(name);
             if (v == null) {
-                throw new IllegalArgumentException("There is no column " + columnName + ".");
+                throw new IllegalArgumentException("There is no column \"" + columnName + "\".");
             }
             return v;
         }
@@ -119,7 +119,12 @@ public final class SmartResultSet implements ResultSet {
     }
 
     @NonNull
-    public Map<String, Object> getMap(@NonNull int... fields) throws SQLException {
+    public Map<String, Object> getMap() throws SQLException {
+        return getMapByColumnNumbers(allFields());
+    }
+
+    @NonNull
+    public Map<String, Object> getMapByColumnNumbers(@NonNull int... fields) throws SQLException {
         var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
@@ -133,12 +138,12 @@ public final class SmartResultSet implements ResultSet {
     }
 
     @NonNull
-    public Map<String, Object> getMap(@NonNull String... fields) throws SQLException {
+    public Map<String, Object> getMapByLabels(@NonNull String... fields) throws SQLException {
         var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
             var columnIndex = mappings.indexOf(i);
-            var columnNameOpt = mappings.valueOf(columnIndex); // Not necessarily equals to i if non case-sensitive.
+            var columnNameOpt = mappings.valueOf(columnIndex); // Not necessarily equals to i, since it is not case-sensitive.
             if (columnNameOpt.isEmpty()) continue;
             var columnName = columnNameOpt.get();
             if (row.containsKey(columnName)) continue;
@@ -226,7 +231,7 @@ public final class SmartResultSet implements ResultSet {
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
-        var idx = this.mappings.indexOf(columnLabel.toUpperCase(Locale.ROOT));
+        var idx = this.mappings.indexOf(columnLabel);
         return getTypedValue(idx);
     }
 
@@ -272,7 +277,7 @@ public final class SmartResultSet implements ResultSet {
             @NonNull int... fields)
             throws SQLException
     {
-        var map = getMap(fields);
+        var map = getMapByColumnNumbers(fields);
         return getRecord(k, remapper, map);
     }
 
@@ -282,7 +287,7 @@ public final class SmartResultSet implements ResultSet {
             @NonNull String... fields)
             throws SQLException
     {
-        var map = getMap(fields);
+        var map = getMapByLabels(fields);
         return getRecord(k, remapper, map);
     }
 
