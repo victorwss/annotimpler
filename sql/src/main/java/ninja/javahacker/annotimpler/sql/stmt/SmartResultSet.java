@@ -142,10 +142,10 @@ public final class SmartResultSet implements ResultSet {
         var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
+            if (i == null) throw new IllegalArgumentException("Null-named columns are not allowed.");
             var columnIndex = mappings.indexOf(i);
             var columnNameOpt = mappings.valueOf(columnIndex); // Not necessarily equals to i, since it is not case-sensitive.
-            if (columnNameOpt.isEmpty()) continue;
-            var columnName = columnNameOpt.get();
+            var columnName = columnNameOpt.orElseThrow(AssertionError::new);
             if (row.containsKey(columnName)) continue;
             var value = getTypedValue(i);
             row.put(columnName, value);

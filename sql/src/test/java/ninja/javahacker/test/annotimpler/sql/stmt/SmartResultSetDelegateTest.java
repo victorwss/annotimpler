@@ -292,6 +292,9 @@ public class SmartResultSetDelegateTest {
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
                         () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", "f2", ""), "There is no column \"\".")
+                ),
+                DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", null, "f1"), "Null-named columns are not allowed.")
                 )
         );
     }
