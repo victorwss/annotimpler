@@ -38,7 +38,8 @@ public enum ReadPolicy {
             var out = impl.read(inputData);
             return () -> out;
         } catch (IOException e) {
-            throw new BadImplementationException("Can't read from source.", e, ReadPolicy.class);
+            var msg = e instanceof FileNotFoundException ? "Can't read from source." : e.getMessage();
+            throw new BadImplementationException(msg, e, ReadPolicy.class);
         }
     }
 

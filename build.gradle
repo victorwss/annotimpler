@@ -154,6 +154,19 @@ subprojects {
 
     tasks.withType(Test).configureEach {
         doFirst {
+            sourceSets.test.java.srcDirs.each { srcDir ->
+                def moduleInfo = new File(srcDir, "module-info.java")
+                if (moduleInfo.exists()) {
+                    def matcher = (moduleInfo.text =~ /(?:open\s+)?module\s+([\w.]+)\s*\{/)
+                    if (matcher.find()) {
+                        def moduleName = matcher.group(1)
+                        def resDir = sourceSets.test.output.resourcesDir
+                        if (resDir?.exists()) {
+                            jvmArgs "--patch-module=${moduleName}=${resDir.absolutePath}"
+                        }
+                    }
+                }
+            }
             println "JVM args for ${name}:"
             jvmArgs.each {
                 println "  ${it}"

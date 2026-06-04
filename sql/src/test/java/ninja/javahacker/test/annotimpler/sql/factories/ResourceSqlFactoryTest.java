@@ -7,9 +7,9 @@ import module ninja.javahacker.annotimpler.sql;
 @SuppressWarnings("unused")
 public class ResourceSqlFactoryTest {
 
-    private static final String LOREM_ISO_88591 = "Lorem ipsum dolor sit amet - áéíóúñçªº - Lorem ipsum dolor sit amet";
+    private static final String LOREM_ISO_88591 = "Lorem ipsum dolor sit amet - áéíóúñçªº - Lorem ipsum dolor sit amet\n";
 
-    private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁";
+    private static final String LOREM_UTF_8 = "Lorem ipsum dolor sit amet 🤩😁🤩😁\n";
 
     public ResourceSqlFactoryTest() {
     }
@@ -60,7 +60,7 @@ public class ResourceSqlFactoryTest {
     @Test
     public void testResourceSqlDoesNotExist() throws Exception {
         var m = "withSqlX1";
-        var ex = Assertions.assertThrows(SQLException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
         Assertions.assertTrue(ex.getCause() instanceof IOException);
         Assertions.assertEquals("Can't read from source.", ex.getMessage());
     }
@@ -68,7 +68,7 @@ public class ResourceSqlFactoryTest {
     @TestFactory
     public Stream<DynamicTest> testResourceSqlBadEncoding() throws Exception {
         return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(m, () -> {
-            var ex = Assertions.assertThrows(SQLException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
+            var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
         }));
