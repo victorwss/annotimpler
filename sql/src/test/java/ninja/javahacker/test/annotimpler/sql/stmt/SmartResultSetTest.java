@@ -944,6 +944,201 @@ public class SmartResultSetTest {
         );
     }
 
+    private SmartResultSet makeTwoColMock(ConverterFactory factory) throws Exception {
+        var mdMock = ControlledMock.mock(ResultSetMetaData.class);
+        mdMock.setHandler((px, m, a) -> {
+            if ("getColumnCount".equals(m.getName())) return 2;
+            if ("getColumnLabel".equals(m.getName())) return (int) a[0] == 1 ? "ALPHA" : "BETA";
+            if ("getColumnType".equals(m.getName())) return Types.VARCHAR;
+            throw new AssertionError(m.getName());
+        });
+        var rsMock = ControlledMock.mock(ResultSet.class);
+        rsMock.setHandler((px, m, a) -> {
+            if ("getMetaData".equals(m.getName())) return mdMock.getMock();
+            if ("getString".equals(m.getName())) return (int) a[0] == 1 ? "hello" : "world";
+            throw new AssertionError(m.getName());
+        });
+        return new SmartResultSet(rsMock.getMock(), factory, Locale.ROOT);
+    }
+
+    // Creates a ConverterFactory whose mapToRecord captures the received map and returns 'result'.
+    // ConverterFactory.get() is not expected to be called in getRecord flows, so it throws.
+    @SuppressWarnings("unchecked")
+    private static ConverterFactory captureFactory(Object[] capturedMap, Record result) {
+        return new ConverterFactory() {
+            @Override
+            public Converter<?> get(Type t) throws UnavailableConverterException {
+                throw UnavailableConverterException.noConverterFor(t);
+            }
+            @Override
+            public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) {
+                capturedMap[0] = map;
+                return (T) result;
+            }
+        };
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testGetRecord() throws Exception {
+        // Strategy: mock mapToRecord to capture the map argument and return a fixed result,
+        // without invoking the real ConverterFactory machinery.
+        record TestRecord(String name) {}
+
+        var expected = new TestRecord("test");
+        var mapAll   = Map.<String, Object>of("ALPHA", "hello", "BETA", "world");
+        var mapAlpha = Map.<String, Object>of("ALPHA", "hello");
+        var mapBeta  = Map.<String, Object>of("BETA",  "world");
+        var pf = "[testGetRecord] ";
+        var tests = new ArrayList<DynamicTest>();
+
+        // getRecord(Class) — all columns
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class) passes all columns to mapToRecord", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class));
+            Assertions.assertEquals(mapAll, cap[0]);
+        }));
+
+        // getRecord(Class, int...) — column 1
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, int...) passes selected column by index", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, 1));
+            Assertions.assertEquals(mapAlpha, cap[0]);
+        }));
+
+        // getRecord(Class, int...) — column 2
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, int...) passes other column by index", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, 2));
+            Assertions.assertEquals(mapBeta, cap[0]);
+        }));
+
+        // getRecord(Class, String...) — by label "ALPHA"
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, String...) passes selected column by label", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, "ALPHA"));
+            Assertions.assertEquals(mapAlpha, cap[0]);
+        }));
+
+        // getRecord(Class, String...) — by label "BETA"
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, String...) passes other column by label", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, "BETA"));
+            Assertions.assertEquals(mapBeta, cap[0]);
+        }));
+
+        // getRecord(Class, Function) — remapper is applied to all column keys
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function) applies remapper to map keys", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            var mapAllLower = Map.<String, Object>of("alpha", "hello", "beta", "world");
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, String::toLowerCase));
+            Assertions.assertEquals(mapAllLower, cap[0]);
+        }));
+
+        // getRecord(Class, Function) — identity remapper leaves keys unchanged
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function) identity remapper leaves keys unchanged", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, x -> x));
+            Assertions.assertEquals(mapAll, cap[0]);
+        }));
+
+        // getRecord(Class, Function, int...) — remapper is applied to selected column keys
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function, int...) applies remapper to selected column", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            var mapBetaLower = Map.<String, Object>of("beta", "world");
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, String::toLowerCase, 2));
+            Assertions.assertEquals(mapBetaLower, cap[0]);
+        }));
+
+        // getRecord(Class, Function, int...) — identity remapper, specific column by index
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function, int...) identity remapper passes column by index", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, x -> x, 2));
+            Assertions.assertEquals(mapBeta, cap[0]);
+        }));
+
+        // getRecord(Class, Function, String...) — remapper is applied to selected column keys
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function, String...) applies remapper to selected column", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            var mapAlphaLower = Map.<String, Object>of("alpha", "hello");
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, String::toLowerCase, "ALPHA"));
+            Assertions.assertEquals(mapAlphaLower, cap[0]);
+        }));
+
+        // getRecord(Class, Function, String...) — identity remapper, specific column by label
+        tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class, Function, String...) identity remapper passes column by label", () -> {
+            var cap = new Object[1];
+            var srs = makeTwoColMock(captureFactory(cap, expected));
+            Assertions.assertSame(expected, srs.getRecord(TestRecord.class, x -> x, "ALPHA"));
+            Assertions.assertEquals(mapAlpha, cap[0]);
+        }));
+
+        // Verify the record class is forwarded correctly to mapToRecord
+        tests.add(DynamicTest.dynamicTest(pf + "passes the correct record Class to mapToRecord", () -> {
+            var capturedClass = new Object[1];
+            @SuppressWarnings("unchecked")
+            ConverterFactory factory = new ConverterFactory() {
+                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
+                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) { capturedClass[0] = k; return (T) expected; }
+            };
+            makeTwoColMock(factory).getRecord(TestRecord.class);
+            Assertions.assertEquals(TestRecord.class, capturedClass[0]);
+        }));
+
+        // --- Exception wrapping: all four types must become SQLException ---
+
+        tests.add(DynamicTest.dynamicTest(pf + "wraps ConvertionException in SQLException", () -> {
+            var ex = new ConvertionException("test", String.class, TestRecord.class);
+            ConverterFactory factory = new ConverterFactory() {
+                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
+                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws ConvertionException { throw ex; }
+            };
+            var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
+            Assertions.assertSame(ex, sqle.getCause());
+        }));
+
+        tests.add(DynamicTest.dynamicTest(pf + "wraps MagicFactory.CreationException in SQLException", () -> {
+            var ex = new MagicFactory.CreationException("test", TestRecord.class);
+            ConverterFactory factory = new ConverterFactory() {
+                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
+                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreationException { throw ex; }
+            };
+            var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
+            Assertions.assertSame(ex, sqle.getCause());
+        }));
+
+        tests.add(DynamicTest.dynamicTest(pf + "wraps MagicFactory.CreatorSelectionException in SQLException", () -> {
+            var ex = new MagicFactory.CreatorSelectionException("test", TestRecord.class);
+            ConverterFactory factory = new ConverterFactory() {
+                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
+                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreatorSelectionException { throw ex; }
+            };
+            var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
+            Assertions.assertSame(ex, sqle.getCause());
+        }));
+
+        tests.add(DynamicTest.dynamicTest(pf + "wraps UnavailableConverterException from mapToRecord in SQLException", () -> {
+            var ex = UnavailableConverterException.noConverterFor(TestRecord.class);
+            ConverterFactory factory = new ConverterFactory() {
+                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
+                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws UnavailableConverterException { throw ex; }
+            };
+            var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
+            Assertions.assertSame(ex, sqle.getCause());
+        }));
+
+        return tests.stream();
+    }
+
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {

@@ -261,7 +261,9 @@ public final class SmartResultSet implements ResultSet {
         checkNotNull(remapper);
         checkNotNull(map);
         try {
-            return factory.mapToRecord(map, k);
+            var remappedMap = map.entrySet().stream()
+                    .collect(Collectors.toUnmodifiableMap(e -> remapper.apply(e.getKey()), Map.Entry::getValue));
+            return factory.mapToRecord(remappedMap, k);
         } catch (ConvertionException
                 | MagicFactory.CreationException
                 | MagicFactory.CreatorSelectionException
