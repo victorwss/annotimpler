@@ -322,6 +322,469 @@ public class SmartResultSetTest {
         );
     }
 
+    private SmartResultSet makeTypedMock(int sqlType, InvocationHandler rsHandler) throws Exception {
+        var mdMock = ControlledMock.mock(ResultSetMetaData.class);
+        mdMock.setHandler((px, m, a) -> {
+            if ("getColumnCount".equals(m.getName())) return 1;
+            if ("getColumnLabel".equals(m.getName())) return "COL";
+            if ("getColumnType".equals(m.getName())) return sqlType;
+            throw new AssertionError(m.getName());
+        });
+        var rsMock = ControlledMock.mock(ResultSet.class);
+        rsMock.setHandler((px, m, a) -> {
+            if ("getMetaData".equals(m.getName())) return mdMock.getMock();
+            return rsHandler.invoke(px, m, a);
+        });
+        return new SmartResultSet(rsMock.getMock(), ConverterFactory.STD, Locale.ROOT);
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testGetTypedValueByIndex() throws Exception {
+        var aBlob            = blob();
+        var aClob            = clob();
+        var aNClob           = nclob();
+        var aSqlXml          = sqlxml();
+        var aRowId           = rowid();
+        var aRef             = ref();
+        var anArray          = array();
+        var aStruct          = ControlledMock.mock(Struct.class).getMock();
+        var aLocalDate       = LocalDate.of(2023, 5, 15);
+        var aLocalDateTime   = LocalDateTime.of(2023, 5, 15, 10, 20, 30);
+        var aLocalTime       = LocalTime.of(10, 20, 30);
+        var anOffsetDateTime = OffsetDateTime.of(2023, 5, 15, 10, 20, 30, 0, ZoneOffset.UTC);
+        var anOffsetTime     = OffsetTime.of(10, 20, 30, 0, ZoneOffset.UTC);
+        var aBytes           = new byte[] {1, 2, 3};
+        var aBigDecimal      = new BigDecimal("3.14");
+        var aString          = "hello";
+
+        var pf = "[testGetTypedValueByIndex] ";
+        var tests = new ArrayList<DynamicTest>();
+
+        // REF_CURSOR → UnsupportedOperationException, no getter called
+        tests.add(DynamicTest.dynamicTest(pf + "REF_CURSOR throws UnsupportedOperationException", () -> {
+            var srs = makeTypedMock(Types.REF_CURSOR, (px, m, a) -> { throw new AssertionError(m.getName()); });
+            Assertions.assertThrows(UnsupportedOperationException.class, () -> srs.getTypedValue(1));
+        }));
+
+        // NULL → null, no getter called
+        tests.add(DynamicTest.dynamicTest(pf + "NULL returns null without any getter call", () -> {
+            var srs = makeTypedMock(Types.NULL, (px, m, a) -> { throw new AssertionError(m.getName()); });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // DATE → getObject(int, LocalDate.class)
+        tests.add(DynamicTest.dynamicTest(pf + "DATE uses getObject with LocalDate", () -> {
+            var srs = makeTypedMock(Types.DATE, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                Assertions.assertEquals(LocalDate.class, a[1]);
+                return aLocalDate;
+            });
+            Assertions.assertEquals(aLocalDate, srs.getTypedValue(1));
+        }));
+
+        // TIMESTAMP → getObject(int, LocalDateTime.class)
+        tests.add(DynamicTest.dynamicTest(pf + "TIMESTAMP uses getObject with LocalDateTime", () -> {
+            var srs = makeTypedMock(Types.TIMESTAMP, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                Assertions.assertEquals(LocalDateTime.class, a[1]);
+                return aLocalDateTime;
+            });
+            Assertions.assertEquals(aLocalDateTime, srs.getTypedValue(1));
+        }));
+
+        // TIME → getObject(int, LocalTime.class)
+        tests.add(DynamicTest.dynamicTest(pf + "TIME uses getObject with LocalTime", () -> {
+            var srs = makeTypedMock(Types.TIME, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                Assertions.assertEquals(LocalTime.class, a[1]);
+                return aLocalTime;
+            });
+            Assertions.assertEquals(aLocalTime, srs.getTypedValue(1));
+        }));
+
+        // TIMESTAMP_WITH_TIMEZONE → getObject(int, OffsetDateTime.class)
+        tests.add(DynamicTest.dynamicTest(pf + "TIMESTAMP_WITH_TIMEZONE uses getObject with OffsetDateTime", () -> {
+            var srs = makeTypedMock(Types.TIMESTAMP_WITH_TIMEZONE, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                Assertions.assertEquals(OffsetDateTime.class, a[1]);
+                return anOffsetDateTime;
+            });
+            Assertions.assertEquals(anOffsetDateTime, srs.getTypedValue(1));
+        }));
+
+        // TIME_WITH_TIMEZONE → getObject(int, OffsetTime.class)
+        tests.add(DynamicTest.dynamicTest(pf + "TIME_WITH_TIMEZONE uses getObject with OffsetTime", () -> {
+            var srs = makeTypedMock(Types.TIME_WITH_TIMEZONE, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                Assertions.assertEquals(OffsetTime.class, a[1]);
+                return anOffsetTime;
+            });
+            Assertions.assertEquals(anOffsetTime, srs.getTypedValue(1));
+        }));
+
+        // BIGINT → getLong + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "BIGINT non-null uses getLong", () -> {
+            var srs = makeTypedMock(Types.BIGINT, (px, m, a) -> {
+                if ("getLong".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 42L; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(42L, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "BIGINT null via wasNull", () -> {
+            var srs = makeTypedMock(Types.BIGINT, (px, m, a) -> {
+                if ("getLong".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 0L; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // INTEGER → getInt + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "INTEGER non-null uses getInt", () -> {
+            var srs = makeTypedMock(Types.INTEGER, (px, m, a) -> {
+                if ("getInt".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 7; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(7, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "INTEGER null via wasNull", () -> {
+            var srs = makeTypedMock(Types.INTEGER, (px, m, a) -> {
+                if ("getInt".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 0; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // TINYINT → getByte + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "TINYINT non-null uses getByte", () -> {
+            var srs = makeTypedMock(Types.TINYINT, (px, m, a) -> {
+                if ("getByte".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return (byte) 3; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals((byte) 3, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "TINYINT null via wasNull", () -> {
+            var srs = makeTypedMock(Types.TINYINT, (px, m, a) -> {
+                if ("getByte".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return (byte) 0; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // SMALLINT → getShort + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "SMALLINT non-null uses getShort", () -> {
+            var srs = makeTypedMock(Types.SMALLINT, (px, m, a) -> {
+                if ("getShort".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return (short) 10; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals((short) 10, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "SMALLINT null via wasNull", () -> {
+            var srs = makeTypedMock(Types.SMALLINT, (px, m, a) -> {
+                if ("getShort".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return (short) 0; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // FLOAT → getFloat + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "FLOAT non-null uses getFloat", () -> {
+            var srs = makeTypedMock(Types.FLOAT, (px, m, a) -> {
+                if ("getFloat".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 1.5F; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(1.5F, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "FLOAT null via wasNull", () -> {
+            var srs = makeTypedMock(Types.FLOAT, (px, m, a) -> {
+                if ("getFloat".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 0F; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // REAL → getFloat + wasNull (same getter as FLOAT)
+        tests.add(DynamicTest.dynamicTest(pf + "REAL non-null uses getFloat", () -> {
+            var srs = makeTypedMock(Types.REAL, (px, m, a) -> {
+                if ("getFloat".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 2.5F; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(2.5F, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "REAL null via wasNull", () -> {
+            var srs = makeTypedMock(Types.REAL, (px, m, a) -> {
+                if ("getFloat".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 0F; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // DOUBLE → getDouble + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "DOUBLE non-null uses getDouble", () -> {
+            var srs = makeTypedMock(Types.DOUBLE, (px, m, a) -> {
+                if ("getDouble".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 3.14; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(3.14, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "DOUBLE null via wasNull", () -> {
+            var srs = makeTypedMock(Types.DOUBLE, (px, m, a) -> {
+                if ("getDouble".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return 0.0; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // BOOLEAN → getBoolean + wasNull
+        tests.add(DynamicTest.dynamicTest(pf + "BOOLEAN non-null uses getBoolean", () -> {
+            var srs = makeTypedMock(Types.BOOLEAN, (px, m, a) -> {
+                if ("getBoolean".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return true; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(true, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "BOOLEAN null via wasNull", () -> {
+            var srs = makeTypedMock(Types.BOOLEAN, (px, m, a) -> {
+                if ("getBoolean".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return false; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // BIT → getBoolean + wasNull (same getter as BOOLEAN)
+        tests.add(DynamicTest.dynamicTest(pf + "BIT non-null uses getBoolean", () -> {
+            var srs = makeTypedMock(Types.BIT, (px, m, a) -> {
+                if ("getBoolean".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return true; }
+                if ("wasNull".equals(m.getName())) return false;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertEquals(true, srs.getTypedValue(1));
+        }));
+        tests.add(DynamicTest.dynamicTest(pf + "BIT null via wasNull", () -> {
+            var srs = makeTypedMock(Types.BIT, (px, m, a) -> {
+                if ("getBoolean".equals(m.getName())) { Assertions.assertEquals(1, (int) a[0]); return false; }
+                if ("wasNull".equals(m.getName())) return true;
+                throw new AssertionError(m.getName());
+            });
+            Assertions.assertNull(srs.getTypedValue(1));
+        }));
+
+        // DECIMAL → getBigDecimal
+        tests.add(DynamicTest.dynamicTest(pf + "DECIMAL uses getBigDecimal", () -> {
+            var srs = makeTypedMock(Types.DECIMAL, (px, m, a) -> {
+                Assertions.assertEquals("getBigDecimal", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBigDecimal;
+            });
+            Assertions.assertEquals(aBigDecimal, srs.getTypedValue(1));
+        }));
+
+        // NUMERIC → getBigDecimal
+        tests.add(DynamicTest.dynamicTest(pf + "NUMERIC uses getBigDecimal", () -> {
+            var srs = makeTypedMock(Types.NUMERIC, (px, m, a) -> {
+                Assertions.assertEquals("getBigDecimal", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBigDecimal;
+            });
+            Assertions.assertEquals(aBigDecimal, srs.getTypedValue(1));
+        }));
+
+        // BINARY → getBytes
+        tests.add(DynamicTest.dynamicTest(pf + "BINARY uses getBytes", () -> {
+            var srs = makeTypedMock(Types.BINARY, (px, m, a) -> {
+                Assertions.assertEquals("getBytes", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBytes;
+            });
+            Assertions.assertArrayEquals(aBytes, (byte[]) srs.getTypedValue(1));
+        }));
+
+        // VARBINARY → getBytes
+        tests.add(DynamicTest.dynamicTest(pf + "VARBINARY uses getBytes", () -> {
+            var srs = makeTypedMock(Types.VARBINARY, (px, m, a) -> {
+                Assertions.assertEquals("getBytes", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBytes;
+            });
+            Assertions.assertArrayEquals(aBytes, (byte[]) srs.getTypedValue(1));
+        }));
+
+        // LONGVARBINARY → getBytes
+        tests.add(DynamicTest.dynamicTest(pf + "LONGVARBINARY uses getBytes", () -> {
+            var srs = makeTypedMock(Types.LONGVARBINARY, (px, m, a) -> {
+                Assertions.assertEquals("getBytes", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBytes;
+            });
+            Assertions.assertArrayEquals(aBytes, (byte[]) srs.getTypedValue(1));
+        }));
+
+        // CLOB → getClob
+        tests.add(DynamicTest.dynamicTest(pf + "CLOB uses getClob", () -> {
+            var srs = makeTypedMock(Types.CLOB, (px, m, a) -> {
+                Assertions.assertEquals("getClob", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aClob;
+            });
+            Assertions.assertSame(aClob, srs.getTypedValue(1));
+        }));
+
+        // NCLOB → getNClob
+        tests.add(DynamicTest.dynamicTest(pf + "NCLOB uses getNClob", () -> {
+            var srs = makeTypedMock(Types.NCLOB, (px, m, a) -> {
+                Assertions.assertEquals("getNClob", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aNClob;
+            });
+            Assertions.assertSame(aNClob, srs.getTypedValue(1));
+        }));
+
+        // BLOB → getBlob
+        tests.add(DynamicTest.dynamicTest(pf + "BLOB uses getBlob", () -> {
+            var srs = makeTypedMock(Types.BLOB, (px, m, a) -> {
+                Assertions.assertEquals("getBlob", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aBlob;
+            });
+            Assertions.assertSame(aBlob, srs.getTypedValue(1));
+        }));
+
+        // ARRAY → getArray
+        tests.add(DynamicTest.dynamicTest(pf + "ARRAY uses getArray", () -> {
+            var srs = makeTypedMock(Types.ARRAY, (px, m, a) -> {
+                Assertions.assertEquals("getArray", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return anArray;
+            });
+            Assertions.assertSame(anArray, srs.getTypedValue(1));
+        }));
+
+        // REF → getRef
+        tests.add(DynamicTest.dynamicTest(pf + "REF uses getRef", () -> {
+            var srs = makeTypedMock(Types.REF, (px, m, a) -> {
+                Assertions.assertEquals("getRef", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aRef;
+            });
+            Assertions.assertSame(aRef, srs.getTypedValue(1));
+        }));
+
+        // NVARCHAR → getNString
+        tests.add(DynamicTest.dynamicTest(pf + "NVARCHAR uses getNString", () -> {
+            var srs = makeTypedMock(Types.NVARCHAR, (px, m, a) -> {
+                Assertions.assertEquals("getNString", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aString;
+            });
+            Assertions.assertEquals(aString, srs.getTypedValue(1));
+        }));
+
+        // NCHAR → getNString
+        tests.add(DynamicTest.dynamicTest(pf + "NCHAR uses getNString", () -> {
+            var srs = makeTypedMock(Types.NCHAR, (px, m, a) -> {
+                Assertions.assertEquals("getNString", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aString;
+            });
+            Assertions.assertEquals(aString, srs.getTypedValue(1));
+        }));
+
+        // LONGNVARCHAR → getNString
+        tests.add(DynamicTest.dynamicTest(pf + "LONGNVARCHAR uses getNString", () -> {
+            var srs = makeTypedMock(Types.LONGNVARCHAR, (px, m, a) -> {
+                Assertions.assertEquals("getNString", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aString;
+            });
+            Assertions.assertEquals(aString, srs.getTypedValue(1));
+        }));
+
+        // SQLXML → getSQLXML
+        tests.add(DynamicTest.dynamicTest(pf + "SQLXML uses getSQLXML", () -> {
+            var srs = makeTypedMock(Types.SQLXML, (px, m, a) -> {
+                Assertions.assertEquals("getSQLXML", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aSqlXml;
+            });
+            Assertions.assertSame(aSqlXml, srs.getTypedValue(1));
+        }));
+
+        // ROWID → getRowId
+        tests.add(DynamicTest.dynamicTest(pf + "ROWID uses getRowId", () -> {
+            var srs = makeTypedMock(Types.ROWID, (px, m, a) -> {
+                Assertions.assertEquals("getRowId", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aRowId;
+            });
+            Assertions.assertSame(aRowId, srs.getTypedValue(1));
+        }));
+
+        // STRUCT → getObject(int) cast to Struct
+        tests.add(DynamicTest.dynamicTest(pf + "STRUCT uses getObject and casts to Struct", () -> {
+            var srs = makeTypedMock(Types.STRUCT, (px, m, a) -> {
+                Assertions.assertEquals("getObject", m.getName());
+                Assertions.assertEquals(1, a.length);
+                Assertions.assertEquals(1, (int) a[0]);
+                return aStruct;
+            });
+            Assertions.assertSame(aStruct, srs.getTypedValue(1));
+        }));
+
+        // Types that all fall through to getString
+        for (var entry : List.of(
+                Map.entry("VARCHAR",     Types.VARCHAR),
+                Map.entry("CHAR",        Types.CHAR),
+                Map.entry("LONGVARCHAR", Types.LONGVARCHAR),
+                Map.entry("DISTINCT",    Types.DISTINCT),
+                Map.entry("DATALINK",    Types.DATALINK),
+                Map.entry("JAVA_OBJECT", Types.JAVA_OBJECT),
+                Map.entry("OTHER",       Types.OTHER)
+        )) {
+            var typeName = entry.getKey();
+            var sqlType  = entry.getValue();
+            tests.add(DynamicTest.dynamicTest(pf + typeName + " uses getString", () -> {
+                var srs = makeTypedMock(sqlType, (px, m, a) -> {
+                    Assertions.assertEquals("getString", m.getName());
+                    Assertions.assertEquals(1, (int) a[0]);
+                    return aString;
+                });
+                Assertions.assertEquals(aString, srs.getTypedValue(1));
+            }));
+        }
+
+        // Default case: unknown SQL type → getString
+        tests.add(DynamicTest.dynamicTest(pf + "unknown type (default case) uses getString", () -> {
+            var srs = makeTypedMock(Integer.MAX_VALUE, (px, m, a) -> {
+                Assertions.assertEquals("getString", m.getName());
+                Assertions.assertEquals(1, (int) a[0]);
+                return aString;
+            });
+            Assertions.assertEquals(aString, srs.getTypedValue(1));
+        }));
+
+        return tests.stream();
+    }
+
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
