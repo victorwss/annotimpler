@@ -9,6 +9,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
+@SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
 public class SmartResultSetTest {
 
     private static final class TestA {}
@@ -257,7 +258,6 @@ public class SmartResultSetTest {
     }
 
     @TestFactory
-    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testMapping() throws Exception {
         var map1 = Map.of("F1", 5, "F2", "abc", "F3", LocalDateTime.of(2026, 5, 28, 10, 11, 12));
         var map1b = Map.of("F1", 5, "F3", LocalDateTime.of(2026, 5, 28, 10, 11, 12));
@@ -358,7 +358,7 @@ public class SmartResultSetTest {
         var aString          = "hello";
 
         var pf = "[testGetTypedValueByIndex] ";
-        var tests = new ArrayList<DynamicTest>();
+        var tests = new ArrayList<DynamicTest>(50);
 
         // REF_CURSOR → UnsupportedOperationException, no getter called
         tests.add(DynamicTest.dynamicTest(pf + "REF_CURSOR throws UnsupportedOperationException", () -> {
@@ -815,7 +815,7 @@ public class SmartResultSetTest {
         // Strategy: fix SQL type=VARCHAR (getString returns "raw_value") and use a mock
         // ConverterFactory to verify what is passed to fromObj and what is returned,
         // without re-exercising the full converter matrix from the convert subproject.
-        var tests = new ArrayList<DynamicTest>();
+        var tests = new ArrayList<DynamicTest>(5);
 
         // Case 1: converter returns a value → getTypedValueOpt returns Optional.of(value)
         // Also verifies that the raw value from getTypedValue(int) is forwarded intact.
@@ -923,7 +923,9 @@ public class SmartResultSetTest {
             }),
             // getTypedValueOpt(String, Class): unknown label → IllegalArgumentException before any RS call
             DynamicTest.dynamicTest(pf + "getTypedValueOpt throws IllegalArgumentException for unknown label", () -> {
-                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> { throw new AssertionError(m.getName()); });
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> {
+                    throw new AssertionError(m.getName());
+                });
                 Assertions.assertThrows(IllegalArgumentException.class, () -> srs.getTypedValueOpt("UNKNOWN", String.class));
             }),
             // getTypedValue(String, Class): value present → value returned (Optional unwrapped)
@@ -938,7 +940,9 @@ public class SmartResultSetTest {
             }),
             // getTypedValue(String, Class): unknown label → IllegalArgumentException
             DynamicTest.dynamicTest(pf + "getTypedValue throws IllegalArgumentException for unknown label", () -> {
-                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> { throw new AssertionError(m.getName()); });
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> {
+                    throw new AssertionError(m.getName());
+                });
                 Assertions.assertThrows(IllegalArgumentException.class, () -> srs.getTypedValue("UNKNOWN", String.class));
             })
         );
@@ -982,14 +986,15 @@ public class SmartResultSetTest {
     public Stream<DynamicTest> testGetRecord() throws Exception {
         // Strategy: mock mapToRecord to capture the map argument and return a fixed result,
         // without invoking the real ConverterFactory machinery.
-        record TestRecord(String name) {}
+        record TestRecord(String name) {
+        }
 
         var expected = new TestRecord("test");
         var mapAll   = Map.<String, Object>of("ALPHA", "hello", "BETA", "world");
         var mapAlpha = Map.<String, Object>of("ALPHA", "hello");
         var mapBeta  = Map.<String, Object>of("BETA",  "world");
         var pf = "[testGetRecord] ";
-        var tests = new ArrayList<DynamicTest>();
+        var tests = new ArrayList<DynamicTest>(16);
 
         // getRecord(Class) — all columns
         tests.add(DynamicTest.dynamicTest(pf + "getRecord(Class) passes all columns to mapToRecord", () -> {
@@ -1087,8 +1092,16 @@ public class SmartResultSetTest {
             var capturedClass = new Object[1];
             @SuppressWarnings("unchecked")
             ConverterFactory factory = new ConverterFactory() {
-                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
-                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) { capturedClass[0] = k; return (T) expected; }
+                @Override
+                public Converter<?> get(Type t) throws UnavailableConverterException {
+                    throw UnavailableConverterException.noConverterFor(t);
+                }
+
+                @Override
+                public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) {
+                    capturedClass[0] = k;
+                    return (T) expected;
+                }
             };
             makeTwoColMock(factory).getRecord(TestRecord.class);
             Assertions.assertEquals(TestRecord.class, capturedClass[0]);
@@ -1099,8 +1112,15 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "wraps ConvertionException in SQLException", () -> {
             var ex = new ConvertionException("test", String.class, TestRecord.class);
             ConverterFactory factory = new ConverterFactory() {
-                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
-                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws ConvertionException { throw ex; }
+                @Override
+                public Converter<?> get(Type t) throws UnavailableConverterException {
+                    throw UnavailableConverterException.noConverterFor(t);
+                }
+
+                @Override
+                public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws ConvertionException {
+                    throw ex;
+                }
             };
             var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
             Assertions.assertSame(ex, sqle.getCause());
@@ -1109,8 +1129,15 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "wraps MagicFactory.CreationException in SQLException", () -> {
             var ex = new MagicFactory.CreationException("test", TestRecord.class);
             ConverterFactory factory = new ConverterFactory() {
-                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
-                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreationException { throw ex; }
+                @Override
+                public Converter<?> get(Type t) throws UnavailableConverterException {
+                    throw UnavailableConverterException.noConverterFor(t);
+                }
+
+                @Override
+                public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreationException {
+                    throw ex;
+                }
             };
             var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
             Assertions.assertSame(ex, sqle.getCause());
@@ -1119,8 +1146,15 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "wraps MagicFactory.CreatorSelectionException in SQLException", () -> {
             var ex = new MagicFactory.CreatorSelectionException("test", TestRecord.class);
             ConverterFactory factory = new ConverterFactory() {
-                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
-                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreatorSelectionException { throw ex; }
+                @Override
+                public Converter<?> get(Type t) throws UnavailableConverterException {
+                    throw UnavailableConverterException.noConverterFor(t);
+                }
+
+                @Override
+                public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws MagicFactory.CreatorSelectionException {
+                    throw ex;
+                }
             };
             var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
             Assertions.assertSame(ex, sqle.getCause());
@@ -1129,8 +1163,15 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "wraps UnavailableConverterException from mapToRecord in SQLException", () -> {
             var ex = UnavailableConverterException.noConverterFor(TestRecord.class);
             ConverterFactory factory = new ConverterFactory() {
-                @Override public Converter<?> get(Type t) throws UnavailableConverterException { throw UnavailableConverterException.noConverterFor(t); }
-                @Override public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws UnavailableConverterException { throw ex; }
+                @Override
+                public Converter<?> get(Type t) throws UnavailableConverterException {
+                    throw UnavailableConverterException.noConverterFor(t);
+                }
+
+                @Override
+                public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) throws UnavailableConverterException {
+                    throw ex;
+                }
             };
             var sqle = Assertions.assertThrows(SQLException.class, () -> makeTwoColMock(factory).getRecord(TestRecord.class));
             Assertions.assertSame(ex, sqle.getCause());
@@ -1177,6 +1218,29 @@ public class SmartResultSetTest {
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, String...)-2", () -> ForTests.testNull("remapper"   , () -> mock0().getRecord(Foo.class, nf, "x"))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, int...)-3"   , () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, x -> x, ni))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, String...)-3", () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, x -> x, ns)))
+        );
+    }
+
+    @Test
+    public void testToString() {
+        var md = makeMetaData(false, List.of(new TypeData("X", Types.VARCHAR)));
+        var rs1 = ControlledMock.mock(ResultSet.class);
+        rs1.setHandler((i, m, a) -> {
+            if (m.getName().equals("getMetaData")) return md.getMock();
+            if (m.getName().equals("toString")) return "123-test-123";
+            throw new AssertionError(m);
+        });
+        var mock1 = rs1.getMock();
+        var rs2 = ControlledMock.mock(ResultSet.class);
+        rs2.setHandler((i, m, a) -> {
+            if (m.getName().equals("getMetaData")) return md.getMock();
+            if (m.getName().equals("toString")) return "567-test-567";
+            throw new AssertionError(m);
+        });
+        var mock2 = rs2.getMock();
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("SmartResultSet[123-test-123]", new SmartResultSet(mock1).toString()),
+                () -> Assertions.assertEquals("SmartResultSet[567-test-567]", new SmartResultSet(mock2).toString())
         );
     }
 }
