@@ -785,6 +785,165 @@ public class SmartResultSetTest {
         return tests.stream();
     }
 
+    private SmartResultSet makeConvMock(int sqlType, ConverterFactory factory, InvocationHandler rsHandler) throws Exception {
+        var mdMock = ControlledMock.mock(ResultSetMetaData.class);
+        mdMock.setHandler((px, m, a) -> {
+            if ("getColumnCount".equals(m.getName())) return 1;
+            if ("getColumnLabel".equals(m.getName())) return "COL";
+            if ("getColumnType".equals(m.getName())) return sqlType;
+            throw new AssertionError(m.getName());
+        });
+        var rsMock = ControlledMock.mock(ResultSet.class);
+        rsMock.setHandler((px, m, a) -> {
+            if ("getMetaData".equals(m.getName())) return mdMock.getMock();
+            return rsHandler.invoke(px, m, a);
+        });
+        return new SmartResultSet(rsMock.getMock(), factory, Locale.ROOT);
+    }
+
+    // Handles getString(1) returning a known raw value to use as pivot in conversion tests.
+    private static final InvocationHandler SIMPLE_VARCHAR_HANDLER = (px, m, a) -> {
+        Assertions.assertEquals("getString", m.getName());
+        Assertions.assertEquals(1, (int) a[0]);
+        return "raw_value";
+    };
+
+    @TestFactory
+    public Stream<DynamicTest> testGetTypedValueOptByIndex() throws Exception {
+        var pf = "[testGetTypedValueOptByIndex] ";
+
+        // Strategy: fix SQL type=VARCHAR (getString returns "raw_value") and use a mock
+        // ConverterFactory to verify what is passed to fromObj and what is returned,
+        // without re-exercising the full converter matrix from the convert subproject.
+        var tests = new ArrayList<DynamicTest>();
+
+        // Case 1: converter returns a value → getTypedValueOpt returns Optional.of(value)
+        // Also verifies that the raw value from getTypedValue(int) is forwarded intact.
+        tests.add(DynamicTest.dynamicTest(pf + "returns Optional.of when converter has value", () -> {
+            var capturedRaw = new Object[1];
+            ConverterFactory factory = type -> {
+                Assertions.assertEquals(String.class, type);
+                return new Converter<String>() {
+                    @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.of("CONVERTED"); }
+                };
+            };
+            var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+            Assertions.assertEquals(Optional.of("CONVERTED"), srs.getTypedValueOpt(1, String.class));
+            Assertions.assertEquals("raw_value", capturedRaw[0]);
+        }));
+
+        // Case 2: converter returns empty → getTypedValueOpt returns Optional.empty()
+        tests.add(DynamicTest.dynamicTest(pf + "returns Optional.empty when converter is empty", () -> {
+            var capturedRaw = new Object[1];
+            ConverterFactory factory = type -> new Converter<String>() {
+                @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.empty(); }
+            };
+            var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+            Assertions.assertEquals(Optional.empty(), srs.getTypedValueOpt(1, String.class));
+            Assertions.assertEquals("raw_value", capturedRaw[0]);
+        }));
+
+        // Case 3: ConvertionException from fromObj → wrapped in SQLException
+        tests.add(DynamicTest.dynamicTest(pf + "wraps ConvertionException in SQLException", () -> {
+            var ce = new ConvertionException("test error", String.class, String.class);
+            ConverterFactory factory = type -> new Converter<String>() {
+                @Override public Optional<String> fromObj(Object in) throws ConvertionException { throw ce; }
+            };
+            var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+            var sqle = Assertions.assertThrows(SQLException.class, () -> srs.getTypedValueOpt(1, String.class));
+            Assertions.assertSame(ce, sqle.getCause());
+        }));
+
+        // Case 4: UnavailableConverterException from factory.get() → wrapped in SQLException
+        // Note: getTypedValue(int) is still called first, so the RS handler must handle getString.
+        tests.add(DynamicTest.dynamicTest(pf + "wraps UnavailableConverterException in SQLException", () -> {
+            var uce = UnavailableConverterException.noConverterFor(String.class);
+            ConverterFactory factory = type -> { throw uce; };
+            var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+            var sqle = Assertions.assertThrows(SQLException.class, () -> srs.getTypedValueOpt(1, String.class));
+            Assertions.assertSame(uce, sqle.getCause());
+        }));
+
+        // Case 5: raw value is null (column type NULL) → null is forwarded to fromObj
+        tests.add(DynamicTest.dynamicTest(pf + "passes null to fromObj when column type is NULL", () -> {
+            var capturedRaw = new Object[]{"NOT_NULL_SENTINEL"};
+            ConverterFactory factory = type -> new Converter<String>() {
+                @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.empty(); }
+            };
+            var srs = makeConvMock(Types.NULL, factory, (px, m, a) -> { throw new AssertionError(m.getName()); });
+            srs.getTypedValueOpt(1, String.class);
+            Assertions.assertNull(capturedRaw[0]);
+        }));
+
+        return tests.stream();
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testGetTypedValueByIndexWithClass() throws Exception {
+        var pf = "[testGetTypedValueByIndexWithClass] ";
+        return Stream.of(
+            // value present → returned directly (Optional unwrapped)
+            DynamicTest.dynamicTest(pf + "returns value when converter has value", () -> {
+                ConverterFactory factory = type -> new Converter<String>() {
+                    @Override public Optional<String> fromObj(Object in) { return Optional.of("CONVERTED"); }
+                };
+                var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertEquals("CONVERTED", srs.getTypedValue(1, String.class));
+            }),
+            // value absent → null (Optional.empty().orElse(null))
+            DynamicTest.dynamicTest(pf + "returns null when converter returns empty Optional", () -> {
+                ConverterFactory factory = type -> new Converter<String>() {
+                    @Override public Optional<String> fromObj(Object in) { return Optional.empty(); }
+                };
+                var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertNull(srs.getTypedValue(1, String.class));
+            })
+        );
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testGetTypedValueByLabel() throws Exception {
+        var pf = "[testGetTypedValueByLabel] ";
+        ConverterFactory presentFactory = type -> new Converter<String>() {
+            @Override public Optional<String> fromObj(Object in) { return Optional.of("CONVERTED"); }
+        };
+        ConverterFactory emptyFactory = type -> new Converter<String>() {
+            @Override public Optional<String> fromObj(Object in) { return Optional.empty(); }
+        };
+        return Stream.of(
+            // getTypedValueOpt(String, Class): column found — resolves label to index then runs pipeline
+            DynamicTest.dynamicTest(pf + "getTypedValueOpt returns Optional.of for known label", () -> {
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertEquals(Optional.of("CONVERTED"), srs.getTypedValueOpt("COL", String.class));
+            }),
+            // getTypedValueOpt(String, Class): label lookup is case-insensitive
+            DynamicTest.dynamicTest(pf + "getTypedValueOpt is case-insensitive for column label", () -> {
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertEquals(Optional.of("CONVERTED"), srs.getTypedValueOpt("col", String.class));
+            }),
+            // getTypedValueOpt(String, Class): unknown label → IllegalArgumentException before any RS call
+            DynamicTest.dynamicTest(pf + "getTypedValueOpt throws IllegalArgumentException for unknown label", () -> {
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> { throw new AssertionError(m.getName()); });
+                Assertions.assertThrows(IllegalArgumentException.class, () -> srs.getTypedValueOpt("UNKNOWN", String.class));
+            }),
+            // getTypedValue(String, Class): value present → value returned (Optional unwrapped)
+            DynamicTest.dynamicTest(pf + "getTypedValue returns value for known label", () -> {
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertEquals("CONVERTED", srs.getTypedValue("COL", String.class));
+            }),
+            // getTypedValue(String, Class): converter returns empty → null
+            DynamicTest.dynamicTest(pf + "getTypedValue returns null when converter returns empty Optional", () -> {
+                var srs = makeConvMock(Types.VARCHAR, emptyFactory, SIMPLE_VARCHAR_HANDLER);
+                Assertions.assertNull(srs.getTypedValue("COL", String.class));
+            }),
+            // getTypedValue(String, Class): unknown label → IllegalArgumentException
+            DynamicTest.dynamicTest(pf + "getTypedValue throws IllegalArgumentException for unknown label", () -> {
+                var srs = makeConvMock(Types.VARCHAR, presentFactory, (px, m, a) -> { throw new AssertionError(m.getName()); });
+                Assertions.assertThrows(IllegalArgumentException.class, () -> srs.getTypedValue("UNKNOWN", String.class));
+            })
+        );
+    }
+
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
