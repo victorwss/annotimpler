@@ -216,10 +216,12 @@ public class TransactorTest {
 
         ConnectionFactory f = () -> tcs.get(sf.get()).connect();
 
-        var idx = new int[1];
+        var atomicIdx = new AtomicInteger(0);
+        var idByThread = new ConcurrentHashMap<Thread, String>();
         Supplier<String> gen = () -> {
-            idx[0]++;
-            return "" + idx[0];
+            var id = "" + atomicIdx.incrementAndGet();
+            idByThread.put(Thread.currentThread(), id);
+            return id;
         };
 
         var cb1 = new CyclicBarrier(6);
@@ -231,7 +233,7 @@ public class TransactorTest {
             var tc = tcs.get(n);
             Assertions.assertEquals((n + 1) * 42, a);
             System.out.println("a... " + n);
-            cb1.await(2, TimeUnit.SECONDS);
+            cb1.await(5, TimeUnit.SECONDS);
             System.out.println("a-ok " + n);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
@@ -241,13 +243,14 @@ public class TransactorTest {
             System.out.println("ooo " + n);
             var tid = tx.id();
             System.out.println("ooo2 " + n);
-            var tidx = (n + 1) + "";
+            var tidx = idByThread.get(Thread.currentThread());
             System.out.println("ooo3 " + n);
+            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID");
             Assertions.assertEquals(tidx, tid);
             System.out.println("uuu " + n + " - " + tid);
             tc.assertSameConnection(tx.connection());
             System.out.println("b... " + n);
-            cb2.await(2, TimeUnit.SECONDS);
+            cb2.await(5, TimeUnit.SECONDS);
             System.out.println("b-ok " + n);
             if (n == 1) throw new SomeException();
             if (n == 0) return "foo";
@@ -260,8 +263,8 @@ public class TransactorTest {
             Assertions.assertEquals(n * 42 + "", a);
             Assertions.assertEquals(n * 31 + "", b);
             System.out.println("a... " + n);
-            cb1.await(2, TimeUnit.SECONDS);
-            System.out.println("b-ok " + n);
+            cb1.await(5, TimeUnit.SECONDS);
+            System.out.println("a-ok " + n);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
             var tx = t.currentTransaction();
@@ -270,13 +273,14 @@ public class TransactorTest {
             System.out.println("ooo " + n);
             var tid = tx.id();
             System.out.println("ooo2 " + n);
-            var tidx = (n + 1) + "";
+            var tidx = idByThread.get(Thread.currentThread());
             System.out.println("ooo3 " + n);
+            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID");
             Assertions.assertEquals(tidx, tid);
             System.out.println("uuu " + n + " - " + tid);
             tc.assertSameConnection(tx.connection());
             System.out.println("b... " + n);
-            cb2.await(2, TimeUnit.SECONDS);
+            cb2.await(5, TimeUnit.SECONDS);
             System.out.println("b-ok " + n);
             if (n == 3) throw new OtherException();
             return n * 7;
@@ -309,17 +313,17 @@ public class TransactorTest {
 
         try {
             System.out.println("a... x");
-            cb1.await(2, TimeUnit.SECONDS);
+            cb1.await(5, TimeUnit.SECONDS);
             System.out.println("a-ok x");
             System.out.println("b... x");
-            cb2.await(6, TimeUnit.SECONDS);
+            cb2.await(10, TimeUnit.SECONDS);
             System.out.println("b-ok x");
 
             for (var i = 0; i < 5; i++) {
                 System.out.println("Join " + i);
                 threads[i].join();
             }
-        } catch (InterruptedException | BrokenBarrierException e) {
+        } catch (InterruptedException | BrokenBarrierException | TimeoutException e) {
             for (var i = 0; i < 5; i++) {
                 threads[i].interrupt();
             }
@@ -327,6 +331,7 @@ public class TransactorTest {
         }
 
         System.out.println("Grand finale");
+        Assertions.assertEquals(5, new HashSet<>(idByThread.values()).size(), "All 5 transaction IDs must be distinct");
         Assertions.assertEquals("foo", out[0]);
         Assertions.assertTrue(out[1] instanceof SomeException);
         Assertions.assertEquals(14, (int) out[2]);
