@@ -200,12 +200,12 @@ public final class SmartResultSet implements ResultSet {
             case Types.TIME                    -> getObject(columnIndex, LocalTime     .class);
             case Types.TIMESTAMP_WITH_TIMEZONE -> getObject(columnIndex, OffsetDateTime.class);
             case Types.TIME_WITH_TIMEZONE      -> getObject(columnIndex, OffsetTime    .class);
-            case Types.BIGINT             -> nully(getLong  (columnIndex));
-            case Types.INTEGER            -> nully(getInt   (columnIndex));
-            case Types.TINYINT            -> nully(getByte  (columnIndex));
-            case Types.SMALLINT           -> nully(getShort (columnIndex));
-            case Types.FLOAT, Types.REAL  -> nully(getFloat (columnIndex));
-            case Types.DOUBLE             -> nully(getDouble(columnIndex));
+            case Types.BIGINT             -> nully(getLong   (columnIndex));
+            case Types.INTEGER            -> nully(getInt    (columnIndex));
+            case Types.TINYINT            -> nully(getByte   (columnIndex));
+            case Types.SMALLINT           -> nully(getShort  (columnIndex));
+            case Types.FLOAT, Types.REAL  -> nully(getFloat  (columnIndex));
+            case Types.DOUBLE             -> nully(getDouble (columnIndex));
             case Types.BOOLEAN, Types.BIT -> nully(getBoolean(columnIndex));
             case Types.DECIMAL, Types.NUMERIC                       -> getBigDecimal(columnIndex);
             case Types.BINARY, Types.VARBINARY, Types.LONGVARBINARY -> getBytes     (columnIndex);

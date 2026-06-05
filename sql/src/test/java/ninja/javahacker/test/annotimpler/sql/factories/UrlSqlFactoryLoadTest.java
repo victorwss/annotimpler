@@ -38,12 +38,23 @@ public class UrlSqlFactoryLoadTest {
             if (works == -1) {
                 throw new AssertionError();
             }
-            if (works > 0) {
+            if (works == 404) {
+                output404(o);
+            } else if (works > 0) {
                 new SimpleHttpServer.Content("text/plain; charset=utf-8", ("xyz" + works).getBytes(StandardCharsets.UTF_8)).handle(s, h, i, o);
             } else {
                 output444(o);
             }
         });
+    }
+
+    private static void output404(SimpleHttpServer.Output out) throws IOException {
+        var head = """
+                   HTTP/1.1 404 Not Found
+                   $Z
+                   Not Found""";
+        var header = head.replace("$Z", "").replace("\n", "\r\n");
+        out.write(header.getBytes(StandardCharsets.UTF_8));
     }
 
     private static void output444(SimpleHttpServer.Output out) throws IOException {
@@ -92,11 +103,26 @@ public class UrlSqlFactoryLoadTest {
     }
 
     @Test
-    public void testOnStartupError() throws Exception {
+    public void testOnStartupErrorNotFound() throws Exception {
+        var m = mtd("withSqlOnStartup");
+        works = 404;
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> UrlSqlFactory.INSTANCE.prepare(m));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("Can't read from source.", ex.getMessage()),
+                () -> Assertions.assertEquals(FileNotFoundException.class, ex.getCause().getClass()),
+                () -> Assertions.assertEquals("http://localhost:8081/on_startup.txt", ex.getCause().getMessage())
+        );
+    }
+
+    @Test
+    public void testOnStartupErrorFailure() throws Exception {
         var m = mtd("withSqlOnStartup");
         works = 0;
         var ex = Assertions.assertThrows(BadImplementationException.class, () -> UrlSqlFactory.INSTANCE.prepare(m));
-        Assertions.assertEquals("Can't read from source.", ex.getMessage());
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("HTTP Error: 444", ex.getMessage()),
+                () -> Assertions.assertEquals(IOException.class, ex.getCause().getClass())
+        );
     }
 
     @Test

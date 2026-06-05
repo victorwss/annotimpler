@@ -238,8 +238,8 @@ public class UrlSqlFactoryTest {
     public void testUrlSqlDoesNotExist() throws Exception {
         var m = "withSqlX1";
         var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
-        Assertions.assertTrue(ex.getCause() instanceof IOException);
-        Assertions.assertEquals("HTTP Error: 404", ex.getMessage());
+        Assertions.assertTrue(ex.getCause() instanceof FileNotFoundException);
+        Assertions.assertEquals("http://localhost:8080/does-not-exist.txt", ex.getMessage());
     }
 
     @Test

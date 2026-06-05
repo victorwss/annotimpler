@@ -82,10 +82,13 @@ public class FileSqlFactoryLoadTest {
     public void testOnStartupError() throws Exception {
         var a = "./test-files/lorem-2.txt";
         var p = absolute(a).toFile();
-        var m = mtd("withSqlOnStartup");
         p.delete();
+        var m = mtd("withSqlOnStartup");
         var ex = Assertions.assertThrows(BadImplementationException.class, () -> FileSqlFactory.INSTANCE.prepare(m));
-        Assertions.assertEquals("Can't read from source.", ex.getMessage());
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("Can't read from source.", ex.getMessage()),
+                () -> Assertions.assertEquals(NoSuchFileException.class, ex.getCause().getClass())
+        );
     }
 
     @Test

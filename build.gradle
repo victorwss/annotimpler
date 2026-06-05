@@ -276,6 +276,7 @@ subprojects {
         ignoreFailures = true
         defaultCharacterEncoding = "UTF-8"
         testLogging.showStandardStreams = true
+        workingDir = file("${projectDir}/..")
     }
 
     jacoco {

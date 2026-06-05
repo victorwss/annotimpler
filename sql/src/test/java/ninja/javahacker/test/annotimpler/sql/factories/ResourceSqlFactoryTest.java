@@ -62,7 +62,10 @@ public class ResourceSqlFactoryTest {
         var m = "withSqlX1";
         var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
         Assertions.assertTrue(ex.getCause() instanceof IOException);
-        Assertions.assertEquals("Can't read from source.", ex.getMessage());
+        Assertions.assertAll(
+                () -> Assertions.assertEquals("Can't read from source.", ex.getMessage()),
+                () -> Assertions.assertEquals(FileNotFoundException.class, ex.getCause().getClass())
+        );
     }
 
     @TestFactory

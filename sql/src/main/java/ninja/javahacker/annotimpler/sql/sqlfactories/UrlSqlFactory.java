@@ -34,6 +34,8 @@ public enum UrlSqlFactory implements SqlFactory {
                 if (e.getMessage() == null) throw new IOException("Download failed. Server didn't answer.", e.getCause());
                 throw e;
             }
+            var status = response.statusCode();
+            if (isNotFound(status)) throw new FileNotFoundException(url);
             if (!isStatusOk(response.statusCode())) throw new IOException("HTTP Error: " + response.statusCode());
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);
@@ -53,6 +55,10 @@ public enum UrlSqlFactory implements SqlFactory {
 
     private static boolean isStatusOk(int status) {
         return status / 100 == 2;
+    }
+
+    private static boolean isNotFound(int status) {
+        return status == 404;
     }
 
     @Generated
