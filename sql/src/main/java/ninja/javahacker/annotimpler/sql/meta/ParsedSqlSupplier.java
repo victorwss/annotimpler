@@ -32,8 +32,12 @@ public interface ParsedSqlSupplier {
             checkNotNull(pset);
             var sql = sup.get();
             var pq = ParsedQuery.parse(sql);
-            if (strict && pq.hasErrors()) throw new SQLException("Malformed SQL for " + name);
-            if (strict && !pset.testParameters(pq.params().keySet())) throw new SQLException("Method parameters mismatches SQL for " + name);
+            if (strict) {
+                if (pq.hasErrors()) throw new SQLException("Malformed SQL for " + name);
+                var names1 = pset.paramNames();
+                var names2 = List.copyOf(pq.params().keySet());
+                if (!Objects.equals(names1, names2)) throw new SQLException("Method parameters mismatches SQL for " + name);
+            }
             return pq;
         };
     }

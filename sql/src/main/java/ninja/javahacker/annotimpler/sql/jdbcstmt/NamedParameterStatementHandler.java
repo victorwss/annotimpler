@@ -1,5 +1,6 @@
-package ninja.javahacker.annotimpler.sql.meta;
+package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
+import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
@@ -11,9 +12,9 @@ import module ninja.javahacker.annotimpler.sql;
 @PackagePrivate
 @FunctionalInterface
 @SuppressWarnings({"checkstyle:ParenPad"})
-interface Handler<T> {
+interface NamedParameterStatementHandler<T> {
 
-    public static final Map<Class<?>, Handler<?>> ENTRIES = Map.ofEntries(
+    public static final Map<Class<?>, NamedParameterStatementHandler<?>> ENTRIES = Map.ofEntries(
             entry(boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
             entry(Boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
             entry(byte          .class, NamedParameterStatement::setByte      , Types.TINYINT ),
@@ -35,22 +36,25 @@ interface Handler<T> {
             entry(LocalTime     .class, NamedParameterStatement::setLocalTime                 ),
             entry(OptionalInt   .class, NamedParameterStatement::setInt                       ),
             entry(OptionalLong  .class, NamedParameterStatement::setLong                      ),
-            entry(OptionalDouble.class, NamedParameterStatement::setDouble                    )
+            entry(OptionalDouble.class, NamedParameterStatement::setDouble                    ),
+            nully()
     );
 
     public void handle(@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable T value) throws SQLException;
 
-    @NonNull
-    public default NamedHandler<T> named(@NonNull String name) {
-        return (@NonNull NamedParameterStatement ps, @NonNull T value) -> {
-            checkNotNull(ps);
-            checkNotNull(value);
-            handle(ps, name, value);
-        };
+    @SuppressWarnings("unchecked")
+    public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
+        var h = (NamedParameterStatementHandler<K>) NamedParameterStatementHandler.ENTRIES.get(k);
+        if (h == null) throw new UnsupportedOperationException();
+        return h;
     }
 
     @NonNull
-    private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h, int type) {
+    private static <E> Map.Entry<Class<E>, NamedParameterStatementHandler<E>> entry(
+            @NonNull Class<E> k,
+            @NonNull NamedParameterStatementHandler<E> h,
+            int type)
+    {
         checkNotNull(k);
         checkNotNull(h);
         return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
@@ -66,10 +70,40 @@ interface Handler<T> {
     }
 
     @NonNull
-    private static <E> Map.Entry<Class<?>, Handler<?>> entry(@NonNull Class<E> k, @NonNull Handler<E> h) {
+    private static <E> Map.Entry<Class<E>, NamedParameterStatementHandler<E>> entry(
+            @NonNull Class<E> k,
+            @NonNull NamedParameterStatementHandler<E> h)
+    {
         checkNotNull(k);
         checkNotNull(h);
         return Map.entry(k, h);
+    }
+
+    @NonNull
+    private static Map.Entry<Class<Void>, NamedParameterStatementHandler<Void>> nully() {
+        return Map.entry(Void.class, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable Void value) -> {
+            checkNotNull(ps);
+            checkNotNull(name);
+            ps.setNull(name, Types.NULL);
+        });
+    }
+
+    public static ParameterReceiver forJdbc(@NonNull NamedParameterStatement ps) {
+        return new ParameterReceiver() {
+            @Override
+            public void receiveNull(String name, Class<?> type) throws SQLException {
+                forClass(type).handle(ps, name, null);
+            }
+
+            @Override
+            public void receive(String name, Object value) throws SQLException {
+                receiveIn(name, value.getClass(), value);
+            }
+
+            private <K> void receiveIn(String name, Class<K> k, Object value) throws SQLException {
+                forClass(k).handle(ps, name, k.cast(value));
+            }
+        };
     }
 
     @Generated

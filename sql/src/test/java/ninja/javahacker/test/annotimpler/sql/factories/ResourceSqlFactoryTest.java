@@ -50,10 +50,11 @@ public class ResourceSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testResourceSql() throws Exception {
+        var pf = "[testResourceSql] ";
         var a = Stream.of("withSql1", "withSql2")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_UTF_8, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         var b = Stream.of("withSql3")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_ISO_88591, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         return Stream.concat(a, b);
     }
 
@@ -70,7 +71,8 @@ public class ResourceSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testResourceSqlBadEncoding() throws Exception {
-        return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testResourceSqlBadEncoding] ";
+        return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(BadImplementationException.class, () -> ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());

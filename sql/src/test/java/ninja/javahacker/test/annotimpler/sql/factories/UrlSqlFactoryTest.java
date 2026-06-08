@@ -227,10 +227,11 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSql() throws Exception {
+        var pf = "[testUrlSql] ";
         var a = Stream.of("withSql1", "withSql2", "withSql5")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_UTF_8, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         var b = Stream.of("withSql3", "withSql4", "withSql6")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_ISO_88591, UrlSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         return Stream.concat(a, b);
     }
 
@@ -260,7 +261,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSqlHasStrangeError() throws Exception {
-        return Stream.of("withSqlX5", "withSqlX7").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testUrlSqlHasStrangeError] ";
+        return Stream.of("withSqlX5", "withSqlX7").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
         }));
@@ -268,7 +270,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSqlBadEncoding() throws Exception {
-        return Stream.of("withSqlX2", "withSqlX3").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testUrlSqlBadEncoding] ";
+        return Stream.of("withSqlX2", "withSqlX3").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
@@ -277,7 +280,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSqlMisbehavingServer1() throws Exception {
-        return Stream.of("withSqlCrash1", "withSqlCrash5").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testUrlSqlMisbehavingServer1] ";
+        return Stream.of("withSqlCrash1", "withSqlCrash5").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertTrue(ex.getMessage().startsWith("parsing HTTP/1.1 status line"));
@@ -286,7 +290,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSqlMisbehavingServer2() throws Exception {
-        return Stream.of("withSqlCrash2", "withSqlCrash3", "withSqlCrash4").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testUrlSqlMisbehavingServer2] ";
+        return Stream.of("withSqlCrash2", "withSqlCrash3", "withSqlCrash4").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("HTTP/1.1 header parser received no bytes", ex.getMessage());
@@ -295,7 +300,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testUrlSqlNoServer() throws Exception {
-        return Stream.of("withSqlCrash6", "withSqlCrash7").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testUrlSqlNoServer] ";
+        return Stream.of("withSqlCrash6", "withSqlCrash7").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertTrue(ex.getCause().getCause() instanceof SocketException);
@@ -305,7 +311,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testBadUrlSql() throws Exception {
-        return Stream.of("withSqlCrash8", "withSqlCrash9").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testBadUrlSql] ";
+        return Stream.of("withSqlCrash8", "withSqlCrash9").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertTrue(ex.getCause().getCause() instanceof IllegalArgumentException);
@@ -315,7 +322,8 @@ public class UrlSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testBadUrlMalformed() throws Exception {
-        return Stream.of("withSqlCrash10", "withSqlCrash11").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testBadUrlMalformed] ";
+        return Stream.of("withSqlCrash10", "withSqlCrash11").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertTrue(ex.getCause().getCause() instanceof IllegalArgumentException);

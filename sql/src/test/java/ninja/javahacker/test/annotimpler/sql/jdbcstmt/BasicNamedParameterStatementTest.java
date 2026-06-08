@@ -1,5 +1,6 @@
-package ninja.javahacker.test.annotimpler.sql.stmt;
+package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
+import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
 import lombok.SneakyThrows;
 import ninja.javahacker.test.limited.AssertionInputStream;
 import ninja.javahacker.test.limited.AssertionReader;

@@ -5,10 +5,10 @@ import lombok.NonNull;
 
 import module java.base;
 
-/**
- * {@link InputStream} decorator that limits the maximum number of bytes that can be read,
- * with support for mark and reset operations.
- */
+///
+/// {@link InputStream} decorator that limits the maximum number of bytes that can be read,
+/// with support for mark and reset operations.
+///
 public final class LimitedInputStream extends InputStream {
 
     private final InputStream wrapped;
@@ -18,14 +18,14 @@ public final class LimitedInputStream extends InputStream {
     private long markLimit;
     private boolean closed;
 
-    /**
-     * Creates a new {@code LimitedInputStream} that wraps the given {@link InputStream}
-     * and limits reading to the specified maximum number of bytes.
-     *
-     * @param wrapped the {@link InputStream} to wrap.
-     * @param maxSize the maximum number of bytes that can be read.
-     * @throws IllegalArgumentException if {@code maxSize} is negative or if {@code wrapped} is {@code null}.
-     */
+    ///
+    /// Creates a new {@code LimitedInputStream} that wraps the given {@link InputStream}
+    /// and limits reading to the specified maximum number of bytes.
+    ///
+    /// @param wrapped the {@link InputStream} to wrap.
+    /// @param maxSize the maximum number of bytes that can be read.
+    /// @throws IllegalArgumentException if {@code maxSize} is negative or if {@code wrapped} is {@code null}.
+    ///
     public LimitedInputStream(@NonNull InputStream wrapped, long maxSize) {
         if (maxSize < 0) throw new IllegalArgumentException("Maximum size cannot be negative.");
 
@@ -140,55 +140,55 @@ public final class LimitedInputStream extends InputStream {
         }
     }
 
-    /**
-     * Returns the number of bytes read so far.
-     *
-     * @return the number of bytes read.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the number of bytes read so far.
+    ///
+    /// @return the number of bytes read.
+    /// @throws IOException If closed.
+    ///
     public long getPosition() throws IOException {
         checkClosed();
         return position;
     }
 
-    /**
-     * Returns the maximum number of bytes that can be read.
-     *
-     * @return the maximum number of bytes.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the maximum number of bytes that can be read.
+    ///
+    /// @return the maximum number of bytes.
+    /// @throws IOException If closed.
+    ///
     public long getMaxSize() throws IOException {
         checkClosed();
         return maxSize;
     }
 
-    /**
-     * Returns the remaining number of bytes that can be read.
-     *
-     * @return the remaining bytes.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the remaining number of bytes that can be read.
+    ///
+    /// @return the remaining bytes.
+    /// @throws IOException If closed.
+    ///
     public long getRemaining() throws IOException {
         checkClosed();
         return maxSize - position;
     }
 
-    /**
-     * Checks if a mark has been set.
-     *
-     * @return {@code true} if a mark is set, {@code false} otherwise.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Checks if a mark has been set.
+    ///
+    /// @return {@code true} if a mark is set, {@code false} otherwise.
+    /// @throws IOException If closed.
+    ///
     public boolean isMarkSet() throws IOException {
         checkClosed();
         return markPosition >= 0;
     }
 
-    /**
-     * Checks if the stream was closed.
-     *
-     * @return {@code true} if this was closed, {@code false} otherwise.
-     */
+    ///
+    /// Checks if the stream was closed.
+    ///
+    /// @return {@code true} if this was closed, {@code false} otherwise.
+    ///
     public boolean isClosed() {
         return closed;
     }

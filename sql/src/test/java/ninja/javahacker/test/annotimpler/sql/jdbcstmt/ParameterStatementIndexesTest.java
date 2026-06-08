@@ -1,5 +1,6 @@
-package ninja.javahacker.test.annotimpler.sql.stmt;
+package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
+import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
 import java.lang.reflect.Proxy;
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;

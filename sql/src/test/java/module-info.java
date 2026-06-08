@@ -16,11 +16,5 @@ open module ninja.javahacker.test.annotimpler.sql {
     requires static lombok;
     requires static com.github.spotbugs.annotations;
 
-    exports ninja.javahacker.test;
-    exports ninja.javahacker.test.annotimpler.sql;
-    exports ninja.javahacker.test.annotimpler.sql.conn;
-    exports ninja.javahacker.test.annotimpler.sql.factories;
-    exports ninja.javahacker.test.annotimpler.sql.stmt;
-    exports ninja.javahacker.test.limited;
     exports ninja.javahacker.test.rsc;
 }

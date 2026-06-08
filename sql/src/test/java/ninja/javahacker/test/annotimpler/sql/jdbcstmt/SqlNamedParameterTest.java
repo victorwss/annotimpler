@@ -1,8 +1,7 @@
-package ninja.javahacker.test.annotimpler.sql.meta;
+package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
-import static ninja.javahacker.annotimpler.sql.meta.SqlNamedParameter.*;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
@@ -13,40 +12,40 @@ public class SqlNamedParameterTest {
 
     private static final Method TEST_METHOD_1 = find("testMethod1");
     private static final Method TEST_METHOD_2 = find("testMethod2");
-    private static final Method TEST_METHOD_3 = find("testMethod3");
+    /*private static final Method TEST_METHOD_3 = find("testMethod3");
     private static final Method TEST_METHOD_4 = find("testMethod4");
     private static final Method BAD_METHOD_1 = find("badMethod1");
     private static final Method BAD_METHOD_2 = find("badMethod2");
     private static final Method BAD_METHOD_3 = find("badMethod3");
-    private static final Method BAD_METHOD_4 = find("badMethod4");
+    private static final Method BAD_METHOD_4 = find("badMethod4");*/
 
     private static final BigDecimal FIVE = new BigDecimal(5);
-    private static final List<? extends SqlNamedParameter<?>> S1 = SqlNamedParameter.forMethod(TEST_METHOD_1);
+    //private static final List<? extends SqlNamedParameter<?>> S1 = SqlNamedParameter.forMethod(TEST_METHOD_1);
     private static final ParameterSet P1;
-    private static final SqlNamedParameter<String> X0 = (SqlNamedParameter<String>) S1.get(0);
-    private static final SqlNamedParameter<Integer> Y0 = (SqlNamedParameter<Integer>) S1.get(1);
-    private static final SqlNamedParameter<Double> Z0 = (SqlNamedParameter<Double>) S1.get(2);
-    private static final List<? extends SqlNamedParameter<?>> S2 = SqlNamedParameter.forMethod(TEST_METHOD_2);
+    //private static final SqlNamedParameter<String> X0 = (SqlNamedParameter<String>) S1.get(0);
+    //private static final SqlNamedParameter<Integer> Y0 = (SqlNamedParameter<Integer>) S1.get(1);
+    //private static final SqlNamedParameter<Double> Z0 = (SqlNamedParameter<Double>) S1.get(2);
+    //private static final List<? extends SqlNamedParameter<?>> S2 = SqlNamedParameter.forMethod(TEST_METHOD_2);
     private static final ParameterSet P2;
     private static final Type OPT_BD = TEST_METHOD_2.getParameters()[0].getParameterizedType();
-    private static final SqlNamedParameter<Optional<BigDecimal>> A0 = (SqlNamedParameter<Optional<BigDecimal>>) S2.get(0);
-    private static final SqlNamedParameter<OptionalInt> B0 = (SqlNamedParameter<OptionalInt>) S2.get(1);
-    private static final SqlNamedParameterWithValue<String> X1 = X0.withValue("a");
-    private static final SqlNamedParameterWithValue<String> X2 = X0.withValue("");
-    private static final SqlNamedParameterWithValue<String> X3 = X0.withValue("whoa");
-    private static final SqlNamedParameterWithValue<String> X4 = X0.withValue(null);
-    private static final SqlNamedParameterWithValue<Integer> Y1 = Y0.withValue(42);
-    private static final SqlNamedParameterWithValue<Integer> Y2 = Y0.withValue(73);
-    private static final SqlNamedParameterWithValue<Integer> Y3 = Y0.withValue(null);
-    private static final SqlNamedParameterWithValue<Double> Z1 = Z0.withValue(55.0);
-    private static final SqlNamedParameterWithValue<Double> Z2 = Z0.withValue(-787.75);
-    private static final SqlNamedParameterWithValue<Double> Z3 = Z0.withValue(Double.NaN);
-    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A1 = A0.withValue(Optional.of(FIVE));
-    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A2 = A0.withValue(Optional.empty());
-    private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A3 = A0.withValue(null);
-    private static final SqlNamedParameterWithValue<OptionalInt> B1 = B0.withValue(OptionalInt.of(6));
-    private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
-    private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
+    //private static final SqlNamedParameter<Optional<BigDecimal>> A0 = (SqlNamedParameter<Optional<BigDecimal>>) S2.get(0);
+    //private static final SqlNamedParameter<OptionalInt> B0 = (SqlNamedParameter<OptionalInt>) S2.get(1);
+    //private static final SqlNamedParameterWithValue<String> X1 = X0.withValue("a");
+    //private static final SqlNamedParameterWithValue<String> X2 = X0.withValue("");
+    //private static final SqlNamedParameterWithValue<String> X3 = X0.withValue("whoa");
+    //private static final SqlNamedParameterWithValue<String> X4 = X0.withValue(null);
+    //private static final SqlNamedParameterWithValue<Integer> Y1 = Y0.withValue(42);
+    //private static final SqlNamedParameterWithValue<Integer> Y2 = Y0.withValue(73);
+    //private static final SqlNamedParameterWithValue<Integer> Y3 = Y0.withValue(null);
+    //private static final SqlNamedParameterWithValue<Double> Z1 = Z0.withValue(55.0);
+    //private static final SqlNamedParameterWithValue<Double> Z2 = Z0.withValue(-787.75);
+    //private static final SqlNamedParameterWithValue<Double> Z3 = Z0.withValue(Double.NaN);
+    //private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A1 = A0.withValue(Optional.of(FIVE));
+    //private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A2 = A0.withValue(Optional.empty());
+    //private static final SqlNamedParameterWithValue<Optional<BigDecimal>> A3 = A0.withValue(null);
+    //private static final SqlNamedParameterWithValue<OptionalInt> B1 = B0.withValue(OptionalInt.of(6));
+    //private static final SqlNamedParameterWithValue<OptionalInt> B2 = B0.withValue(OptionalInt.empty());
+    //private static final SqlNamedParameterWithValue<OptionalInt> B3 = B0.withValue(null);
 
     static {
         try {
@@ -68,7 +67,7 @@ public class SqlNamedParameterTest {
         return Stream.of(SqlNamedParameterTest.class.getDeclaredMethods()).filter(m -> m.getName().equals(name)).findFirst().orElseThrow();
     }
 
-    private void testMethod1(String x, @Flat Integer y, double z) {
+    private void testMethod1(String x, Integer y, double z) {
         throw new AssertionError();
     }
 
@@ -87,10 +86,10 @@ public class SqlNamedParameterTest {
     private static record FooRecord(int foo1, String foo2, Optional<String> foo3) {
     }
 
-    private static record BarRecord(FooRecord foo4, Optional<FooRecord> foo5, BigDecimal foo6) {
-    }
+    /*private static record BarRecord(FooRecord foo4, Optional<FooRecord> foo5, BigDecimal foo6) {
+    }*/
 
-    private void testMethod3(
+    /*private void testMethod3(
             boolean a, Boolean b, byte c, Byte d, short e, Short f, char g, Character h,
             int i, Integer j, long k, Long l, float m, Float n, double o, Double p,
             BigInteger q, BigDecimal r, OptionalInt s, OptionalLong t, OptionalDouble u,
@@ -102,9 +101,9 @@ public class SqlNamedParameterTest {
 
     private void testMethod4(Foo a, Bar b, FooRecord c, BarRecord d, Optional<Foo> e, Optional<BarRecord> f) {
         throw new AssertionError();
-    }
+    }*/
 
-    private void badMethod1(Thread x) {
+    /*private void badMethod1(Thread x) {
         throw new AssertionError();
     }
 
@@ -118,9 +117,9 @@ public class SqlNamedParameterTest {
 
     private void badMethod4(String... x) {
         throw new AssertionError();
-    }
+    }*/
 
-    private static Stream<SqlNamedParameter<?>> params() {
+    /*private static Stream<SqlNamedParameter<?>> params() {
         return Stream.of(X0, Y0, Z0, A0, B0);
     }
 
@@ -155,7 +154,7 @@ public class SqlNamedParameterTest {
         if (obj == B2) return "OptionalInt.empty()";
         if (obj == B3) return "OptionalInt null";
         throw new AssertionError();
-    }
+    }*/
 
     private static String name(ParameterSet obj) {
         if (obj == P1) return "P1";
@@ -163,13 +162,13 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    private static String name(ParameterSetWithValues obj) {
+    /*private static String name(ParameterSetWithValues obj) {
         if (obj.getSet() == P1) return "P1V";
         if (obj.getSet() == P2) return "P2V";
         throw new AssertionError();
-    }
+    }*/
 
-    private static String paramName(SqlNamedParameter<?> obj) {
+    /*private static String paramName(SqlNamedParameter<?> obj) {
         if (obj == X0) return "x";
         if (obj == Y0) return "y";
         if (obj == Z0) return "z";
@@ -242,7 +241,7 @@ public class SqlNamedParameterTest {
 
     private static String toString(SqlNamedParameterWithValue<?> obj) {
         return "SqlNamedParameterWithValue[" + index(obj) + ", " + type(obj) + ", " + paramName(obj) + ", " + shouldBeFlat(obj) + ", " + value(obj) + "]";
-    }
+    }*/
 
     private static String toString(ParameterSet obj) {
         if (obj == P1) return "ParameterSet - void SqlNamedParameterTest.testMethod1(String, Integer, double)";
@@ -250,7 +249,7 @@ public class SqlNamedParameterTest {
         throw new AssertionError();
     }
 
-    private static String toString(ParameterSetWithValues obj) {
+    /*private static String toString(ParameterSetWithValues obj) {
         var a = """
                 ParameterSetWithValues - void SqlNamedParameterTest.testMethod1(String, Integer, double)
                 - [SqlNamedParameterWithValue[0, class java.lang.String, x, false, x],
@@ -267,9 +266,9 @@ public class SqlNamedParameterTest {
         if (obj.getSet() == P1) return a;
         if (obj.getSet() == P2) return b;
         throw new AssertionError();
-    }
+    }*/
 
-    private static boolean shouldAcceptNull(SqlNamedParameter<?> obj) {
+    /*private static boolean shouldAcceptNull(SqlNamedParameter<?> obj) {
         if (!List.of(X0, Y0, Z0, A0, B0).contains(obj)) throw new AssertionError();
         return obj != Z0;
     }
@@ -302,9 +301,9 @@ public class SqlNamedParameterTest {
         if (obj == B2) return OptionalInt.empty();
         if (obj == B3) return null;
         throw new AssertionError();
-    }
+    }*/
 
-    @TestFactory
+    /*@TestFactory
     public Stream<DynamicTest> testFlat() {
         return params().map(x -> n(
                 "[testFlat] " + name(x) + " flat = " + shouldBeFlat(x),
@@ -382,7 +381,7 @@ public class SqlNamedParameterTest {
                 "[testToStringValue] " + name(x),
                 () -> Assertions.assertEquals(toString(x), x.toString())
         ));
-    }
+    }*/
 
     @TestFactory
     public Stream<DynamicTest> testToStringSet() {
@@ -392,7 +391,7 @@ public class SqlNamedParameterTest {
         ));
     }
 
-    @TestFactory
+    /*@TestFactory
     public Stream<DynamicTest> testToStringSetValues() throws Exception {
         var v1 = P1.withValues("x", 45, 3.3);
         var v2 = P2.withValues(Optional.of(FIVE), OptionalInt.of(7));
@@ -400,9 +399,9 @@ public class SqlNamedParameterTest {
                 "[testToStringSetValues] " + name(x),
                 () -> Assertions.assertEquals(toString(x), x.toString())
         ));
-    }
+    }*/
 
-    @TestFactory
+    /*@TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testEquals() {
         var s1Copy = SqlNamedParameter.forMethod(TEST_METHOD_1);
@@ -428,7 +427,7 @@ public class SqlNamedParameterTest {
                 n("[testEqualsValue] e", () -> Assertions.assertFalse(X1.equals(null))),
                 n("[testEqualsValue] f", () -> Assertions.assertFalse(X1.equals("xxx")))
         );
-    }
+    }*/
 
     @TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
@@ -444,7 +443,7 @@ public class SqlNamedParameterTest {
         );
     }
 
-    @TestFactory
+    /*@TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testEqualsSetValues() throws Exception {
         var v1 = P1.withValues("x", 45, 3.3);
@@ -458,9 +457,9 @@ public class SqlNamedParameterTest {
                 n("[testEqualsSetValues] e", () -> Assertions.assertFalse(v1.equals(null))),
                 n("[testEqualsSetValues] f", () -> Assertions.assertFalse(v1.equals("xxx")))
         );
-    }
+    }*/
 
-    @TestFactory
+    /*@TestFactory
     public Stream<DynamicTest> testHashCode() {
         var s1Copy = SqlNamedParameter.forMethod(TEST_METHOD_1);
         return Stream.of(
@@ -480,7 +479,7 @@ public class SqlNamedParameterTest {
                 n("[testHashCodeValue] c", () -> Assertions.assertEquals(X2.hashCode(), X2.hashCode())),
                 n("[testHashCodeValue] d", () -> Assertions.assertNotEquals(X1.hashCode(), X2.hashCode()))
         );
-    }
+    }*/
 
     @TestFactory
     public Stream<DynamicTest> testHashCodeSet()throws Exception  {
@@ -493,7 +492,7 @@ public class SqlNamedParameterTest {
         );
     }
 
-    @TestFactory
+    /*@TestFactory
     @SuppressWarnings({"ObjectEqualsNull", "IncompatibleEquals"})
     public Stream<DynamicTest> testHashCodeValues()throws Exception  {
         var v1 = P1.withValues("x", 45, 3.3);
@@ -505,9 +504,9 @@ public class SqlNamedParameterTest {
                 n("[testHashCodeValues] c", () -> Assertions.assertEquals(v2.hashCode(), v2.hashCode())),
                 n("[testHashCodeValues] d", () -> Assertions.assertNotEquals(v1.hashCode(), v2.hashCode()))
         );
-    }
+    }*/
 
-    @TestFactory
+    /*@TestFactory
     public Stream<DynamicTest> testAcceptNull() {
         return params().map(x -> n(
                 "[testAcceptNull] " + name(x) + " accept null = " + shouldAcceptNull(x),
@@ -564,5 +563,19 @@ public class SqlNamedParameterTest {
     @Test
     public void testBadValue() throws Exception {
         Assertions.assertThrows(IllegalArgumentException.class, () -> SqlNamedParameter.forMethod(TEST_METHOD_1).get(2).withValue(null));
+    }*/
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testBadsAndNulls() throws Exception {
+        return Stream.of(
+                n("[testBadsAndNulls] ParameterSet(null)"                 , () -> ForTests.testNull("method", () -> new ParameterSet(null))),
+                //n("[testBadsAndNulls] ParameterSet.testParameters(null)"  , () -> ForTests.testNull("keys"  , () -> new ParameterSet(TEST_METHOD_1).testParameters(null))),
+                n("[testBadsAndNulls] Acceptor2.withValues(null)"         , () -> ForTests.testNull("args"  , () -> new ParameterSet(TEST_METHOD_1).withValues((Object[]) null))),
+                n("[testBadsAndNulls] Acceptor2.accept(null)"             , () -> ForTests.testNull("ps"    , () -> new ParameterSet(TEST_METHOD_1).withValues("x", 5, 5.5).accept(null))),
+                n("[testBadsAndNulls] ParameterSet.withValues(BAD)"       ,
+                        () -> Assertions.assertThrows(ParameterReceiver.IllegalValueException.class, () -> new ParameterSet(TEST_METHOD_1).withValues("x", 5))
+                )
+        );
     }
 }

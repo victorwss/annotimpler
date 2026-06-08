@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import module java.base;
-import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
 public final class ParameterSet {
@@ -15,11 +14,11 @@ public final class ParameterSet {
     private final Method method;
 
     @NonNull
-    private final List<? extends SqlNamedParameter<?>> parameters;
+    private final ParameterReceiver.NamedAcceptor1 strategy;
 
     public ParameterSet(@NonNull Method method) throws BadImplementationException {
         this.method = method;
-        this.parameters = SqlNamedParameter.forMethod(method);
+        this.strategy = ParameterSetStrategy.makeStrategy(method);
     }
 
     @NonNull
@@ -30,7 +29,7 @@ public final class ParameterSet {
 
     @NonNull
     private List<Object> state() {
-        return List.of(method, parameters);
+        return List.of(method);
     }
 
     @Override
@@ -49,18 +48,12 @@ public final class ParameterSet {
     }
 
     @NonNull
-    public ParameterSetWithValues withValues(@NonNull Object... args) throws SQLException {
-        var pp = method.getParameters();
-        if (args.length != pp.length) throw new IllegalArgumentException();
-        @SuppressWarnings("unchecked")
-        var wv = parameters.stream().map(p -> ((SqlNamedParameter<Object>) p).withValue(args[p.getIndex()])).toList();
-        return new ParameterSetWithValues(this, wv);
+    public ParameterReceiver.Acceptor2 withValues(@NonNull Object... args) throws ParameterReceiver.IllegalValueException {
+        return strategy.handle(args);
     }
 
-    public boolean testParameters(@NonNull Set<String> keys) {
-        for (var p : parameters) {
-            if (!p.testParameter(keys)) return false;
-        }
-        return true;
+    @NonNull
+    public List<String> paramNames() {
+        return strategy.paramNames();
     }
 }

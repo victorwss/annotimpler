@@ -25,5 +25,5 @@ open module ninja.javahacker.annotimpler.sql {
     exports ninja.javahacker.annotimpler.sql.meta;
     exports ninja.javahacker.annotimpler.sql.sqlfactories;
     exports ninja.javahacker.annotimpler.sql.sqlimpl;
-    exports ninja.javahacker.annotimpler.sql.stmt;
+    exports ninja.javahacker.annotimpler.sql.jdbcstmt;
 }

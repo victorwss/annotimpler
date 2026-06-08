@@ -5,9 +5,9 @@ import lombok.NonNull;
 
 import module java.base;
 
-/**
- * LimitedReader with mark/reset support.
- */
+///
+/// LimitedReader with mark/reset support.
+///
 public final class LimitedReader extends Reader {
 
     private final Reader wrapped;
@@ -17,14 +17,14 @@ public final class LimitedReader extends Reader {
     private long markLimit;
     private boolean closed;
 
-    /**
-     * Creates a new {@code LimitedReader} that wraps the given {@link Reader}
-     * and limits reading to the specified maximum number of bytes.
-     *
-     * @param wrapped the {@link Reader} to wrap.
-     * @param maxSize the maximum number of characters that can be read.
-     * @throws IllegalArgumentException if {@code maxSize} is negative or if {@code wrapped} is {@code null}.
-     */
+    ///
+    /// Creates a new {@code LimitedReader} that wraps the given {@link Reader}
+    /// and limits reading to the specified maximum number of bytes.
+    ///
+    /// @param wrapped the {@link Reader} to wrap.
+    /// @param maxSize the maximum number of characters that can be read.
+    /// @throws IllegalArgumentException if {@code maxSize} is negative or if {@code wrapped} is {@code null}.
+    ///
     public LimitedReader(@NonNull Reader wrapped, long maxSize) {
         if (maxSize < 0) throw new IllegalArgumentException("Maximum size cannot be negative.");
 
@@ -133,55 +133,55 @@ public final class LimitedReader extends Reader {
         }
     }
 
-    /**
-     * Returns the number of characters read so far.
-     *
-     * @return the number of characters read.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the number of characters read so far.
+    ///
+    /// @return the number of characters read.
+    /// @throws IOException If closed.
+    ///
     public long getPosition() throws IOException {
         checkClosed();
         return position;
     }
 
-    /**
-     * Returns the maximum number of characters that can be read.
-     *
-     * @return the maximum number of characters.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the maximum number of characters that can be read.
+    ///
+    /// @return the maximum number of characters.
+    /// @throws IOException If closed.
+    ///
     public long getMaxSize() throws IOException {
         checkClosed();
         return maxSize;
     }
 
-    /**
-     * Returns the remaining number of characters that can be read.
-     *
-     * @return the remaining characters.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Returns the remaining number of characters that can be read.
+    ///
+    /// @return the remaining characters.
+    /// @throws IOException If closed.
+    ///
     public long getRemaining() throws IOException {
         checkClosed();
         return maxSize - position;
     }
 
-    /**
-     * Checks if a mark has been set.
-     *
-     * @return {@code true} if a mark is set, {@code false} otherwise.
-     * @throws IOException If closed.
-     */
+    ///
+    /// Checks if a mark has been set.
+    ///
+    /// @return {@code true} if a mark is set, {@code false} otherwise.
+    /// @throws IOException If closed.
+    ///
     public boolean isMarkSet() throws IOException {
         checkClosed();
         return markPosition >= 0;
     }
 
-    /**
-     * Checks if the stream was closed.
-     *
-     * @return {@code true} if this was closed, {@code false} otherwise.
-     */
+    ///
+    /// Checks if the stream was closed.
+    ///
+    /// @return {@code true} if this was closed, {@code false} otherwise.
+    ///
     public boolean isClosed() {
         return closed;
     }

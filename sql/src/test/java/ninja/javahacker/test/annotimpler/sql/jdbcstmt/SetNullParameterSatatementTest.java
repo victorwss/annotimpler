@@ -1,4 +1,6 @@
-package ninja.javahacker.test.annotimpler.sql.stmt;
+package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
+
+import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;

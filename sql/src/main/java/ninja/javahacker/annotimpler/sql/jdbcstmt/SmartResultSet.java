@@ -1,4 +1,4 @@
-package ninja.javahacker.annotimpler.sql.stmt;
+package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

@@ -50,10 +50,11 @@ public class FileSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testFileSql() throws Exception {
+        var pf = "[testFileSql] ";
         var a = Stream.of("withSql1", "withSql2")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_UTF_8, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_UTF_8, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         var b = Stream.of("withSql3")
-                .map(m -> DynamicTest.dynamicTest(m, () -> Assertions.assertEquals(LOREM_ISO_88591, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
+                .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_ISO_88591, FileSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         return Stream.concat(a, b);
     }
 
@@ -67,7 +68,8 @@ public class FileSqlFactoryTest {
 
     @TestFactory
     public Stream<DynamicTest> testFileSqlBadEncoding() throws Exception {
-        return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(m, () -> {
+        var pf = "[testFileSqlBadEncoding] ";
+        return Stream.of("withSqlX2").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
             var ex = Assertions.assertThrows(SQLException.class, () -> FileSqlFactory.INSTANCE.prepare(mtd(m)).get());
             Assertions.assertTrue(ex.getCause() instanceof IOException);
             Assertions.assertEquals("String can't be coded as UTF-8.", ex.getMessage());
