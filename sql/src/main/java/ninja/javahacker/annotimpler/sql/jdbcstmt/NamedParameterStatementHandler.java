@@ -60,7 +60,6 @@ interface NamedParameterStatementHandler<T> {
         return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
             checkNotNull(ps);
             checkNotNull(name);
-            checkNotNull(value);
             if (value == null) {
                 ps.setNull(name, type);
             } else {

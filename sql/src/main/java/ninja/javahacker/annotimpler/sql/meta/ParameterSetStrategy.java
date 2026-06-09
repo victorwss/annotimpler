@@ -70,7 +70,9 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             if (!k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
             Object innerValue;
             try {
-                innerValue = rc.getAccessor().invoke(value);
+                var accessor = rc.getAccessor();
+                accessor.setAccessible(true);
+                innerValue = accessor.invoke(value);
             } catch (IllegalAccessException | InvocationTargetException x) {
                 throw new AssertionError(x);
             }
@@ -110,7 +112,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value == null) return in.handle(null);
             if (!(value instanceof Optional<?> opt)) throw new ParameterReceiver.IllegalValueException();
-            return in.handle(k.cast(opt.get()));
+            return in.handle(opt.isEmpty() ? null : k.cast(opt.get()));
         };
         return new ParameterSetStrategy(h, in.paramNames());
     }
