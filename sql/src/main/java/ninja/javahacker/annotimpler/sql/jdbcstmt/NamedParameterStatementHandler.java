@@ -44,6 +44,7 @@ interface NamedParameterStatementHandler<T> {
 
     @SuppressWarnings("unchecked")
     public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
+        checkNotNull(k);
         var h = (NamedParameterStatementHandler<K>) NamedParameterStatementHandler.ENTRIES.get(k);
         if (h == null) throw new UnsupportedOperationException();
         return h;
@@ -87,7 +88,9 @@ interface NamedParameterStatementHandler<T> {
         });
     }
 
+    @NonNull
     public static ParameterReceiver forJdbc(@NonNull NamedParameterStatement ps) {
+        checkNotNull(ps);
         return new ParameterReceiver() {
             @Override
             public void receiveNull(String name, Class<?> type) throws SQLException {

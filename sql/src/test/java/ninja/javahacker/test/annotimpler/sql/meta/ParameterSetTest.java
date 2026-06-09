@@ -1,9 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.meta;
 
-import ninja.javahacker.annotimpler.sql.Flat;
-import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
-import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
-import ninja.javahacker.annotimpler.sql.meta.ParameterSet;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
