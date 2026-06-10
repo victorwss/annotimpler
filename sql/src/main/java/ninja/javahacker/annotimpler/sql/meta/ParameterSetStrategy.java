@@ -178,6 +178,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
+    @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m);
 

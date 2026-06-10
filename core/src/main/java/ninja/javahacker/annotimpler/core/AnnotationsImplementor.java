@@ -7,6 +7,28 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
+/// Creates proxy implementations of interfaces whose method behaviors are defined by annotations.
+///
+/// When [implement] is called for an interface type, each of its methods is resolved to a
+/// [CallContext] using the following rules:
+///
+/// - If the method carries an annotation whose type is itself annotated with [@ImplementedBy][ImplementedBy],
+///   the designated [Implementation] class is instantiated (via `MagicFactory` with no arguments)
+///   and its [Implementation#prepare] method is called to obtain the [CallContext].
+/// - If the method has no such annotation but provides a `default` implementation, that default is invoked.
+/// - Private, static, [Object#equals], [Object#hashCode], and [Object#toString] methods are
+///   handled specially and are not subject to annotation-driven dispatch.
+///
+/// The resulting object is a [java.lang.reflect.Proxy] instance. Its [Object#equals] uses
+/// identity comparison (`==`), [Object#hashCode] uses [System#identityHashCode], and
+/// [Object#toString] returns a string of the form `impl[fully.qualified.InterfaceName]-hashCode`.
+///
+/// This class is not instantiable.
+///
+/// @see ImplementedBy
+/// @see Implementation
+/// @see CallContext
+/// @see PropertyBag
 public final class AnnotationsImplementor {
 
     private AnnotationsImplementor() {
@@ -82,11 +104,34 @@ public final class AnnotationsImplementor {
         }
     }
 
+    /// Creates a proxy implementation of the given interface with no initial properties.
+    ///
+    /// Equivalent to `implement(iface, null)`.
+    ///
+    /// @param <E> the interface type
+    /// @param iface the interface to implement; must not be null and must be an interface type
+    /// @return a proxy object implementing `iface`
+    /// @throws BadImplementationException if any method of `iface` cannot be implemented
+    /// @throws UnsupportedOperationException if `iface` is not an interface
+    /// @throws IllegalArgumentException if `iface` is null
     @NonNull
     public static <E> E implement(@NonNull Class<E> iface) throws BadImplementationException {
         return implement(iface, null);
     }
 
+    /// Creates a proxy implementation of the given interface using the given property bag.
+    ///
+    /// The [PropertyBag] is passed to [Implementation#prepare] for each annotated method,
+    /// allowing implementations to be parameterized at construction time.
+    ///
+    /// @param <E> the interface type
+    /// @param iface the interface to implement; must not be null and must be an interface type
+    /// @param props the property bag to pass to each [Implementation#prepare] call;
+    ///              if `null`, the root (empty) bag is used
+    /// @return a proxy object implementing `iface`
+    /// @throws BadImplementationException if any method of `iface` cannot be implemented
+    /// @throws UnsupportedOperationException if `iface` is not an interface
+    /// @throws IllegalArgumentException if `iface` is null
     @NonNull
     public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws BadImplementationException {
         if (!iface.isInterface()) throw new UnsupportedOperationException();
