@@ -24,6 +24,9 @@ public final class SmartResultSet implements ResultSet {
     @NonNull
     private final ColumnMapping mappings;
 
+    @NonNull
+    private final Locale localizer;
+
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
         List.of(rs); // Force lombok do the check before the constructor call.
         this(rs, ConverterFactory.STD, Locale.ROOT);
@@ -33,6 +36,7 @@ public final class SmartResultSet implements ResultSet {
         this.rs = rs;
         this.factory = factory;
         this.metaData = rs.getMetaData();
+        this.localizer = localizer;
         this.mappings = new ColumnMapping(metaData, localizer);
     }
 
@@ -72,6 +76,7 @@ public final class SmartResultSet implements ResultSet {
                 if (columnName == null) columnName = "";
 
                 // Column names that are duplicated or that vary only by capitalization should not happen either.
+                // Use localizer due to the Turkish/Azerbaijani dotted vs dotless I problem (e.g. "i".toUpperCase(TURKISH) = "İ").
                 columnName = columnName.toUpperCase(localizer);
 
                 /* Should never fail in sane JDBC implementations, which should not contain columns that are:
@@ -235,22 +240,41 @@ public final class SmartResultSet implements ResultSet {
         return getTypedValue(idx);
     }
 
+    @NonNull
     public <R extends Record> R getRecord(@NonNull Class<R> k) throws SQLException {
-        return getRecord(k, x -> x, allFields());
+        return getRecord(k, defaultRemapper(k), allFields());
     }
 
+    @NonNull
     public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
-        return getRecord(k, x -> x, fields);
+        return getRecord(k, defaultRemapper(k), fields);
     }
 
+    @NonNull
     public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull String... fields) throws SQLException {
-        return getRecord(k, x -> x, fields);
+        return getRecord(k, defaultRemapper(k), fields);
     }
 
+    @NonNull
     public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull Function<String, String> remapper) throws SQLException {
         return getRecord(k, remapper, allFields());
     }
 
+    // Builds a remapper that converts column keys (stored uppercase by ColumnMapping using localizer)
+    // back to the exact record field names, enabling case-insensitive column-to-field matching.
+    // The same locale used by ColumnMapping is applied here so that locale-specific uppercasing
+    // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
+    @NonNull
+    private <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {
+        var components = k.getRecordComponents();
+        var mapping = new HashMap<String, String>(components.length);
+        for (var rc : components) {
+            mapping.put(rc.getName().toUpperCase(localizer), rc.getName());
+        }
+        return key -> mapping.getOrDefault(key, key);
+    }
+
+    @NonNull
     private <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,
@@ -273,6 +297,7 @@ public final class SmartResultSet implements ResultSet {
         }
     }
 
+    @NonNull
     public <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,
@@ -283,6 +308,7 @@ public final class SmartResultSet implements ResultSet {
         return getRecord(k, remapper, map);
     }
 
+    @NonNull
     public <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,

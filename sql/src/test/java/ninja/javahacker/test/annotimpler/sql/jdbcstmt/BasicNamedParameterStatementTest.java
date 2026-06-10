@@ -12,9 +12,9 @@ import module org.junit.jupiter.api;
 public class BasicNamedParameterStatementTest {
 
     public static final List<String> PREPARE_MAIN = List.of(
-                "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
-                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
-                "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (2, 'lol' , 'blue', '2026-01-02 16:11:12.123', '<foo>bar</foo>');"
+            "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
+            "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
+            "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (2, 'lol' , 'blue', '2026-01-02 16:11:12.123', '<foo>bar</foo>');"
     );
 
     @FunctionalInterface

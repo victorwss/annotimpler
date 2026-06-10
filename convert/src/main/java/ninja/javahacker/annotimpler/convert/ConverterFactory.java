@@ -42,7 +42,7 @@ public interface ConverterFactory {
         // Prepare the arguments for the constructor or method.
         var args = new ArrayList<Object>(parameters.size());
         for (var param : parameters) {
-            var paramName = param.getName(); //camelCaseToSnakeCase(param.getName());
+            var paramName = param.getName();
             var paramType = param.getParameterizedType();
             var value = this.get(paramType).fromObj(map.get(paramName)).orElse(null);
             args.add(value);

@@ -265,6 +265,7 @@ public class SmartResultSetTest {
         var map3 = Map.<String, Object>of();
         var map4 = Map.of("AAAI", "abc", "AAAİ", 5);
         var turkish = Locale.forLanguageTag("TR-tr");
+
         return Stream.of(
                 DynamicTest.dynamicTest("[testMapping] empty"     , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.STD, Locale.ROOT).getMap())),
                 DynamicTest.dynamicTest("[testMapping] empty N"   , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers())),
