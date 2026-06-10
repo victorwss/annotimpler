@@ -1,7 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
-import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
-
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
@@ -37,7 +35,7 @@ public class SetNullParameterSatatementTest {
             ResultContext test2,
             boolean multi)
     {
-        var nn = test1.name() + (!test1.name().startsWith("STR-") ? "" : multi ? "-MULTI" : "-SINGLE");
+        var nn = test1.name() + (test1.name().startsWith("INT-") ? "" : multi ? "-MULTI" : "-SINGLE");
         return DynamicTest.dynamicTest(nn, () -> {
             try (var con = H2Connector.std().withMemory(true).get()) {
                 for (var sqlp : prepare) {
@@ -204,6 +202,43 @@ public class SetNullParameterSatatementTest {
                 n("INT-OBJ-TIMESTAMP-H2-Z" , ps -> ps.setObject          (1    ,               null, H2Type.TIMESTAMP, 0))
         );
 
+        var c = List.of(
+                n("RECV-BOOLEAN-P", ps -> ps.receiveNull("bar", boolean       .class)),
+                n("RECV-BOOLEAN-W", ps -> ps.receiveNull("bar", Boolean       .class)),
+                n("RECV-BYTE-P"   , ps -> ps.receiveNull("bar", byte          .class)),
+                n("RECV-BYTE-W"   , ps -> ps.receiveNull("bar", Byte          .class)),
+                n("RECV-SHORT-P"  , ps -> ps.receiveNull("bar", short         .class)),
+                n("RECV-SHORT-W"  , ps -> ps.receiveNull("bar", Short         .class)),
+                n("RECV-INT-P"    , ps -> ps.receiveNull("bar", int           .class)),
+                n("RECV-INT-W"    , ps -> ps.receiveNull("bar", Integer       .class)),
+                n("RECV-LONG-P"   , ps -> ps.receiveNull("bar", long          .class)),
+                n("RECV-LONG-W"   , ps -> ps.receiveNull("bar", Long          .class)),
+                n("RECV-FLOAT-P"  , ps -> ps.receiveNull("bar", float         .class)),
+                n("RECV-FLOAT-W"  , ps -> ps.receiveNull("bar", Float         .class)),
+                n("RECV-DOUBLE-P" , ps -> ps.receiveNull("bar", double        .class)),
+                n("RECV-DOUBLE-W" , ps -> ps.receiveNull("bar", Double        .class)),
+                n("RECV-BIGD"     , ps -> ps.receiveNull("bar", BigDecimal    .class)),
+                n("RECV-OPTINT"   , ps -> ps.receiveNull("bar", OptionalInt   .class)),
+                n("RECV-OPTLONG"  , ps -> ps.receiveNull("bar", OptionalLong  .class)),
+                n("RECV-OPTDOUBLE", ps -> ps.receiveNull("bar", OptionalDouble.class)),
+                n("RECV-VOID-P"   , ps -> ps.receiveNull("bar", void          .class)),
+                n("RECV-VOID-W"   , ps -> ps.receiveNull("bar", Void          .class)),
+                n("RECV-EMPTY"    , ps -> ps.receiveNull("bar"                      ))
+        );
+
+        var d = List.of(
+                n("RECV-LOCALDATE"     , ps -> ps.receiveNull("bar", LocalDate     .class)),
+                n("RECV-LOCALTIME"     , ps -> ps.receiveNull("bar", LocalTime     .class)),
+                n("RECV-LOCALDATETIME" , ps -> ps.receiveNull("bar", LocalDateTime .class)),
+                n("RECV-OFFSETTIME"    , ps -> ps.receiveNull("bar", OffsetTime    .class)),
+                n("RECV-OFFSETDATETIME", ps -> ps.receiveNull("bar", OffsetDateTime.class)),
+                n("RECV-ZONEDDATETIME" , ps -> ps.receiveNull("bar", ZonedDateTime .class)),
+                n("RECV-INSTANT"       , ps -> ps.receiveNull("bar", Instant       .class)),
+                n("RECV-DATE-VOID-P"   , ps -> ps.receiveNull("bar", void          .class)),
+                n("RECV-DATE-VOID-W"   , ps -> ps.receiveNull("bar", Void          .class)),
+                n("RECV-DATE-EMPTY"    , ps -> ps.receiveNull("bar"                      ))
+        );
+
         var idx = Map.of("bar", List.of(1));
         var idxm = Map.of("bar", List.of(1, 3, 5), "foo", List.of(2, 4));
         var prepare1 = List.of(
@@ -268,12 +303,16 @@ public class SetNullParameterSatatementTest {
                 Assertions.assertEquals(null, rs.getTimestamp(6));
         };
 
-        var a2 = a.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
-        var b2 = b.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
-        var a3 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx, prepare1, insert, select, s, rsc1, false));
-        var b3 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx, prepare2, insert, select, s, rsc2, false));
-        var a4 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare1m, insertm, selectm, s, rsc3, true));
-        var b4 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare2m, insertm, selectm, s, rsc4, true));
-        return Stream.of(a2, b2, a3, b3, a4, b4).flatMap(x -> x);
+        var a2 = a.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx , prepare1 , insert , select , s, rsc1, false));
+        var b2 = b.stream().filter(x -> x.name().startsWith("INT-")).map(s -> makeStuff(idx , prepare2 , insert , select , s, rsc2, false));
+        var a3 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx , prepare1 , insert , select , s, rsc1, false));
+        var b3 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idx , prepare2 , insert , select , s, rsc2, false));
+        var c3 = c.stream()                                         .map(s -> makeStuff(idx , prepare1 , insert , select , s, rsc1, false));
+        var d3 = d.stream()                                         .map(s -> makeStuff(idx , prepare2 , insert , select , s, rsc2, false));
+        var a4 = a.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare1m, insertm, selectm, s, rsc3, true ));
+        var b4 = b.stream().filter(x -> x.name().startsWith("STR-")).map(s -> makeStuff(idxm, prepare2m, insertm, selectm, s, rsc4, true ));
+        var c4 = c.stream()                                         .map(s -> makeStuff(idxm, prepare1m, insertm, selectm, s, rsc3, true ));
+        var d4 = d.stream()                                         .map(s -> makeStuff(idxm, prepare2m, insertm, selectm, s, rsc4, true ));
+        return Stream.of(a2, b2, a3, b3, c3, d3, a4, b4, c4, d4).flatMap(x -> x);
     }
 }

@@ -5,6 +5,7 @@ import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.sql;
 
 @PackagePrivate
@@ -18,14 +19,20 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
-    private static ParameterReceiver.NamedAcceptor1 forRecord(@NonNull Class<? extends Record> k, @NonNull String name, boolean flat) {
+    private static ParameterReceiver.NamedAcceptor1 forRecord(@NonNull Class<? extends Record> k, @NonNull String name, boolean flat)
+            throws BadImplementationException
+    {
         checkNotNull(k);
         checkNotNull(name);
+        checkAccessible(k);
         // assert(k.isRecord());
 
         var rcs = k.getRecordComponents();
         var single = rcs.length == 1;
-        var all = Stream.of(rcs).map(rc -> forComponent(rc, k, name, single, flat)).toList();
+        var all = new ArrayList<ParameterReceiver.NamedAcceptor1>(rcs.length);
+        for (var rc : rcs) {
+            all.add(forComponent(rc, k, name, single, flat));
+        }
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value != null && !k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
@@ -51,11 +58,11 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             @NonNull String name,
             boolean single,
             boolean flat)
+            throws BadImplementationException
     {
         checkNotNull(rc);
         checkNotNull(k);
         checkNotNull(name);
-        // assert(k.isRecord());
 
         var rct = rc.getGenericType();
 
@@ -70,9 +77,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             if (!k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
             Object innerValue;
             try {
-                var accessor = rc.getAccessor();
-                accessor.setAccessible(true);
-                innerValue = accessor.invoke(value);
+                innerValue = rc.getAccessor().invoke(value);
             } catch (IllegalAccessException | InvocationTargetException x) {
                 throw new AssertionError(x);
             }
@@ -85,7 +90,6 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     private static ParameterReceiver.NamedAcceptor1 forEnum(@NonNull Class<?> k, @NonNull String name) {
         checkNotNull(k);
         checkNotNull(name);
-        // assert(k.isEnum());
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value != null && !k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
@@ -104,7 +108,9 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
-    private static ParameterReceiver.NamedAcceptor1 forOptional(@NonNull Class<?> k, @NonNull String name, boolean flat) {
+    private static ParameterReceiver.NamedAcceptor1 forOptional(@NonNull Class<?> k, @NonNull String name, boolean flat)
+            throws BadImplementationException
+    {
         checkNotNull(k);
         checkNotNull(name);
 
@@ -118,7 +124,9 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
-    private static <E> ParameterReceiver.NamedAcceptor1 forClass(@NonNull Class<E> k, @NonNull String name, boolean flat) {
+    private static <E> ParameterReceiver.NamedAcceptor1 forClass(@NonNull Class<E> k, @NonNull String name, boolean flat)
+            throws BadImplementationException
+    {
         checkNotNull(k);
         checkNotNull(name);
 
@@ -147,7 +155,9 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
-    private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Type type, @NonNull String name, boolean flat) {
+    private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Type type, @NonNull String name, boolean flat)
+            throws BadImplementationException
+    {
         checkNotNull(type);
         checkNotNull(name);
 
@@ -158,21 +168,24 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             var ptt = pt.getActualTypeArguments();
             if (ptt.length == 1 && ptt[0] instanceof Class<?> ok) return forOptional(ok, name, flat);
         }
-        throw new UnsupportedOperationException("" + type);
+        throw new BadImplementationException("Unnaceptable type.", type);
     }
 
     @NonNull
-    private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Parameter p) {
+    private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Parameter p) throws BadImplementationException {
         checkNotNull(p);
         return makeStrategy(p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
     }
 
     @NonNull
-    public static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Method m) {
+    public static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m);
 
         var pp = m.getParameters();
-        var all = Stream.of(pp).map(mpp -> makeStrategy(mpp)).toList();
+        var all = new ArrayList<ParameterReceiver.NamedAcceptor1>(pp.length);
+        for (var p : pp) {
+            all.add(makeStrategy(p));
+        }
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value == null || !(value instanceof Object[] array) || array.length != all.size()) {
@@ -196,6 +209,12 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
 
         var names = all.stream().map(ParameterReceiver.NamedAcceptor1::paramNames).flatMap(List::stream).toList();
         return new ParameterSetStrategy(h, names);
+    }
+
+    private static void checkAccessible(@NonNull Class<? extends Record> k) throws BadImplementationException {
+        if (!Modifier.isPublic(k.getModifiers()) || !k.getModule().isExported(k.getPackageName(), ParameterSetStrategy.class.getModule())) {
+            throw new BadImplementationException("Record type must be public and its package must be exported.", k);
+        }
     }
 
     @Generated

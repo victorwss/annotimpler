@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
-import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
 import lombok.SneakyThrows;
 import ninja.javahacker.test.limited.AssertionInputStream;
 import ninja.javahacker.test.limited.AssertionReader;
@@ -241,16 +240,16 @@ public class BasicNamedParameterStatementTest {
                 "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
                 n("STR-BYTE"           , ps -> ps.setByte  ("bar", b2                      )),
                 n("INT-BYTE"           , ps -> ps.setByte  (1    , b2                      )),
+                n("RECV-BYTE"          , ps -> ps.receive  ("bar", b2                      )),
                 n("STR-SHORT"          , ps -> ps.setShort ("bar", s2                      )),
                 n("INT-SHORT"          , ps -> ps.setShort (1    , s2                      )),
+                n("RECV-SHORT"         , ps -> ps.receive  ("bar", s2                      )),
                 n("STR-INT"            , ps -> ps.setInt   ("bar", 2                       )),
                 n("INT-INT"            , ps -> ps.setInt   (1    , 2                       )),
+                n("RECV-INT"           , ps -> ps.receive  ("bar", 2                       )),
                 n("STR-LONG"           , ps -> ps.setLong  ("bar", 2L                      )),
                 n("INT-LONG"           , ps -> ps.setLong  (1    , 2L                      )),
-                n("STR-OPTINT"         , ps -> ps.setInt   ("bar", opti                    )),
-                n("INT-OPTINT"         , ps -> ps.setInt   (1    , opti                    )),
-                n("STR-OPTLONG"        , ps -> ps.setLong  ("bar", optl                    )),
-                n("INT-OPTLONG"        , ps -> ps.setLong  (1    , optl                    )),
+                n("RECV-LONG"          , ps -> ps.receive  ("bar", 2L                      )),
                 n("STR-OBJ-BYTE"       , ps -> ps.setObject("bar", b2                      )),
                 n("INT-OBJ-BYTE"       , ps -> ps.setObject(1    , b2                      )),
                 n("STR-OBJ-SHORT"      , ps -> ps.setObject("bar", s2                      )),
@@ -298,10 +297,12 @@ public class BasicNamedParameterStatementTest {
                 PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk = ?",
                 "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
-                n("STR-OPTINT"         , ps -> ps.setInt   ("bar", opti                    )),
-                n("INT-OPTINT"         , ps -> ps.setInt   (1    , opti                    )),
-                n("STR-OPTLONG"        , ps -> ps.setLong  ("bar", optl                    )),
-                n("INT-OPTLONG"        , ps -> ps.setLong  (1    , optl                    ))
+                n("STR-OPTINT"         , ps -> ps.setInt ("bar", opti)),
+                n("INT-OPTINT"         , ps -> ps.setInt (1    , opti)),
+                n("RECV-OPTINT"        , ps -> ps.receive("bar", opti)),
+                n("STR-OPTLONG"        , ps -> ps.setLong("bar", optl)),
+                n("INT-OPTLONG"        , ps -> ps.setLong(1    , optl)),
+                n("RECV-OPTLONG"       , ps -> ps.receive("bar", optl))
         );
 
         var t4a = applyBasicValues(
@@ -309,12 +310,15 @@ public class BasicNamedParameterStatementTest {
                 PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk > ?",
                 "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
-                n("STR-OBJ-FLOAT-H2-Z"  , ps -> ps.setFloat     ("bar", 1.5f                    )),
-                n("INT-OBJ-FLOAT-H2-Z"  , ps -> ps.setFloat     (1    , 1.5f                    )),
-                n("STR-OBJ-DOUBLE-H2-Z" , ps -> ps.setDouble    ("bar", 1.5                     )),
-                n("INT-OBJ-DOUBLE-H2-Z" , ps -> ps.setDouble    (1    , 1.5                     )),
-                n("STR-OBJ-BIGD-H2-Z"   , ps -> ps.setBigDecimal("bar", v1_5                    )),
-                n("INT-OBJ-BIGD-H2-Z"   , ps -> ps.setBigDecimal(1    , v1_5                    )),
+                n("STR-FLOAT"           , ps -> ps.setFloat     ("bar", 1.5f                    )),
+                n("INT-FLOAT"           , ps -> ps.setFloat     (1    , 1.5f                    )),
+                n("RECV-FLOAT"          , ps -> ps.receive      ("bar", 1.5f                    )),
+                n("STR-DOUBLE"          , ps -> ps.setDouble    ("bar", 1.5                     )),
+                n("INT-DOUBLE"          , ps -> ps.setDouble    (1    , 1.5                     )),
+                n("RECV-DOUBLE"         , ps -> ps.receive      ("bar", 1.5                     )),
+                n("STR-BIGD"            , ps -> ps.setBigDecimal("bar", v1_5                    )),
+                n("INT-BIGD"            , ps -> ps.setBigDecimal(1    , v1_5                    )),
+                n("RECV-BIGD"           , ps -> ps.receive      ("bar", v1_5                    )),
                 n("STR-OBJ-FLOAT"       , ps -> ps.setObject    ("bar", 1.5f                    )),
                 n("INT-OBJ-FLOAT"       , ps -> ps.setObject    (1    , 1.5f                    )),
                 n("STR-OBJ-DOUBLE"      , ps -> ps.setObject    ("bar", 1.5                     )),
@@ -352,8 +356,9 @@ public class BasicNamedParameterStatementTest {
                 PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE pk > ?",
                 "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
-                n("STR-OPTDOUBLE"       , ps -> ps.setDouble    ("bar", optd                    )),
-                n("INT-OPTDOUBLE"       , ps -> ps.setDouble    (1    , optd                    ))
+                n("STR-OPTDOUBLE"       , ps -> ps.setDouble("bar", optd)),
+                n("INT-OPTDOUBLE"       , ps -> ps.setDouble(1    , optd)),
+                n("RECV-OPTDOUBLE"      , ps -> ps.receive  ("bar", v1_5))
         );
 
         var t5 = applyBasicValues(
@@ -363,10 +368,12 @@ public class BasicNamedParameterStatementTest {
                 "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
                 n("STR-STRING"           , ps -> ps.setString          ("bar", blue                     )),
                 n("INT-STRING"           , ps -> ps.setString          (1    , blue                     )),
+                n("RECV-STRING"          , ps -> ps.receive            ("bar", blue                     )),
                 n("STR-NSTRING"          , ps -> ps.setNString         ("bar", blue                     )),
                 n("INT-NSTRING"          , ps -> ps.setNString         (1    , blue                     )),
                 n("STR-BYTES"            , ps -> ps.setBytes           ("bar", bytes                    )),
                 n("INT-BYTES"            , ps -> ps.setBytes           (1    , bytes                    )),
+                n("RECV-BYTES"           , ps -> ps.receive            ("bar", bytes                    )),
                 n("STR-OBJ-STR"          , ps -> ps.setObject          ("bar", blue                     )),
                 n("INT-OBJ-STR"          , ps -> ps.setObject          (1    , blue                     )),
                 n("STR-OBJ-STR-VARCHAR"  , ps -> ps.setObject          ("bar", blue , Types .VARCHAR    )),
@@ -432,33 +439,45 @@ public class BasicNamedParameterStatementTest {
         );
 
         @SuppressWarnings("deprecation")
-        var t6 = applyBasicValues(
+        var t6a = applyBasicValues(
+                "set legacy dates",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
+                n("STR-DATE"             , ps -> ps.setDate     ("bar", d4      )),
+                n("INT-DATE"             , ps -> ps.setDate     (1    , d4      )),
+                n("STR-DATE-CAL-NUL"     , ps -> ps.setDate     ("bar", d4, null)),
+                n("INT-DATE-CAL-NUL"     , ps -> ps.setDate     (1    , d4, null)),
+                n("STR-DATE-CAL-NEW"     , ps -> ps.setDate     ("bar", d4, gc  )),
+                n("INT-DATE-CAL-NEW"     , ps -> ps.setDate     (1    , d4, gc  )),
+                n("STR-TIMESTAMP"        , ps -> ps.setTimestamp("bar", d5      )),
+                n("INT-TIMESTAMP"        , ps -> ps.setTimestamp(1    , d5      )),
+                n("STR-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp("bar", d5, null)),
+                n("INT-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp(1    , d5, null)),
+                n("STR-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp("bar", d5, gc  )),
+                n("INT-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp(1    , d5, gc  ))
+        );
+
+        var t6b = applyBasicValues(
                 "set dates",
                 PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
                 "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
-                n("STR-DATE"             , ps -> ps.setDate          ("bar", d4      )),
-                n("INT-DATE"             , ps -> ps.setDate          (1    , d4      )),
-                n("STR-DATE-CAL-NUL"     , ps -> ps.setDate          ("bar", d4, null)),
-                n("INT-DATE-CAL-NUL"     , ps -> ps.setDate          (1    , d4, null)),
-                n("STR-DATE-CAL-NEW"     , ps -> ps.setDate          ("bar", d4, gc  )),
-                n("INT-DATE-CAL-NEW"     , ps -> ps.setDate          (1    , d4, gc  )),
-                n("STR-TIMESTAMP"        , ps -> ps.setTimestamp     ("bar", d5      )),
-                n("INT-TIMESTAMP"        , ps -> ps.setTimestamp     (1    , d5      )),
-                n("STR-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp     ("bar", d5, null)),
-                n("INT-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp     (1    , d5, null)),
-                n("STR-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp     ("bar", d5, gc  )),
-                n("INT-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp     (1    , d5, gc  )),
-                n("STR-LOCALDATE"        , ps -> ps.setLocalDate     ("bar", d1      )),
-                n("INT-LOCALDATE"        , ps -> ps.setLocalDate     (1    , d1      )),
-                n("STR-LOCALDATETIME"    , ps -> ps.setLocalDateTime ("bar", d2      )),
-                n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime (1    , d2      )),
-                n("STR-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime("bar", d8      )),
-                n("INT-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime(1    , d8      )),
-                n("STR-ZONEDDATETIME"    , ps -> ps.setZonedDateTime ("bar", d7      )),
-                n("INT-ZONEDDATETIME"    , ps -> ps.setZonedDateTime (1    , d7      )),
-                n("STR-INSTANT"          , ps -> ps.setInstant       ("bar", d9      )),
-                n("INT-INSTANT"          , ps -> ps.setInstant       (1    , d9      ))
+                n("STR-LOCALDATE"        , ps -> ps.setLocalDate     ("bar", d1)),
+                n("INT-LOCALDATE"        , ps -> ps.setLocalDate     (1    , d1)),
+                n("RECV-LOCALDATE"       , ps -> ps.receive          ("bar", d1)),
+                n("STR-LOCALDATETIME"    , ps -> ps.setLocalDateTime ("bar", d2)),
+                n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime (1    , d2)),
+                n("RECV-LOCALDATETIME"   , ps -> ps.receive          ("bar", d2)),
+                n("STR-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime("bar", d8)),
+                n("INT-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime(1    , d8)),
+                n("RECV-OFFSETDATETIME"  , ps -> ps.receive          ("bar", d8)),
+                n("STR-ZONEDDATETIME"    , ps -> ps.setZonedDateTime ("bar", d7)),
+                n("INT-ZONEDDATETIME"    , ps -> ps.setZonedDateTime (1    , d7)),
+                n("RECV-ZONEDDATETIME"   , ps -> ps.receive          ("bar", d7)),
+                n("STR-INSTANT"          , ps -> ps.setInstant       ("bar", d9)),
+                n("INT-INSTANT"          , ps -> ps.setInstant       (1    , d9)),
+                n("RECV-INSTANT"         , ps -> ps.receive          ("bar", d9))
         );
 
         Function<Object, DynamicNode> t7p = obj -> applyBasicValues(
@@ -488,21 +507,31 @@ public class BasicNamedParameterStatementTest {
         var t7 = DynamicContainer.dynamicContainer("set dates as objects", Stream.of(d1, d2, d4, d5, d7, d8, d9).map(t7p));
 
         @SuppressWarnings("deprecation")
-        var t8 = applyBasicValues(
+        var t8a = applyBasicValues(
+                "set legacy times",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
+                n("STR-TIME"        , ps -> ps.setTime("bar", d6      )),
+                n("INT-TIME"        , ps -> ps.setTime(1    , d6      )),
+                n("STR-TIME-CAL-NUL", ps -> ps.setTime("bar", d6, null)),
+                n("INT-TIME-CAL-NUL", ps -> ps.setTime(1    , d6, null)),
+                n("STR-TIME-CAL-NEW", ps -> ps.setTime("bar", d6, gc  )),
+                n("INT-TIME-CAL-NEW", ps -> ps.setTime(1    , d6, gc  ))
+        );
+
+        @SuppressWarnings("deprecation")
+        var t8b = applyBasicValues(
                 "set times",
                 PREPARE_MAIN,
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
                 "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
-                n("STR-TIME"        , ps -> ps.setTime      ("bar", d6      )),
-                n("INT-TIME"        , ps -> ps.setTime      (1    , d6      )),
-                n("STR-TIME-CAL-NUL", ps -> ps.setTime      ("bar", d6, null)),
-                n("INT-TIME-CAL-NUL", ps -> ps.setTime      (1    , d6, null)),
-                n("STR-TIME-CAL-NEW", ps -> ps.setTime      ("bar", d6, gc  )),
-                n("INT-TIME-CAL-NEW", ps -> ps.setTime      (1    , d6, gc  )),
-                n("STR-LOCALTIME"   , ps -> ps.setLocalTime ("bar", d3      )),
-                n("INT-LOCALTIME"   , ps -> ps.setLocalTime (1    , d3      )),
-                n("STR-OFFSETTIME"  , ps -> ps.setOffsetTime("bar", d10     )),
-                n("INT-OFFSETTIME"  , ps -> ps.setOffsetTime(1    , d10     ))
+                n("STR-LOCALTIME"  , ps -> ps.setLocalTime ("bar", d3 )),
+                n("INT-LOCALTIME"  , ps -> ps.setLocalTime (1    , d3 )),
+                n("RECV-LOCALTIME" , ps -> ps.receive      ("bar", d3 )),
+                n("STR-OFFSETTIME" , ps -> ps.setOffsetTime("bar", d10)),
+                n("INT-OFFSETTIME" , ps -> ps.setOffsetTime(1    , d10)),
+                n("RECV-OFFSETTIME", ps -> ps.receive      ("bar", d10))
         );
 
         Function<Object, DynamicNode> t9p = obj -> applyBasicValues(
@@ -597,6 +626,6 @@ public class BasicNamedParameterStatementTest {
                 n("INT-OBJ-SQLXML-H2-Q", ps -> ps.setObject(1    , sx(ps), H2Type.VARCHAR, 14))
         );
 
-        return DynamicContainer.dynamicContainer("setter tests", List.of(t1, t2, t3a, t3b, t4a, t4b, t5, t6, t7, t8, t9, t10, t11, t12));
+        return DynamicContainer.dynamicContainer("setter tests", List.of(t1, t2, t3a, t3b, t4a, t4b, t5, t6a, t6b, t7, t8a, t8b, t9, t10, t11, t12));
     }
 }

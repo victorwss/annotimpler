@@ -1,6 +1,5 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
-import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
 import lombok.NonNull;
 
 import module java.base;
@@ -62,8 +61,7 @@ public final class SqlWorker {
         checkNotNull(fields);
 
         try (var ps = open()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getRecord(k, fields));
@@ -76,8 +74,7 @@ public final class SqlWorker {
         checkNotNull(k);
 
         try (var ps = open()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getTypedValue(field, k));
@@ -105,8 +102,7 @@ public final class SqlWorker {
 
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 while (rs.next()) {
                     t.add(rs.getRecord(k, fields));
@@ -121,8 +117,7 @@ public final class SqlWorker {
         checkNotNull(k);
 
         try (var ps = open()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
                 List<R> t = new ArrayList<>(10);
                 while (rs.next()) {
@@ -149,8 +144,7 @@ public final class SqlWorker {
 
     public long execute() throws SQLException {
         try (var ps = open()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             return ps.executeLargeUpdate();
         }
     }
@@ -158,8 +152,7 @@ public final class SqlWorker {
     @NonNull
     public OptionalInt generate() throws SQLException {
         try (var ps = openGenerate()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             var qtd = ps.executeLargeUpdate();
             if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
@@ -172,8 +165,7 @@ public final class SqlWorker {
     @NonNull
     public List<Integer> generateList() throws SQLException {
         try (var ps = openGenerate()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             var qtd = ps.executeUpdate();
             List<Integer> r = new ArrayList<>(qtd);
             try (var rs = ps.getGeneratedKeys()) {
@@ -188,8 +180,7 @@ public final class SqlWorker {
     @NonNull
     public OptionalLong generateLong() throws SQLException {
         try (var ps = openGenerate()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             var qtd = ps.executeLargeUpdate();
             if (qtd > 1L) throw new SQLException("More than one result.");
             try (var rs = ps.getGeneratedKeys()) {
@@ -202,8 +193,7 @@ public final class SqlWorker {
     @NonNull
     public List<Long> generateLongList() throws SQLException {
         try (var ps = openGenerate()) {
-            var recv = NamedParameterStatementHandler.forJdbc(ps);
-            ppq.accept(recv);
+            ppq.accept(ps);
             var qtd = ps.executeUpdate();
             try (var rs = ps.getGeneratedKeys()) {
                 List<Long> r = new ArrayList<>(qtd);

@@ -2,13 +2,15 @@ package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.sql.Timestamp;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
 import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
 
 @SuppressWarnings({"PMD.ReplaceJavaUtilCalendar", "PMD.ReplaceJavaUtilDate"})
-public interface NamedParameterStatement extends PreparedStatement {
+public interface NamedParameterStatement extends PreparedStatement, ParameterReceiver {
 
     public static final String INPUT_STREAM_MESSAGE = "Can't reliably or safely use the same InputStream more than once.";
     public static final String READER_MESSAGE = "Can't reliably or safely use the same Reader more than once.";
@@ -174,19 +176,16 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used.
-     * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
-     * {@link LocalDate} as the second parameter.
-     * @see #setLocalDate(int, LocalDate)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @throws SQLException If `parameterIndex` does not correspond to a parameter marker in the SQL statement, if a database access error
+    /// occurs or this method is called on a closed [PreparedStatement].
+    /// @deprecated The class [java.sql.Date] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalDate(int, LocalDate)] method or the [#setObject(int, Object)] method passing a
+    /// [LocalDate] as the second parameter.
+    /// @see #setLocalDate(int, LocalDate)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setDate(int parameterIndex, @Nullable java.sql.Date x) throws SQLException;
@@ -198,25 +197,23 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @param cal {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link java.sql.Date} is very badly designed and should never be used. Having a companion {@link Calendar}
-     * as a timezone makes things still more confusing and fragile. Further, having a date without time but with a timezone in non-sense.
-     * Prefer the {@link #setLocalDate(int, LocalDate)} method or the {@link #setObject(int, Object)} method passing a
-     * {@link LocalDate} as the second parameter.
-     * @see #setLocalDate(int, LocalDate)
-     * @see #setLocalDateTime(int, LocalDateTime)
-     * @see #setOffsetDateTime(int, OffsetDateTime)
-     * @see #setZonedDateTime(int, ZonedDateTime)
-     * @see #setInstant(int, Instant)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @param cal {@inheritDoc}
+    /// @throws SQLException If `parameterIndex` does not correspond to a parameter marker in the SQL statement, if a database access error
+    /// occurs or this method is called on a closed [PreparedStatement].
+    /// @deprecated The class [java.sql.Date] is very badly designed and should never be used anymore.
+    /// Having a companion [Calendar] as a timezone makes things still more confusing and fragile.
+    /// Further, having a date without time but with a timezone in non-sense.
+    /// Prefer the [#setLocalDate(int, LocalDate)] method or the [#setObject(int, Object)] method passing a
+    /// [LocalDate] as the second parameter.
+    /// @see #setLocalDate(int, LocalDate)
+    /// @see #setLocalDateTime(int, LocalDateTime)
+    /// @see #setOffsetDateTime(int, OffsetDateTime)
+    /// @see #setZonedDateTime(int, ZonedDateTime)
+    /// @see #setInstant(int, Instant)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setDate(int parameterIndex, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException;
@@ -511,19 +508,16 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used.
-     * Prefer the {@link #setLocalTime(int, LocalTime)} method or the {@link #setObject(int, Object)} method passing a
-     * {@link LocalTime} as the second parameter.
-     * @see #setLocalTime(int, LocalTime)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @throws SQLException If `parameterIndex` does not correspond to a parameter marker in the SQL statement, if a database access error
+    /// occurs or this method is called on a closed [PreparedStatement].
+    /// @deprecated The class [java.sql.Time] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalTime(int, LocalTime)] method or the [#setObject(int, Object)] method passing a
+    /// [LocalTime] as the second parameter.
+    /// @see #setLocalTime(int, LocalTime)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setTime(int parameterIndex, @Nullable java.sql.Time x) throws SQLException;
@@ -535,21 +529,18 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @param cal {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link java.sql.Time} is very badly designed and should never be used. Having a companion {@link Calendar}
-     * as a timezone makes things still more confusing and fragile.
-     * Prefer the {@link #setOffsetTime(int, OffsetTime)} method or the {@link #setObject(int, Object)} method passing a
-     * {@link OffsetTime} as the second parameter.
-     * @see #setOffsetTime(int, OffsetTime)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @param cal {@inheritDoc}
+    /// @throws SQLException If `parameterIndex` does not correspond to a parameter marker in the SQL statement, if a database access error
+    /// occurs or this method is called on a closed [PreparedStatement].
+    /// @deprecated The class [java.sql.Time] is very badly designed and should never be used anymore.
+    /// Having a companion [Calendar] as a timezone makes things still more confusing and fragile.
+    /// Prefer the [#setOffsetTime(int, OffsetTime)] method or the [#setObject(int, Object)] method passing a
+    /// [OffsetTime] as the second parameter.
+    /// @see #setOffsetTime(int, OffsetTime)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setTime(int parameterIndex, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException;
@@ -561,19 +552,16 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link Timestamp} is very badly designed and should never be used.
-     * Prefer the {@link #setLocalDateTime(int, LocalDateTime)} method or the {@link #setObject(int, Object)} method passing a
-     * {@link LocalDateTime} as the second parameter.
-     * @see #setLocalDateTime(int, LocalDateTime)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @throws SQLException If `parameterIndex` does not correspond to a parameter marker in the SQL statement, if a database access error
+    /// occurs or this method is called on a closed [PreparedStatement].
+    /// @deprecated The class [Timestamp] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalDateTime(int, LocalDateTime)] method or the [#setObject(int, Object)] method passing a
+    /// [LocalDateTime] as the second parameter.
+    /// @see #setLocalDateTime(int, LocalDateTime)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setTimestamp(int parameterIndex, @Nullable Timestamp x) throws SQLException;
@@ -585,24 +573,22 @@ public interface NamedParameterStatement extends PreparedStatement {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     * @param parameterIndex {@inheritDoc}
-     * @param x {@inheritDoc}
-     * @param cal {@inheritDoc}
-     * @throws SQLException if parameterIndex does not correspond to a parameter
-     * marker in the SQL statement; if a database access error occurs or
-     * this method is called on a closed {@code PreparedStatement}
-     * @deprecated The class {@link Timestamp} is very badly designed and should never be used. Having a companion {@link Calendar}
-     * as a timezone makes things still more confusing and fragile.
-     * Prefer one of the {@link #setOffsetDateTime(int, OffsetDateTime)}, {@link #setZonedDateTime(int, ZonedDateTime)},
-     * {@link #setInstant(int, Instant)} methods or perhaps the {@link #setObject(int, Object)} method passing a
-     * {@link OffsetDateTime}, {@link ZonedDateTime} or {@link Instant} as the second parameter.
-     * @see #setOffsetDateTime(int, OffsetDateTime)
-     * @see #setZonedDateTime(int, ZonedDateTime)
-     * @see #setInstant(int, Instant)
-     * @see #setObject(int, Object)
-     */
+    /// {@inheritDoc}
+    /// @param parameterIndex {@inheritDoc}
+    /// @param x {@inheritDoc}
+    /// @param cal {@inheritDoc}
+    /// @throws SQLException if parameterIndex does not correspond to a parameter
+    /// marker in the SQL statement; if a database access error occurs or
+    /// this method is called on a closed [PreparedStatement]
+    /// @deprecated The class [Timestamp] is very badly designed and should never be used anymore. Having a companion [Calendar]
+    /// as a timezone makes things still more confusing and fragile.
+    /// Prefer one of the [#setOffsetDateTime(int, OffsetDateTime)], [#setZonedDateTime(int, ZonedDateTime)],
+    /// [#setInstant(int, Instant)] methods or perhaps the [#setObject(int, Object)] method passing a
+    /// [OffsetDateTime], [ZonedDateTime] or [Instant] as the second parameter.
+    /// @see #setOffsetDateTime(int, OffsetDateTime)
+    /// @see #setZonedDateTime(int, ZonedDateTime)
+    /// @see #setInstant(int, Instant)
+    /// @see #setObject(int, Object)
     @Override
     @Deprecated
     public void setTimestamp(int parameterIndex, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException;
@@ -628,5 +614,27 @@ public interface NamedParameterStatement extends PreparedStatement {
         for (var index : all) {
             this.setUnicodeStream(index, x, length);
         }
+    }
+
+    @Override
+    public default void receiveNull(@NonNull String name, @NonNull Class<?> type) throws SQLException {
+        var nothing = NamedParameterStatementHandler.EMPTY.get(type);
+        receiveIn(name, type, nothing);
+    }
+
+    @Override
+    public default void receive(@NonNull String name, @NonNull Object value) throws SQLException {
+        receiveIn(name, value.getClass(), value);
+    }
+
+    private <K> void receiveIn(@NonNull String name, @NonNull Class<K> k, @Nullable Object value) throws SQLException {
+        checkNotNull(name);
+        checkNotNull(k);
+        NamedParameterStatementHandler.forClass(k).handle(NamedParameterStatement.this, name, k.cast(value));
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

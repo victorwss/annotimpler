@@ -5,12 +5,17 @@ import lombok.NonNull;
 
 import module java.base;
 import module java.sql;
+import module ninja.javahacker.annotimpler.core;
 
 public interface ParameterReceiver {
 
-    public void receiveNull(String name, Class<?> type) throws SQLException;
+    public default void receiveNull(@NonNull String name) throws SQLException {
+        receiveNull(name, void.class);
+    }
 
-    public void receive(String name, Object value) throws SQLException;
+    public void receiveNull(@NonNull String name, @NonNull Class<?> type) throws SQLException;
+
+    public void receive(@NonNull String name, @NonNull Object value) throws SQLException;
 
     @FunctionalInterface
     public static interface Acceptor2 {
@@ -32,7 +37,7 @@ public interface ParameterReceiver {
         }
     }
 
-    public static Acceptor1 forMethod(@NonNull Method method) {
+    public static Acceptor1 forMethod(@NonNull Method method) throws BadImplementationException {
         return ParameterSetStrategy.makeStrategy(method);
     }
 }

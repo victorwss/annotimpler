@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
-import ninja.javahacker.annotimpler.sql.jdbcstmt.SmartResultSet;
 import ninja.javahacker.test.ControlledMock;
 import ninja.javahacker.test.ForTests;
 import ninja.javahacker.test.limited.AssertionInputStream;

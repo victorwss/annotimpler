@@ -1,5 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.meta;
 
+import ninja.javahacker.annotimpler.core.BadImplementationException;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
@@ -14,9 +15,11 @@ public class ParameterSetTest {
 
     private enum Hue { RED, YELLOW, BLUE }
 
-    private record Pair(String first, Integer second) {}
+    public record Pair(String first, Integer second) {}
 
-    private record Sole(String value) {}
+    public record Sole(String value) {}
+
+    private record Inaccessible(String x) {}
 
     // ── Test methods — bodies never run, only Method reflection objects are used ──
 
@@ -28,15 +31,17 @@ public class ParameterSetTest {
     private void mSole(Sole sr) { throw new AssertionError(); }
     private void mOpt(Optional<String> opt) { throw new AssertionError(); }
     private void mMulti(String a, Hue b, Integer c) { throw new AssertionError(); }
+    private void mInaccessible(Inaccessible ir) { throw new AssertionError(); }
 
-    private static final Method M_STR   = m("mStr",   String.class);
-    private static final Method M_TWO   = m("mTwo",   String.class, Integer.class);
-    private static final Method M_PRIM  = m("mPrim",  int.class);
-    private static final Method M_ENUM  = m("mEnum",  Hue.class);
-    private static final Method M_PAIR  = m("mPair",  Pair.class);
-    private static final Method M_SOLE  = m("mSole",  Sole.class);
-    private static final Method M_OPT   = m("mOpt",   Optional.class);
-    private static final Method M_MULTI = m("mMulti", String.class, Hue.class, Integer.class);
+    private static final Method M_STR          = m("mStr",          String.class);
+    private static final Method M_TWO          = m("mTwo",          String.class, Integer.class);
+    private static final Method M_PRIM         = m("mPrim",         int.class);
+    private static final Method M_ENUM         = m("mEnum",         Hue.class);
+    private static final Method M_PAIR         = m("mPair",         Pair.class);
+    private static final Method M_SOLE         = m("mSole",         Sole.class);
+    private static final Method M_OPT          = m("mOpt",          Optional.class);
+    private static final Method M_MULTI        = m("mMulti",        String.class, Hue.class, Integer.class);
+    private static final Method M_INACCESSIBLE = m("mInaccessible", Inaccessible.class);
 
     private static Method m(String name, Class<?>... paramTypes) {
         try {
@@ -64,15 +69,6 @@ public class ParameterSetTest {
         }
     }
 
-    // ── Access to package-private NamedParameterStatementHandler.forJdbc ────
-
-    private static ParameterReceiver forJdbc(NamedParameterStatement nps) throws Exception {
-        var cls = Class.forName("ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatementHandler");
-        var meth = cls.getDeclaredMethod("forJdbc", NamedParameterStatement.class);
-        meth.setAccessible(true);
-        return (ParameterReceiver) meth.invoke(null, nps);
-    }
-
     // ── Mock NPS backed by a recording PreparedStatement proxy ───────────────
 
     private static class MockNps {
@@ -92,8 +88,8 @@ public class ParameterSetTest {
             nps = NamedParameterStatement.wrap(mockPs, Map.of(paramName, List.of(1)));
         }
 
-        ParameterReceiver receiver() throws Exception {
-            return forJdbc(nps);
+        NamedParameterStatement receiver() {
+            return nps;
         }
 
         Call firstCall() {
@@ -108,28 +104,36 @@ public class ParameterSetTest {
         var pf = "[testParamNames] ";
         return Stream.of(
                 DynamicTest.dynamicTest(pf + "single String param → [\"x\"]", () ->
-                        Assertions.assertEquals(List.of("x"), new ParameterSet(M_STR).paramNames())),
+                        Assertions.assertEquals(List.of("x"), new ParameterSet(M_STR).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "two typed params → [\"x\", \"y\"]", () ->
-                        Assertions.assertEquals(List.of("x", "y"), new ParameterSet(M_TWO).paramNames())),
+                        Assertions.assertEquals(List.of("x", "y"), new ParameterSet(M_TWO).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "primitive int param → [\"n\"]", () ->
-                        Assertions.assertEquals(List.of("n"), new ParameterSet(M_PRIM).paramNames())),
+                        Assertions.assertEquals(List.of("n"), new ParameterSet(M_PRIM).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "enum param → [\"color\"]", () ->
-                        Assertions.assertEquals(List.of("color"), new ParameterSet(M_ENUM).paramNames())),
+                        Assertions.assertEquals(List.of("color"), new ParameterSet(M_ENUM).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "multi-component record → [\"rec::first\", \"rec::second\"]", () ->
-                        Assertions.assertEquals(List.of("rec::first", "rec::second"), new ParameterSet(M_PAIR).paramNames())),
+                        Assertions.assertEquals(List.of("rec::first", "rec::second"), new ParameterSet(M_PAIR).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "single-component record → [\"sr\"] (not \"sr::value\")", () ->
-                        Assertions.assertEquals(List.of("sr"), new ParameterSet(M_SOLE).paramNames())),
+                        Assertions.assertEquals(List.of("sr"), new ParameterSet(M_SOLE).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "Optional<String> param → [\"opt\"]", () ->
-                        Assertions.assertEquals(List.of("opt"), new ParameterSet(M_OPT).paramNames())),
+                        Assertions.assertEquals(List.of("opt"), new ParameterSet(M_OPT).paramNames())
+                ),
 
                 DynamicTest.dynamicTest(pf + "three mixed params → [\"a\", \"b\", \"c\"]", () ->
-                        Assertions.assertEquals(List.of("a", "b", "c"), new ParameterSet(M_MULTI).paramNames()))
+                        Assertions.assertEquals(List.of("a", "b", "c"), new ParameterSet(M_MULTI).paramNames())
+                )
         );
     }
 
@@ -185,7 +189,9 @@ public class ParameterSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "int primitive null → IllegalValueException", () ->
                 Assertions.assertThrows(
                         ParameterReceiver.IllegalValueException.class,
-                        () -> new ParameterSet(M_PRIM).withValues((Object) null))));
+                        () -> new ParameterSet(M_PRIM).withValues((Object) null)
+                )
+        ));
 
         // Enum value → receive ordinal (YELLOW.ordinal() == 1)
         tests.add(DynamicTest.dynamicTest(pf + "enum value → receive ordinal", () -> {
@@ -198,7 +204,9 @@ public class ParameterSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "enum null → IllegalValueException", () ->
                 Assertions.assertThrows(
                         ParameterReceiver.IllegalValueException.class,
-                        () -> new ParameterSet(M_ENUM).withValues((Object) null))));
+                        () -> new ParameterSet(M_ENUM).withValues((Object) null)
+                )
+        ));
 
         // Multi-component record non-null → receives each component under name::field
         tests.add(DynamicTest.dynamicTest(pf + "record non-null → receive each component with rec::field name", () -> {
@@ -260,22 +268,37 @@ public class ParameterSetTest {
                 DynamicTest.dynamicTest(pf + "wrong argument count → IllegalValueException", () ->
                         Assertions.assertThrows(
                                 ParameterReceiver.IllegalValueException.class,
-                                () -> new ParameterSet(M_TWO).withValues("only-one"))),
+                                () -> new ParameterSet(M_TWO).withValues("only-one")
+                        )
+                ),
 
                 DynamicTest.dynamicTest(pf + "extra argument → IllegalValueException", () ->
                         Assertions.assertThrows(
                                 ParameterReceiver.IllegalValueException.class,
-                                () -> new ParameterSet(M_STR).withValues("x", "extra"))),
+                                () -> new ParameterSet(M_STR).withValues("x", "extra")
+                        )
+                ),
 
                 DynamicTest.dynamicTest(pf + "wrong type for enum param → IllegalValueException", () ->
                         Assertions.assertThrows(
                                 ParameterReceiver.IllegalValueException.class,
-                                () -> new ParameterSet(M_ENUM).withValues("not-a-hue"))),
+                                () -> new ParameterSet(M_ENUM).withValues("not-a-hue")
+                        )
+                ),
 
                 DynamicTest.dynamicTest(pf + "wrong record type → IllegalValueException", () ->
                         Assertions.assertThrows(
                                 ParameterReceiver.IllegalValueException.class,
-                                () -> new ParameterSet(M_PAIR).withValues(new Sole("oops"))))
+                                () -> new ParameterSet(M_PAIR).withValues(new Sole("oops"))
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "private (inaccessible) record type → BadImplementationException", () ->
+                        Assertions.assertThrows(
+                                BadImplementationException.class,
+                                () -> new ParameterSet(M_INACCESSIBLE)
+                        )
+                )
         );
     }
 

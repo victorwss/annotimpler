@@ -1,6 +1,5 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
-import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
@@ -31,13 +30,25 @@ interface NamedParameterStatementHandler<T> {
             entry(Double        .class, NamedParameterStatement::setDouble    , Types.DOUBLE  ),
             entry(BigDecimal    .class, NamedParameterStatement::setBigDecimal                ),
             entry(String        .class, NamedParameterStatement::setString                    ),
+            entry(byte[]        .class, NamedParameterStatement::setBytes                     ),
             entry(LocalDate     .class, NamedParameterStatement::setLocalDate                 ),
             entry(LocalDateTime .class, NamedParameterStatement::setLocalDateTime             ),
             entry(LocalTime     .class, NamedParameterStatement::setLocalTime                 ),
+            entry(OffsetDateTime.class, NamedParameterStatement::setOffsetDateTime            ),
+            entry(ZonedDateTime .class, NamedParameterStatement::setZonedDateTime             ),
+            entry(OffsetTime    .class, NamedParameterStatement::setOffsetTime                ),
+            entry(Instant       .class, NamedParameterStatement::setInstant                   ),
             entry(OptionalInt   .class, NamedParameterStatement::setInt                       ),
             entry(OptionalLong  .class, NamedParameterStatement::setLong                      ),
             entry(OptionalDouble.class, NamedParameterStatement::setDouble                    ),
-            nully()
+            nully(false),
+            nully(true)
+    );
+
+    public static final Map<Class<?>, Object> EMPTY = Map.ofEntries(
+            Map.entry(OptionalInt   .class, OptionalInt   .empty()),
+            Map.entry(OptionalLong  .class, OptionalLong  .empty()),
+            Map.entry(OptionalDouble.class, OptionalDouble.empty())
     );
 
     public void handle(@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable T value) throws SQLException;
@@ -80,32 +91,12 @@ interface NamedParameterStatementHandler<T> {
     }
 
     @NonNull
-    private static Map.Entry<Class<Void>, NamedParameterStatementHandler<Void>> nully() {
-        return Map.entry(Void.class, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable Void value) -> {
+    private static Map.Entry<Class<Void>, NamedParameterStatementHandler<Void>> nully(boolean k) {
+        return Map.entry(k ? void.class : Void.class, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable Void value) -> {
             checkNotNull(ps);
             checkNotNull(name);
             ps.setNull(name, Types.NULL);
         });
-    }
-
-    @NonNull
-    public static ParameterReceiver forJdbc(@NonNull NamedParameterStatement ps) {
-        checkNotNull(ps);
-        return new ParameterReceiver() {
-            @Override
-            public void receiveNull(String name, Class<?> type) throws SQLException {
-                forClass(type).handle(ps, name, null);
-            }
-
-            @Override
-            public void receive(String name, Object value) throws SQLException {
-                receiveIn(name, value.getClass(), value);
-            }
-
-            private <K> void receiveIn(String name, Class<K> k, Object value) throws SQLException {
-                forClass(k).handle(ps, name, k.cast(value));
-            }
-        };
     }
 
     @Generated
