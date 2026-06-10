@@ -132,6 +132,33 @@ subprojects {
         }
     }
 
+    // Workaround for https://bugs.openjdk.org/browse/JDK-8175533
+    // Annotations annotated with @Documented whose @Target includes both TYPE_USE and
+    // PARAMETER/FIELD/METHOD appear twice in Javadoc output (once as a declaration annotation
+    // and once as a type annotation). Lombok's @NonNull is affected because it carries all of
+    // those targets. This task strips @NonNull from the Javadoc source so that null constraints
+    // are communicated solely via @param ("must not be null") and @throws IllegalArgumentException
+    // tags, which were added explicitly to all public methods with @NonNull parameters.
+    //
+    // TO REMOVE THIS WORKAROUND once JDK-8175533 is fixed:
+    //   1. Delete this entire task.
+    //   2. In the javadoc task below, change dependsOn(prepareJavadocSource) back to dependsOn(delombok).
+    //   3. In the javadoc task below, change source back to ["build/src-delomboked"].
+    task prepareJavadocSource(type: Copy) {
+        dependsOn(delombok)
+        description = "Copies delomboked source to build/src-javadoc, stripping @NonNull annotations (workaround for JDK-8175533)."
+        from("build/src-delomboked")
+        into("build/src-javadoc")
+        filter { String line ->
+            // Preserve Javadoc comment lines verbatim.
+            if (line.trim().startsWith('///')) return line
+            // Drop @NonNull import; it becomes unused once @NonNull is stripped below.
+            if (line.trim() == 'import lombok.NonNull;') return ''
+            // Strip @NonNull annotations; null constraints are documented via @param/@throws tags.
+            return line.replaceAll('@NonNull(?=\\s|$)', '')
+        }
+    }
+
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
         options.debug = true
@@ -193,8 +220,8 @@ subprojects {
     }
 
     javadoc {
-        dependsOn(delombok)
-        source = ["build/src-delomboked"]
+        dependsOn(prepareJavadocSource)     // See prepareJavadocSource task (workaround for JDK-8175533).
+        source = ["build/src-javadoc"]      // See prepareJavadocSource task (workaround for JDK-8175533).
         options.encoding = "UTF-8"
         options.charSet = "UTF-8"
         options.docEncoding = "UTF-8"

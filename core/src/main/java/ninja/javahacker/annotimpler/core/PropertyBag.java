@@ -94,11 +94,13 @@ public final class PropertyBag {
         return kv.cast(obj);
     }
 
+    /// Returns a hash code consistent with [equals], derived from the underlying property map.
     @Override
     public int hashCode() {
         return properties.hashCode();
     }
 
+    /// Returns a string representation of the properties in this bag.
     @NonNull
     @Override
     public String toString() {
