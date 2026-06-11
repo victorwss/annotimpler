@@ -11,9 +11,9 @@
 /// constructors, single-constructor classes, and default (no-arg) constructors.
 ///
 /// Supporting utilities include:
-/// - [MethodWrapper] — a unified reflective wrapper over constructors, methods, and fields
-/// - [Methods] — predicate and invocation helpers for `java.lang.reflect.Method`
-/// - [NameDictionary] — caches per-class type-name disambiguation for readable signatures
-/// - [TypeName] — formats `java.lang.reflect.Type` values as human-readable strings
-/// - [WrapperClass] — maps primitive types to their wrapper counterparts and vice-versa
+/// - [MethodWrapper] — A unified reflective wrapper over constructors, methods, and fields.
+/// - [Methods] — Predicate and invocation helpers for `java.lang.reflect.Method`.
+/// - [NameDictionary] — Caches per-class type-name disambiguation for readable signatures.
+/// - [TypeName] — Formats `java.lang.reflect.Type` values as human-readable strings.
+/// - [WrapperClass] — Maps primitive types to their wrapper counterparts and vice-versa.
 package ninja.javahacker.annotimpler.magicfactory;

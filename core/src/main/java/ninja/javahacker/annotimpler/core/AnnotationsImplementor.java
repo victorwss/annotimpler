@@ -37,7 +37,7 @@ public final class AnnotationsImplementor {
 
     @NonNull
     private static String name(@NonNull Method m) {
-        checkNotNull(m);
+        checkNotNull(m); // Check recognized by lombok.
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
@@ -67,7 +67,7 @@ public final class AnnotationsImplementor {
                 var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
                 throw new BadImplementationException(msg, m.getDeclaringClass());
             }
-            return (instance, args) -> {
+            return (@NonNull E instance, @NonNull Object... args) -> {
                 checkNotNull(instance);
                 checkNotNull(args);
                 return InvocationHandler.invokeDefault(instance, m, args);
@@ -96,7 +96,8 @@ public final class AnnotationsImplementor {
             if (mf.arity() != 0) {
                 throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with no arguments.", mc);
             }
-            var c = mf.create().<E>prepare(m, props);
+            @SuppressWarnings("unchecked")
+            var c = mf.create().prepare(iface, m, props);
             if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
             return c;
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {
@@ -128,7 +129,7 @@ public final class AnnotationsImplementor {
     /// @param iface The interface to implement; must not be `null` and must be an interface type.
     /// @param props The property bag to pass to each [Implementation#prepare] call;
     ///              if `null`, the root (empty) bag is used.
-    /// @return a proxy object implementing `iface`.
+    /// @return A proxy object implementing `iface`.
     /// @throws BadImplementationException If any method of `iface` cannot be implemented.
     /// @throws UnsupportedOperationException If `iface` is not an interface.
     /// @throws IllegalArgumentException If `iface` is `null`.
@@ -151,7 +152,7 @@ public final class AnnotationsImplementor {
         meths.put(Methods.HASH_CODE, DefaultImplementation.forHashCode());
         meths.put(Methods.TO_STRING, DefaultImplementation.forToString(iface));
 
-        InvocationHandler ih = (p, m, a) -> {
+        InvocationHandler ih = (@NonNull Object p, @NonNull Method m, @Nullable Object... a) -> {
             checkNotNull(p);
             checkNotNull(m);
             var impl = meths.get(m);

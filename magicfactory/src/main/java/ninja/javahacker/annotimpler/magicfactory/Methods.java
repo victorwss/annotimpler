@@ -62,45 +62,45 @@ public final class Methods {
 
     /// Returns `true` if `m` has the `static` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if static
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if static.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isStatic(@NonNull Method m) {
         return Modifier.isStatic(m.getModifiers());
     }
 
     /// Returns `true` if `m` does **not** have the `static` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if not static
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` If not static.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isVirtual(@NonNull Method m) {
         return !Modifier.isStatic(m.getModifiers());
     }
 
     /// Returns `true` if `m` has the `public` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if public
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if public.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isPublic(@NonNull Method m) {
         return Modifier.isPublic(m.getModifiers());
     }
 
     /// Returns `true` if `m` has the `private` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if private
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if private.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isPrivate(@NonNull Method m) {
         return Modifier.isPrivate(m.getModifiers());
     }
 
     /// Returns `true` if `m` has the `protected` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if protected
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if protected.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isProtected(@NonNull Method m) {
         return Modifier.isProtected(m.getModifiers());
     }
@@ -108,27 +108,27 @@ public final class Methods {
     /// Returns `true` if `m` has package-private (default) access — i.e. it is neither
     /// `public`, `protected`, nor `private`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if package-private
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if package-private.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isPackageProtected(@NonNull Method m) {
         return !isPublic(m) && !isPrivate(m) && !isProtected(m);
     }
 
     /// Returns `true` if `m` has the `abstract` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if abstract
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if abstract.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isAbstract(@NonNull Method m) {
         return Modifier.isAbstract(m.getModifiers());
     }
 
     /// Returns `true` if `m` does **not** have the `abstract` modifier.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if not abstract
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if not abstract.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isConcrete(@NonNull Method m) {
         return !Modifier.isAbstract(m.getModifiers());
     }
@@ -136,9 +136,9 @@ public final class Methods {
     /// Returns `true` if `m` cannot be overridden — i.e. it is `final`, `private`, `static`,
     /// or declared in a `final` class.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if the method cannot be overridden
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if the method cannot be overridden.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isFinal(@NonNull Method m) {
         return Modifier.isFinal(m.getModifiers())
                 || Modifier.isPrivate(m.getModifiers())
@@ -151,91 +151,91 @@ public final class Methods {
     ///
     /// Equivalent to `!isFinal(m)`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if overridable
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if overridable.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isOverridable(@NonNull Method m) {
         return !isFinal(m);
     }
 
     /// Returns `true` if `m` is a default interface method.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if the method is a default interface method
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if the method is a default interface method.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isDefault(@NonNull Method m) {
         return m.isDefault();
     }
 
     /// Returns `true` if `m` is a synthetic (compiler-generated) method.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if synthetic
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if synthetic.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isSynthetic(@NonNull Method m) {
         return m.isSynthetic();
     }
 
     /// Returns `true` if `m` accepts a variable number of arguments.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if varargs
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if varargs.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isVarArgs(@NonNull Method m) {
         return m.isVarArgs();
     }
 
-    /// Returns `true` if `m` is one of the non-overridable intrinsic methods of [Object]
+    /// Returns `true` if `m` is one of the un-overrided intrinsic methods of [Object]
     /// (`wait`, `notify`, `notifyAll`, `getClass`, `clone`, `finalize`).
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if the method is an [Object] intrinsic
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if the method is an [Object] intrinsic.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isObjectIntrinsic(@NonNull Method m) {
         return INTRINSICS.contains(m);
     }
 
     /// Returns `true` if `m` is a no-arg method named `"finalize"`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if finalize
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if finalize.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isFinalize(@NonNull Method m) {
         return m.getParameterCount() == 0 && "finalize".equals(m.getName());
     }
 
     /// Returns `true` if `m` is a no-arg method named `"clone"`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if clone
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if clone.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isClone(@NonNull Method m) {
         return m.getParameterCount() == 0 && "clone".equals(m.getName());
     }
 
     /// Returns `true` if `m` is a no-arg method named `"toString"`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if toString
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if toString.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isToString(@NonNull Method m) {
         return m.getParameterCount() == 0 && "toString".equals(m.getName());
     }
 
     /// Returns `true` if `m` is a no-arg method named `"hashCode"`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if hashCode
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if hashCode.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isHashCode(@NonNull Method m) {
         return m.getParameterCount() == 0 && "hashCode".equals(m.getName());
     }
 
     /// Returns `true` if `m` is a single-[Object]-parameter method named `"equals"`.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if equals
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if equals.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isEquals(@NonNull Method m) {
         return m.getParameterCount() == 1 && "equals".equals(m.getName()) && m.getParameterTypes()[0] == Object.class;
     }
@@ -246,9 +246,9 @@ public final class Methods {
     /// `equals`, or is one of the [Object] intrinsics. Simple methods typically do not require
     /// annotation-driven behaviour in the `core` module.
     ///
-    /// @param m the method to test; must not be `null`
-    /// @return `true` if the method is simple
-    /// @throws IllegalArgumentException if `m` is `null`
+    /// @param m The method to test; must not be `null`.
+    /// @return `true` if the method is simple.
+    /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isSimple(@NonNull Method m) {
         var mods = m.getModifiers();
         return m.isSynthetic()
@@ -264,11 +264,11 @@ public final class Methods {
     ///
     /// Delegates to [MethodWrapper#paramMap(Object...)].
     ///
-    /// @param what the executable; must not be `null`
-    /// @param args the arguments (and optional receiver); must not be `null`
-    /// @return a map from parameter names to argument values; never `null`
-    /// @throws IllegalArgumentException if `what` or `args` is `null`, or if the argument
-    ///         list is incompatible with the executable's signature
+    /// @param what The executable; must not be `null`.
+    /// @param args The arguments (and optional receiver); must not be `null`.
+    /// @return A map from parameter names to argument values; never `null`.
+    /// @throws IllegalArgumentException If `what` or `args` is `null`, or if the argument.
+    ///         list is incompatible with the executable's signature.
     @NonNull
     public static Map<String, Object> paramMap(@NonNull Executable what, @NonNull Object... args) {
         return MethodWrapper.of(what).paramMap(args);
@@ -284,10 +284,10 @@ public final class Methods {
 
     /// Returns the generic return type of a [Constructor] — its declaring class.
     ///
-    /// @param <E>  the constructed type
-    /// @param what the constructor; must not be `null`
-    /// @return the declaring class; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The constructed type.
+    /// @param what The constructor; must not be `null`.
+    /// @return The declaring class; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> Class<E> getReturnType(@NonNull Constructor<E> what) {
         return what.getDeclaringClass();
@@ -295,9 +295,9 @@ public final class Methods {
 
     /// Returns the generic return type of the given [Method].
     ///
-    /// @param what the method; must not be `null`
-    /// @return the generic return type; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param what The method; must not be `null`.
+    /// @return The generic return type; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static Type getReturnType(@NonNull Method what) {
         return what.getGenericReturnType();
@@ -305,14 +305,32 @@ public final class Methods {
 
     /// Returns the generic type of the given [Field].
     ///
-    /// @param field the field; must not be `null`
-    /// @return the generic field type; never `null`
-    /// @throws IllegalArgumentException if `field` is `null`
+    /// @param field The field; must not be `null`.
+    /// @return The generic field type; never `null`.
+    /// @throws IllegalArgumentException If `field` is `null`.
     @NonNull
     public static Type getReturnType(@NonNull Field field) {
         return field.getGenericType();
     }
 
+    /// Invokes the given [Method] with the supplied arguments.
+    ///
+    /// For **static** methods and constructors, `args` are the method or constructor arguments.
+    /// For **instance** methods, `args[0]` is the receiver and subsequent elements are the
+    /// method arguments. If no `args` are supplied for an instance method, a
+    /// [NullPointerException] is thrown.
+    ///
+    /// @param what The method or constructor to invoke; must not be `null`.
+    /// @param args The arguments (and optional receiver); must not be `null`.
+    /// @return The return value, or `null` for `void` methods or `null` results.
+    /// @throws IllegalAccessException If the method or constructor is not accessible.
+    /// @throws InvocationTargetException If the method or constructor throws an exception.
+    /// @throws InstantiationException If the class is abstract and `what` is a constructor.
+    /// @throws NullPointerException If the method is an instance method and the receiver is `null` or `args` is zero-length.
+    /// @throws IllegalArgumentException If `what` or `args` is `null` or if the `args` do not match the `what` signature.
+    /// @throws ExceptionInInitializerError If the invocation of `what` tries to initialize a class, but the initialization fails.
+    /// @see Method#invoke(Object, Object...)
+    /// @see Constructor#newInstance(Object...)
     @Nullable
     @Generated
     public static Object invoke(@NonNull Executable what, @NonNull Object... args)
@@ -325,14 +343,16 @@ public final class Methods {
 
     /// Invokes the given [Constructor] with the supplied arguments.
     ///
-    /// @param <E>  the constructed type
-    /// @param what the constructor to invoke; must not be `null`
-    /// @param args the constructor arguments; must not be `null`
-    /// @return the newly created instance; never `null`
-    /// @throws IllegalAccessException    if the constructor is not accessible
-    /// @throws InvocationTargetException if the constructor throws an exception
-    /// @throws InstantiationException    if the class is abstract
-    /// @throws IllegalArgumentException  if `what` or `args` is `null`
+    /// @param <E> The constructed type.
+    /// @param what The constructor to invoke; must not be `null`.
+    /// @param args The constructor arguments; must not be `null`.
+    /// @return The newly created instance; never `null` since constructors can't return `null`.
+    /// @throws IllegalAccessException If the constructor is not accessible.
+    /// @throws InvocationTargetException If the constructor throws an exception.
+    /// @throws InstantiationException If the class is abstract.
+    /// @throws IllegalArgumentException If `what` or `args` is `null` or if the `args` do not match the `what` signature.
+    /// @throws ExceptionInInitializerError If the invocation of `what` tries to initialize a class, but the initialization fails.
+    /// @see Constructor#newInstance(Object...)
     @NonNull
     public static <E> E invoke(@NonNull Constructor<E> what, @NonNull Object... args)
             throws IllegalAccessException, InvocationTargetException, InstantiationException
@@ -358,20 +378,20 @@ public final class Methods {
     ///
     /// For **static** methods, `args` are the method arguments.
     /// For **instance** methods, `args[0]` is the receiver and subsequent elements are the
-    /// method arguments. If no args are supplied for an instance method, a
+    /// method arguments. If no `args` are supplied for an instance method, a
     /// [NullPointerException] is thrown.
     ///
-    /// @param what the method to invoke; must not be `null`
-    /// @param args the arguments (and optional receiver); must not be `null`
-    /// @return the return value, or `null` for `void` methods or `null` results
-    /// @throws IllegalAccessException    if the method is not accessible
-    /// @throws InvocationTargetException if the method throws an exception
-    /// @throws InstantiationException    not thrown; declared for API uniformity
-    /// @throws IllegalArgumentException  if `what` or `args` is `null`
+    /// @param what The method to invoke; must not be `null`.
+    /// @param args The arguments (and optional receiver); must not be `null`.
+    /// @return The return value, or `null` for `void` methods or `null` results.
+    /// @throws IllegalAccessException If the method is not accessible.
+    /// @throws InvocationTargetException If the method throws an exception.
+    /// @throws NullPointerException If the method is an instance method and the receiver is `null` or `args` is zero-length.
+    /// @throws IllegalArgumentException If `what` or `args` is `null` or if the `args` do not match the `what` signature.
+    /// @throws ExceptionInInitializerError If the invocation of `what` tries to initialize a class, but the initialization fails.
+    /// @see Method#invoke(Object, Object...)
     @Nullable
-    public static Object invoke(@NonNull Method what, @NonNull Object... args)
-            throws IllegalAccessException, InvocationTargetException, InstantiationException
-    {
+    public static Object invoke(@NonNull Method what, @NonNull Object... args) throws IllegalAccessException, InvocationTargetException {
         if (Modifier.isStatic(what.getModifiers())) return what.invoke(null, args);
         if (args.length == 0) throw npe(what);
         var inst = args[0];

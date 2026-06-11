@@ -52,7 +52,7 @@ public final class NameDictionary {
         private final Map<String, Class<?>> simpleNamesSeen;
 
         private ClassDictionary(@NonNull Class<T> k) {
-            checkNotNull(k);
+            checkNotNull(k); // Check recognized by lombok.
             this.klass = k;
             this.seen = new HashSet<>(20);
             this.fullNameNeeded = new HashSet<>(20);
@@ -82,25 +82,25 @@ public final class NameDictionary {
         }
 
         private void add(@NonNull Type[] ts) {
-            checkNotNull(ts);
+            checkNotNull(ts); // Check recognized by lombok.
             add(new HashSet<>(10), ts);
         }
 
         private void add(@NonNull Type t) {
-            checkNotNull(t);
+            checkNotNull(t); // Check recognized by lombok.
             add(new HashSet<>(10), t);
         }
 
         private void add(@NonNull Set<Type> partial, @NonNull Type[] ts) {
-            checkNotNull(partial);
-            checkNotNull(ts);
+            checkNotNull(partial); // Check recognized by lombok.
+            checkNotNull(ts); // Check recognized by lombok.
             for (var t : ts) {
                 add(partial, t);
             }
         }
 
         private void add(@NonNull Set<Type> partial, @Nullable Type t) {
-            checkNotNull(partial);
+            checkNotNull(partial); // Check recognized by lombok.
             if (t == null || partial.contains(t)) return;
             partial.add(t);
             try {
@@ -127,8 +127,8 @@ public final class NameDictionary {
         }
 
         private void addClass(@NonNull Set<Type> partial, @NonNull Class<?> klass) {
-            checkNotNull(partial);
-            checkNotNull(klass);
+            checkNotNull(partial); // Check recognized by lombok.
+            checkNotNull(klass); // Check recognized by lombok.
             if (klass.isArray()) {
                 add(partial, klass.getComponentType());
                 return;
@@ -153,8 +153,8 @@ public final class NameDictionary {
         }
 
         private void formatParameterTypes(@NonNull Executable method, @NonNull StringBuilder sb) {
-            checkNotNull(method);
-            checkNotNull(sb);
+            checkNotNull(method); // Check recognized by lombok.
+            checkNotNull(sb); // Check recognized by lombok.
             var paramTypes = method.getGenericParameterTypes();
             for (var i = 0; i < paramTypes.length; i++) {
                 if (i > 0) sb.append(", ");
@@ -163,14 +163,14 @@ public final class NameDictionary {
         }
 
         private void formatType(@NonNull Type type, @NonNull StringBuilder sb) {
-            checkNotNull(type);
-            checkNotNull(sb);
+            checkNotNull(type); // Check recognized by lombok.
+            checkNotNull(sb); // Check recognized by lombok.
             TypeName.formatType(type, fullNameNeeded, sb);
         }
 
         @NonNull
         private String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
-            checkNotNull(what);
+            checkNotNull(what); // Check recognized by lombok.
             assertSame(what.getDeclaringClass(), klass);
             var sb = new StringBuilder(256);
 
@@ -179,7 +179,7 @@ public final class NameDictionary {
                 sb.append("/");
             }
 
-            // Parâmetros de tipo.
+            // Type parameters.
             if (what.getTypeParameters().length > 0) {
                 sb.append("<");
                 var typeParams = what.getTypeParameters();
@@ -200,20 +200,20 @@ public final class NameDictionary {
                 sb.append("> ");
             }
 
-            // Tipo de retorno.
+            // Return type.
             formatType(Methods.getReturnType(what), sb);
 
             if (what instanceof Method) {
                 sb.append(" ");
 
-                // Nome da classe.
+                // Class name.
                 sb.append(what.getDeclaringClass().getSimpleName()).append(".");
 
-                // Nome do método.
+                // Method name.
                 sb.append(what.getName());
             }
 
-            // Parâmetros.
+            // Parameters.
             sb.append("(");
             formatParameterTypes(what, sb);
             sb.append(")");
@@ -223,7 +223,7 @@ public final class NameDictionary {
 
         @NonNull
         private String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
-            checkNotNull(field);
+            checkNotNull(field); // Check recognized by lombok.
             assertSame(field.getDeclaringClass(), klass);
             var sb = new StringBuilder(256);
 
@@ -232,15 +232,15 @@ public final class NameDictionary {
                 sb.append("/");
             }
 
-            // Tipo de retorno.
+            // Return type.
             formatType(Methods.getReturnType(field), sb);
             sb.append(" ");
 
-            // Nome da classe.
+            // Class name.
             formatType(field.getDeclaringClass(), sb);
             sb.append(".");
 
-            // Nome do método.
+            // Method name.
             sb.append(field.getName());
 
             return sb.toString();
@@ -250,7 +250,7 @@ public final class NameDictionary {
     @NonNull
     @SuppressWarnings("unchecked")
     private <T> ClassDictionary<T> getFor(@NonNull Class<T> klass) {
-        checkNotNull(klass);
+        checkNotNull(klass); // Check recognized by lombok.
         synchronized (lock) {
             var d = (ClassDictionary<T>) map.get(klass);
             if (d != null) return d;
@@ -266,10 +266,10 @@ public final class NameDictionary {
     /// class names where unambiguous. If `withClassName` is `true`, the declaring class name
     /// is prepended followed by `/`.
     ///
-    /// @param what          the method or constructor; must not be `null`
-    /// @param withClassName whether to prefix the result with the declaring class name
-    /// @return a human-readable signature string; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param what The method or constructor; must not be `null`.
+    /// @param withClassName Whether to prefix the result with the declaring class name.
+    /// @return A human-readable signature string; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
         var cl = getFor(what.getDeclaringClass());
@@ -282,10 +282,10 @@ public final class NameDictionary {
     /// unambiguous. If `withClassName` is `true`, the declaring class name is prepended
     /// followed by `/`.
     ///
-    /// @param field         the field; must not be `null`
-    /// @param withClassName whether to prefix the result with the declaring class name
-    /// @return a human-readable field signature string; never `null`
-    /// @throws IllegalArgumentException if `field` is `null`
+    /// @param field The field; must not be `null`.
+    /// @param withClassName Whether to prefix the result with the declaring class name.
+    /// @return A human-readable field signature string; never `null`.
+    /// @throws IllegalArgumentException If `field` is `null`.
     @NonNull
     public String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
         var cl = getFor(field.getDeclaringClass());
@@ -294,7 +294,7 @@ public final class NameDictionary {
 
     /// Returns the process-wide singleton `NameDictionary`.
     ///
-    /// @return the global instance; never `null`
+    /// @return The global instance; never `null`.
     @NonNull
     public static NameDictionary global() {
         return GLOBAL_INSTANCE;

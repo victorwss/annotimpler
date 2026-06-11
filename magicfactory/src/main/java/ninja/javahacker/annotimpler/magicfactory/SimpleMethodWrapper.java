@@ -18,11 +18,12 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     public static final List<Type> EMPTY2 = List.of();
 
     @NonNull
+    @SuppressWarnings("Convert2Lambda") // Can't use a lambda because the return type is generic.
     public static final Annotator NULL_ANNOTATOR = new Annotator() {
         @Nullable
         @Override
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass) {
-            checkNotNull(annoClass);
+            checkNotNull(annoClass); // Check recognized by lombok.
             return null;
         }
     };

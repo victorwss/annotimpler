@@ -136,7 +136,7 @@ public enum MultiFormatters {
         var digit4 = "[0-9]{4}";
         var digit2 = "[0-9]{2}";
         var dateSeparatorRegex = dot ? "\\." : slash ? "/" : "\\-";
-        var dateSeparatorPlain = dot ? "." : slash ? "/" : "-";
+        var dateSeparatorPlain = dot ? '.' : slash ? '/' : '-';
         var dateRegex = ymd || iso
                 ? digit4 + dateSeparatorRegex + digit2 + dateSeparatorRegex + digit2
                 : digit2 + dateSeparatorRegex + digit2 + dateSeparatorRegex + digit4;
@@ -151,7 +151,7 @@ public enum MultiFormatters {
             this.formatterDT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             this.formatterD = DateTimeFormatter.ISO_LOCAL_DATE;
         } else {
-            var formatD = (ymd ? "uuuu'-'MM'-'dd" : dmy ? "dd'-'MM'-'uuuu" : "MM'-'dd'-'uuuu").replace("-", dateSeparatorPlain);
+            var formatD = (ymd ? "uuuu'-'MM'-'dd" : dmy ? "dd'-'MM'-'uuuu" : "MM'-'dd'-'uuuu").replace('-', dateSeparatorPlain);
             var formatDTZ = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
             var formatDT = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS";
             this.formatterDTZ = DateTimeFormatter.ofPattern(formatDTZ).withResolverStyle(ResolverStyle.STRICT);
@@ -234,10 +234,10 @@ public enum MultiFormatters {
     /// The input is first parsed as an [OffsetDateTime] (with UTC assumed when no timezone is present),
     /// then converted to an [Instant].
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [Instant]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [Instant].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public Instant parseInstant(@NonNull String input) throws DateTimeParseException {
         return parseOffsetDateTime(input).toInstant();
@@ -248,10 +248,10 @@ public enum MultiFormatters {
     /// If the input contains an explicit timezone offset, it is used directly.
     /// If no timezone is present, the input is parsed as a local date-time and UTC offset is assumed.
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [OffsetDateTime]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [OffsetDateTime].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public OffsetDateTime parseOffsetDateTime(@NonNull String input) throws DateTimeParseException {
         try {
@@ -271,10 +271,10 @@ public enum MultiFormatters {
     /// If the input contains an explicit timezone offset, it is used directly.
     /// If no timezone is present, the input is parsed as a local date-time and UTC zone is assumed.
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [ZonedDateTime]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [ZonedDateTime].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public ZonedDateTime parseZonedDateTime(@NonNull String input) throws DateTimeParseException {
         try {
@@ -293,10 +293,10 @@ public enum MultiFormatters {
     ///
     /// If the input contains only a date (no time component), midnight ([LocalTime#MIN]) is assumed.
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [LocalDateTime]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [LocalDateTime].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalDateTime parseLocalDateTime(@NonNull String input) throws DateTimeParseException {
         try {
@@ -313,10 +313,10 @@ public enum MultiFormatters {
 
     /// Parses the given string as a [LocalDate].
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [LocalDate]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [LocalDate].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalDate parseLocalDate(@NonNull String input) throws DateTimeParseException {
         return parse(input, LocalDate::parse, true);
@@ -327,10 +327,10 @@ public enum MultiFormatters {
     /// If the input contains an explicit timezone offset, it is used directly.
     /// If no timezone is present, the input is parsed as a local time and UTC offset is assumed.
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [OffsetTime]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input the string to parse; must not be `null`.
+    /// @return the parsed [OffsetTime].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public OffsetTime parseOffsetTime(@NonNull String input) throws DateTimeParseException {
         try {
@@ -347,10 +347,10 @@ public enum MultiFormatters {
 
     /// Parses the given string as a [LocalTime].
     ///
-    /// @param input the string to parse; must not be null
-    /// @return the parsed [LocalTime]
-    /// @throws DateTimeParseException if the input cannot be parsed according to this format
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The string to parse; must not be `null`.
+    /// @return The parsed [LocalTime].
+    /// @throws DateTimeParseException If the input cannot be parsed according to this format.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalTime parseLocalTime(@NonNull String input) throws DateTimeParseException {
         return parse(input, LocalTime::parse, false);
@@ -385,9 +385,9 @@ public enum MultiFormatters {
     /// The instant is converted to [LocalDateTime] at UTC before formatting.
     /// The output does **not** include a timezone indicator.
     ///
-    /// @param input the instant to format; must not be null
-    /// @return the formatted local date-time string in UTC
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The instant to format; must not be `null`.
+    /// @return The formatted local date-time string in UTC.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull Instant input) {
         return format(LocalDateTime.ofInstant(input, ZoneOffset.UTC));
@@ -397,9 +397,9 @@ public enum MultiFormatters {
     ///
     /// Trailing zeros in sub-second fractions are stripped from the output.
     ///
-    /// @param input the date-time to format; must not be null
-    /// @return the formatted date-time-with-timezone string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The date-time to format; must not be `null`.
+    /// @return The formatted date-time-with-timezone string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull OffsetDateTime input) {
         return removeExcessZeros(formatterDTZ.format(input));
@@ -410,9 +410,9 @@ public enum MultiFormatters {
     /// Only the UTC offset at the given instant is included in the output; the zone-region ID is not.
     /// Trailing zeros in sub-second fractions are stripped from the output.
     ///
-    /// @param input the date-time to format; must not be null
-    /// @return the formatted date-time-with-timezone string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The date-time to format; must not be `null`.
+    /// @return The formatted date-time-with-timezone string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull ZonedDateTime input) {
         return removeExcessZeros(formatterDTZ.format(input));
@@ -422,9 +422,9 @@ public enum MultiFormatters {
     ///
     /// Trailing zeros in sub-second fractions are stripped from the output.
     ///
-    /// @param input the date-time to format; must not be null
-    /// @return the formatted date-time string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The date-time to format; must not be `null`.
+    /// @return The formatted date-time string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull LocalDateTime input) {
         return removeExcessZeros(formatterDT.format(input));
@@ -432,9 +432,9 @@ public enum MultiFormatters {
 
     /// Formats a [LocalDate] as a string using this formatter's date notation.
     ///
-    /// @param input the date to format; must not be null
-    /// @return the formatted date string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The date to format; must not be `null`.
+    /// @return The formatted date string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull LocalDate input) {
         return formatterD.format(input);
@@ -444,9 +444,9 @@ public enum MultiFormatters {
     ///
     /// Trailing zeros in sub-second fractions are stripped from the output.
     ///
-    /// @param input the time to format; must not be null
-    /// @return the formatted time-with-timezone string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The time to format; must not be `null`.
+    /// @return The formatted time-with-timezone string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull OffsetTime input) {
         return removeExcessZeros(formatterTZ().format(input));
@@ -456,9 +456,9 @@ public enum MultiFormatters {
     ///
     /// Trailing zeros in sub-second fractions are stripped from the output.
     ///
-    /// @param input the time to format; must not be null
-    /// @return the formatted time string
-    /// @throws IllegalArgumentException if `input` is null
+    /// @param input The time to format; must not be `null`.
+    /// @return The formatted time string.
+    /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull LocalTime input) {
         return removeExcessZeros(formatterT().format(input));

@@ -29,7 +29,7 @@ public final class PropertyBag {
     }
 
     private PropertyBag(@NonNull Map<KeyProperty<?>, Object> properties) {
-        checkNotNull(properties);
+        checkNotNull(properties); // Check recognized by lombok.
         this.properties = Map.copyOf(properties);
     }
 
@@ -80,7 +80,7 @@ public final class PropertyBag {
 
     /// Returns the value associated with the given key.
     ///
-    /// @param <V> The value type
+    /// @param <V> The value type.
     /// @param key The property key; must not be `null`.
     /// @return The value associated with `key`; never `null`.
     /// @throws PropertyNotFoundException If this bag contains no value for `key`.
@@ -114,7 +114,7 @@ public final class PropertyBag {
     /// Returns `true` if `other` is a [PropertyBag] with the same key-value pairs as this bag.
     ///
     /// @param other The object to which this instance will be compared against for equality.
-    /// @return `true` if `other` is a [PropertyBag] with the same key-value pairs as this bag, `false` otherwise.
+    /// @return If `other` is a [PropertyBag] with the same key-value pairs as this bag.
     @Override
     public boolean equals(@Nullable Object other) {
         return other instanceof PropertyBag pb && Objects.equals(pb.properties, this.properties);

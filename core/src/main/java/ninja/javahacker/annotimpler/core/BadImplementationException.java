@@ -26,7 +26,7 @@ public class BadImplementationException extends Exception {
     ///             where the failure originated; must not be `null`.
     /// @throws IllegalArgumentException If `message` or `root` is `null`.
     public BadImplementationException(@NonNull String message, @NonNull Type root) {
-        List.of(message, root); // Force lombok put the null-checks before the constructor call.
+        List.of(message, root); // Force lombok to put the null-checks before the constructor call.
         super(message);
         this.root = root;
     }
@@ -39,7 +39,7 @@ public class BadImplementationException extends Exception {
     ///             where the failure originated; must not be `null`.
     /// @throws IllegalArgumentException If `message`, `cause`, or `root` is `null`.
     public BadImplementationException(@NonNull String message, @NonNull Throwable cause, @NonNull Type root) {
-        List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
+        List.of(message, cause, root); // Force lombok to put the null-checks before the constructor call.
         super(message, cause);
         this.root = root;
     }

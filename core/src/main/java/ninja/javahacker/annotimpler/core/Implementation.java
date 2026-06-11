@@ -22,11 +22,13 @@ public interface Implementation {
     /// This method is called once per annotated method during proxy construction.
     /// The returned [CallContext] is cached and reused for all subsequent calls to that method.
     ///
+    /// @param <E> The interface type whose the return context handles (or perhaps [Object]). The same as `k`.
+    /// @param k The type of the context. Should be the same or a supertype of the return type of `m`; must not be `null`.
     /// @param m The interface method for which a context is being prepared; must not be `null`.
     /// @param props The property bag provided to [AnnotationsImplementor#implement]; must not be `null`.
     /// @return The [CallContext] to use when `m` is invoked on the proxy; must not be `null`.
     /// @throws BadImplementationException If the method cannot be prepared for this implementation.
-    /// @throws IllegalArgumentException If `m` or `props` is `null`.
+    /// @throws IllegalArgumentException If `k`, `m` or `props` is `null`.
     @NonNull
-    public CallContext<?> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException;
+    public <E> CallContext<E> prepare(@NonNull Class<E> k, @NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException;
 }

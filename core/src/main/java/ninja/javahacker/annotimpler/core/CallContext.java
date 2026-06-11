@@ -12,7 +12,7 @@ import lombok.NonNull;
 /// Instances are produced by [Implementation#prepare] during proxy construction and
 /// are invoked by the proxy's invocation handler on each method call.
 ///
-/// @param <E> the interface type whose method this context handles.
+/// @param <E> The interface type whose method this context handles.
 ///
 /// @see Implementation
 /// @see AnnotationsImplementor

@@ -11,17 +11,17 @@ import module java.base;
 /// consistent API for invocation, type inspection, and annotation lookup.
 ///
 /// Instances are created via the static factory methods:
-/// - [#of(Method)] — wraps a static or instance method
-/// - [#of(Constructor)] — wraps a constructor
-/// - [#of(Executable)] — dispatches to the appropriate overload
-/// - [#getter(Field)] — wraps a field as a zero-argument getter
-/// - [#value(Object)] — wraps a constant value as a no-arg "method"
+/// - [#of(Method)] — Wraps a static or instance method.
+/// - [#of(Constructor)] — Wraps a constructor.
+/// - [#of(Executable)] — Dispatches to the appropriate overload.
+/// - [#getter(Field)] — Wraps a field as a zero-argument getter.
+/// - [#value(Object)] — Wraps a constant value as a no-arg "method".
 ///
 /// The type parameter `E` is the return type of the wrapped member. The type parameter `U`
 /// is the underlying reflective object type (e.g. `Method`, `Constructor<E>`, or `Field`).
 ///
-/// @param <E> the return type of the wrapped member
-/// @param <U> the underlying reflective object type
+/// @param <E> The return type of the wrapped member.
+/// @param <U> The underlying reflective object type.
 public interface MethodWrapper<E, U> {
 
     /// Invokes the wrapped member with the given arguments.
@@ -30,25 +30,25 @@ public interface MethodWrapper<E, U> {
     /// For **instance** members, `params[0]` must be the receiver object and subsequent
     /// elements the method arguments.
     ///
-    /// @param params the arguments (and optional receiver); must not be `null`
-    /// @return the result of the invocation, or `null` if the member has a `void` return type
-    /// @throws IllegalAccessException     if the underlying member is not accessible
-    /// @throws InstantiationException     if a constructor target class is abstract
-    /// @throws InvocationTargetException  if the underlying member throws an exception
-    /// @throws IllegalArgumentException   if `params` is `null` or the arguments do not match
-    ///         the member's signature
+    /// @param params The arguments (and optional receiver); must not be `null`.
+    /// @return The result of the invocation, or `null` if the member has a `void` return type.
+    /// @throws IllegalAccessException If the underlying member is not accessible.
+    /// @throws InstantiationException If a constructor target class is abstract.
+    /// @throws InvocationTargetException If the underlying member throws an exception.
+    /// @throws IllegalArgumentException If `params` is `null` or the arguments do not match
+    ///         the member's signature.
     @Nullable
     public E call(@NonNull Object... params) throws IllegalAccessException, InstantiationException, InvocationTargetException;
 
     /// Returns the generic parameter types of this wrapper, in declaration order.
     ///
-    /// @return an unmodifiable list of parameter types; never `null`
+    /// @return An unmodifiable list of parameter types; never `null`.
     @NonNull
     public List<Type> getParameterTypes();
 
     /// Returns the [Parameter] objects of this wrapper, in declaration order.
     ///
-    /// @return an unmodifiable list of parameters; never `null`
+    /// @return An unmodifiable list of parameters; never `null`.
     @NonNull
     public List<Parameter> getParameters();
 
@@ -57,54 +57,54 @@ public interface MethodWrapper<E, U> {
     /// For constructors, this is the declaring class. For fields, this is the field's generic
     /// type.
     ///
-    /// @return the return type; never `null`
+    /// @return The return type; never `null`.
     @NonNull
     public Type getReturnType();
 
     /// Returns the declaring class of the wrapped member if it is an instance (non-static)
     /// member, or an empty optional if it is static.
     ///
-    /// @return an optional containing the receiver type, or empty for static members;
-    ///         never `null`
+    /// @return An optional containing the receiver type, or empty for static members;
+    ///         never `null`.
     @NonNull
     public Optional<Class<?>> getInstanceType();
 
     /// Returns the annotation of the specified type on the wrapped member, if present.
     ///
-    /// @param <A>       the annotation type
-    /// @param annoClass the annotation class token; must not be `null`
-    /// @return an optional containing the annotation, or empty if not present; never `null`
-    /// @throws IllegalArgumentException if `annoClass` is `null`
+    /// @param <A> The annotation type.
+    /// @param annoClass The annotation class token; must not be `null`.
+    /// @return An optional containing the annotation, or empty if not present; never `null`.
+    /// @throws IllegalArgumentException If `annoClass` is `null`.
     @NonNull
     public <A extends Annotation> Optional<A> getAnnotation(@NonNull Class<A> annoClass);
 
     /// Returns the underlying reflective object (e.g. a [Method], [Constructor], or [Field]).
     ///
-    /// @return the wrapped reflective object, or `null` for constant-value wrappers
+    /// @return The wrapped reflective object, or `null` for constant-value wrappers.
     @Nullable
     public U unwrap();
 
     /// Returns `true` if the wrapped member has the `public` modifier.
     ///
-    /// @return `true` if public
+    /// @return `true` if public.
     public boolean isPublic();
 
     /// Returns `true` if the wrapped member is static, or always `true` for constructors.
     ///
-    /// @return `true` if static
+    /// @return `true` if static.
     public boolean isStatic();
 
     /// Returns `true` if the wrapped member is abstract (only applicable to methods in
     /// abstract or interface types), or `true` for constructors of abstract classes.
     ///
-    /// @return `true` if abstract
+    /// @return `true` if abstract.
     public boolean isAbstract();
 
     /// Returns the number of formal parameters of this wrapper.
     ///
     /// Equivalent to `getParameterTypes().size()`.
     ///
-    /// @return the arity, zero or positive
+    /// @return The arity, zero or positive.
     public default int arity() {
         return getParameterTypes().size();
     }
@@ -112,7 +112,7 @@ public interface MethodWrapper<E, U> {
     /// Returns a capitalized form of [Object#toString()], suitable for use at the start of a
     /// sentence.
     ///
-    /// @return the string representation with the first character upper-cased; never `null`
+    /// @return The string representation with the first character upper-cased; never `null`.
     @NonNull
     public default String toStringUp() {
         var x = this.toString();
@@ -123,9 +123,9 @@ public interface MethodWrapper<E, U> {
     ///
     /// Equivalent to `getAnnotation(annoClass).isPresent()`.
     ///
-    /// @param annoClass the annotation class token; must not be `null`
-    /// @return `true` if the annotation is present
-    /// @throws IllegalArgumentException if `annoClass` is `null`
+    /// @param annoClass The annotation class token; must not be `null`.
+    /// @return `true` if the annotation is present.
+    /// @throws IllegalArgumentException If `annoClass` is `null`.
     public default boolean isAnnotationPresent(@NonNull Class<? extends Annotation> annoClass) {
         return getAnnotation(annoClass).isPresent();
     }
@@ -137,10 +137,10 @@ public interface MethodWrapper<E, U> {
     /// For instance members, `args.length` must equal `arity() + 1`, and `args[0]` must be
     /// assignable to the receiver type.
     ///
-    /// @param args the arguments (including optional receiver); must not be `null`
-    /// @return a [LinkedHashMap] mapping names to values; never `null`
-    /// @throws IllegalArgumentException if `args` is `null`, if the length does not match,
-    ///         or if any argument type is incompatible
+    /// @param args The arguments (including optional receiver); must not be `null`.
+    /// @return A [LinkedHashMap] mapping names to values; never `null`.
+    /// @throws IllegalArgumentException If `args` is `null`, if the length does not match,
+    ///         or if any argument type is incompatible.
     @NonNull
     public default Map<String, Object> paramMap(@NonNull Object... args) {
         var pp = getParameters();
@@ -173,7 +173,7 @@ public interface MethodWrapper<E, U> {
     /// This unchecked cast is safe for use in contexts where the underlying type `U` is not
     /// needed.
     ///
-    /// @return this wrapper with `U` erased to `Object`; never `null`
+    /// @return This wrapper with `U` erased to `Object`; never `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public default MethodWrapper<E, Object> eraseU() {
@@ -185,10 +185,10 @@ public interface MethodWrapper<E, U> {
     /// If the method is **static**, `call` expects `args` matching the declared parameters.
     /// If it is an **instance** method, `args[0]` must be the receiver.
     ///
-    /// @param <E>  the return type of the method
-    /// @param what the method to wrap; must not be `null`
-    /// @return a new `MethodWrapper`; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The return type of the method.
+    /// @param what The method to wrap; must not be `null`.
+    /// @return A new `MethodWrapper`; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, Method> of(@NonNull Method what) {
@@ -214,10 +214,10 @@ public interface MethodWrapper<E, U> {
 
     /// Creates a wrapper for the given [Constructor].
     ///
-    /// @param <E>  the type constructed
-    /// @param what the constructor to wrap; must not be `null`
-    /// @return a new `MethodWrapper`; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The type constructed.
+    /// @param what The constructor to wrap; must not be `null`.
+    /// @return A new `MethodWrapper`; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> MethodWrapper<E, Constructor<E>> of(@NonNull Constructor<E> what) {
         var params = List.of(what.getParameters());
@@ -233,10 +233,10 @@ public interface MethodWrapper<E, U> {
     /// Creates a wrapper for the given [Executable], dispatching to [#of(Method)] or
     /// [#of(Constructor)] as appropriate.
     ///
-    /// @param <E>  the return type
-    /// @param what the executable to wrap; must not be `null`
-    /// @return a new `MethodWrapper`; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The return type.
+    /// @param what The executable to wrap; must not be `null`.
+    /// @return A new `MethodWrapper`; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @Generated
     @SuppressWarnings("unchecked")
@@ -251,10 +251,10 @@ public interface MethodWrapper<E, U> {
     /// For a **static** field, `call` expects an empty `args` array.
     /// For an **instance** field, `args[0]` must be the field's declaring class instance.
     ///
-    /// @param <E>  the field type
-    /// @param what the field to wrap as a getter; must not be `null`
-    /// @return a new `MethodWrapper`; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The field type.
+    /// @param what The field to wrap as a getter; must not be `null`.
+    /// @return A new `MethodWrapper`; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, Field> getter(@NonNull Field what) {
@@ -277,10 +277,10 @@ public interface MethodWrapper<E, U> {
     /// Typically used for enum singletons. The wrapper reports itself as public and static,
     /// with zero parameters and the runtime class of `what` as its return type.
     ///
-    /// @param <E>  the value type
-    /// @param what the constant value to wrap; must not be `null`
-    /// @return a new `MethodWrapper`; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param <E> The value type.
+    /// @param what The constant value to wrap; must not be `null`.
+    /// @return A new `MethodWrapper`; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> MethodWrapper<E, E> value(@NonNull E what) {
         var params = SimpleMethodWrapper.EMPTY1;

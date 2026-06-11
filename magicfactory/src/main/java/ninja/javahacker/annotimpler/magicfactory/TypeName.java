@@ -28,11 +28,10 @@ public final class TypeName {
     /// - [GenericArrayType] values append `[]` after the component type.
     /// - [WildcardType] values append `?`, optionally with `extends` or `super` bounds.
     ///
-    /// @param type          the type to format; must not be `null`
-    /// @param fullNameNeeded the set of classes that require fully qualified names; must not
-    ///         be `null`
-    /// @param sb            the string builder to append to; must not be `null`
-    /// @throws IllegalArgumentException if any parameter is `null`
+    /// @param type The type to format; must not be `null`.
+    /// @param fullNameNeeded The set of classes that require fully qualified names; must not be `null`.
+    /// @param sb The string builder to append to; must not be `null`.
+    /// @throws IllegalArgumentException If any parameter is `null`.
     public static void formatType(@NonNull Type type, @NonNull Set<? extends Class<?>> fullNameNeeded, @NonNull StringBuilder sb) {
         switch (type) {
             case Class<?> clazz -> {
@@ -87,11 +86,10 @@ public final class TypeName {
     /// Returns a human-readable string representation of `what`, using simple names for
     /// classes not in `fullNameNeeded`.
     ///
-    /// @param what          the type to format; must not be `null`
-    /// @param fullNameNeeded the set of classes that require fully qualified names; must not
-    ///         be `null`
-    /// @return the formatted type string; never `null`
-    /// @throws IllegalArgumentException if `what` or `fullNameNeeded` is `null`
+    /// @param what The type to format; must not be `null`.
+    /// @param fullNameNeeded The set of classes that require fully qualified names; must not be `null`.
+    /// @return The formatted type string; never `null`.
+    /// @throws IllegalArgumentException If `what` or `fullNameNeeded` is `null`.
     @NonNull
     public static String of(@NonNull Type what, @NonNull Set<? extends Class<?>> fullNameNeeded) {
         var sb = new StringBuilder(50);
@@ -103,9 +101,9 @@ public final class TypeName {
     ///
     /// Equivalent to `of(what, Set.of())`.
     ///
-    /// @param what the type to format; must not be `null`
-    /// @return the formatted type string; never `null`
-    /// @throws IllegalArgumentException if `what` is `null`
+    /// @param what The type to format; must not be `null`.
+    /// @return The formatted type string; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static String of(@NonNull Type what) {
         return of(what, Set.of());

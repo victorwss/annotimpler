@@ -38,10 +38,10 @@ public final class WrapperClass {
     /// For example, `wrap(int.class)` returns `Integer.class`, and `wrap(String.class)` returns
     /// `String.class` unchanged.
     ///
-    /// @param <E> the class token type
-    /// @param in  the class to map; must not be `null`
-    /// @return the corresponding wrapper class, or `in` itself if not primitive; never `null`
-    /// @throws IllegalArgumentException if `in` is `null`
+    /// @param <E> The class token type.
+    /// @param in The class to map; must not be `null`.
+    /// @return The corresponding wrapper class, or `in` itself if not primitive; never `null`.
+    /// @throws IllegalArgumentException If `in` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> Class<E> wrap(@NonNull Class<E> in) {
@@ -54,10 +54,10 @@ public final class WrapperClass {
     /// For example, `unwrap(Integer.class)` returns `int.class`, and `unwrap(String.class)`
     /// returns `String.class` unchanged.
     ///
-    /// @param <E> the class token type
-    /// @param in  the class to map; must not be `null`
-    /// @return the corresponding primitive type, or `in` itself if not a wrapper; never `null`
-    /// @throws IllegalArgumentException if `in` is `null`
+    /// @param <E> The class token type.
+    /// @param in The class to map; must not be `null`.
+    /// @return The corresponding primitive type, or `in` itself if not a wrapper; never `null`.
+    /// @throws IllegalArgumentException If `in` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> Class<E> unwrap(@NonNull Class<E> in) {

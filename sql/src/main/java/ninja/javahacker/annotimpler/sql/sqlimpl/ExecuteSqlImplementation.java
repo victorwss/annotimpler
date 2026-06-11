@@ -51,7 +51,13 @@ public final class ExecuteSqlImplementation implements Implementation {
 
     @NonNull
     @Override
-    public <E> CallContext<E> prepare(@NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException {
+    public <E> CallContext<E> prepare(
+            @NonNull Class<E> k,
+            @NonNull Method m,
+            @NonNull PropertyBag props)
+            throws BadImplementationException
+    {
+        if (!k.isAssignableFrom(m.getDeclaringClass())) throw new IllegalArgumentException();
         var es = m.getAnnotation(ExecuteSql.class);
         if (es == null) throw new IllegalArgumentException();
 
