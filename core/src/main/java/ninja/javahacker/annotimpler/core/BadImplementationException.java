@@ -21,10 +21,10 @@ public class BadImplementationException extends Exception {
 
     /// Creates a new exception with the given detail message and root type.
     ///
-    /// @param message the detail message; must not be null
-    /// @param root the type (usually the interface or the declaring class of the method)
-    ///             where the failure originated; must not be null
-    /// @throws IllegalArgumentException if `message` or `root` is null
+    /// @param message The detail message; must not be `null`.
+    /// @param root The type (usually the interface or the declaring class of the method)
+    ///             where the failure originated; must not be `null`.
+    /// @throws IllegalArgumentException If `message` or `root` is `null`.
     public BadImplementationException(@NonNull String message, @NonNull Type root) {
         List.of(message, root); // Force lombok put the null-checks before the constructor call.
         super(message);
@@ -33,11 +33,11 @@ public class BadImplementationException extends Exception {
 
     /// Creates a new exception with the given detail message, cause, and root type.
     ///
-    /// @param message the detail message; must not be null
-    /// @param cause the exception that triggered this failure; must not be null
-    /// @param root the type (usually the interface or the declaring class of the method)
-    ///             where the failure originated; must not be null
-    /// @throws IllegalArgumentException if `message`, `cause`, or `root` is null
+    /// @param message The detail message; must not be `null`.
+    /// @param cause The exception that triggered this failure; must not be `null`.
+    /// @param root The type (usually the interface or the declaring class of the method)
+    ///             where the failure originated; must not be `null`.
+    /// @throws IllegalArgumentException If `message`, `cause`, or `root` is `null`.
     public BadImplementationException(@NonNull String message, @NonNull Throwable cause, @NonNull Type root) {
         List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
         super(message, cause);
@@ -46,10 +46,9 @@ public class BadImplementationException extends Exception {
 
     /// Returns the type where the implementation failure originated.
     ///
-    /// This is typically the interface or the declaring class of the method that
-    /// could not be implemented.
+    /// This is typically the interface or the declaring class of the method that could not be implemented.
     ///
-    /// @return the root type; never null
+    /// @return The root type; never `null`.
     @NonNull
     public Type getRoot() {
         return root;

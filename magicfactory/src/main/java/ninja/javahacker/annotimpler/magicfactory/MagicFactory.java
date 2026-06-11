@@ -5,6 +5,30 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// Reflectively discovers and caches the *creator* of a given class, then allows repeated
+/// instantiation via [#create(Object...)].
+///
+/// A *creator* is the single public, static (or constructor-based) entry point that produces
+/// instances of the target class. `MagicFactory` selects the creator using the following
+/// priority order:
+///
+/// 1. A member explicitly annotated with [@Creator] — constructor, static method, or static
+///    field. Exactly one such annotation is allowed; multiple annotations cause
+///    [CreatorSelectionException].
+/// 2. For **enums** with a single constant, that constant is used as the creator.
+/// 3. For classes with exactly **one declared constructor**, that constructor is used.
+/// 4. For **records**, the canonical constructor (matching all record components) is used.
+/// 5. The **default (no-arg) constructor**, if one exists.
+///
+/// If none of the above can be resolved, or if the resolved candidate fails validation
+/// (e.g. it is not public, not static, or returns the wrong type), a
+/// [CreatorSelectionException] is thrown.
+///
+/// ## Thread safety
+///
+/// `MagicFactory` instances are **immutable and thread-safe** after construction.
+///
+/// @param <E> the type of objects produced by this factory
 public final class MagicFactory<E> {
 
     @NonNull
@@ -19,6 +43,16 @@ public final class MagicFactory<E> {
         this.wrapper = creatorFor(klass);
     }
 
+    /// Creates a `MagicFactory` for the given class by inspecting its members and selecting
+    /// the appropriate creator.
+    ///
+    /// @param <E>   the type produced by the factory
+    /// @param klass the class to inspect; must be public
+    /// @return a new `MagicFactory` for `klass`
+    /// @throws CreatorSelectionException if no suitable creator can be determined, if more
+    ///         than one [@Creator]-annotated member exists, or if the resolved creator fails
+    ///         validation
+    /// @throws IllegalArgumentException if `klass` is `null`
     @NonNull
     public static <E> MagicFactory<E> of(@NonNull Class<E> klass) throws CreatorSelectionException {
         return new MagicFactory<>(klass);
@@ -127,6 +161,16 @@ public final class MagicFactory<E> {
         }
     }
 
+    /// Invokes the selected creator with the given arguments and returns a new instance.
+    ///
+    /// The argument list must match the creator's parameter list in count and types. For
+    /// instance methods (unusual in this context), the first argument must be the receiver.
+    ///
+    /// @param args the arguments to pass to the creator; must not be `null`
+    /// @return a newly created, non-null instance of type `E`
+    /// @throws CreationException if invocation fails for any reason (access denied, wrong
+    ///         arguments, or the creator itself threw an exception)
+    /// @throws IllegalArgumentException if `args` is `null`
     @NonNull
     public E create(@NonNull Object... args) throws CreationException {
         try {
@@ -142,26 +186,49 @@ public final class MagicFactory<E> {
         }
     }
 
+    /// Returns the class that this factory produces.
+    ///
+    /// @return the target class; never `null`
     @NonNull
     public Class<E> getReturnType() {
         return klass;
     }
 
+    /// Returns the generic parameter types of the selected creator, in declaration order.
+    ///
+    /// @return an unmodifiable list of parameter types; never `null`
     @NonNull
     public List<Type> getParameterTypes() {
         return wrapper.getParameterTypes();
     }
 
+    /// Returns the [Parameter] objects of the selected creator, in declaration order.
+    ///
+    /// @return an unmodifiable list of parameters; never `null`
     @NonNull
     public List<Parameter> getParameters() {
         return wrapper.getParameters();
     }
 
+    /// Returns the number of parameters required by the selected creator.
+    ///
+    /// Equivalent to `getParameterTypes().size()`.
+    ///
+    /// @return the arity (number of parameters), zero or positive
     @NonNull
     public int arity() {
         return wrapper.arity();
     }
 
+    /// Thrown when [MagicFactory#of(Class)] cannot determine a unique, valid creator for the
+    /// target class.
+    ///
+    /// Common causes include:
+    /// - The class is not public.
+    /// - More than one member is annotated with [@Creator].
+    /// - The [@Creator]-annotated member is not public, not static, abstract, or returns the
+    ///   wrong type.
+    /// - The class has multiple constructors and none of the heuristics applies.
     public static class CreatorSelectionException extends Exception {
 
         @Serial
@@ -170,24 +237,43 @@ public final class MagicFactory<E> {
         @NonNull
         private final Class<?> root;
 
+        /// Constructs a `CreatorSelectionException` with a detail message and the root class.
+        ///
+        /// @param message a human-readable description of the problem; must not be `null`
+        /// @param root    the class whose creator selection failed; must not be `null`
+        /// @throws IllegalArgumentException if `message` or `root` is `null`
         public CreatorSelectionException(@NonNull String message, @NonNull Class<?> root) {
             List.of(message, root); // Force lombok put the null-checks before the constructor call.
             super(message);
             this.root = root;
         }
 
+        /// Constructs a `CreatorSelectionException` with a detail message, a cause, and the
+        /// root class.
+        ///
+        /// @param message a human-readable description of the problem; must not be `null`
+        /// @param cause   the underlying exception that triggered this failure; must not be `null`
+        /// @param root    the class whose creator selection failed; must not be `null`
+        /// @throws IllegalArgumentException if `message`, `cause`, or `root` is `null`
         public CreatorSelectionException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> root) {
             List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
             super(message, cause);
             this.root = root;
         }
 
+        /// Returns the class whose creator could not be determined.
+        ///
+        /// @return the root class; never `null`
         @NonNull
         public Class<?> getRoot() {
             return root;
         }
     }
 
+    /// Thrown when [MagicFactory#create(Object...)] fails to invoke the selected creator.
+    ///
+    /// Common causes include insufficient access rights, mismatched argument types or counts,
+    /// or an exception thrown by the creator itself.
     public static class CreationException extends Exception {
 
         @Serial
@@ -196,18 +282,32 @@ public final class MagicFactory<E> {
         @NonNull
         private final Class<?> root;
 
+        /// Constructs a `CreationException` with a detail message and the root class.
+        ///
+        /// @param message a human-readable description of the failure; must not be `null`
+        /// @param root    the class that could not be instantiated; must not be `null`
+        /// @throws IllegalArgumentException if `message` or `root` is `null`
         public CreationException(@NonNull String message, @NonNull Class<?> root) {
             List.of(message, root); // Force lombok put the null-checks before the constructor call.
             super(message);
             this.root = root;
         }
 
+        /// Constructs a `CreationException` with a detail message, a cause, and the root class.
+        ///
+        /// @param message a human-readable description of the failure; must not be `null`
+        /// @param cause   the underlying exception; must not be `null`
+        /// @param root    the class that could not be instantiated; must not be `null`
+        /// @throws IllegalArgumentException if `message`, `cause`, or `root` is `null`
         public CreationException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> root) {
             List.of(message, cause, root); // Force lombok put the null-checks before the constructor call.
             super(message, cause);
             this.root = root;
         }
 
+        /// Returns the class that could not be instantiated.
+        ///
+        /// @return the root class; never `null`
         @NonNull
         public Class<?> getRoot() {
             return root;

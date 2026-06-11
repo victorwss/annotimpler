@@ -6,6 +6,20 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// Caches per-class dictionaries that determine which type names need fully qualified names
+/// to avoid ambiguity when formatting generic signatures.
+///
+/// When two classes used in the signature of a given declaring class share the same simple
+/// name, `NameDictionary` marks both as requiring fully qualified names. This ensures that
+/// generated human-readable signatures (e.g. for error messages) are unambiguous.
+///
+/// A process-wide singleton is available via [#global()]. Additional instances can be created
+/// with the public constructor if isolation is required.
+///
+/// ## Thread safety
+///
+/// The [#global()] singleton and any explicitly constructed instance are **thread-safe**: the
+/// per-class dictionary is built lazily under a `synchronized` lock.
 public final class NameDictionary {
 
     @NonNull
@@ -17,6 +31,8 @@ public final class NameDictionary {
     @NonNull
     private final Map<Class<?>, ClassDictionary<?>> map;
 
+    /// Creates a new, empty `NameDictionary`. Per-class dictionaries are built lazily on
+    /// first access.
     public NameDictionary() {
         this.lock = new Object();
         this.map = new HashMap<>(10);
@@ -244,18 +260,41 @@ public final class NameDictionary {
         }
     }
 
+    /// Returns a simplified generic signature string for the given method or constructor.
+    ///
+    /// The signature includes type parameters, return type, and parameter types, using simple
+    /// class names where unambiguous. If `withClassName` is `true`, the declaring class name
+    /// is prepended followed by `/`.
+    ///
+    /// @param what          the method or constructor; must not be `null`
+    /// @param withClassName whether to prefix the result with the declaring class name
+    /// @return a human-readable signature string; never `null`
+    /// @throws IllegalArgumentException if `what` is `null`
     @NonNull
     public String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
         var cl = getFor(what.getDeclaringClass());
         return cl.getSimplifiedGenericString(what, withClassName);
     }
 
+    /// Returns a simplified generic signature string for the given field.
+    ///
+    /// The signature includes the field type and name, using simple class names where
+    /// unambiguous. If `withClassName` is `true`, the declaring class name is prepended
+    /// followed by `/`.
+    ///
+    /// @param field         the field; must not be `null`
+    /// @param withClassName whether to prefix the result with the declaring class name
+    /// @return a human-readable field signature string; never `null`
+    /// @throws IllegalArgumentException if `field` is `null`
     @NonNull
     public String getSimplifiedGenericString(@NonNull Field field, boolean withClassName) {
         var cl = getFor(field.getDeclaringClass());
         return cl.getSimplifiedGenericString(field, withClassName);
     }
 
+    /// Returns the process-wide singleton `NameDictionary`.
+    ///
+    /// @return the global instance; never `null`
     @NonNull
     public static NameDictionary global() {
         return GLOBAL_INSTANCE;

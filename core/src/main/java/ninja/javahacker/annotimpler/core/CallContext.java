@@ -12,7 +12,7 @@ import lombok.NonNull;
 /// Instances are produced by [Implementation#prepare] during proxy construction and
 /// are invoked by the proxy's invocation handler on each method call.
 ///
-/// @param <E> the interface type whose method this context handles
+/// @param <E> the interface type whose method this context handles.
 ///
 /// @see Implementation
 /// @see AnnotationsImplementor
@@ -20,11 +20,11 @@ import lombok.NonNull;
 public interface CallContext<E> {
     /// Executes this context for the given proxy instance and method arguments.
     ///
-    /// @param instance the proxy instance on which the method was called; must not be null
-    /// @param args the method arguments; must not be null (use an empty array for no-arg methods)
-    /// @return the return value of the method, or `null` for `void` methods
-    /// @throws Throwable any exception the method may declare or propagate
-    /// @throws IllegalArgumentException if `instance` or `args` is null
+    /// @param instance The proxy instance on which the method was called; must not be `null`.
+    /// @param args The method arguments; must not be `null` (use an empty array for no-arg methods).
+    /// @return The return value of the method, or `null` for `void` methods.
+    /// @throws Throwable Any exception the method may declare or propagate.
+    /// @throws IllegalArgumentException If `instance` or `args` is `null`.
     @Nullable
     public Object execute(@NonNull E instance, @NonNull Object... args) throws Throwable;
 }

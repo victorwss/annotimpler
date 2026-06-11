@@ -29,6 +29,6 @@ public @interface ImplementedBy {
     /// The [Implementation] class responsible for handling methods annotated with
     /// the annotation type that carries this `@ImplementedBy` annotation.
     ///
-    /// @return the implementation class
+    /// @return The implementation class.
     public Class<? extends Implementation> value();
 }

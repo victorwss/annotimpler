@@ -11,7 +11,7 @@ import module java.base;
 /// Implementations should be singletons or enum constants to ensure consistent key identity
 /// (since `PropertyBag` uses them as map keys).
 ///
-/// @param <V> the type of value associated with this key
+/// @param <V> The type of value associated with this key.
 ///
 /// @see PropertyBag
 public interface KeyProperty<V> extends Serializable {
@@ -20,6 +20,6 @@ public interface KeyProperty<V> extends Serializable {
     /// Used by [PropertyBag] to validate values on [PropertyBag#add] and to cast
     /// them on [PropertyBag#get].
     ///
-    /// @return the class of `V`; must not be null
+    /// @return The class of `V`; must not be `null`.
     public Class<V> valueType();
 }

@@ -108,12 +108,12 @@ public final class AnnotationsImplementor {
     ///
     /// Equivalent to `implement(iface, null)`.
     ///
-    /// @param <E> the interface type
-    /// @param iface the interface to implement; must not be null and must be an interface type
-    /// @return a proxy object implementing `iface`
-    /// @throws BadImplementationException if any method of `iface` cannot be implemented
-    /// @throws UnsupportedOperationException if `iface` is not an interface
-    /// @throws IllegalArgumentException if `iface` is null
+    /// @param <E> The interface type.
+    /// @param iface The interface to implement; must not be `null` and must be an interface type.
+    /// @return A proxy object implementing `iface`.
+    /// @throws BadImplementationException If any method of `iface` cannot be implemented.
+    /// @throws UnsupportedOperationException If `iface` is not an interface.
+    /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
     public static <E> E implement(@NonNull Class<E> iface) throws BadImplementationException {
         return implement(iface, null);
@@ -124,14 +124,14 @@ public final class AnnotationsImplementor {
     /// The [PropertyBag] is passed to [Implementation#prepare] for each annotated method,
     /// allowing implementations to be parameterized at construction time.
     ///
-    /// @param <E> the interface type
-    /// @param iface the interface to implement; must not be null and must be an interface type
-    /// @param props the property bag to pass to each [Implementation#prepare] call;
-    ///              if `null`, the root (empty) bag is used
-    /// @return a proxy object implementing `iface`
-    /// @throws BadImplementationException if any method of `iface` cannot be implemented
-    /// @throws UnsupportedOperationException if `iface` is not an interface
-    /// @throws IllegalArgumentException if `iface` is null
+    /// @param <E> The interface type.
+    /// @param iface The interface to implement; must not be `null` and must be an interface type.
+    /// @param props The property bag to pass to each [Implementation#prepare] call;
+    ///              if `null`, the root (empty) bag is used.
+    /// @return a proxy object implementing `iface`.
+    /// @throws BadImplementationException If any method of `iface` cannot be implemented.
+    /// @throws UnsupportedOperationException If `iface` is not an interface.
+    /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
     public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws BadImplementationException {
         if (!iface.isInterface()) throw new UnsupportedOperationException();

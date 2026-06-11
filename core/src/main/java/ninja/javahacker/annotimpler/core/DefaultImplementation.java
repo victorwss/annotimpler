@@ -39,10 +39,10 @@ public final class DefaultImplementation {
     ///
     /// The string is of the form `impl[fully.qualified.InterfaceName]-identityHashCode`.
     ///
-    /// @param <E> the interface type
-    /// @param iface the interface whose proxies this context will serve; must not be null
-    /// @return a [CallContext] implementing [Object#toString]
-    /// @throws IllegalArgumentException if `iface` is null
+    /// @param <E> The interface type.
+    /// @param iface The interface whose proxies this context will serve; must not be `null`.
+    /// @return A [CallContext] implementing [Object#toString].
+    /// @throws IllegalArgumentException If `iface` is `null`.
     @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static <E> CallContext<E> forToString(@NonNull Class<E> iface) {
         return new CallContext<>() {
@@ -60,16 +60,16 @@ public final class DefaultImplementation {
     ///
     /// Two proxy instances are equal only if they are the same object reference.
     ///
-    /// @param <E> the interface type
-    /// @return a [CallContext] implementing [Object#equals]
+    /// @param <E> The interface type.
+    /// @return A [CallContext] implementing [Object#equals].
     public static <E> CallContext<E> forEquals() {
         return DefaultImplementation::equals;
     }
 
     /// Returns a [CallContext] that implements [Object#hashCode] using [System#identityHashCode].
     ///
-    /// @param <E> the interface type
-    /// @return a [CallContext] implementing [Object#hashCode]
+    /// @param <E> The interface type.
+    /// @return A [CallContext] implementing [Object#hashCode].
     public static <E> CallContext<E> forHashCode() {
         return DefaultImplementation::hashCode;
     }

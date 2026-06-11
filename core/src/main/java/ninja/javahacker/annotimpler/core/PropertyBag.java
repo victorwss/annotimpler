@@ -35,7 +35,7 @@ public final class PropertyBag {
 
     /// Returns the root (empty) [PropertyBag].
     ///
-    /// @return the shared empty bag; never null
+    /// @return The shared empty bag; never `null`.
     @NonNull
     public static PropertyBag root() {
         return ROOT_INSTANCE;
@@ -45,12 +45,12 @@ public final class PropertyBag {
     ///
     /// If a value for the same key already exists, it is replaced in the returned bag.
     ///
-    /// @param <T> the value type
-    /// @param key the property key; must not be null
-    /// @param value the property value; must not be null and must be an instance of `key.valueType()`
-    /// @return a new bag with the added or replaced property
-    /// @throws IllegalPropertyValueException if `value` is not an instance of `key.valueType()`
-    /// @throws IllegalArgumentException if `key` or `value` is null
+    /// @param <T> The value type.
+    /// @param key The property key; must not be `null`.
+    /// @param value The property value; must not be `null` and must be an instance of `key.valueType()`.
+    /// @return A new bag with the added or replaced property.
+    /// @throws IllegalPropertyValueException If `value` is not an instance of `key.valueType()`.
+    /// @throws IllegalArgumentException If `key` or `value` is `null`.
     @NonNull
     public <T> PropertyBag add(@NonNull KeyProperty<T> key, @NonNull T value) {
         var kv = key.valueType();
@@ -66,10 +66,10 @@ public final class PropertyBag {
     /// If the key is not present, an equivalent bag (with the same contents) is returned.
     /// If the result would be empty, [root] is returned.
     ///
-    /// @param <T> the value type
-    /// @param key the property key to remove; must not be null
-    /// @return a new bag without the given key
-    /// @throws IllegalArgumentException if `key` is null
+    /// @param <T> The value type.
+    /// @param key The property key to remove; must not be `null`.
+    /// @return A new bag without the given key.
+    /// @throws IllegalArgumentException If `key` is `null`.
     @NonNull
     public <T> PropertyBag remove(@NonNull KeyProperty<T> key) {
         Map<KeyProperty<?>, Object> map = new HashMap<>(properties.size() + 1);
@@ -80,11 +80,11 @@ public final class PropertyBag {
 
     /// Returns the value associated with the given key.
     ///
-    /// @param <V> the value type
-    /// @param key the property key; must not be null
-    /// @return the value associated with `key`; never null
-    /// @throws PropertyNotFoundException if this bag contains no value for `key`
-    /// @throws IllegalArgumentException if `key` is null
+    /// @param <V> The value type
+    /// @param key The property key; must not be `null`.
+    /// @return The value associated with `key`; never `null`.
+    /// @throws PropertyNotFoundException If this bag contains no value for `key`.
+    /// @throws IllegalArgumentException If `key` is `null`.
     @NonNull
     public <V> V get(@NonNull KeyProperty<V> key) {
         var obj = properties.get(key);
@@ -95,12 +95,16 @@ public final class PropertyBag {
     }
 
     /// Returns a hash code consistent with [equals], derived from the underlying property map.
+    ///
+    /// @return The hash code of the property map.
     @Override
     public int hashCode() {
         return properties.hashCode();
     }
 
     /// Returns a string representation of the properties in this bag.
+    ///
+    /// @return The string representation of the property map.
     @NonNull
     @Override
     public String toString() {
@@ -108,6 +112,9 @@ public final class PropertyBag {
     }
 
     /// Returns `true` if `other` is a [PropertyBag] with the same key-value pairs as this bag.
+    ///
+    /// @param other The object to which this instance will be compared against for equality.
+    /// @return `true` if `other` is a [PropertyBag] with the same key-value pairs as this bag, `false` otherwise.
     @Override
     public boolean equals(@Nullable Object other) {
         return other instanceof PropertyBag pb && Objects.equals(pb.properties, this.properties);
@@ -122,15 +129,15 @@ public final class PropertyBag {
 
         /// Creates a new exception for the given missing key.
         ///
-        /// @param property the key that was not found; must not be null
-        /// @throws IllegalArgumentException if `property` is null
+        /// @param property The key that was not found; must not be `null`.
+        /// @throws IllegalArgumentException If `property` is `null`.
         public PropertyNotFoundException(@NonNull KeyProperty<?> property) {
             this.property = property;
         }
 
         /// Returns the key that was not found in the [PropertyBag].
         ///
-        /// @return the missing key; never null
+        /// @return The missing key; never `null`.
         @NonNull
         public KeyProperty<?> getProperty() {
             return property;
@@ -146,15 +153,15 @@ public final class PropertyBag {
 
         /// Creates a new exception for the given key whose value type constraint was violated.
         ///
-        /// @param property the key whose value type was violated; must not be null
-        /// @throws IllegalArgumentException if `property` is null
+        /// @param property The key whose value type was violated; must not be `null`.
+        /// @throws IllegalArgumentException If `property` is `null`.
         public IllegalPropertyValueException(@NonNull KeyProperty<?> property) {
             this.property = property;
         }
 
         /// Returns the key whose value type constraint was violated.
         ///
-        /// @return the offending key; never null
+        /// @return The offending key; never `null`.
         @NonNull
         public KeyProperty<?> getProperty() {
             return property;
