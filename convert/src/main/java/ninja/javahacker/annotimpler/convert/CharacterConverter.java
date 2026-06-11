@@ -5,15 +5,32 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `char` and [Character] values.
+///
+/// [#PRIMITIVE] targets `char.class` and returns `Optional.of('\0')` for `null` input.
+/// [#WRAPPER] targets `Character.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean` (`true` → 1, `false` → 0), `byte`/`short`/`int`/`long`/`float`/`double`
+/// (range check for valid char), [BigDecimal] (exact integer in char range),
+/// [String] (exactly one character; empty → `'\0'` for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum CharacterConverter implements Converter<Character> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `char.class`.
+    PRIMITIVE,
+
+    /// Targets `Character.class`.
+    WRAPPER;
+
+    /// Returns `char.class` for [#PRIMITIVE] or `Character.class` for [#WRAPPER].
+    ///
+    /// @return `char.class` for [#PRIMITIVE] or `Character.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Character> getType() {
         return this == PRIMITIVE ? char.class : Character.class;
     }
 
+    /// Returns `Optional.of('\0')` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Character> fromNull() {

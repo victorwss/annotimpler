@@ -5,10 +5,32 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] that wraps an element [Converter] and produces `Optional<E>`.
+///
+/// For `null` input, returns `Optional.of(Optional.empty())` (the outer [Optional] is always present;
+/// the inner [Optional] is empty for `null` input).
+/// For non-null input, converts the element: if the inner result is present, returns
+/// `Optional.of(Optional.of(element))`; otherwise returns `Optional.of(Optional.empty())`.
+///
+/// @param <E> The element type of the inner optional.
 public final class OptionalConverter<E> implements Converter<Optional<E>> {
+
+    @NonNull
     private final Converter<E> cvt;
+
+    @NonNull
     private final ParameterizedType baseType;
 
+    /// Constructs an [OptionalConverter] for `Optional<X>` where `X` is the raw type argument of `baseType`.
+    ///
+    /// `baseType` must be `Optional<X>` for some concrete class `X`; otherwise throws [UnavailableConverterException].
+    ///
+    /// @param factory The factory used to obtain the element converter.
+    /// @param baseType The parameterized type `Optional<X>`.
+    /// @throws UnavailableConverterException If `baseType` is not `Optional<X>` for some class `X`,
+    ///         or if no converter is available for the element type.
+    /// @throws IllegalArgumentException If `factory` is `null`.
+    /// @throws IllegalArgumentException If `baseType` is `null`.
     @SuppressWarnings("unchecked")
     public OptionalConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
@@ -19,6 +41,9 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
         this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
+    /// Returns the parameterized type `Optional<E>` that this converter produces.
+    ///
+    /// @return The parameterized type `Optional<E>` that this converter produces.
     @NonNull
     @Override
     public ParameterizedType getType() {
@@ -51,6 +76,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
         return e.rework(baseType);
     }
 
+    /// Returns `Optional.of(Optional.empty())` (the outer optional is always present; the inner is empty for `null` input).
     @NonNull
     @Override
     public Optional<Optional<E>> fromNull() {

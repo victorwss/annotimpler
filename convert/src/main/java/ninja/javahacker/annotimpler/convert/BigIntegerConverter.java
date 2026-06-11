@@ -4,9 +4,19 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for [BigInteger] values.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
+/// `float`/`double` (throws for infinity/NaN/fractional values),
+/// [BigDecimal] (exact), [String] (parsed; empty → empty).
 public enum BigIntegerConverter implements Converter<BigInteger> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `BigInteger.class`.
+    ///
+    /// @return `BigInteger.class`.
     @NonNull
     @Override
     public Class<BigInteger> getType() {

@@ -5,15 +5,32 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `long` and [Long] values.
+///
+/// [#PRIMITIVE] targets `long.class` and returns `Optional.of(0L)` for `null` input.
+/// [#WRAPPER] targets `Long.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
+/// `float`/`double` (via [BigDecimal] exact), [BigDecimal] (exact),
+/// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum LongConverter implements Converter<Long> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `long.class`.
+    PRIMITIVE,
+
+    /// Targets `Long.class`.
+    WRAPPER;
+
+    /// Returns `long.class` for [#PRIMITIVE] or `Long.class` for [#WRAPPER].
+    ///
+    /// @return `long.class` for [#PRIMITIVE] or `Long.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Long> getType() {
         return this == PRIMITIVE ? long.class : Long.class;
     }
 
+    /// Returns `Optional.of(0L)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Long> fromNull() {

@@ -6,9 +6,19 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
+/// A [Converter] for [ZonedDateTime] values.
+///
+/// Supported conversions: [LocalDate] (start of day at UTC zone), [LocalDateTime] (at UTC zone),
+/// [OffsetDateTime] (converted to [ZonedDateTime]),
+/// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
 public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `ZonedDateTime.class`.
+    ///
+    /// @return `ZonedDateTime.class`.
     @NonNull
     @Override
     public Class<ZonedDateTime> getType() {

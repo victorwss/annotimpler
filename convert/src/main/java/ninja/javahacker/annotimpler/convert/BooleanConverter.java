@@ -4,18 +4,35 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `boolean` and [Boolean] values.
+///
+/// [#PRIMITIVE] targets `boolean.class` and returns `false` for `null` input.
+/// [#WRAPPER] targets `Boolean.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`/`short`/`int`/`long`/`float`/`double` (only 0 and 1),
+/// [BigDecimal] (only 0 and 1), and [String] ("true"/"TRUE"/"1" → true, "false"/"FALSE"/"0"/"-0" → false,
+/// empty string → false for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum BooleanConverter implements Converter<Boolean> {
-    PRIMITIVE, WRAPPER;
+
+    /// Targets `boolean.class`.
+    PRIMITIVE,
+
+    /// Targets `Boolean.class`.
+    WRAPPER;
 
     private static final List<String> FALSE = List.of("false", "FALSE", "0", "-0");
     private static final List<String> TRUE  = List.of("true" , "TRUE" , "1");
 
+    /// Returns `boolean.class` for [#PRIMITIVE] or `Boolean.class` for [#WRAPPER].
+    ///
+    /// @return `boolean.class` for [#PRIMITIVE] or `Boolean.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Boolean> getType() {
         return this == PRIMITIVE ? boolean.class : Boolean.class;
     }
 
+    /// Returns `Optional.of(false)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Boolean> fromNull() {

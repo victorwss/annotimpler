@@ -5,7 +5,17 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for [OptionalInt] values.
+///
+/// Delegates to [IntegerConverter#WRAPPER] internally.
+/// Returns `Optional.of(OptionalInt.empty())` for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`,
+/// `long`/`float`/`double`/[BigDecimal] (with range check),
+/// [String] (empty → `OptionalInt.empty()`).
 public enum OptionalIntConverter implements Converter<OptionalInt> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -23,12 +33,16 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
         }
     }
 
+    /// Returns `OptionalInt.class`.
+    ///
+    /// @return `OptionalInt.class`.
     @NonNull
     @Override
     public Class<OptionalInt> getType() {
         return OptionalInt.class;
     }
 
+    /// Returns `Optional.of(OptionalInt.empty())`.
     @NonNull
     @Override
     public Optional<OptionalInt> fromNull() {

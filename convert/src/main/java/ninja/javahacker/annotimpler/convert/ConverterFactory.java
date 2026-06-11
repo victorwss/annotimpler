@@ -5,21 +5,53 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
+/// A functional interface for obtaining [Converter] instances for arbitrary [Type] values.
+///
+/// The standard implementation is accessible via [#STD]. Custom implementations can
+/// be created by implementing [#get(Type)] or by extending [StdConverterFactory] using [StdConverterFactory#extend(Class, Converter)].
 @FunctionalInterface
 public interface ConverterFactory {
 
+    /// The standard converter factory with pre-registered converters for all built-in supported types.
     @NonNull
     public static final StdConverterFactory STD = StdConverterFactory.INSTANCE;
 
+    /// Returns a [Converter] for the given type.
+    ///
+    /// @param t The type to obtain a converter for.
+    /// @return A [Converter] capable of producing values of the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t`.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public Converter<?> get(@NonNull Type t) throws UnavailableConverterException;
 
+    /// Returns a typed [Converter] for the given class, casting the result of [#get(Type)].
+    ///
+    /// @param <E> The target type.
+    /// @param klass The class to obtain a converter for.
+    /// @return A [Converter] typed to `E`.
+    /// @throws UnavailableConverterException If no converter is available for `klass`.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public default <E> Converter<E> getOf(@NonNull Class<E> klass) throws UnavailableConverterException {
         return (Converter<E>) get(klass);
     }
 
+    /// Maps a string-keyed map of raw values to an instance of the given record class.
+    ///
+    /// Each map entry is converted using the appropriate converter for the corresponding record field's type.
+    /// The map keys must exactly match the parameter names of the record's canonical constructor.
+    ///
+    /// @param <T> The record type to produce.
+    /// @param map The map of field names to raw input values.
+    /// @param recordClass The record class to instantiate.
+    /// @return A new instance of `T` populated from the map entries.
+    /// @throws MagicFactory.CreatorSelectionException If the canonical constructor cannot be selected.
+    /// @throws MagicFactory.CreationException If instantiation of the record fails.
+    /// @throws UnavailableConverterException If no converter is available for a field type.
+    /// @throws ConvertionException If a field value cannot be converted to the required type.
+    /// @throws IllegalArgumentException If `map` or `recordClass` is `null` or if `recordClass` is not a record class.
     @NonNull
     public default <T extends Record> T mapToRecord(@NonNull Map<String, ?> map, @NonNull Class<T> recordClass)
             throws MagicFactory.CreatorSelectionException,

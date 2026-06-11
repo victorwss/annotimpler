@@ -6,7 +6,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `java.sql.Date` values.
+///
+/// Supported conversions: [LocalDate] (via `Date.valueOf`),
+/// [LocalDateTime]/[OffsetDateTime] (extract local date, then `Date.valueOf`),
+/// [String] (via [LocalDateConverter]; empty → empty).
 public enum SqlDateConverter implements Converter<Date> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -24,6 +31,9 @@ public enum SqlDateConverter implements Converter<Date> {
         }
     }
 
+    /// Returns `java.sql.Date.class`.
+    ///
+    /// @return `java.sql.Date.class`.
     @NonNull
     @Override
     public Class<Date> getType() {

@@ -4,15 +4,32 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `short` and [Short] values.
+///
+/// [#PRIMITIVE] targets `short.class` and returns `Optional.of((short) 0)` for `null` input.
+/// [#WRAPPER] targets `Short.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`,
+/// `int`/`long`/`float`/`double` (with range check), [BigDecimal] (exact),
+/// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum ShortConverter implements Converter<Short> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `short.class`.
+    PRIMITIVE,
+
+    /// Targets `Short.class`.
+    WRAPPER;
+
+    /// Returns `short.class` for [#PRIMITIVE] or `Short.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Short> getType() {
         return this == PRIMITIVE ? short.class : Short.class;
     }
 
+    /// Returns `Optional.of((short) 0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
+    ///
+    /// @return `Optional.of((short) 0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Short> fromNull() {

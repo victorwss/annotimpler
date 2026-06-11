@@ -10,10 +10,27 @@ import module java.base;
 import module java.sql;
 import module ninja.javahacker.annotimpler.magicfactory;
 
+/// A [Converter] for single-field record types.
+///
+/// Only accepts record classes with exactly one field (arity == 1).
+/// Uses `MagicFactory` to discover the canonical constructor, and obtains a [Converter]
+/// for the single field's type from the given [ConverterFactory].
+/// Detects recursive record definitions using a thread-local set of ongoing creations
+/// and throws [UnavailableConverterException] if recursion is detected.
+///
+/// @param <R> The record type this converter targets.
 public class RecordConverter<R extends Record> implements Converter<R> {
+
+    @NonNull
     private final Class<R> recordClass;
+
+    @NonNull
     private final MagicFactory<R> factory;
+
+    @NonNull
     private final Type inType;
+
+    @NonNull
     private final Converter<?> inFactory;
 
     private static final ThreadLocal<Set<OngoingCreation>> ongoing = new ThreadLocal<>();
@@ -26,6 +43,17 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         public Optional<?> produce() throws ConvertionException;
     }
 
+    /// Constructs a [RecordConverter] for the given record class using the given factory.
+    ///
+    /// The record class must have exactly one field; otherwise throws [UnavailableConverterException].
+    /// Detects recursive definitions: if the same factory/class pair is already being constructed
+    /// on the current thread, throws [UnavailableConverterException].
+    ///
+    /// @param cvtf The factory used to obtain the inner field converter.
+    /// @param recordClass The record class to convert to.
+    /// @throws UnavailableConverterException If the record is not single-field, if no converter
+    ///         is available for the field type, or if a recursive record definition is detected.
+    /// @throws IllegalArgumentException If `cvtf` or `recordClass` is `null`.
     public RecordConverter(@NonNull ConverterFactory cvtf, @NonNull Class<R> recordClass) throws UnavailableConverterException {
         this.recordClass = recordClass;
         var o = new OngoingCreation(cvtf, recordClass);
@@ -56,6 +84,9 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         }
     }
 
+    /// Returns the record class `R` that this converter produces.
+    ///
+    /// @return The record class `R` that this converter produces.
     @NonNull
     @Override
     @SuppressWarnings("unchecked")
@@ -103,6 +134,15 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         }
     }
 
+    /// Converts the input object to a record instance.
+    ///
+    /// Returns `Optional.empty()` if `in` is `null` (does not call [#fromNull()]).
+    /// Otherwise delegates to the inner converter. If the inner result is empty,
+    /// an empty collection, or an empty [Optional], returns `Optional.empty()`.
+    ///
+    /// @param in The input value, or `null`.
+    /// @return An optional containing the converted record, or empty if input is `null` or inner result is empty.
+    /// @throws ConvertionException If the inner conversion fails.
     @NonNull
     @Override
     public Optional<R> fromObj(@Nullable Object in) throws ConvertionException {

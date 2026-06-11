@@ -6,9 +6,20 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
+/// A [Converter] for [String] values.
+///
+/// Supported conversions: all numeric primitives, [BigDecimal] (via `toPlainString`),
+/// date/time types (via `MultiFormatters.YMD_DASH`), [String], `byte[]` (UTF-8),
+/// [Blob]/[Clob]/[NClob]/[SQLXML] (read content as string), [RowId] (bytes as [BigInteger] decimal string).
+/// Infinity/NaN `float`/`double` produce "Infinity"/"-Infinity"/"NaN"; negative-zero produces "-0".
 public enum StringConverter implements Converter<String> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `String.class`.
+    ///
+    /// @return `String.class`.
     @NonNull
     @Override
     public Class<String> getType() {

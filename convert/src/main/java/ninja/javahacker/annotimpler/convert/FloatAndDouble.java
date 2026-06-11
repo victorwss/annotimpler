@@ -9,8 +9,8 @@ import module java.base;
 @PackagePrivate
 final class FloatAndDouble {
 
-    private static final float MAX_FLOAT_WITH_INT_PRECISION = 16777216F; // 2 ** 24
-    private static final double MAX_DOUBLE_WITH_INT_PRECISION = 9007199254740992D; // 2 ** 53
+    private static final float MAX_FLOAT_WITH_INT_PRECISION = 16777216F; // 2^24
+    private static final double MAX_DOUBLE_WITH_INT_PRECISION = 9007199254740992D; // 2^53
 
     @Generated
     private FloatAndDouble() {
@@ -25,34 +25,68 @@ final class FloatAndDouble {
         return in2;
     }
 
+    /// Converts a finite `float` to its "simplest" [BigDecimal] representation.
+    ///
+    /// For values whose absolute magnitude is below [#MAX_FLOAT_WITH_INT_PRECISION] (2^24),
+    /// the string-based constructor is used so that human-intended values such as `0.078`
+    /// are preserved exactly. For larger magnitudes, where every representable `float` is an
+    /// integer, the binary-exact constructor is used.
+    ///
+    /// @param in A finite `float` value (infinities and NaN are not accepted).
+    /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
     public static BigDecimal makeBig(float in) {
         assertFloatOk(in);
-        return normalize(in >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+        return normalize(Math.abs(in) >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Float.toString(in)));
     }
 
+    /// Converts a finite `double` to its "simplest" [BigDecimal] representation.
+    ///
+    /// For values whose absolute magnitude is below [#MAX_DOUBLE_WITH_INT_PRECISION] (2^53),
+    /// the string-based constructor is used so that human-intended values such as `0.078`
+    /// are preserved exactly. For larger magnitudes, where every representable `double` is an
+    /// integer, the binary-exact constructor is used.
+    ///
+    /// @param in A finite `double` value (infinities and NaN are not accepted).
+    /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
     public static BigDecimal makeBig(double in) {
         assertDoubleOk(in);
-        return normalize(in >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+        return normalize(Math.abs(in) >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Double.toString(in)));
     }
 
+    /// Converts a finite `float` to its "simplest" [BigDecimal] representation, throwing
+    /// [ConvertionException] for non-finite values.
+    ///
+    /// @param in The `float` to convert.
+    /// @param target The target type reported in the exception, if thrown.
+    /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
+    /// @throws ConvertionException If `in` is infinite or NaN.
+    /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
     public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target);
         if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
             throw new ConvertionException(float.class, target);
         }
-        return normalize(in >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+        return normalize(Math.abs(in) >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Float.toString(in)));
     }
 
+    /// Converts a finite `double` to its "simplest" [BigDecimal] representation, throwing
+    /// [ConvertionException] for non-finite values.
+    ///
+    /// @param in The `double` to convert.
+    /// @param target The target type reported in the exception, if thrown.
+    /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
+    /// @throws ConvertionException If `in` is infinite or NaN.
+    /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
     public static BigDecimal makeBig(double in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target);
         if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {
             throw new ConvertionException(double.class, target);
         }
-        return normalize(in >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal("" + in));
+        return normalize(Math.abs(in) >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Double.toString(in)));
     }
 
     @Generated

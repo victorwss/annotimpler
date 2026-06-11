@@ -5,8 +5,15 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// An extended [ConverterFactory] with built-in support for all standard Java types.
+///
+/// Supports primitives, wrappers, date/time types, SQL types, enums, records, arrays,
+/// and parameterized collections ([List], [Set], [Collection], [Optional]).
+/// The singleton instance is [#INSTANCE].
+/// Additional mappings can be registered with [#extend(Class, Converter)].
 public interface StdConverterFactory extends ConverterFactory {
 
+    /// The singleton standard converter factory pre-populated with all built-in converters.
     public static final StdConverterFactory INSTANCE = start();
 
     private static StdConverterFactory start() {
@@ -67,12 +74,25 @@ public interface StdConverterFactory extends ConverterFactory {
         };
     }
 
+    /// Returns the direct class-to-converter map of [#INSTANCE].
+    ///
+    /// @return The map of [Class] to [Converter] for all pre-registered types.
     @NonNull
     @SuppressWarnings("element-type-mismatch")
     public static Map<Class<?>, Converter<?>> rootMap() {
         return INSTANCE.directMappings();
     }
 
+    /// Dispatches the type `t` to the appropriate typed `getOf` overload.
+    ///
+    /// Dispatches as follows: [Class] → [#getOf(Class)], [ParameterizedType] → [#getOf(ParameterizedType)],
+    /// [WildcardType] → [#getOf(WildcardType)], [GenericArrayType] → [#getOf(GenericArrayType)],
+    /// [TypeVariable] → [#getOf(TypeVariable)], other → [#getOfUndetermined(Type)].
+    ///
+    /// @param t The type to look up.
+    /// @return A [Converter] for the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t`.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     @Override
     public default Converter<?> get(@NonNull Type t) throws UnavailableConverterException {
@@ -84,6 +104,16 @@ public interface StdConverterFactory extends ConverterFactory {
         return getOfUndetermined(t);
     }
 
+    /// Returns a converter for the parameterized type `t`.
+    ///
+    /// Tries [#makeList(ParameterizedType)], [#makeSet(ParameterizedType)],
+    /// [#makeCollection(ParameterizedType)], [#makeOptional(ParameterizedType)],
+    /// and [#makeMap(ParameterizedType)] in order; throws if none match.
+    ///
+    /// @param t The parameterized type to look up.
+    /// @return A [Converter] for the given parameterized type.
+    /// @throws UnavailableConverterException If no converter is available for `t`.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOf(@NonNull ParameterizedType t) throws UnavailableConverterException {
         Optional<? extends Converter<?>> x = makeList(t);
@@ -104,26 +134,72 @@ public interface StdConverterFactory extends ConverterFactory {
         throw UnavailableConverterException.noConverterFor(t);
     }
 
+    /// Returns a typed converter for the given generic array type.
+    ///
+    ///The default implementation does not supports this operation and always throws an
+    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    ///
+    /// @param t The generic array type.
+    /// @return A [Converter] typed to the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOf(@NonNull GenericArrayType t) throws UnavailableConverterException {
         throw UnavailableConverterException.noConverterFor(t);
     }
 
+    /// Returns a typed converter for the given wildcard type.
+    ///
+    ///The default implementation does not supports this operation and always throws an
+    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    ///
+    /// @param t The wildcard type.
+    /// @return A [Converter] typed to the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOf(@NonNull WildcardType t) throws UnavailableConverterException {
         throw UnavailableConverterException.noConverterFor(t);
     }
 
+    /// Returns a typed converter for the given type variable.
+    ///
+    ///The default implementation does not supports this operation and always throws an
+    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    ///
+    /// @param t The type variable.
+    /// @return A [Converter] typed to the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOf(@NonNull TypeVariable<?> t) throws UnavailableConverterException {
         throw UnavailableConverterException.noConverterFor(t);
     }
 
+    /// Returns a typed converter for the given undetermined type.
+    ///
+    ///The default implementation does not supports this operation and always throws an
+    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    ///
+    /// @param t The undetermined type.
+    /// @return A [Converter] typed to the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
+    /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOfUndetermined(@NonNull Type t) throws UnavailableConverterException {
         throw UnavailableConverterException.noConverterFor(t);
     }
 
+    /// Returns a typed converter for the given class.
+    ///
+    /// Checks direct mappings first, then tries [#makeArray(Class)], [#makeEnum(Class)],
+    /// and [#makeRecord(Class)] in order; throws if none match.
+    ///
+    /// @param <E> The target type.
+    /// @param klass The class to look up.
+    /// @return A [Converter] typed to `E`.
+    /// @throws UnavailableConverterException If no converter is available for `klass`.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     @Override
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -143,6 +219,15 @@ public interface StdConverterFactory extends ConverterFactory {
         throw UnavailableConverterException.noConverterFor(klass);
     }
 
+    /// Creates a converter for the given class if it is a non-multidimensional array class.
+    ///
+    ///The default implementation always returns a [ArrayConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param <E> The array type.
+    /// @param klass The class to inspect.
+    /// @return An optional [ArrayConverter] if `klass` is a single-dimensional array class; empty otherwise.
+    /// @throws UnavailableConverterException If no converter is available for the element type.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default <E> Optional<? extends Converter<E>> makeArray(@NonNull Class<E> klass) throws UnavailableConverterException {
@@ -152,6 +237,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new ArrayConverter(this, arg));
     }
 
+    /// Creates a converter for the given class if it is an enum class.
+    ///
+    ///The default implementation always returns a [EnumConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param <E> The enum type.
+    /// @param klass The class to inspect.
+    /// @return An optional [EnumConverter] if `klass` is an enum class; empty otherwise.
+    /// @throws UnavailableConverterException If converter creation fails.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     public default <E extends Enum<E>> Optional<? extends Converter<E>> makeEnum(@NonNull Class<E> klass)
             throws UnavailableConverterException
@@ -160,6 +254,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new EnumConverter<>(klass));
     }
 
+    /// Creates a converter for the given class if it is a record class.
+    ///
+    ///The default implementation always returns a [RecordConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param <E> The record type.
+    /// @param klass The class to inspect.
+    /// @return An optional [RecordConverter] if `klass` is a record class; empty otherwise.
+    /// @throws UnavailableConverterException If converter creation fails or recursive record definition is detected.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     public default <E extends Record> Optional<? extends Converter<E>> makeRecord(@NonNull Class<E> klass)
             throws UnavailableConverterException
@@ -168,6 +271,13 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new RecordConverter<>(this, klass));
     }
 
+    /// Looks up the given class in the direct mappings and returns its converter if present.
+    ///
+    /// @param <E> The target type.
+    /// @param klass The class to look up.
+    /// @return An optional converter for `klass`; empty if not found in the direct mappings.
+    /// @throws UnavailableConverterException If lookup fails.
+    /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public default <E> Optional<? extends Converter<E>> directMapping(@NonNull Class<E> klass)
@@ -176,6 +286,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.ofNullable((Converter<E>) directMappings().get(klass));
     }
 
+    /// If `p` is `Collection<X>` for some concrete class `X`, creates a converter.
+    ///
+    ///The default implementation always returns a [CollectionConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param p The parameterized type to inspect.
+    /// @return An optional converter for `p`; empty if `p` is not `Collection<X>`.
+    ///         The default implementation produces [CollectionConverter].
+    /// @throws UnavailableConverterException If converter creation fails.
+    /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default Optional<? extends Converter<? extends Collection<?>>> makeCollection(@NonNull ParameterizedType p)
@@ -188,6 +307,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new CollectionConverter(this, p));
     }
 
+    /// If `p` is `Set<X>` for some concrete class `X`, creates a converter.
+    ///
+    ///The default implementation always returns a [SetConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param p The parameterized type to inspect.
+    /// @return An optional converter for `p`; empty if `p` is not `Set<X>`.
+    ///         The default implementation produces [SetConverter].
+    /// @throws UnavailableConverterException If converter creation fails.
+    /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default Optional<? extends Converter<? extends Set<?>>> makeSet(@NonNull ParameterizedType p)
@@ -200,6 +328,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new SetConverter(this, p));
     }
 
+    /// If `p` is `List<X>` for some concrete class `X`, creates a converter.
+    ///
+    ///The default implementation always returns a [ListConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param p The parameterized type to inspect.
+    /// @return An optional converter for `p`; empty if `p` is not `List<X>`.
+    ///         The default implementation produces [ListConverter].
+    /// @throws UnavailableConverterException If converter creation fails.
+    /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default Optional<? extends Converter<? extends List<?>>> makeList(@NonNull ParameterizedType p)
@@ -212,6 +349,15 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new ListConverter(this, p));
     }
 
+    /// If `p` is `Optional<X>` for some concrete class `X`, creates a converter.
+    ///
+    ///The default implementation always returns a [OptionalConverter], but overriden implementations may do otherwise.
+    ///
+    /// @param p The parameterized type to inspect.
+    /// @return An optional converter for `p`; empty if `p` is not `Optional<X>`.
+    ///         The default implementation produces [OptionalConverter].
+    /// @throws UnavailableConverterException If converter creation fails.
+    /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
     @SuppressWarnings({"unchecked", "rawtypes"})
     public default Optional<? extends Converter<? extends Optional<?>>> makeOptional(@NonNull ParameterizedType p)
@@ -224,6 +370,14 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.of(new OptionalConverter(this, p));
     }
 
+    /// If `p` is `Map<X, Y>` for some concrete classes `X` and `Y`, creates a converter.
+    ///
+    /// However, this operation is not supported in the default implementation, that always returns empty.
+    ///
+    /// @param p The parameterized type (ignored).
+    /// @return Always [Optional#empty()].
+    /// @throws UnavailableConverterException Never thrown.
+    /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
     public default Optional<? extends Converter<? extends Map<?, ?>>> makeMap(@NonNull ParameterizedType p)
             throws UnavailableConverterException
@@ -231,11 +385,22 @@ public interface StdConverterFactory extends ConverterFactory {
         return Optional.empty();
     }
 
+    /// Returns the map of class-to-converter direct mappings for this factory instance.
+    ///
+    /// @return An immutable map from [Class] to [Converter] for all directly registered types.
     @NonNull
     public default Map<Class<?>, Converter<?>> directMappings() {
         return rootMap();
     }
 
+    /// Creates a new [StdConverterFactory] with the given class-to-converter mapping added to this factory's mappings.
+    ///
+    /// @param <E> The type of the additional converter.
+    /// @param klass The class to register the converter for.
+    /// @param cvt The converter to register.
+    /// @return A new [StdConverterFactory] instance that includes the additional mapping.
+    /// @throws IllegalArgumentException If `klass` is `null`.
+    /// @throws IllegalArgumentException If `cvt` is `null`.
     @NonNull
     public default <E> StdConverterFactory extend(@NonNull Class<E> klass, @NonNull Converter<E> cvt) {
         var temp = new HashMap<>(directMappings());

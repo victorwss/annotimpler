@@ -5,7 +5,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `char[]` values.
+///
+/// Delegates to [StringConverter] and converts the resulting string to a char array.
+/// Supported conversions: [String], `byte[]`, [Blob], [Clob], [NClob], [SQLXML], [RowId].
+/// Returns an empty char array for `null` input.
 public enum CharArrayConverter implements Converter<char[]> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -23,12 +30,16 @@ public enum CharArrayConverter implements Converter<char[]> {
         }
     }
 
+    /// Returns `char[].class`.
+    ///
+    /// @return `char[].class`.
     @NonNull
     @Override
     public Class<char[]> getType() {
         return char[].class;
     }
 
+    /// Returns `Optional.of(new char[0])` (an empty char array).
     @NonNull
     @Override
     @SuppressWarnings("unchecked")

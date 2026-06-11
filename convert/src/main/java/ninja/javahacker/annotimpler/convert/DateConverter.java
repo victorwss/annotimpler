@@ -6,7 +6,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `java.util.Date` values.
+///
+/// Supported conversions: [LocalDate], [LocalDateTime], [OffsetDateTime]
+/// (via [InstantConverter] then `Date::from`),
+/// [String] (via [InstantConverter]; empty → empty).
 public enum DateConverter implements Converter<Date> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -24,6 +31,9 @@ public enum DateConverter implements Converter<Date> {
         }
     }
 
+    /// Returns `java.util.Date.class`.
+    ///
+    /// @return `java.util.Date.class`.
     @NonNull
     @Override
     public Class<Date> getType() {

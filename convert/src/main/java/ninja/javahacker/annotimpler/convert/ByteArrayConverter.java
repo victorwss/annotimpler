@@ -5,15 +5,26 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `byte[]` values.
+///
+/// Supported conversions: `boolean` (single byte 1/0), `byte` (single byte),
+/// [String] (UTF-8), `byte[]`, [Blob]/[Clob]/[NClob]/[SQLXML] (read as bytes), [RowId] (raw bytes).
+/// Returns an empty byte array for `null` input.
 public enum ByteArrayConverter implements Converter<byte[]> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `byte[].class`.
+    ///
+    /// @return `byte[].class`.
     @NonNull
     @Override
     public Class<byte[]> getType() {
         return byte[].class;
     }
 
+    /// Returns `Optional.of(new byte[0])` (an empty byte array).
     @NonNull
     @Override
     @SuppressWarnings("unchecked")

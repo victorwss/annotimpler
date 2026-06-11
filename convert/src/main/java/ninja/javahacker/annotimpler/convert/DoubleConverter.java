@@ -5,15 +5,35 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `double` and [Double] values.
+///
+/// [#PRIMITIVE] targets `double.class` and returns `Optional.of(0.0)` for `null` input.
+/// [#WRAPPER] targets `Double.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`, `long` (range check),
+/// `float` (special handling for infinity/NaN/negative-zero), `double`,
+/// [BigDecimal] (roundtrip check), [String] (roundtrip parse check; empty → 0.0 for [#PRIMITIVE] or empty for [#WRAPPER]).
+/// Infinity and NaN from [BigDecimal] throw [ConvertionException].
 public enum DoubleConverter implements Converter<Double> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `double.class`.
+    PRIMITIVE,
+
+    /// Targets `Double.class`.
+    WRAPPER;
+
+    /// Returns `double.class` for [#PRIMITIVE] or `Double.class` for [#WRAPPER].
+    ///
+    /// @return `double.class` for [#PRIMITIVE] or `Double.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Double> getType() {
         return this == PRIMITIVE ? double.class : Double.class;
     }
 
+    /// Returns `Optional.of(0.0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
+    ///
+    /// @return `Optional.of(0.0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Double> fromNull() {

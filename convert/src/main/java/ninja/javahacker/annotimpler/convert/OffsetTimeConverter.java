@@ -6,9 +6,19 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
+/// A [Converter] for [OffsetTime] values.
+///
+/// Supported conversions: [LocalTime] (at UTC offset), [LocalDateTime] (at UTC, extract offset time),
+/// [OffsetTime] (identity), [OffsetDateTime] (extract offset time),
+/// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
 public enum OffsetTimeConverter implements Converter<OffsetTime> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `OffsetTime.class`.
+    ///
+    /// @return `OffsetTime.class`.
     @NonNull
     @Override
     public Class<OffsetTime> getType() {

@@ -5,7 +5,17 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for [OptionalDouble] values.
+///
+/// Delegates to [DoubleConverter#WRAPPER] internally.
+/// Returns `Optional.of(OptionalDouble.empty())` for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`,
+/// `long`/`float` (with precision check), `double`,
+/// [BigDecimal] (roundtrip), [String] (empty → `OptionalDouble.empty()`).
 public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -23,12 +33,16 @@ public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
         }
     }
 
+    /// Returns `OptionalDouble.class`.
+    ///
+    /// @return `OptionalDouble.class`.
     @NonNull
     @Override
     public Class<OptionalDouble> getType() {
         return OptionalDouble.class;
     }
 
+    /// Returns `Optional.of(OptionalDouble.empty())`.
     @NonNull
     @Override
     public Optional<OptionalDouble> fromNull() {

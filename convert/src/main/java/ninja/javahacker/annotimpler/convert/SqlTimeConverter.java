@@ -6,7 +6,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `java.sql.Time` values.
+///
+/// Supported conversions: [LocalTime] (via `Time.valueOf`),
+/// [LocalDateTime]/[OffsetTime]/[OffsetDateTime] (extract local time, then `Time.valueOf`),
+/// [String] (via [LocalTimeConverter]; empty → empty).
 public enum SqlTimeConverter implements Converter<Time> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -24,6 +31,9 @@ public enum SqlTimeConverter implements Converter<Time> {
         }
     }
 
+    /// Returns `java.sql.Time.class`.
+    ///
+    /// @return `java.sql.Time.class`.
     @NonNull
     @Override
     public Class<Time> getType() {

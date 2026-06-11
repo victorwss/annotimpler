@@ -8,6 +8,16 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for enum types.
+///
+/// Numeric types (`byte`, `short`, `int`, `long`, `float`, `double`, [BigDecimal]) are interpreted
+/// as ordinal indices into the enum's constant array.
+/// Strings: first tries `Enum.valueOf` by name; if that fails, tries parsing as an ordinal index;
+/// if that also fails, throws [ConvertionException]. Empty string → `Optional.empty()`.
+/// [Blob]/[Clob]/[NClob]: content is read as a string and then converted as a string.
+/// The default `fromNull()` is inherited and returns `Optional.empty()`.
+///
+/// @param <E> The enum type this converter targets.
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
@@ -28,6 +38,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// Returns the enum class `E` that this converter targets.
     @NonNull
     @Override
     @SuppressWarnings("unchecked")
@@ -35,6 +46,10 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return enumClass;
     }
 
+    /// Constructs an [EnumConverter] for the given enum class.
+    ///
+    /// @param enumClass The enum class to convert to.
+    /// @throws IllegalArgumentException If `enumClass` is `null`.
     public EnumConverter(@NonNull Class<E> enumClass) {
         this.enumClass = enumClass;
     }

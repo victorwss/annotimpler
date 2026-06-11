@@ -4,15 +4,32 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `byte` and [Byte] values.
+///
+/// [#PRIMITIVE] targets `byte.class` and returns `Optional.of((byte) 0)` for `null` input.
+/// [#WRAPPER] targets `Byte.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean` (`true` → 1, `false` → 0), `byte`,
+/// `short`/`int`/`long`/`float`/`double` (with range check), [BigDecimal] (exact),
+/// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum ByteConverter implements Converter<Byte> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `byte.class`.
+    PRIMITIVE,
+
+    /// Targets `Byte.class`.
+    WRAPPER;
+
+    /// Returns `byte.class` for [#PRIMITIVE] or `Byte.class` for [#WRAPPER].
+    ///
+    /// @return `byte.class` for [#PRIMITIVE] or `Byte.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Byte> getType() {
         return this == PRIMITIVE ? byte.class : Byte.class;
     }
 
+    /// Returns `Optional.of((byte) 0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Byte> fromNull() {

@@ -19,7 +19,7 @@ public class NumericConverterTest {
         var strs = h.e(String.class, List.of(
                 "q", "xxx", "RED",
                 "0", "1", "9", "42", "55", "127", "-30", "-128", "32000", "64000",
-                "489876544", "12345678910", "9876543210987654", "98765432109876543210",
+                "489876544", "12345678910", "9876543210987654", "98765432109876543210", "-489876544", "-9876543210987654",
                 "16777217", "9007199254740993",
                 "3.5", "0.078", "-177.77", "98765432109876543210.98765432",
                 "NaN", "Infinity", "-Infinity"
@@ -27,7 +27,7 @@ public class NumericConverterTest {
         var floats = h.e(float.class, Arrays.asList(
                 null, null, null,
                 0F, 1F, 9F, 42F, 55F, 127F, -30F, -128F, 32000F, 64000F,
-                489876544F, null, null, null,
+                489876544F, null, null, null, -489876544F, null,
                 null, null,
                 3.5F, 0.078F, -177.77F, null,
                 Float.NaN, Float.POSITIVE_INFINITY, Float.NEGATIVE_INFINITY
@@ -35,7 +35,7 @@ public class NumericConverterTest {
         var doubles = h.e(double.class, Arrays.asList(
                 null, null, null,
                 0D, 1D, 9D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
-                489876544D, 12345678910D, 9876543210987654D, null,
+                489876544D, 12345678910D, 9876543210987654D, null, -489876544D, -12345678910D,
                 16777217.0D, null,
                 3.5D, 0.078D, -177.77D, null,
                 Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY

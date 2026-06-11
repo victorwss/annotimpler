@@ -4,9 +4,19 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for [BigDecimal] values.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
+/// `float`/`double` (via `FloatAndDouble.makeBig`; throws for infinity/NaN),
+/// [BigDecimal], [String] (parsed; empty → empty).
 public enum BigDecimalConverter implements Converter<BigDecimal> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `BigDecimal.class`.
+    ///
+    /// @return `BigDecimal.class`.
     @NonNull
     @Override
     public Class<BigDecimal> getType() {

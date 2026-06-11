@@ -6,7 +6,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `java.sql.Timestamp` values.
+///
+/// Supported conversions: [LocalDate]/[LocalDateTime]/[OffsetDateTime]
+/// (via [LocalDateTimeConverter] then `Timestamp.valueOf`),
+/// [String] (via [LocalDateTimeConverter]; empty → empty).
 public enum SqlTimestampConverter implements Converter<Timestamp> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -24,6 +31,9 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
         }
     }
 
+    /// Returns `java.sql.Timestamp.class`.
+    ///
+    /// @return `java.sql.Timestamp.class`.
     @NonNull
     @Override
     public Class<Timestamp> getType() {

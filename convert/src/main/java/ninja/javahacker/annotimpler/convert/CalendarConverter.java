@@ -5,7 +5,14 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] for `java.util.Calendar` values.
+///
+/// Supported conversions: [LocalDate], [LocalDateTime], [OffsetDateTime]
+/// (via [ZonedDateTimeConverter] then `GregorianCalendar::from`),
+/// [String] (via [ZonedDateTimeConverter]; empty → empty).
 public enum CalendarConverter implements Converter<Calendar> {
+
+    /// Singeton instance.
     INSTANCE;
 
     @FunctionalInterface
@@ -23,6 +30,9 @@ public enum CalendarConverter implements Converter<Calendar> {
         }
     }
 
+    /// Returns `java.util.Calendar.class`.
+    ///
+    /// @return `java.util.Calendar.class`.
     @NonNull
     @Override
     public Class<Calendar> getType() {

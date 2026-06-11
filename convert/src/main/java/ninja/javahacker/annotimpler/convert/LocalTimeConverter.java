@@ -6,9 +6,19 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
+/// A [Converter] for [LocalTime] values.
+///
+/// Supported conversions: [LocalTime] (identity), [LocalDateTime] (extract time),
+/// [OffsetTime] (extract local time), [OffsetDateTime] (extract local time),
+/// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
 public enum LocalTimeConverter implements Converter<LocalTime> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `LocalTime.class`.
+    ///
+    /// @return `LocalTime.class`.
     @NonNull
     @Override
     public Class<LocalTime> getType() {

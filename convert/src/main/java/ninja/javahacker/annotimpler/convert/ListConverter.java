@@ -5,10 +5,29 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] that wraps an element [Converter] and produces `List<E>`.
+///
+/// For `null` input, returns `Optional.of(List.of())` (an empty list).
+/// For any other non-null input, converts the element and returns `List.of(element)`.
+///
+/// @param <E> The element type of the list.
 public final class ListConverter<E> implements Converter<List<E>> {
+
+    @NonNull
     private final Converter<E> cvt;
+
+    @NonNull
     private final ParameterizedType baseType;
 
+    /// Constructs a [ListConverter] for `List<X>` where `X` is the raw type argument of `baseType`.
+    ///
+    /// `baseType` must be `List<X>` for some concrete class `X`; otherwise throws [UnavailableConverterException].
+    ///
+    /// @param factory The factory used to obtain the element converter.
+    /// @param baseType The parameterized type `List<X>`.
+    /// @throws UnavailableConverterException If `baseType` is not `List<X>` for some class `X`,
+    ///         or if no converter is available for the element type.
+    /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
     public ListConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
@@ -19,6 +38,9 @@ public final class ListConverter<E> implements Converter<List<E>> {
         this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
+    /// Returns the parameterized type `List<E>` that this converter produces.
+    ///
+    /// @return The parameterized type `List<E>` that this converter produces.
     @NonNull
     @Override
     public ParameterizedType getType() {
@@ -51,6 +73,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
         return e.rework(baseType);
     }
 
+    /// Returns `Optional.of(List.of())` (an empty list).
     @NonNull
     @Override
     public Optional<List<E>> fromNull() {

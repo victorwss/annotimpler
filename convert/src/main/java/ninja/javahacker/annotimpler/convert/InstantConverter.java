@@ -6,9 +6,19 @@ import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
+/// A [Converter] for [Instant] values.
+///
+/// Supported conversions: [LocalDate], [LocalDateTime], [OffsetDateTime]
+/// (via [OffsetDateTimeConverter] then `toInstant`),
+/// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
 public enum InstantConverter implements Converter<Instant> {
+
+    /// Singeton instance.
     INSTANCE;
 
+    /// Returns `Instant.class`.
+    ///
+    /// @return `Instant.class`.
     @NonNull
     @Override
     public Class<Instant> getType() {

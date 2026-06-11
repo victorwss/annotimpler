@@ -5,15 +5,32 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `int` and [Integer] values.
+///
+/// [#PRIMITIVE] targets `int.class` and returns `Optional.of(0)` for `null` input.
+/// [#WRAPPER] targets `Integer.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`, `long` (range check),
+/// `float` (via [BigDecimal] exact), `double` (range check), [BigDecimal] (exact),
+/// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
 public enum IntegerConverter implements Converter<Integer> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `int.class`.
+    PRIMITIVE,
+
+    /// Targets `Integer.class`.
+    WRAPPER;
+
+    /// Returns `int.class` for [#PRIMITIVE] or `Integer.class` for [#WRAPPER].
+    ///
+    /// @return `int.class` for [#PRIMITIVE] or `Integer.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Integer> getType() {
         return this == PRIMITIVE ? int.class : Integer.class;
     }
 
+    /// Returns `Optional.of(0)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Integer> fromNull() {

@@ -5,10 +5,30 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
+/// A [Converter] that wraps an element [Converter] and produces `Set<E>`.
+///
+/// For `null` input, returns `Optional.of(Set.of())` (an empty set).
+/// For any other non-null input, converts the element and returns `Set.of(element)`.
+///
+/// @param <E> The element type of the set.
 public final class SetConverter<E> implements Converter<Set<E>> {
+
+    @NonNull
     private final Converter<E> cvt;
+
+    @NonNull
     private final ParameterizedType baseType;
 
+    /// Constructs a [SetConverter] for `Set<X>` where `X` is the raw type argument of `baseType`.
+    ///
+    /// `baseType` must be `Set<X>` for some concrete class `X`; otherwise throws [UnavailableConverterException].
+    ///
+    /// @param factory The factory used to obtain the element converter.
+    /// @param baseType The parameterized type `Set<X>`.
+    /// @throws UnavailableConverterException If `baseType` is not `Set<X>` for some class `X`,
+    ///         or if no converter is available for the element type.
+    /// @throws IllegalArgumentException If `factory` is `null`.
+    /// @throws IllegalArgumentException If `baseType` is `null`.
     @SuppressWarnings("unchecked")
     public SetConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
@@ -19,6 +39,9 @@ public final class SetConverter<E> implements Converter<Set<E>> {
         this.cvt = factory.getOf((Class<E>) baseClass);
     }
 
+    /// Returns the parameterized type `Set<E>` that this converter produces.
+    ///
+    /// @return the parameterized type `Set<E>` that this converter produces.
     @NonNull
     @Override
     public ParameterizedType getType() {
@@ -51,6 +74,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
         return e.rework(baseType);
     }
 
+    /// Returns `Optional.of(Set.of())` (an empty set).
     @NonNull
     @Override
     public Optional<Set<E>> fromNull() {

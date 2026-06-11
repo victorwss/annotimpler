@@ -5,15 +5,31 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// A [Converter] for `float` and [Float] values.
+///
+/// [#PRIMITIVE] targets `float.class` and returns `Optional.of(0F)` for `null` input.
+/// [#WRAPPER] targets `Float.class` and returns empty for `null` input.
+///
+/// Supported conversions: `boolean`, `byte`, `short`, `int`/`long` (range check),
+/// `float`, `double` (special handling for infinity/NaN/negative-zero, then via [BigDecimal]),
+/// [BigDecimal] (roundtrip check), [String] (roundtrip parse check; empty → 0.0 for [#PRIMITIVE] or empty for [#WRAPPER]).
+/// Infinity and NaN values throw [ConvertionException].
 public enum FloatConverter implements Converter<Float> {
-    PRIMITIVE, WRAPPER;
 
+    /// Targets `float.class`.
+    PRIMITIVE,
+
+    /// Targets `Float.class`.
+    WRAPPER;
+
+    /// Returns `float.class` for [#PRIMITIVE] or `Float.class` for [#WRAPPER].
     @NonNull
     @Override
     public Class<Float> getType() {
         return this == PRIMITIVE ? float.class : Float.class;
     }
 
+    /// Returns `Optional.of(0F)` for [#PRIMITIVE] or [Optional#empty()] for [#WRAPPER].
     @NonNull
     @Override
     public Optional<Float> fromNull() {

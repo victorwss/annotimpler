@@ -1,3 +1,5 @@
+/// Provides converters for transforming arbitrary input values into typed Java objects,
+/// including primitives, wrappers, date/time types, SQL types, enums, records, and collections.
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
