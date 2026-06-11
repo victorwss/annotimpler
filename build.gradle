@@ -276,7 +276,7 @@ subprojects {
 
     tasks.withType(com.github.spotbugs.snom.SpotBugsTask) {
         reports {
-            xml.required = false
+            xml.required = true      // needed for aggregateSpotBugsReport
             html.required = true
         }
     }
@@ -347,40 +347,205 @@ subprojects {
     test.enabled = true
 }
 
-/*task mergedJavadoc(type: Javadoc) {
-    dependsOn(":backend:delombok")
+// ── Unified Javadoc ──────────────────────────────────────────────────────────
+// Generates a single Javadoc tree spanning all modules, using --module-source-path
+// so the module graph is preserved. Source comes from each subproject's
+// prepareJavadocSource output (already @NonNull-stripped per the JDK-8175533 workaround).
+tasks.register("allJavadoc") {
+    dependsOn(subprojects.collect { it.tasks.named("prepareJavadocSource") })
+    group = "documentation"
+    description = "Generates unified Javadoc for all modules."
+    def outputDir   = file("${buildDir}/docs/javadoc")
+    def mergedSrcDir = file("${buildDir}/all-javadoc-src")
+    outputs.dir(outputDir)
 
-    description = "Creates Javadoc from all the projects."
-    title = "All modules"
-    destinationDir = new File(project.buildDir, "merged-javadoc")
+    doLast {
+        outputDir.mkdirs()
+        mergedSrcDir.deleteDir()   // start fresh so stale modules don't linger
+        def moduleNames    = []
+        def allModulePaths = new LinkedHashSet<File>()
 
-    // Note: The closures below are executed lazily.
-    source {
-       subprojects*.sourceSets*.main*.delombokAll
+        subprojects.each { sp ->
+            def srcDir     = new File(sp.buildDir, "src-javadoc")
+            def moduleInfo = new File(srcDir, "module-info.java")
+            if (!moduleInfo.exists()) return
+            def matcher = (moduleInfo.text =~ /(?:open\s+)?module\s+([\w.]+)\s*\{/)
+            if (!matcher.find()) return
+            def moduleName = matcher.group(1)
+            moduleNames << moduleName
+            // Place each module's source under <mergedSrcDir>/<moduleName>/ so that
+            // javadoc --module-source-path <mergedSrcDir> can find them by module name.
+            project.copy { from srcDir; into new File(mergedSrcDir, moduleName) }
+            try { allModulePaths.addAll(sp.configurations.compileClasspath.files) }
+            catch (Exception ignored) {}
+        }
+
+        def cmd = [org.gradle.internal.jvm.Jvm.current().javadocExecutable.absolutePath]
+        cmd += ["--module-source-path", mergedSrcDir.absolutePath]
+        cmd += ["--module", moduleNames.join(",")]
+        if (!allModulePaths.isEmpty()) {
+            cmd += ["--module-path", allModulePaths*.absolutePath.join(File.pathSeparator)]
+        }
+        cmd += ["-d",           outputDir.absolutePath]
+        cmd += ["-encoding",    "UTF-8", "-charset", "UTF-8", "-docencoding", "UTF-8"]
+        cmd += ["-doctitle",    "Annotimpler API", "-windowtitle", "Annotimpler API"]
+        cmd += ["-header",      "<b>Annotimpler</b>"]
+        cmd += ["-html5"]
+        cmd += ["-tag", "apiNote:a:API Note:",
+                "-tag", "implSpec:a:Implementation Requirements:",
+                "-tag", "implNote:a:Implementation Note:"]
+        cmd += [doclint ? "-Xdoclint:all" : "-Xdoclint:none"]
+        cmd += ["-Xmaxerrs", "1000", "-Xmaxwarns", "1000"]
+
+        def pb = new ProcessBuilder(cmd).redirectErrorStream(true)
+        def process = pb.start()
+        def output = process.inputStream.text
+        def exitCode = process.waitFor()
+        if (output) println output
+        if (exitCode != 0) throw new GradleException("allJavadoc failed (exit ${exitCode})")
     }
-    classpath.from {
-        subprojects*.configurations*.compile*.copyRecursive({ !(it instanceof ProjectDependency); })*.resolve()
-    }
-}*/
-
-tasks.register("allJavadoc", Javadoc) {
-    // Collect source files from all subprojects
-    source subprojects.collect { it.sourceSets.main.allJava }
-
-    // Combine classpaths so links and references resolve correctly
-    classpath = files(subprojects.collect { it.sourceSets.main.compileClasspath })
-
-    // Set the output directory
-    destinationDir = file("${buildDir}/docs/javadoc")
 }
 
+// ── Aggregate JUnit Test Report ───────────────────────────────────────────────
 tasks.register("aggregateTestReport", TestReport) {
+    group = "verification"
+    description = "Generates an aggregate JUnit HTML report for all subprojects."
+    dependsOn(subprojects.collect { it.tasks.withType(Test) }.flatten())
     destinationDirectory = file("${buildDir}/reports/allTests")
-    reportOn subprojects.collect { it.tasks.withType(Test) }
+    testResults.from(subprojects.collect { it.tasks.withType(Test) }.flatten())
 }
 
-dependencies {
-    jacocoAggregation subprojects
+// ── Aggregate JaCoCo Coverage Report ─────────────────────────────────────────
+// Note: the jacoco-report-aggregation plugin is incompatible with Gradle 9 in this
+// project setup, so we use a plain JacocoReport task that combines all .exec files.
+tasks.register("aggregateJacocoReport", JacocoReport) {
+    dependsOn(subprojects.collect { it.tasks.named("test") })
+    group = "verification"
+    description = "Generates an aggregate JaCoCo coverage report for all subprojects."
+    executionData.setFrom(
+        subprojects.collect { sp -> fileTree(sp.buildDir).include("jacoco/*.exec") }
+    )
+    sourceDirectories.setFrom(
+        subprojects.collect { sp -> sp.sourceSets.main.allJava.srcDirs }.flatten().findAll { it.exists() }
+    )
+    classDirectories.setFrom(
+        subprojects.collect { sp -> sp.sourceSets.main.output.classesDirs }.flatten()
+    )
+    reports {
+        html.required = true
+        xml.required  = false
+        csv.required  = false
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/aggregate")
+    }
+}
+
+// ── Aggregate PMD Report ──────────────────────────────────────────────────────
+tasks.register("aggregatePmdReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.withType(Pmd) }.flatten())
+    group = "verification"
+    description = "Generates an aggregate PMD HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/pmd/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/pmd/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).file.each { fileNode ->
+                    def path = fileNode.@name.replace(rootDir.absolutePath, "").replace("\\", "/")
+                    fileNode.violation.each { v ->
+                        rows << [sp.name, path, v.@beginline, v.@priority, v.@rule, v.text().trim()]
+                    }
+                }
+            } catch (Exception e) { println "PMD parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "PMD Aggregate Report", "#4a6da7",
+            ["Project", "File", "Line", "P", "Rule", "Message"], rows,
+            "${rows.size()} violation(s)")
+        println "PMD aggregate report: ${outputFile.toURI()}"
+    }
+}
+
+// ── Aggregate SpotBugs Report ─────────────────────────────────────────────────
+tasks.register("aggregateSpotBugsReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.named("spotbugsMain") })
+    group = "verification"
+    description = "Generates an aggregate SpotBugs HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/spotbugs/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/spotbugs/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).BugInstance.each { bug ->
+                    def sl  = bug.SourceLine ? bug.SourceLine[0] : null
+                    def msg = (bug.LongMessage ?: bug.ShortMessage)
+                    rows << [sp.name, bug.@category, bug.@type, bug.@rank,
+                             bug.Class  ? bug.Class[0].@classname : "",
+                             bug.Method ? bug.Method[0].@name     : "",
+                             sl ? sl.@sourcepath : "", sl ? sl.@start : "",
+                             msg ? msg[0].text().trim() : ""]
+                }
+            } catch (Exception e) { println "SpotBugs parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "SpotBugs Aggregate Report", "#a74a4a",
+            ["Project", "Category", "Type", "Rank", "Class", "Method", "File", "Line", "Message"], rows,
+            "${rows.size()} bug(s)")
+        println "SpotBugs aggregate report: ${outputFile.toURI()}"
+    }
+}
+
+// ── aggregateReports convenience task ────────────────────────────────────────
+// Runs all aggregate reports at once. Individual tasks can still be run separately.
+tasks.register("aggregateReports") {
+    group = "verification"
+    description = "Generates all aggregate reports (tests, coverage, PMD, SpotBugs, Javadoc)."
+    dependsOn("aggregateTestReport", "aggregateJacocoReport", "aggregatePmdReport", "aggregateSpotBugsReport", "allJavadoc")
+}
+
+// ── fullBuild lifecycle task ──────────────────────────────────────────────────
+// Builds, publishes and generates every aggregate report in one shot.
+// Intended to be run as: gradle clean fullBuild
+// (clean is kept separate to avoid circular dependencies with subproject tasks.)
+tasks.register("fullBuild") {
+    group = "build"
+    description = "Builds all modules, publishes artifacts, and generates all aggregate reports. Run as: gradle clean fullBuild"
+    dependsOn("build", "publish", "aggregateReports")
+}
+
+// ── HTML report helper ────────────────────────────────────────────────────────
+// Builds a simple but complete single-page HTML table report.
+// Used by aggregatePmdReport and aggregateSpotBugsReport.
+def buildAggregateHtml(String title, String accentColor, List<String> headers, List rows, String summary) {
+    def escape = { String s -> s?.replace("&", "&amp;")?.replace("<", "&lt;")?.replace(">", "&gt;") ?: "" }
+    def thead = headers.collect { "<th>${it}</th>" }.join("")
+    def tbody = rows.collect { row ->
+        "<tr>${(row as List).collect { cell -> "<td>${escape(cell?.toString())}</td>" }.join("")}</tr>"
+    }.join("\n")
+    """\
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+body  { font-family: sans-serif; margin: 20px; }
+h1    { color: ${accentColor}; }
+table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+th    { background: ${accentColor}; color: white; padding: 6px 10px; text-align: left; }
+td    { border: 1px solid #ddd; padding: 4px 8px; vertical-align: top; word-break: break-word; }
+tr:nth-child(even) { background: #f9f9f9; }
+</style></head><body>
+<h1>${title}</h1>
+<p>Total: <b>${summary}</b></p>
+${rows.isEmpty() ? "<p>No issues found. ✓</p>" : "<table><tr>${thead}</tr>\n${tbody}\n</table>"}
+</body></html>"""
 }
 
 project(":datetime") {
