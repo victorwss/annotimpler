@@ -6,6 +6,30 @@ import lombok.NonNull;
 
 import module java.base;
 
+/// An immutable value type that holds a SQL string after its named parameters have been parsed.
+///
+/// Use [parse] to create an instance from a raw SQL string.  The resulting object holds both
+/// the original and the transformed SQL (with named parameters replaced by `?`), along with a
+/// map from each parameter name to the list of 1-based positional indices at which it appears.
+///
+/// Error conditions (unclosed quotes, unnamed `?` parameters, or lone colons) are exposed as
+/// boolean components and can be tested collectively with [hasErrors].
+///
+/// @param original The original SQL string as provided by the caller, before any parameter
+///                 substitution; must not be `null`.
+/// @param parsed The SQL string with all named parameters (`:name`) replaced by `?` placeholders,
+///               ready to be passed to a `PreparedStatement`; must not be `null`.
+/// @param params An unmodifiable map from each parameter name to the list of 1-based positional
+///               indices at which that parameter appears in the parsed SQL; must not be `null`.
+/// @param size The total number of `?` placeholders in the parsed SQL (named and unnamed combined).
+/// @param unnamedParameters `true` if the original SQL contains at least one unnamed `?` parameter.
+/// @param unclosedQuotes `true` if the original SQL has an unclosed single-quote or double-quote
+///                       string literal.
+/// @param loneColons `true` if the original SQL contains at least one bare `:` that is not
+///                   followed by a valid Java identifier start character.
+///
+/// @see #parse(String)
+/// @see #hasErrors()
 @SuppressFBWarnings("EI_EXPOSE_REP")
 public record ParsedQuery(
         @NonNull String original,
@@ -23,6 +47,12 @@ public record ParsedQuery(
     private static final char QMARK = '?';
     private static final String COLON_STRING = ":";
 
+    /// Creates a [ParsedQuery], defensively copying `params` to make it unmodifiable.
+    ///
+    /// Each value list in `params` is also copied so that external changes to the original
+    /// collections cannot affect this record.
+    ///
+    /// @throws IllegalArgumentException If `original`, `parsed`, or `params` is `null`.
     public ParsedQuery {
         params = deepCopy2(params);
     }
@@ -61,6 +91,21 @@ public record ParsedQuery(
         return Optional.of(original.substring(i + 1, j));
     }
 
+    /// Parses a SQL string with named parameters (`:name` syntax) into a [ParsedQuery].
+    ///
+    /// Each named parameter of the form `:identifier` (where `identifier` is a valid Java
+    /// identifier, optionally qualified with `::` for type-qualified names) is replaced by a
+    /// `?` placeholder in the returned [ParsedQuery#parsed] string.  The positional index (1-based)
+    /// at which each named parameter appears is recorded in [ParsedQuery#params].
+    ///
+    /// Bare `?` characters outside of quoted strings are counted as unnamed parameters and set
+    /// [ParsedQuery#unnamedParameters] to `true`.  Unclosed single- or double-quote literals set
+    /// [ParsedQuery#unclosedQuotes] to `true`.  A lone `:` not followed by a valid identifier
+    /// start character sets [ParsedQuery#loneColons] to `true`.
+    ///
+    /// @param original The raw SQL string to parse; must not be `null`.
+    /// @return A [ParsedQuery] representing the parsed result; never `null`.
+    /// @throws IllegalArgumentException If `original` is `null`.
     @NonNull
     @SuppressWarnings("AssignmentToForLoopParameter")
     public static ParsedQuery parse(@NonNull String original) {
@@ -119,6 +164,12 @@ public record ParsedQuery(
         );
     }
 
+    /// Returns `true` if this query has any detected error condition.
+    ///
+    /// A query has errors when at least one of [unclosedQuotes], [unnamedParameters],
+    /// or [loneColons] is `true`.
+    ///
+    /// @return `true` if any error flag is set; `false` if the query appears well-formed.
     public boolean hasErrors() {
         return unclosedQuotes() || unnamedParameters() || loneColons();
     }

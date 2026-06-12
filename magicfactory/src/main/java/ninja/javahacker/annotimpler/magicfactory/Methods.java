@@ -274,6 +274,13 @@ public final class Methods {
         return MethodWrapper.of(what).paramMap(args);
     }
 
+    /// Returns the generic return type of the given [Method] or [Constructor].
+    ///
+    /// In the case of a constructor, the return type is the declaring class.
+    ///
+    /// @param what The method or constructor; must not be `null`.
+    /// @return The generic return type; never `null`.
+    /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @Generated
     public static Type getReturnType(@NonNull Executable what) {

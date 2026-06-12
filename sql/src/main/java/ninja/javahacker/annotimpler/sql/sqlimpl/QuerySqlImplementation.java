@@ -9,6 +9,31 @@ import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
+/// [Implementation] that backs DAO methods annotated with [@QuerySql][QuerySql].
+///
+/// At preparation time this class validates the method's return type and `fields` configuration,
+/// then builds a compiled [CallContext]. On every invocation the context executes the SELECT
+/// statement and maps each result row to the requested return type.
+///
+/// **Supported return types**
+///
+/// | Return type | Behaviour |
+/// |---|---|
+/// | `Optional<T>` | First row mapped to `T`, or [Optional#empty()] if no rows. |
+/// | `T` (bare type) | First row mapped to `T`, or `null` if no rows. |
+/// | `OptionalInt` | First column of first row as `int`, or [OptionalInt#empty()]. |
+/// | `OptionalLong` | First column of first row as `long`, or [OptionalLong#empty()]. |
+/// | `OptionalDouble` | First column of first row as `double`, or [OptionalDouble#empty()]. |
+/// | `List<T>` | All rows mapped to `T`, in result-set order. |
+///
+/// The element type `T` may be any scalar type supported by [ConverterFactory], or a Java
+/// `record`.  When `T` is a record, each result column is mapped to the corresponding record
+/// component.  The mapping order can be overridden by supplying explicit column indices via
+/// the `fields` attribute of [@QuerySql][QuerySql].
+///
+/// Wildcard type parameters (`Optional<?>`, `List<?>`) are rejected at preparation time.
+/// When `fields` contains more than one index, `T` must be a record and the number of indices
+/// must exactly match the number of record components.
 public final class QuerySqlImplementation implements Implementation {
 
     @NonNull
@@ -20,6 +45,12 @@ public final class QuerySqlImplementation implements Implementation {
     @NonNull
     private final Locale localizer;
 
+    /// Creates a new instance, extracting the required dependencies from the given
+    /// [PropertyBag].
+    ///
+    /// @param dependencies The property bag from which the [ConnectionFactory],
+    ///        [ConverterFactory] and [Locale] (localizer) are extracted.
+    /// @throws IllegalArgumentException If `dependencies` is `null`.
     public QuerySqlImplementation(@NonNull PropertyBag dependencies) {
         this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
         this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
@@ -87,6 +118,20 @@ public final class QuerySqlImplementation implements Implementation {
         return work -> work.read(rt, fields).orElse(null);
     }
 
+    /// Compiles the [@QuerySql][QuerySql]-annotated method `m` into a [CallContext] that
+    /// executes the corresponding SELECT statement and maps the result rows on every invocation.
+    ///
+    /// @param <E> The DAO interface type.
+    /// @param k The DAO interface class.
+    /// @param m The annotated method to compile.
+    /// @param props The property bag used to resolve runtime dependencies.
+    /// @return A non-null [CallContext] ready for repeated invocation.
+    /// @throws BadImplementationException If the method's return type uses a wildcard type
+    ///         parameter; if `fields` specifies more than one index for a non-record element
+    ///         type; or if the number of indices in `fields` does not match the number of
+    ///         components in the target record type.
+    /// @throws IllegalArgumentException If any argument is `null`, or if `m` is not declared
+    ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@QuerySql][QuerySql].
     @NonNull
     @Override
     public <E> CallContext<E> prepare(

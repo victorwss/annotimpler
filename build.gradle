@@ -21,7 +21,7 @@ def localRepo = repoVar == null ? new File("${rootDir}/.maven-repo").absolutePat
 def repoUrl = "file:///${localRepo}".replace("\\", "/")
 
 def versionJavaCompiler = "25"
-def doclint = false
+def doclint = true
 
 def versionApiguardian  = "1.1.2"
 def versionAsm          = "9.9.1"

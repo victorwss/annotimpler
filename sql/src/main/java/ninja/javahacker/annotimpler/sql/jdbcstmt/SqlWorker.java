@@ -6,6 +6,14 @@ import module java.base;
 import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
+/// Orchestrates the execution of a single SQL operation against a JDBC [java.sql.Connection].
+///
+/// A [SqlWorker] prepares a [NamedParameterStatement] from a [ParsedQuery], binds the
+/// parameters supplied by a [ParameterReceiver.Acceptor2], and returns the results mapped to
+/// the requested Java type via a [ConverterFactory].
+///
+/// Instances are **not** designed to be reused across invocations; create a fresh [SqlWorker]
+/// for each SQL operation.
 public final class SqlWorker {
 
     @NonNull
@@ -23,6 +31,14 @@ public final class SqlWorker {
     @NonNull
     private final Locale localizer;
 
+    /// Creates a new [SqlWorker] for executing one SQL operation.
+    ///
+    /// @param con The JDBC connection to use.
+    /// @param ppq The already-bound parameter acceptor produced by `ParameterSet.withValues(...)`.
+    /// @param pq The parsed SQL query, typically produced by `ParsedQuery.parse(...)`.
+    /// @param factory The converter factory used to map result column values to Java types.
+    /// @param localizer The locale used for case-insensitive column name matching.
+    /// @throws IllegalArgumentException If any parameter is `null`.
     public SqlWorker(
             @NonNull Connection con,
             @NonNull ParameterReceiver.Acceptor2 ppq,
@@ -82,6 +98,20 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes a `SELECT` statement and returns the first row mapped to `R`, or
+    /// [java.util.Optional#empty()] if the result set is empty.
+    ///
+    /// When `fields` is empty the method defaults to columns `1..N` for record types, or
+    /// column `1` for scalar types.  When `R` is a `record`, `fields[i]` is the column index
+    /// mapped to the *i*-th record component.
+    ///
+    /// @param <R> The target Java type.
+    /// @param k The class of the target type.
+    /// @param fields The 1-based column indices to map; may be empty to use the default range.
+    /// @return An [java.util.Optional] containing the first row mapped to `R`, or
+    ///         [java.util.Optional#empty()] if the result set is empty.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
     public <R> Optional<R> read(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
         var fieldsFinal = fields.length == 0 ? defaultRange(k) : fields;
@@ -90,6 +120,17 @@ public final class SqlWorker {
         return readSimple(k, fieldsFinal[0]);
     }
 
+    /// Executes a `SELECT` statement and returns the first row mapped to `R`, using the
+    /// default column range.
+    ///
+    /// Equivalent to calling `read(k, defaultRange(k))`.
+    ///
+    /// @param <R> The target Java type.
+    /// @param k The class of the target type.
+    /// @return An [java.util.Optional] containing the first row mapped to `R`, or
+    ///         [java.util.Optional#empty()] if the result set is empty.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
     public <R> Optional<R> read(@NonNull Class<R> k) throws SQLException {
         return read(k, defaultRange(k));
@@ -128,6 +169,16 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes a `SELECT` statement and returns all rows mapped to `R`.
+    ///
+    /// The `fields` and `R` semantics are identical to [#read(Class, int...)].
+    ///
+    /// @param <R> The target Java type.
+    /// @param k The class of the target type.
+    /// @param fields The 1-based column indices to map; may be empty to use the default range.
+    /// @return A [java.util.List] of all rows mapped to `R`; empty if the result set is empty.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
     public <R> List<R> list(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
@@ -137,11 +188,26 @@ public final class SqlWorker {
         return listSimple(k, fieldsFinal[0]);
     }
 
+    /// Executes a `SELECT` statement and returns all rows mapped to `R`, using the default
+    /// column range.
+    ///
+    /// Equivalent to calling `list(k, defaultRange(k))`.
+    ///
+    /// @param <R> The target Java type.
+    /// @param k The class of the target type.
+    /// @return A [java.util.List] of all rows mapped to `R`; empty if the result set is empty.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
     public <R> List<R> list(@NonNull Class<R> k) throws SQLException {
         return list(k, defaultRange(k));
     }
 
+    /// Executes a DML statement (`INSERT`, `UPDATE`, or `DELETE`) and returns the number of
+    /// affected rows.
+    ///
+    /// @return The number of rows affected by the statement.
+    /// @throws SQLException If a database access error occurs.
     public long execute() throws SQLException {
         try (var ps = open()) {
             ppq.accept(ps);
@@ -149,6 +215,15 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns the first auto-generated key as an
+    /// [java.util.OptionalInt].
+    ///
+    /// Returns [java.util.OptionalInt#empty()] if no key was generated.  Throws
+    /// [java.sql.SQLException] if more than one row is affected.
+    ///
+    /// @return An [java.util.OptionalInt] containing the generated key, or
+    ///         [java.util.OptionalInt#empty()] if no key was generated.
+    /// @throws SQLException If a database access error occurs or more than one row is affected.
     @NonNull
     public OptionalInt generate() throws SQLException {
         try (var ps = openGenerate()) {
@@ -162,6 +237,11 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns all auto-generated keys as a
+    /// [java.util.List] of [java.lang.Integer].
+    ///
+    /// @return A [java.util.List] of all generated keys; empty if none were generated.
+    /// @throws SQLException If a database access error occurs.
     @NonNull
     public List<Integer> generateList() throws SQLException {
         try (var ps = openGenerate()) {
@@ -177,6 +257,15 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns the first auto-generated key as an
+    /// [java.util.OptionalLong].
+    ///
+    /// Returns [java.util.OptionalLong#empty()] if no key was generated.  Throws
+    /// [java.sql.SQLException] if more than one row is affected.
+    ///
+    /// @return An [java.util.OptionalLong] containing the generated key, or
+    ///         [java.util.OptionalLong#empty()] if no key was generated.
+    /// @throws SQLException If a database access error occurs or more than one row is affected.
     @NonNull
     public OptionalLong generateLong() throws SQLException {
         try (var ps = openGenerate()) {
@@ -190,6 +279,11 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns all auto-generated keys as a
+    /// [java.util.List] of [java.lang.Long].
+    ///
+    /// @return A [java.util.List] of all generated keys; empty if none were generated.
+    /// @throws SQLException If a database access error occurs.
     @NonNull
     public List<Long> generateLongList() throws SQLException {
         try (var ps = openGenerate()) {

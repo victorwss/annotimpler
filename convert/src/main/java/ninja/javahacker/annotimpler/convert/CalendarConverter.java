@@ -18,7 +18,7 @@ public enum CalendarConverter implements Converter<Calendar> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<Calendar> work() throws ConvertionException;
     }
 

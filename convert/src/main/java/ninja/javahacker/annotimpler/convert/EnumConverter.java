@@ -24,7 +24,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     private final Class<E> enumClass;
 
     @FunctionalInterface
-    public interface Work<T> {
+    private interface Work<T> {
         public Optional<T> work() throws ConvertionException;
     }
 

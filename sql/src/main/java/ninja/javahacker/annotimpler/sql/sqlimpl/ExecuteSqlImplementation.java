@@ -8,6 +8,23 @@ import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
+/// [Implementation] that backs DAO methods annotated with [@ExecuteSql][ExecuteSql].
+///
+/// At preparation time (i.e., when the DAO interface is first instantiated via
+/// [AnnotationsImplementor]) this class validates the method's return type and builds a
+/// compiled [CallContext]. On every invocation the context executes the DML statement,
+/// checks the number of affected rows against the `acceptsZero` and `acceptsMulti` flags
+/// declared on the annotation, and returns the row count in the requested type.
+///
+/// **Supported return types**
+///
+/// | Return type | Value returned |
+/// |---|---|
+/// | `void` / `Void` | `null` (no value) |
+/// | `long` / `Long` | Exact row count as a `long`. |
+/// | `int` / `Integer` | Row count capped at [Integer#MAX_VALUE]. |
+///
+/// Any other return type causes [BadImplementationException] to be thrown at preparation time.
 public final class ExecuteSqlImplementation implements Implementation {
 
     @NonNull
@@ -19,6 +36,12 @@ public final class ExecuteSqlImplementation implements Implementation {
     @NonNull
     private final Locale localizer;
 
+    /// Creates a new instance, extracting the required dependencies from the given
+    /// [PropertyBag].
+    ///
+    /// @param dependencies The property bag from which the [ConnectionFactory],
+    ///        [ConverterFactory] and [Locale] (localizer) are extracted.
+    /// @throws IllegalArgumentException If `dependencies` is `null`.
     public ExecuteSqlImplementation(@NonNull PropertyBag dependencies) {
         this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
         this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
@@ -50,6 +73,18 @@ public final class ExecuteSqlImplementation implements Implementation {
         throw new BadImplementationException("Unsupported return @Execute type on " + name(m), m.getDeclaringClass());
     }
 
+    /// Compiles the [@ExecuteSql][ExecuteSql]-annotated method `m` into a [CallContext] that
+    /// executes the corresponding DML statement on every invocation.
+    ///
+    /// @param <E> The DAO interface type.
+    /// @param k The DAO interface class.
+    /// @param m The annotated method to compile.
+    /// @param props The property bag used to resolve runtime dependencies.
+    /// @return A non-null [CallContext] ready for repeated invocation.
+    /// @throws BadImplementationException If the method's return type is not one of the
+    ///         supported types (`void`, `Void`, `long`, `Long`, `int`, `Integer`).
+    /// @throws IllegalArgumentException If any argument is `null`, or if `m` is not declared
+    ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@ExecuteSql][ExecuteSql].
     @NonNull
     @Override
     public <E> CallContext<E> prepare(

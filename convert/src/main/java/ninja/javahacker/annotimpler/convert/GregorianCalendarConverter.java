@@ -18,7 +18,7 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<GregorianCalendar> work() throws ConvertionException;
     }
 

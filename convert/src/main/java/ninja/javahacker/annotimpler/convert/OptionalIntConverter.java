@@ -21,7 +21,7 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
     INSTANCE;
 
     @FunctionalInterface
-    public interface Work {
+    private interface Work {
         public Optional<OptionalInt> work() throws ConvertionException;
     }
 
