@@ -7,6 +7,20 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
+/// Tests for [QuerySqlImplementation], the runtime handler for DAO methods annotated
+/// with [@QuerySql][QuerySql].
+///
+/// Each scenario creates a fresh in-memory H2 database, optionally pre-seeds it with
+/// three rows, wires a [PropertyBag] containing that connection, and invokes the compiled
+/// operation through `MethodContext.execute`.
+///
+/// The tests cover:
+/// - Rejection of invalid method signatures at `prepare()` time (wildcard type parameters,
+///   `fields` used with a non-record type, mismatched `fields` length).
+/// - Scalar return types: `Optional<T>`, bare `T`, `OptionalInt`, `OptionalLong`, `OptionalDouble`
+///   — both the row-found and no-row-found cases.
+/// - Collection return types: `List<T>` for both populated and empty tables.
+/// - Record mapping: columns mapped in declaration order and via explicit `fields` indices.
 public class QuerySqlImplementationTest {
 
     // ── DB schemas & seed ─────────────────────────────────────────────────────
@@ -23,6 +37,7 @@ public class QuerySqlImplementationTest {
 
     // ── Record type ────────────────────────────────────────────────────────────
 
+    /// A simple two-component record used as the mapped result type in record-mapping tests.
     public record Item(String label, Integer amount) {}
 
     // ── Test DAO interfaces ────────────────────────────────────────────────────
@@ -135,6 +150,8 @@ public class QuerySqlImplementationTest {
 
     // ── Tests: prepare() validation ───────────────────────────────────────────
 
+    /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares `Optional<?>` (wildcard type parameter).
     @Test
     public void testPrepareThrowsOnWildcardOptional() throws Exception {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
@@ -143,6 +160,8 @@ public class QuerySqlImplementationTest {
                 () -> impl.prepare(BadWildcardOptionalDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares `List<?>` (wildcard type parameter).
     @Test
     public void testPrepareThrowsOnWildcardList() throws Exception {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
@@ -151,6 +170,9 @@ public class QuerySqlImplementationTest {
                 () -> impl.prepare(BadWildcardListDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
+    /// when `[@QuerySql.fields][QuerySql]` specifies multiple column indices but the element
+    /// type is not a record.
     @Test
     public void testPrepareThrowsOnMultiFieldNonRecord() throws Exception {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
@@ -159,6 +181,9 @@ public class QuerySqlImplementationTest {
                 () -> impl.prepare(BadMultiFieldNonRecordDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
+    /// when the number of indices in `[@QuerySql.fields][QuerySql]` does not match the number
+    /// of components in the target record type.
     @Test
     public void testPrepareThrowsOnRecordFieldMismatch() throws Exception {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
@@ -169,6 +194,13 @@ public class QuerySqlImplementationTest {
 
     // ── Tests: scalar / Optional return types ─────────────────────────────────
 
+    /// Verifies scalar and `Optional` return types for [@QuerySql][QuerySql] methods that
+    /// select a single column value:
+    ///
+    /// - `Optional<String>`: present when a row is found, empty when none matches.
+    /// - Bare `String`: non-null value when found, `null` when no row matches.
+    /// - `OptionalInt`, `OptionalLong`, `OptionalDouble`: present with the numeric value when
+    ///   found, empty when none matches.
     @TestFactory
     public Stream<DynamicTest> testScalarReturnTypes() {
         var pf = "[testScalarReturnTypes] ";
@@ -267,6 +299,10 @@ public class QuerySqlImplementationTest {
 
     // ── Tests: List return types ───────────────────────────────────────────────
 
+    /// Verifies `List` return types for [@QuerySql][QuerySql] methods:
+    ///
+    /// - `List<String>` returns all rows in query order when the table is populated.
+    /// - `List<String>` returns an empty list when the table has no rows.
     @TestFactory
     public Stream<DynamicTest> testListReturnTypes() {
         var pf = "[testListReturnTypes] ";
@@ -294,6 +330,12 @@ public class QuerySqlImplementationTest {
 
     // ── Tests: record return types ─────────────────────────────────────────────
 
+    /// Verifies record-mapping return types for [@QuerySql][QuerySql] methods:
+    ///
+    /// - `Optional<Item>` maps column values to record components in declaration order.
+    /// - `List<Item>` collects all rows in query order.
+    /// - `Optional<Item>` with explicit `fields` indices maps columns in the specified order,
+    ///   allowing result columns to appear in a different order than the record components.
     @TestFactory
     public Stream<DynamicTest> testRecordReturnTypes() {
         var pf = "[testRecordReturnTypes] ";

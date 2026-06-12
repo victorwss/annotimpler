@@ -7,6 +7,18 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
+/// Tests for [GenerateSqlImplementation], the runtime handler for DAO methods annotated
+/// with [@GenerateSql][GenerateSql].
+///
+/// Each scenario creates a fresh in-memory H2 database with an auto-increment column,
+/// wires a [PropertyBag] containing that connection, and invokes the compiled operation
+/// through `MethodContext.execute`.
+///
+/// The tests cover:
+/// - Rejection of illegal return types (raw `List`, `List<String>`, `String`) at `prepare()` time.
+/// - Correct generated-key values for all supported return types
+///   (`int`, `Integer`, `OptionalInt`, `long`, `Long`, `OptionalLong`, `List<Integer>`, `List<Long>`).
+/// - Monotonically increasing key sequence across sequential inserts.
 public class GenerateSqlImplementationTest {
 
     // ── DB schemas ─────────────────────────────────────────────────────────────
@@ -123,6 +135,8 @@ public class GenerateSqlImplementationTest {
 
     // ── Tests: prepare() validation ───────────────────────────────────────────
 
+    /// Verifies that [GenerateSqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares a raw `List` return type (no type parameter).
     @Test
     public void testPrepareThrowsOnRawList() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
@@ -130,6 +144,9 @@ public class GenerateSqlImplementationTest {
         Assertions.assertThrows(BadImplementationException.class, () -> impl.prepare(BadRawListDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [GenerateSqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares `List<String>` as the return type, which is not a
+    /// supported numeric key type.
     @Test
     public void testPrepareThrowsOnStringList() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
@@ -137,6 +154,9 @@ public class GenerateSqlImplementationTest {
         Assertions.assertThrows(BadImplementationException.class, () -> impl.prepare(BadStringListDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [GenerateSqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares a `String` return type, which is not supported for
+    /// generated-key retrieval.
     @Test
     public void testPrepareThrowsOnStringReturn() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
@@ -146,6 +166,12 @@ public class GenerateSqlImplementationTest {
 
     // ── Tests: return type selection ──────────────────────────────────────────
 
+    /// Verifies that each supported return type for [@GenerateSql][GenerateSql] methods
+    /// correctly delivers the auto-generated key produced by the database.
+    ///
+    /// Tested return types: `int`, `Integer`, `OptionalInt`, `long`, `Long`, `OptionalLong`,
+    /// `List<Integer>`, `List<Long>`.  One additional dynamic test confirms that sequential
+    /// inserts produce monotonically increasing key values.
     @TestFactory
     public Stream<DynamicTest> testReturnTypes() {
         var pf = "[testReturnTypes] ";

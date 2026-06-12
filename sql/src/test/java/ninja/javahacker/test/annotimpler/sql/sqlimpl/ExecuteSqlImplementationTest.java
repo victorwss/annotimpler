@@ -7,6 +7,18 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
 
+/// Tests for [ExecuteSqlImplementation], the runtime handler for DAO methods annotated
+/// with [@ExecuteSql][ExecuteSql].
+///
+/// Each scenario creates a fresh in-memory H2 database, installs the required schema (and
+/// optionally seed data), wires a [PropertyBag] containing that connection, and invokes the
+/// compiled operation through `MethodContext.execute`.
+///
+/// The tests cover:
+/// - Rejection of illegal return types (e.g. `String`, `boolean`) at `prepare()` time.
+/// - Correct row-count values for all supported return types
+///   (`void`, `long`, `Long`, `int`, `Integer`).
+/// - Enforcement of the `acceptsZero` and `acceptsMulti` flags.
 public class ExecuteSqlImplementationTest {
 
     // ── DB schemas ─────────────────────────────────────────────────────────────
@@ -130,6 +142,9 @@ public class ExecuteSqlImplementationTest {
 
     // ── Tests: prepare() validation ───────────────────────────────────────────
 
+    /// Verifies that [ExecuteSqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares a `String` return type, which is not allowed for
+    /// DML operations.
     @Test
     public void testPrepareThrowsOnStringReturnType() throws Exception {
         var impl = new ExecuteSqlImplementation(NO_DB_BAG);
@@ -138,6 +153,9 @@ public class ExecuteSqlImplementationTest {
                 () -> impl.prepare(BadStringReturnDao.class, m, NO_DB_BAG));
     }
 
+    /// Verifies that [ExecuteSqlImplementation#prepare] throws [BadImplementationException]
+    /// when the annotated method declares a `boolean` return type, which is not allowed for
+    /// DML operations.
     @Test
     public void testPrepareThrowsOnBooleanReturnType() throws Exception {
         var impl = new ExecuteSqlImplementation(NO_DB_BAG);
@@ -148,6 +166,10 @@ public class ExecuteSqlImplementationTest {
 
     // ── Tests: return type selection ──────────────────────────────────────────
 
+    /// Verifies that each supported return type for [@ExecuteSql][ExecuteSql] methods produces
+    /// the correct value after a single-row INSERT.
+    ///
+    /// Tested return types: `void`, `long`, `Long`, `int`, `Integer`.
     @TestFactory
     public Stream<DynamicTest> testReturnTypes() {
         var pf = "[testReturnTypes] ";
@@ -202,6 +224,13 @@ public class ExecuteSqlImplementationTest {
 
     // ── Tests: acceptsZero / acceptsMulti ─────────────────────────────────────
 
+    /// Verifies the row-count enforcement flags `acceptsZero` and `acceptsMulti` on
+    /// [@ExecuteSql][ExecuteSql]:
+    ///
+    /// - `acceptsZero = false` with 0 affected rows → [java.sql.SQLException].
+    /// - `acceptsZero = true` with 0 affected rows → no exception.
+    /// - `acceptsMulti = false` with multiple affected rows → [java.sql.SQLException].
+    /// - `acceptsMulti = true` with multiple affected rows → no exception.
     @TestFactory
     public Stream<DynamicTest> testAcceptsFlags() {
         var pf = "[testAcceptsFlags] ";
