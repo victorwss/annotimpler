@@ -65,6 +65,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.Array] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setArray(@NonNull String name, @Nullable java.sql.Array x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setArray(index, x);
@@ -72,6 +76,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given ASCII [java.io.InputStream].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setAsciiStream(@NonNull String name, @Nullable InputStream x) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -81,6 +90,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given ASCII [java.io.InputStream] with the specified byte length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setAsciiStream(@NonNull String name, @Nullable InputStream x, int length) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -90,6 +105,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given ASCII [java.io.InputStream] with the specified long byte length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setAsciiStream(@NonNull String name, @Nullable InputStream x, long length) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -99,6 +120,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.math.BigDecimal] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setBigDecimal(@NonNull String name, @Nullable BigDecimal x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setBigDecimal(index, x);
@@ -106,6 +131,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given binary [java.io.InputStream].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setBinaryStream(@NonNull String name, @Nullable InputStream x) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1)throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -115,6 +145,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given binary [java.io.InputStream] with the specified byte length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setBinaryStream(@NonNull String name, @Nullable InputStream x, int length) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -124,6 +160,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given binary [java.io.InputStream] with the specified long byte length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setBinaryStream(@NonNull String name, @Nullable InputStream x, long length) throws SQLException {
         var all = getIndexes(name);
         if (x != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -133,6 +175,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.Blob] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setBlob(@NonNull String name, @Nullable Blob x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setBlob(index, x);
@@ -140,6 +186,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream].
+    /// @param name The name of the SQL parameter to set.
+    /// @param inputStream The stream whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `inputStream` is non-null and `name` maps to more than one positional index.
     public default void setBlob(@NonNull String name, @Nullable InputStream inputStream) throws SQLException {
         var all = getIndexes(name);
         if (inputStream != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -149,6 +200,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream] up to `length` bytes.
+    /// @param name The name of the SQL parameter to set.
+    /// @param inputStream The stream whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `inputStream` is non-null and `name` maps to more than one positional index.
     public default void setBlob(@NonNull String name, @Nullable InputStream inputStream, long length) throws SQLException {
         var all = getIndexes(name);
         if (inputStream != null && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -158,6 +215,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `boolean` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setBoolean(@NonNull String name, boolean x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setBoolean(index, x);
@@ -165,6 +226,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `byte` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setByte(@NonNull String name, byte x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setByte(index, x);
@@ -172,6 +237,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `byte[]` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setBytes(@NonNull String name, @Nullable byte[] x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setBytes(index, x);
@@ -179,6 +248,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given character [java.io.Reader].
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setCharacterStream(@NonNull String name, @Nullable Reader reader) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -188,6 +262,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given character [java.io.Reader] with the specified character length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setCharacterStream(@NonNull String name, @Nullable Reader reader, int length) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -197,6 +277,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given character [java.io.Reader] with the specified long character length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setCharacterStream(@NonNull String name, @Nullable Reader reader, long length) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -206,6 +292,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.Clob] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setClob(@NonNull String name, @Nullable Clob x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setClob(index, x);
@@ -213,6 +303,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader].
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setClob(@NonNull String name, @Nullable Reader reader) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -222,6 +317,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader] up to `length` characters.
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setClob(@NonNull String name, @Nullable Reader reader, long length) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -245,6 +346,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setDate(int parameterIndex, @Nullable java.sql.Date x) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Date] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -274,6 +379,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setDate(int parameterIndex, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Date] value using the given [java.util.Calendar].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -282,6 +392,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `double` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setDouble(@NonNull String name, double x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setDouble(index, x);
@@ -290,6 +404,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
 
     /// Sets the positional parameter at `index` to `null` if `x` is empty, or to the contained
     /// `double` value otherwise.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setDouble(int index, @NonNull OptionalDouble x) throws SQLException {
         if (x.isEmpty()) {
             this.setNull(index, Types.DOUBLE);
@@ -299,6 +416,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to `null` if `x` is empty, or to the contained `double` value otherwise.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` or `x` is `null`, or if `name` is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setDouble(@NonNull String name, @NonNull OptionalDouble x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setDouble(index, x);
@@ -306,6 +427,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `float` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setFloat(@NonNull String name, float x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setFloat(index, x);
@@ -313,6 +438,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `int` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setInt(@NonNull String name, int x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setInt(index, x);
@@ -321,6 +450,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
 
     /// Sets the positional parameter at `index` to `null` if `x` is empty, or to the contained
     /// `int` value otherwise.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setInt(int index, @NonNull OptionalInt x) throws SQLException {
         if (x.isEmpty()) {
             this.setNull(index, Types.INTEGER);
@@ -330,6 +462,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to `null` if `x` is empty, or to the contained `int` value otherwise.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` or `x` is `null`, or if `name` is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setInt(@NonNull String name, @NonNull OptionalInt x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setInt(index, x);
@@ -337,11 +473,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.LocalDate] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalDate(int index, @Nullable LocalDate x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.LocalDate] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalDate(@NonNull String name, @Nullable LocalDate x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLocalDate(index, x);
@@ -349,11 +492,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.LocalDateTime] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalDateTime(int index, @Nullable LocalDateTime x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.LocalDateTime] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalDateTime(@NonNull String name, @Nullable LocalDateTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLocalDateTime(index, x);
@@ -361,11 +511,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.LocalTime] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalTime(int index, @Nullable LocalTime x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.LocalTime] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLocalTime(@NonNull String name, @Nullable LocalTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLocalTime(index, x);
@@ -373,11 +530,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.OffsetTime] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setOffsetTime(int index, @Nullable OffsetTime x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.OffsetTime] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setOffsetTime(@NonNull String name, @Nullable OffsetTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setOffsetTime(index, x);
@@ -385,11 +549,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.OffsetDateTime] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setOffsetDateTime(int index, @Nullable OffsetDateTime x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.OffsetDateTime] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setOffsetDateTime(@NonNull String name, @Nullable OffsetDateTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setOffsetDateTime(index, x);
@@ -397,11 +568,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.ZonedDateTime] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setZonedDateTime(int index, @Nullable ZonedDateTime x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.ZonedDateTime] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setZonedDateTime(@NonNull String name, @Nullable ZonedDateTime x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setZonedDateTime(index, x);
@@ -409,11 +587,18 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.time.Instant] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setInstant(int index, @Nullable Instant x) throws SQLException {
         this.setObject(index, x);
     }
 
     /// Sets the named parameter `name` to the given [java.time.Instant] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setInstant(@NonNull String name, @Nullable Instant x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setInstant(index, x);
@@ -421,6 +606,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `long` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLong(@NonNull String name, long x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLong(index, x);
@@ -429,6 +618,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
 
     /// Sets the positional parameter at `index` to `null` if `x` is empty, or to the contained
     /// `long` value otherwise.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLong(int index, @NonNull OptionalLong x) throws SQLException {
         if (x.isEmpty()) {
             this.setNull(index, Types.BIGINT);
@@ -438,6 +630,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to `null` if `x` is empty, or to the contained `long` value otherwise.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` or `x` is `null`, or if `name` is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setLong(@NonNull String name, @NonNull OptionalLong x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setLong(index, x);
@@ -445,6 +641,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given national character [java.io.Reader].
+    /// @param name The name of the SQL parameter to set.
+    /// @param value The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `value` is non-null and `name` maps to more than one positional index.
     public default void setNCharacterStream(@NonNull String name, @Nullable Reader value) throws SQLException {
         var all = getIndexes(name);
         if (value != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -454,6 +655,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given national character [java.io.Reader] with the specified character length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param value The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `value` is non-null and `name` maps to more than one positional index.
     public default void setNCharacterStream(@NonNull String name, @Nullable Reader value, long length) throws SQLException {
         var all = getIndexes(name);
         if (value != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -463,6 +670,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.NClob] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param value The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setNClob(@NonNull String name, @Nullable NClob value) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setNClob(index, value);
@@ -470,6 +681,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader].
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setNClob(@NonNull String name, @Nullable Reader reader) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -479,6 +695,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader] up to `length` characters.
+    /// @param name The name of the SQL parameter to set.
+    /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `reader` is non-null and `name` maps to more than one positional index.
     public default void setNClob(@NonNull String name, @Nullable Reader reader, long length) throws SQLException {
         var all = getIndexes(name);
         if (reader != null && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -488,6 +710,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given national [java.lang.String] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param value The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setNString(@NonNull String name, @Nullable String value) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setNString(index, value);
@@ -495,6 +721,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to SQL `NULL` using the given SQL type code.
+    /// @param name The name of the SQL parameter to set.
+    /// @param sqlType The SQL type code as defined in [java.sql.Types].
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setNull(@NonNull String name, int sqlType) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setNull(index, sqlType);
@@ -502,6 +732,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to SQL `NULL` using the given SQL type code and type name.
+    /// @param name The name of the SQL parameter to set.
+    /// @param sqlType The SQL type code as defined in [java.sql.Types].
+    /// @param typeName The fully-qualified SQL type name; meaningful only for `STRUCT`, `ARRAY`, and `DISTINCT` types.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setNull(@NonNull String name, int sqlType, @Nullable String typeName) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setNull(index, sqlType, typeName);
@@ -509,6 +744,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given object value, letting the driver infer the SQL type.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -519,6 +759,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given object value, converting it to the given [java.sql.SQLType].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param targetType The target SQL type for the conversion.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x, @Nullable SQLType targetType) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -529,6 +775,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given object value, converting it to the given JDBC type code.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param targetType The target SQL type for the conversion.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x, int targetType) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -539,6 +791,13 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given object value, converting it to the given [java.sql.SQLType] with scale or length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param targetType The target SQL type for the conversion.
+    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for `VARCHAR`/`LONGVARCHAR`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x, @Nullable SQLType targetType, int scaleOrLength) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -549,6 +808,13 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given object value, converting it to the given JDBC type code with scale or length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param targetType The target SQL type for the conversion.
+    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for `VARCHAR`/`LONGVARCHAR`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x, int targetType, int scaleOrLength) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
@@ -559,6 +825,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.Ref] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setRef(@NonNull String name, @Nullable Ref x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setRef(index, x);
@@ -566,6 +836,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.RowId] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setRowId(@NonNull String name, @Nullable RowId x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setRowId(index, x);
@@ -573,6 +847,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.SQLXML] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param xmlObject The SQLXML value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     public default void setSQLXML(@NonNull String name, @Nullable SQLXML xmlObject) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -581,6 +859,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the positional parameter at `index` to the given [java.sql.Struct] value.
+    /// @param index The 1-based positional index of the parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setStruct(int index, @Nullable Struct x) throws SQLException {
         // This serves two purposes: 1 - Test if createStruct works. 2 - Ensure that the Struct instance passed downwards is compatible.
         var x2 = x == null
@@ -591,6 +872,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.sql.Struct] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setStruct(@NonNull String name, @Nullable Struct x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setStruct(index, x);
@@ -598,6 +883,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given `short` value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setShort(@NonNull String name, short x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setShort(index, x);
@@ -605,6 +894,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.lang.String] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     public default void setString(@NonNull String name, @Nullable String x) throws SQLException {
         for (var index : getIndexes(name)) {
             this.setString(index, x);
@@ -626,6 +919,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setTime(int parameterIndex, @Nullable java.sql.Time x) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Time] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -650,6 +947,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setTime(int parameterIndex, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Time] value using the given [java.util.Calendar].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -672,6 +974,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setTimestamp(int parameterIndex, @Nullable Timestamp x) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Timestamp] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -700,6 +1006,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     public void setTimestamp(int parameterIndex, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException;
 
     /// Sets the named parameter `name` to the given deprecated [java.sql.Timestamp] value using the given [java.util.Calendar].
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -708,6 +1019,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given [java.net.URL] value.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs or if this method is called on a closed statement.
     @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
     public default void setURL(@NonNull String name, @Nullable URL x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -716,6 +1031,12 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     /// Sets the named parameter `name` to the given deprecated unicode [java.io.InputStream] with the specified byte length.
+    /// @param name The name of the SQL parameter to set.
+    /// @param x The value to assign, or `null` to set SQL `NULL`.
+    /// @param length The maximum number of bytes or characters to read from the stream or reader.
+    /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
+    /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
+    ///         or if `x` is non-null and `name` maps to more than one positional index.
     @Deprecated
     public default void setUnicodeStream(@NonNull String name, @Nullable InputStream x, int length) throws SQLException {
         var all = getIndexes(name);

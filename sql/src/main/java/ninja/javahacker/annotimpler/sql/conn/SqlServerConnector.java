@@ -7,9 +7,9 @@ import module java.base;
 
 /// Immutable JDBC connector for Microsoft SQL Server databases.
 ///
-/// @param host     The database server hostname or IP address.
-/// @param port     The TCP port number on which the SQL Server listens.
-/// @param user     The database username.
+/// @param host The database server hostname or IP address.
+/// @param port The TCP port number on which the SQL Server listens.
+/// @param user The database username.
 /// @param password The database password.
 /// @param database The name of the database to connect to.
 @ConnectorJsonKey("sqlserver")
@@ -21,6 +21,16 @@ public record SqlServerConnector(
         @NonNull String database
 ) implements Connector.MandatoryAuthConnector<SqlServerConnector>, Connector.HostConnector<SqlServerConnector>
 {
+    /// Creates a `SqlServerConnector` with the given connection parameters.
+    ///
+    /// @param host The database server hostname or IP address.
+    /// @param port The TCP port number on which the SQL Server listens.
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param database The name of the database to connect to.
+    /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
+    public SqlServerConnector {}
+
     /// The standard TCP port for SQL Server (1433).
     public static final int STD_PORT = 1433;
 
@@ -37,9 +47,9 @@ public record SqlServerConnector(
     /// Creates a `SqlServerConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param host     The optional hostname to override the default; if absent, the default hostname is used.
-    /// @param port     The optional port to override the default; if absent, the default port is used.
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param host The optional hostname to override the default; if absent, the default hostname is used.
+    /// @param port The optional port to override the default; if absent, the default port is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param database The optional database name to override the default; if absent, the default database name is used.
     /// @return A new `SqlServerConnector` with the applied overrides.

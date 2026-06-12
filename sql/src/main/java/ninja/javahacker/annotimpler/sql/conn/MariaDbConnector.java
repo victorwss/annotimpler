@@ -7,9 +7,9 @@ import module java.base;
 
 /// Immutable JDBC connector for MariaDB databases.
 ///
-/// @param host     The database server hostname or IP address.
-/// @param port     The TCP port number on which the MariaDB server listens.
-/// @param user     The database username.
+/// @param host The database server hostname or IP address.
+/// @param port The TCP port number on which the MariaDB server listens.
+/// @param user The database username.
 /// @param password The database password.
 /// @param database The name of the database to connect to.
 @ConnectorJsonKey("mariadb")
@@ -21,6 +21,16 @@ public record MariaDbConnector(
         @NonNull String database
 ) implements Connector.MandatoryAuthConnector<MariaDbConnector>, Connector.HostConnector<MariaDbConnector>
 {
+    /// Creates a `MariaDbConnector` with the given connection parameters.
+    ///
+    /// @param host The database server hostname or IP address.
+    /// @param port The TCP port number on which the MariaDB server listens.
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param database The name of the database to connect to.
+    /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
+    public MariaDbConnector {}
+
     /// The standard TCP port for MariaDB (3306).
     public static final int STD_PORT = 3306;
 
@@ -37,9 +47,9 @@ public record MariaDbConnector(
     /// Creates a `MariaDbConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param host     The optional hostname to override the default; if absent, the default hostname is used.
-    /// @param port     The optional port to override the default; if absent, the default port is used.
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param host The optional hostname to override the default; if absent, the default hostname is used.
+    /// @param port The optional port to override the default; if absent, the default port is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param database The optional database name to override the default; if absent, the default database name is used.
     /// @return A new `MariaDbConnector` with the applied overrides.

@@ -7,10 +7,10 @@ import module java.base;
 
 /// Immutable JDBC connector for H2 databases.
 ///
-/// @param user     The database username.
+/// @param user The database username.
 /// @param password The database password.
 /// @param filename The name of the database file, used as the database identifier.
-/// @param memory   Whether to use an in-memory database (`true`) or a file-based database at `~/filename` (`false`).
+/// @param memory Whether to use an in-memory database (`true`) or a file-based database at `~/filename` (`false`).
 /// @param timezone The timezone identifier appended to the URL as `;TIME ZONE=...`, or an empty string for no timezone override.
 @ConnectorJsonKey("h2")
 public record H2Connector(
@@ -21,6 +21,16 @@ public record H2Connector(
         @NonNull String timezone
 ) implements Connector.MandatoryAuthConnector<H2Connector>
 {
+    /// Creates an `H2Connector` with the given connection parameters.
+    ///
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param filename The name of the database file.
+    /// @param memory Whether to use an in-memory database.
+    /// @param timezone The timezone identifier, or an empty string for no timezone override.
+    /// @throws IllegalArgumentException If `user`, `password`, `filename`, or `timezone` is `null`.
+    public H2Connector {}
+
     private static final H2Connector STD = new H2Connector("sa", "password", "", false, "");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
@@ -34,10 +44,10 @@ public record H2Connector(
     /// Creates a `H2Connector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param filename The optional database filename to override the default; if absent, the default filename is used.
-    /// @param memory   The optional memory flag to override the default; if absent, the default flag is used.
+    /// @param memory The optional memory flag to override the default; if absent, the default flag is used.
     /// @param timezone The optional timezone to override the default; if absent, the default timezone is used.
     /// @return A new `H2Connector` with the applied overrides.
     /// @throws IllegalArgumentException If `user`, `password`, `filename`, `memory`, or `timezone` is `null`.

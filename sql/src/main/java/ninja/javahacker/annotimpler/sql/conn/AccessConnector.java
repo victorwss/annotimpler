@@ -13,6 +13,12 @@ public record AccessConnector(
         @NonNull String filename
 ) implements Connector.NoAuthConnector
 {
+    /// Creates an `AccessConnector` with the given database file path.
+    ///
+    /// @param filename The path to the Microsoft Access database file.
+    /// @throws IllegalArgumentException If `filename` is `null`.
+    public AccessConnector {}
+
     private static final AccessConnector STD = new AccessConnector("");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.

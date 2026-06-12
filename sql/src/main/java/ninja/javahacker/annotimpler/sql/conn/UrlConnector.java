@@ -8,7 +8,7 @@ import module java.sql;
 
 /// Immutable JDBC connector that accepts an explicit JDBC URL and optional authentication.
 ///
-/// @param url     The JDBC connection URL.
+/// @param url The JDBC connection URL.
 /// @param optAuth The optional authentication credentials; [Optional#empty()] means no credentials are supplied.
 @ConnectorJsonKey("url")
 public record UrlConnector(
@@ -16,6 +16,13 @@ public record UrlConnector(
         @NonNull Optional<Auth> optAuth
 ) implements Connector
 {
+    /// Creates a `UrlConnector` with the given URL and optional authentication.
+    ///
+    /// @param url The JDBC connection URL.
+    /// @param optAuth The optional authentication credentials.
+    /// @throws IllegalArgumentException If `url` or `optAuth` is `null`.
+    public UrlConnector {}
+
     private static final UrlConnector STD = new UrlConnector("", Optional.empty());
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
@@ -45,7 +52,7 @@ public record UrlConnector(
     /// Creates a `UrlConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param url  The optional URL to override the default; if absent, the default URL is used.
+    /// @param url The optional URL to override the default; if absent, the default URL is used.
     /// @param auth The optional authentication credentials to override the default; if absent, the default auth is used.
     /// @return A new `UrlConnector` with the applied overrides.
     /// @throws IllegalArgumentException If `url` or `auth` is `null`.
@@ -104,8 +111,8 @@ public record UrlConnector(
 
     /// Creates a connector with the given URL and username/password credentials.
     ///
-    /// @param url      The JDBC connection URL.
-    /// @param user     The database username.
+    /// @param url The JDBC connection URL.
+    /// @param user The database username.
     /// @param password The database password.
     /// @throws IllegalArgumentException If `url`, `user`, or `password` is `null`.
     public UrlConnector(@NonNull String url, @NonNull String user, @NonNull String password) {
@@ -146,7 +153,7 @@ public record UrlConnector(
 
     /// Returns a copy of this connector with the authentication replaced by the given username and password.
     ///
-    /// @param user     The new database username.
+    /// @param user The new database username.
     /// @param password The new database password.
     /// @return A new `UrlConnector` with the updated authentication.
     /// @throws IllegalArgumentException If `user` or `password` is `null`.

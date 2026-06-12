@@ -1,7 +1,6 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-import lombok.Getter;
 import lombok.NonNull;
 
 import module java.base;
@@ -22,7 +21,6 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// @see ParsedSqlSupplier#find
 public final class ParameterSet {
 
-    @Getter
     @NonNull
     private final Method method;
 
@@ -41,6 +39,14 @@ public final class ParameterSet {
     public ParameterSet(@NonNull Method method) throws BadImplementationException {
         this.method = method;
         this.strategy = ParameterSetStrategy.makeStrategy(method);
+    }
+
+    /// Returns the [java.lang.reflect.Method] wrapped by this [ParameterSet].
+    ///
+    /// @return wrapped method. Never `null`.
+    @NonNull
+    public Method getMethod() {
+        return method;
     }
 
     /// Returns a string representation of this [ParameterSet] for debugging.

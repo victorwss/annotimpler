@@ -82,6 +82,13 @@ public interface Connector extends ConnectionFactory {
     /// @param user     The database username.
     /// @param password The database password.
     public static record Auth(@NonNull String user, @NonNull String password) {
+
+        /// Creates an `Auth` record with the given credentials.
+        ///
+        /// @param user The database username.
+        /// @param password The database password.
+        /// @throws IllegalArgumentException If `user` or `password` is `null`.
+        public Auth {}
     }
 
     /// Extension of [Connector] for database engines that are addressed by a hostname

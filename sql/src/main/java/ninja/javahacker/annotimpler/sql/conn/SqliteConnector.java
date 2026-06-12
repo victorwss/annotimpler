@@ -13,6 +13,12 @@ public record SqliteConnector(
         @NonNull String filename
 ) implements Connector.NoAuthConnector
 {
+    /// Creates a `SqliteConnector` with the given database file path.
+    ///
+    /// @param filename The path to the SQLite database file.
+    /// @throws IllegalArgumentException If `filename` is `null`.
+    public SqliteConnector {}
+
     private static final SqliteConnector STD = new SqliteConnector("");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.

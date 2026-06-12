@@ -7,13 +7,13 @@ import module java.base;
 
 /// Immutable JDBC connector for Oracle databases.
 ///
-/// @param host     The database server hostname or IP address.
-/// @param port     The TCP port number on which the Oracle server listens.
-/// @param user     The database username.
+/// @param host The database server hostname or IP address.
+/// @param port The TCP port number on which the Oracle server listens.
+/// @param user The database username.
 /// @param password The database password.
 /// @param database The database service name or SID.
-/// @param rac      Whether to use Oracle RAC (Real Application Clusters) URL format (`@//host:port/service`)
-///                 instead of the standard SID format (`@host:port:sid`).
+/// @param rac Whether to use Oracle RAC (Real Application Clusters) URL format (`@//host:port/service`)
+///            instead of the standard SID format (`@host:port:sid`).
 @ConnectorJsonKey("oracle")
 public record OracleConnector(
         @NonNull String host,
@@ -24,6 +24,17 @@ public record OracleConnector(
         boolean rac
 ) implements Connector.MandatoryAuthConnector<OracleConnector>, Connector.HostConnector<OracleConnector>
 {
+    /// Creates an `OracleConnector` with the given connection parameters.
+    ///
+    /// @param host The database server hostname or IP address.
+    /// @param port The TCP port number on which the Oracle server listens.
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param database The database service name or SID.
+    /// @param rac Whether to use Oracle RAC URL format.
+    /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
+    public OracleConnector {}
+
     /// The standard TCP port for Oracle (1521).
     public static final int STD_PORT = 1521;
 
@@ -40,12 +51,12 @@ public record OracleConnector(
     /// Creates a `OracleConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param host     The optional hostname to override the default; if absent, the default hostname is used.
-    /// @param port     The optional port to override the default; if absent, the default port is used.
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param host The optional hostname to override the default; if absent, the default hostname is used.
+    /// @param port The optional port to override the default; if absent, the default port is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param database The optional database service name or SID to override the default; if absent, the default is used.
-    /// @param rac      The optional RAC flag to override the default; if absent, the default RAC setting is used.
+    /// @param rac The optional RAC flag to override the default; if absent, the default RAC setting is used.
     /// @return A new `OracleConnector` with the applied overrides.
     /// @throws IllegalArgumentException If `host`, `port`, `user`, `password`, `database`, or `rac` is `null`.
     @JsonCreator

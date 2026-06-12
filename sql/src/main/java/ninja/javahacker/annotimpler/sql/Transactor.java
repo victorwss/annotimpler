@@ -46,6 +46,13 @@ public final class Transactor {
     /// @param connection The open database connection for the current transaction.
     /// @param id The unique string identifier assigned to this transaction.
     public static record Transaction(@NonNull Connection connection, @NonNull String id) {
+
+        /// Creates a `Transaction` with the given connection and identifier.
+        ///
+        /// @param connection The open database connection for the current transaction.
+        /// @param id The unique string identifier assigned to this transaction.
+        /// @throws IllegalArgumentException If `connection` or `id` is `null`.
+        public Transaction {}
     }
 
     /// A supplier that may throw any [Throwable].

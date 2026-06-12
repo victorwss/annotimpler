@@ -7,10 +7,10 @@ import module java.base;
 
 /// Immutable JDBC connector for HSQLDB databases.
 ///
-/// @param user     The database username.
+/// @param user The database username.
 /// @param password The database password.
 /// @param filename The database file path, used when `memory` is `false`.
-/// @param memory   Whether to use an in-memory database (`true`) or a file-based database (`false`).
+/// @param memory Whether to use an in-memory database (`true`) or a file-based database (`false`).
 @ConnectorJsonKey("hsqldb")
 public record HsqldbConnector(
         @NonNull String user,
@@ -19,6 +19,15 @@ public record HsqldbConnector(
         boolean memory
 ) implements Connector.MandatoryAuthConnector<HsqldbConnector>
 {
+    /// Creates an `HsqldbConnector` with the given connection parameters.
+    ///
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param filename The database file path.
+    /// @param memory Whether to use an in-memory database.
+    /// @throws IllegalArgumentException If `user`, `password`, or `filename` is `null`.
+    public HsqldbConnector {}
+
     private static final HsqldbConnector STD = new HsqldbConnector("SA", "password", "", false);
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
@@ -32,10 +41,10 @@ public record HsqldbConnector(
     /// Creates a `HsqldbConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param filename The optional database file path to override the default; if absent, the default path is used.
-    /// @param memory   The optional memory flag to override the default; if absent, the default flag is used.
+    /// @param memory The optional memory flag to override the default; if absent, the default flag is used.
     /// @return A new `HsqldbConnector` with the applied overrides.
     /// @throws IllegalArgumentException If `user`, `password`, `filename`, or `memory` is `null`.
     @NonNull

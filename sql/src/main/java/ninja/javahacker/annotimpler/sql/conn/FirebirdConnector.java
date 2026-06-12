@@ -7,9 +7,9 @@ import module java.base;
 
 /// Immutable JDBC connector for Firebird databases.
 ///
-/// @param host     The database server hostname or IP address.
-/// @param port     The TCP port number on which the Firebird server listens.
-/// @param user     The database username.
+/// @param host The database server hostname or IP address.
+/// @param port The TCP port number on which the Firebird server listens.
+/// @param user The database username.
 /// @param password The database password.
 /// @param filename The path to the Firebird database file.
 /// @param encoding The character encoding for the connection, e.g. `UTF8`, or an empty string for the default encoding.
@@ -23,6 +23,17 @@ public record FirebirdConnector(
         @NonNull String encoding
 ) implements Connector.MandatoryAuthConnector<FirebirdConnector>, Connector.HostConnector<FirebirdConnector>
 {
+    /// Creates a `FirebirdConnector` with the given connection parameters.
+    ///
+    /// @param host The database server hostname or IP address.
+    /// @param port The TCP port number on which the Firebird server listens.
+    /// @param user The database username.
+    /// @param password The database password.
+    /// @param filename The path to the Firebird database file.
+    /// @param encoding The character encoding for the connection, or an empty string for the default encoding.
+    /// @throws IllegalArgumentException If `host`, `user`, `password`, `filename`, or `encoding` is `null`.
+    public FirebirdConnector {}
+
     /// The standard TCP port for Firebird (3050).
     public static final int STD_PORT = 3050;
 
@@ -39,9 +50,9 @@ public record FirebirdConnector(
     /// Creates a `FirebirdConnector` from optional field values, applying each present value over the defaults
     /// returned by [#std()]. Any absent optional keeps the corresponding default.
     ///
-    /// @param host     The optional hostname to override the default; if absent, the default hostname is used.
-    /// @param port     The optional port to override the default; if absent, the default port is used.
-    /// @param user     The optional username to override the default; if absent, the default username is used.
+    /// @param host The optional hostname to override the default; if absent, the default hostname is used.
+    /// @param port The optional port to override the default; if absent, the default port is used.
+    /// @param user The optional username to override the default; if absent, the default username is used.
     /// @param password The optional password to override the default; if absent, the default password is used.
     /// @param filename The optional database file path to override the default; if absent, the default path is used.
     /// @param encoding The optional character encoding to override the default; if absent, the default encoding is used.
