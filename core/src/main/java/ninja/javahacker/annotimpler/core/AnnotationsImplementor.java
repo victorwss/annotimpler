@@ -13,8 +13,10 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// [CallContext] using the following rules:
 ///
 /// - If the method carries an annotation whose type is itself annotated with [@ImplementedBy][ImplementedBy],
-///   the designated [Implementation] class is instantiated (via `MagicFactory` with no arguments)
-///   and its [Implementation#prepare] method is called to obtain the [CallContext].
+///   the designated [Implementation] class is instantiated via `MagicFactory`. If its creator takes a single
+///   [PropertyBag] argument, the current property bag is passed to it; if it takes no arguments, it is
+///   invoked with no arguments. Its [Implementation#prepare] method is then called to obtain the
+///   [CallContext].
 /// - If the method has no such annotation but provides a `default` implementation, that default is invoked.
 /// - Private, static, [Object#equals], [Object#hashCode], and [Object#toString] methods are
 ///   handled specially and are not subject to annotation-driven dispatch.
@@ -93,11 +95,16 @@ public final class AnnotationsImplementor {
         var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
         try {
             var mf = MagicFactory.of(implClass);
-            if (mf.arity() != 0) {
+            if (mf.arity() > 1) {
                 throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with no arguments.", mc);
             }
+            // If the creator takes a single PropertyBag argument, inject the current bag;
+            // otherwise invoke it with no arguments. Remove this workaround if a future
+            // Java release allows a cleaner dependency-injection mechanism here.
+            var createArgs = mf.arity() == 0 ? new Object[0] : new Object[]{ props };
+            var instance = mf.create(createArgs);
             @SuppressWarnings("unchecked")
-            var c = mf.create().prepare(iface, m, props);
+            var c = instance.prepare(iface, m, props);
             if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
             return c;
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {

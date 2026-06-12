@@ -33,6 +33,7 @@ public final class GenerateSqlImplementation implements Implementation {
 
     @NonNull
     private static String name(@NonNull Method m) {
+        checkNotNull(m); // Check recognized by lombok.
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
@@ -43,7 +44,7 @@ public final class GenerateSqlImplementation implements Implementation {
 
     @NonNull
     private static SpecialFunc selectOperation(@NonNull Method m) throws BadImplementationException {
-        checkNotNull(m);
+        checkNotNull(m); // Check recognized by lombok.
 
         var rtb = m.getGenericReturnType();
         var raw = m.getReturnType();

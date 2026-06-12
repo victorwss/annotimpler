@@ -6,9 +6,10 @@ import module java.base;
 ///
 /// When an annotation type `A` is annotated with `@ImplementedBy(Foo.class)`, placing `@A`
 /// on an interface method tells [AnnotationsImplementor] to use `Foo` to provide that
-/// method's behavior. [AnnotationsImplementor] instantiates `Foo` via `MagicFactory`
-/// with no constructor arguments, then calls [Implementation#prepare] to obtain the
-/// [CallContext] for the annotated method.
+/// method's behavior. [AnnotationsImplementor] instantiates `Foo` via `MagicFactory`.
+/// If `Foo`'s creator takes a single [PropertyBag] argument, the current property bag is
+/// passed to it; otherwise it is invoked with no arguments. [AnnotationsImplementor] then
+/// calls [Implementation#prepare] to obtain the [CallContext] for the annotated method.
 ///
 /// ## Example
 ///

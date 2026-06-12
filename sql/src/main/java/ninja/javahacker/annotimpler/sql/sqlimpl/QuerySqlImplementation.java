@@ -33,6 +33,7 @@ public final class QuerySqlImplementation implements Implementation {
 
     @NonNull
     private static String name(@NonNull Method m) {
+        checkNotNull(m); // Check recognized by lombok.
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
@@ -43,8 +44,8 @@ public final class QuerySqlImplementation implements Implementation {
 
     @NonNull
     private static SpecialFunc selectOperation(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
-        checkNotNull(m);
-        checkNotNull(q);
+        checkNotNull(m); // Check recognized by lombok.
+        checkNotNull(q); // Check recognized by lombok.
 
         if (Methods.isSimple(m)) {
             throw new BadImplementationException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
@@ -52,6 +53,7 @@ public final class QuerySqlImplementation implements Implementation {
 
         var fields = q.fields();
         var rtb = m.getGenericReturnType();
+        var raw = m.getReturnType();
 
         Class<?> rt;
         if (rtb instanceof ParameterizedType pt) {
@@ -77,8 +79,8 @@ public final class QuerySqlImplementation implements Implementation {
             throw new BadImplementationException("Mismatch single-field return @Query record on: " + name(m), m.getDeclaringClass());
         }
 
-        if (rtb == List.class) return work -> work.list(rt, fields);
-        if (rtb == Optional.class) return work -> work.read(rt, fields);
+        if (raw == List.class) return work -> work.list(rt, fields);
+        if (raw == Optional.class) return work -> work.read(rt, fields);
         if (rtb == OptionalInt.class) return work -> asInt(work.read(Integer.class, fields));
         if (rtb == OptionalLong.class) return work -> asLong(work.read(Long.class, fields));
         if (rtb == OptionalDouble.class) return work -> asDouble(work.read(Double.class, fields));

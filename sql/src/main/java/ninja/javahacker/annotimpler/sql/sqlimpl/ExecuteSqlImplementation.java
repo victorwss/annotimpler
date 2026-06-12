@@ -32,12 +32,13 @@ public final class ExecuteSqlImplementation implements Implementation {
 
     @NonNull
     private static String name(@NonNull Method m) {
+        checkNotNull(m); // Check recognized by lombok.
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
     @NonNull
     private static LongFunction<Object> selectOperation(@NonNull Method m) throws BadImplementationException {
-        checkNotNull(m);
+        checkNotNull(m); // Check recognized by lombok.
         var rtb = m.getReturnType();
 
         if (Methods.isSimple(m)) {
