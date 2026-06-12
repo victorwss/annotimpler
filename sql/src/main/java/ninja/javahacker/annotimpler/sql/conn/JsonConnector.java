@@ -11,6 +11,19 @@ import module com.fasterxml.jackson.datatype.jdk8;
 import module com.fasterxml.jackson.module.paramnames;
 import module java.base;
 
+/// JSON-serialisable wrapper for any [Connector].
+///
+/// The serialised form is a JSON object containing all fields of the wrapped connector plus a
+/// `"type"` discriminator field whose value is the [ConnectorJsonKey] of the concrete
+/// connector class.  For example:
+///
+/// ```json
+/// {"type":"mysql","host":"localhost","port":3306,"user":"admin","password":"admin","database":""}
+/// ```
+///
+/// The set of recognised connector types is maintained in a global registry initialised with
+/// all concrete connectors shipped in this package.  Additional types may be added at runtime
+/// via [#register(Class[])].
 @JsonDeserialize(using = JsonConnector.Deserializer.class)
 @JsonSerialize(using = JsonConnector.Serializer.class)
 public final class JsonConnector implements Connector {
@@ -45,14 +58,29 @@ public final class JsonConnector implements Connector {
         STD_REGISTERED_CLASSES = Map.copyOf(REGISTERED_CLASSES);
     }
 
+    /// Creates a new `JsonConnector` wrapping the given delegate.
+    ///
+    /// @param delegate The connector to wrap.
+    /// @throws IllegalArgumentException If `delegate` is `null`.
     public JsonConnector(@NonNull Connector delegate) {
         this.delegate = delegate;
     }
 
+    /// Returns the wrapped connector.
+    ///
+    /// @return The non-null delegate connector.
     public Connector delegate() {
         return delegate;
     }
 
+    /// Registers one or more connector classes in the global type registry.
+    ///
+    /// Each class must carry a [ConnectorJsonKey] annotation and must not be
+    /// `JsonConnector` itself.  Registrations are thread-safe and take effect immediately.
+    ///
+    /// @param classes The connector classes to register.
+    /// @throws IllegalArgumentException If any element of `classes` is `null`,
+    ///         is `JsonConnector.class`, or lacks a [ConnectorJsonKey] annotation.
     @SafeVarargs
     public static void register(@NonNull Class<? extends Connector>... classes) {
         for (var k : classes) {
@@ -70,6 +98,9 @@ public final class JsonConnector implements Connector {
         }
     }
 
+    /// Resets the global type registry to the standard set of connectors shipped with this package.
+    ///
+    /// Any classes previously added via [#register(Class[])] are removed.
     public static void resetRegister() {
         synchronized (REGISTERED_CLASSES) {
             REGISTERED_CLASSES.clear();
@@ -77,6 +108,12 @@ public final class JsonConnector implements Connector {
         }
     }
 
+    /// Looks up a connector class by its JSON type key.
+    ///
+    /// @param key The JSON type discriminator value to look up.
+    /// @return An [Optional] containing the registered class for `key`,
+    ///         or an empty optional if no class is registered under that key.
+    /// @throws IllegalArgumentException If `key` is `null`.
     public static Optional<Class<? extends Connector>> find(@NonNull String key) {
         synchronized (REGISTERED_CLASSES) {
             return Optional.ofNullable(REGISTERED_CLASSES.get(key));
@@ -125,33 +162,52 @@ public final class JsonConnector implements Connector {
         }
     }
 
+    /// Thrown when a JSON object refers to a connector type that is not registered in the
+    /// global type registry.
     public static class UnknownConnectorException extends IOException {
 
         @Serial
         private static final long serialVersionUID = 1L;
 
+        /// Creates a new `UnknownConnectorException` with the given detail message.
+        ///
+        /// @param message The detail message.
+        /// @throws IllegalArgumentException If `message` is `null`.
         public UnknownConnectorException(@NonNull String message) {
             List.of(message); // Force lombok put the null-checks before the constructor call.
             super(message);
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public String toString() {
         return "JSON Connector: [" + delegate.toString() + "]";
     }
 
+    /// {@inheritDoc}
     @Override
     public boolean equals(@Nullable Object other) {
         return other instanceof JsonConnector jo && Objects.equals(this.delegate, jo.delegate());
     }
 
+    /// {@inheritDoc}
     @Override
     public int hashCode() {
         return delegate.hashCode();
     }
 
+    /// Deserialises a `JsonConnector` from a JSON string.
+    ///
+    /// The JSON object must contain a `"type"` field whose value matches the
+    /// [ConnectorJsonKey] of a registered connector class.
+    ///
+    /// @param json The JSON string to parse.
+    /// @return The deserialised, non-null `JsonConnector`.
+    /// @throws IOException If the JSON is malformed, the `"type"` field is missing or
+    ///         unrecognised, or any other I/O error occurs.
+    /// @throws IllegalArgumentException If `json` is `null`.
     @NonNull
     public static JsonConnector read(@NonNull String json) throws IOException {
         var r = MAPPER.readValue(json, JsonConnector.class);
@@ -159,6 +215,14 @@ public final class JsonConnector implements Connector {
         return r;
     }
 
+    /// Serialises this connector to a JSON string.
+    ///
+    /// The output includes a `"type"` discriminator field alongside all fields of the
+    /// wrapped connector.
+    ///
+    /// @return The non-null JSON representation of this connector.
+    /// @throws IOException If the delegate connector class has no registered
+    ///         [ConnectorJsonKey], or if any other serialisation error occurs.
     @NonNull
     public String toJson() throws IOException {
         return MAPPER.writeValueAsString(this);

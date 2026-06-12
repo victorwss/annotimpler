@@ -2,10 +2,8 @@ package ninja.javahacker.test.limited;
 
 import module java.base;
 
-/**
- * {@code InputStream} that throws {@code AssertionError} if read operations exceed the allowed limit.
- * Also tracks all read operations for verification.
- */
+/// [InputStream] that throws [AssertionError] if read operations exceed the allowed limit.
+/// Also tracks all read operations for verification.
 public final class AssertionInputStream extends InputStream {
     private final byte[] data;
     private int position;

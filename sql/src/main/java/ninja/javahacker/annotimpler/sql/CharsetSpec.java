@@ -1,14 +1,16 @@
 package ninja.javahacker.annotimpler.sql;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 @FunctionalInterface
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public interface CharsetSpec {
 
-    // All os those derived from https://html.spec.whatwg.org/multipage/parsing.html#determining-the-character-encoding
+    // All of those derived from https://html.spec.whatwg.org/multipage/parsing.html#determining-the-character-encoding
     public static final Charset CS_ASCII = StandardCharsets.US_ASCII;
     public static final Charset CS_UTF8 = StandardCharsets.UTF_8;
     public static final Charset CS_UTF16BE = StandardCharsets.UTF_16BE;
@@ -199,7 +201,6 @@ public interface CharsetSpec {
     public static enum EucKr implements CharsetSpec {
         @Creator
         INSTANCE;
-
 
         @Override
         public Charset get() {

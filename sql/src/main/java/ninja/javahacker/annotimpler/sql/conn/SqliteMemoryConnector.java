@@ -4,21 +4,34 @@ import lombok.NonNull;
 
 import module com.fasterxml.jackson.annotation;
 
+/// Singleton connector for an in-memory SQLite database.
+/// Use [#STD] or [#std()] to obtain the sole instance.
 @ConnectorJsonKey("sqlite-memory")
 public enum SqliteMemoryConnector implements Connector.NoAuthConnector {
+
+    /// The sole instance of this connector.
     STD;
 
+    /// Returns the standard pre-configured instance with default values suitable for local development.
+    ///
+    /// @return The standard `SqliteMemoryConnector` instance.
     @NonNull
     public static SqliteMemoryConnector std() {
         return STD;
     }
 
+    /// Returns the sole instance of this connector.
+    ///
+    /// @return The [#STD] instance.
     @NonNull
     @JsonCreator
     public static SqliteMemoryConnector create() {
         return STD;
     }
 
+    /// Returns the JDBC connection URL for this connector.
+    ///
+    /// @return The non-null JDBC URL string.
     @NonNull
     @Override
     public String url() {

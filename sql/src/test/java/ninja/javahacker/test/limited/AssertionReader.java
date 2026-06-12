@@ -2,10 +2,8 @@ package ninja.javahacker.test.limited;
 
 import module java.base;
 
-/**
- * {@link Reader} that throws {@link AssertionError} if read operations exceed the allowed limit.
- * Also tracks all read operations for verification.
- */
+/// [Reader] that throws [AssertionError] if read operations exceed the allowed limit.
+/// Also tracks all read operations for verification.
 public final class AssertionReader extends Reader {
     private final String data;
     private int position;

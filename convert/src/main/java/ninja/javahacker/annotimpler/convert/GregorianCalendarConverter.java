@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -10,9 +11,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: [LocalDate], [LocalDateTime], [OffsetDateTime]
 /// (via [ZonedDateTimeConverter] then `GregorianCalendar::from`),
 /// [String] (via [ZonedDateTimeConverter]; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

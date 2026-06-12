@@ -98,14 +98,17 @@ public final class AnnotationsImplementor {
             if (mf.arity() > 1) {
                 throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with no arguments.", mc);
             }
+
             // If the creator takes a single PropertyBag argument, inject the current bag;
             // otherwise invoke it with no arguments. Remove this workaround if a future
             // Java release allows a cleaner dependency-injection mechanism here.
             var createArgs = mf.arity() == 0 ? new Object[0] : new Object[]{ props };
             var instance = mf.create(createArgs);
-            @SuppressWarnings("unchecked")
             var c = instance.prepare(iface, m, props);
+
+            // Should never happen if implClass is properly implemented, but we shouldn't trust that.
             if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
+
             return c;
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {
             throw new BadImplementationException(e.getMessage(), e, m.getDeclaringClass());

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.Date;
 import lombok.NonNull;
 
@@ -11,9 +12,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: [LocalDate], [LocalDateTime], [OffsetDateTime]
 /// (via [InstantConverter] then `Date::from`),
 /// [String] (via [InstantConverter]; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum DateConverter implements Converter<Date> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

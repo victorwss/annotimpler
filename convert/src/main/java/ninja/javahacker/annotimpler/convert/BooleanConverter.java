@@ -20,8 +20,10 @@ public enum BooleanConverter implements Converter<Boolean> {
     /// Targets `Boolean.class`.
     WRAPPER;
 
-    private static final List<String> FALSE = List.of("false", "FALSE", "0", "-0");
-    private static final List<String> TRUE  = List.of("true" , "TRUE" , "1");
+    private static final Set<String> FALSES = Set.of("false", "FALSE", "0", "-0");
+    private static final Set<String> TRUES  = Set.of("true" , "TRUE" , "1");
+    private static final Optional<Boolean> OPT_TRUE = Optional.of(Boolean.TRUE);
+    private static final Optional<Boolean> OPT_FALSE = Optional.of(Boolean.FALSE);
 
     /// Returns `boolean.class` for [#PRIMITIVE] or `Boolean.class` for [#WRAPPER].
     ///
@@ -36,7 +38,7 @@ public enum BooleanConverter implements Converter<Boolean> {
     @NonNull
     @Override
     public Optional<Boolean> fromNull() {
-        return this == PRIMITIVE ? Optional.of(false) : Optional.empty();
+        return this == PRIMITIVE ? OPT_FALSE : Optional.empty();
     }
 
     @NonNull
@@ -90,8 +92,8 @@ public enum BooleanConverter implements Converter<Boolean> {
     @NonNull
     @Override
     public Optional<Boolean> from(@NonNull BigDecimal in) throws ConvertionException {
-        if (BigDecimal.ZERO.compareTo(in) == 0) return Optional.of(false);
-        if (BigDecimal.ONE.compareTo(in) == 0) return Optional.of(true);
+        if (BigDecimal.ZERO.compareTo(in) == 0) return OPT_FALSE;
+        if (BigDecimal.ONE.compareTo(in) == 0) return OPT_TRUE;
         throw new ConvertionException(BigDecimal.class, getType());
     }
 
@@ -99,8 +101,8 @@ public enum BooleanConverter implements Converter<Boolean> {
     @Override
     public Optional<Boolean> from(@NonNull String in) throws ConvertionException {
         var n = in.toUpperCase(Locale.ROOT);
-        if (TRUE.contains(n)) return Optional.of(true);
-        if (FALSE.contains(n)) return Optional.of(false);
+        if (TRUES.contains(n)) return OPT_TRUE;
+        if (FALSES.contains(n)) return OPT_FALSE;
         if (in.isEmpty()) return this == PRIMITIVE ? Optional.of(false) : Optional.empty();
         throw new ConvertionException(String.class, getType());
     }

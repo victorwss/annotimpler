@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -12,9 +13,10 @@ import module ninja.javahacker.datetime;
 /// date/time types (via `MultiFormatters.YMD_DASH`), [String], `byte[]` (UTF-8),
 /// [Blob]/[Clob]/[NClob]/[SQLXML] (read content as string), [RowId] (bytes as [BigInteger] decimal string).
 /// Infinity/NaN `float`/`double` produce "Infinity"/"-Infinity"/"NaN"; negative-zero produces "-0".
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum StringConverter implements Converter<String> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     /// Returns `String.class`.

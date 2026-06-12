@@ -1,14 +1,16 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] for [Ref] values. Only accepts [Ref] inputs (identity conversion).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum RefConverter implements Converter<Ref> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     /// Returns `Ref.class`.

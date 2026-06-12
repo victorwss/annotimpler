@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Date;
 import lombok.NonNull;
 
@@ -11,9 +12,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: [LocalDate] (via `Date.valueOf`),
 /// [LocalDateTime]/[OffsetDateTime] (extract local date, then `Date.valueOf`),
 /// [String] (via [LocalDateConverter]; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum SqlDateConverter implements Converter<Date> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

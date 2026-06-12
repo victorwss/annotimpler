@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -9,9 +10,10 @@ import module java.base;
 /// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
 /// `float`/`double` (throws for infinity/NaN/fractional values),
 /// [BigDecimal] (exact), [String] (parsed; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum BigIntegerConverter implements Converter<BigInteger> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     /// Returns `BigInteger.class`.

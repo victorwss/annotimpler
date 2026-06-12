@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -13,9 +14,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
 /// `float`/`double`/[BigDecimal] (with precision check),
 /// [String] (empty → `OptionalLong.empty()`).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum OptionalLongConverter implements Converter<OptionalLong> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

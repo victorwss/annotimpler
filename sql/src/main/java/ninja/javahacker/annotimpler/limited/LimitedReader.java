@@ -5,26 +5,25 @@ import lombok.NonNull;
 
 import module java.base;
 
-///
-/// LimitedReader with mark/reset support.
-///
+/// [Reader] decorator that limits the maximum number of characters that can be read,
+/// with support for mark and reset operations.
 public final class LimitedReader extends Reader {
 
+    @NonNull
     private final Reader wrapped;
+
     private final long maxSize;
     private long position;
     private long markPosition;
     private long markLimit;
     private boolean closed;
 
-    ///
-    /// Creates a new {@code LimitedReader} that wraps the given {@link Reader}
+    /// Creates a new `LimitedReader` that wraps the given [Reader]
     /// and limits reading to the specified maximum number of bytes.
     ///
-    /// @param wrapped the {@link Reader} to wrap.
-    /// @param maxSize the maximum number of characters that can be read.
-    /// @throws IllegalArgumentException if {@code maxSize} is negative or if {@code wrapped} is {@code null}.
-    ///
+    /// @param wrapped The [Reader] to wrap.
+    /// @param maxSize The maximum number of characters that can be read.
+    /// @throws IllegalArgumentException If `wrapped` is `null` or if `maxSize` is negative.
     public LimitedReader(@NonNull Reader wrapped, long maxSize) {
         if (maxSize < 0) throw new IllegalArgumentException("Maximum size cannot be negative.");
 
@@ -36,11 +35,26 @@ public final class LimitedReader extends Reader {
         this.closed = false;
     }
 
+    /// Creates a new `LimitedReader` wrapping the given [Reader],
+    /// or returns `null` if the input is `null`.
+    ///
+    /// @param in The [Reader] to wrap, or `null`.
+    /// @param length The maximum number of characters that can be read.
+    /// @return A new `LimitedReader` wrapping `in` and limited to `length` characters,
+    ///         or `null` if `in` is `null`.
     @Nullable
     public static LimitedReader wrapNullable(@Nullable Reader in, long length) {
         return in == null ? null : new LimitedReader(in, length);
     }
 
+    /// Reads a single character from this reader.
+    ///
+    /// Returns `-1` if the read limit has been reached or if the end of the
+    /// wrapped reader has been reached.
+    ///
+    /// @return The character read as an integer in the range `0` to `65535`,
+    ///         or `-1` if the read limit or the end of the reader has been reached.
+    /// @throws IOException If this reader is closed or if an I/O error occurs.
     @Override
     public int read() throws IOException {
         checkClosed();
@@ -52,8 +66,20 @@ public final class LimitedReader extends Reader {
         return result;
     }
 
+    /// Reads up to `len` characters from this reader into the given array, starting at offset
+    /// `off`, reading at most as many characters as allowed by the remaining read limit.
+    ///
+    /// @param cbuf The buffer into which the data is read.
+    /// @param off The start offset in the buffer at which to write the data.
+    /// @param len The maximum number of characters to read.
+    /// @return The total number of characters read into the buffer, or `-1` if the read limit
+    ///         or the end of the reader has been reached.
+    /// @throws NullPointerException If `cbuf` is `null`.
+    /// @throws IndexOutOfBoundsException If `off` is negative, `len` is negative,
+    ///         or `off + len` exceeds the length of `cbuf`.
+    /// @throws IOException If this reader is closed or if an I/O error occurs.
     @Override
-    public int read(@NonNull char[] cbuf, int off, int len) throws IOException {
+    public int read(/*@NonNull*/ char[] cbuf, int off, int len) throws IOException {
         if (cbuf == null) throw new NullPointerException("Buffer cannot be null.");
         checkClosed();
 
@@ -74,6 +100,13 @@ public final class LimitedReader extends Reader {
         return actuallyRead;
     }
 
+    /// Skips up to `n` characters from this reader, skipping at most as many characters
+    /// as allowed by the remaining read limit.
+    ///
+    /// @param n The number of characters to skip.
+    /// @return The actual number of characters skipped, which may be zero if `n` is non-positive,
+    ///         the read limit has been reached, or the wrapped reader has no more characters to skip.
+    /// @throws IOException If this reader is closed or if an I/O error occurs.
     @Override
     public long skip(long n) throws IOException {
         checkClosed();
@@ -94,12 +127,26 @@ public final class LimitedReader extends Reader {
         return actuallySkipped;
     }
 
+    /// Returns whether this reader is ready to be read without blocking.
+    ///
+    /// Returns `true` if the read limit has already been reached, since such a read
+    /// would return `-1` immediately. Otherwise, delegates to the wrapped reader.
+    ///
+    /// @return `true` if the read limit has been reached or if the wrapped reader is ready,
+    ///         `false` otherwise.
+    /// @throws IOException If this reader is closed or if an I/O error occurs.
     @Override
     public boolean ready() throws IOException {
         checkClosed();
         return position >= maxSize || wrapped.ready();
     }
 
+    /// Marks the current read position in this reader.
+    ///
+    /// @param readAheadLimit The maximum number of characters that may be read before the mark
+    ///                       position becomes invalid.
+    /// @throws IOException If this reader is closed, the wrapped reader does not support marking,
+    ///         or an I/O error occurs.
     @Override
     public void mark(int readAheadLimit) throws IOException {
         checkClosed();
@@ -110,11 +157,18 @@ public final class LimitedReader extends Reader {
         markLimit = position + readAheadLimit;
     }
 
+    /// Returns whether this reader supports the [#mark(int)] and [#reset()] operations.
+    ///
+    /// @return `true` if the wrapped reader supports mark and reset, `false` otherwise.
     @Override
     public boolean markSupported() {
         return wrapped.markSupported();
     }
 
+    /// Repositions this reader to the position recorded by the last call to [#mark(int)].
+    ///
+    /// @throws IOException If this reader is closed, no mark has been set,
+    ///         or an I/O error occurs in the wrapped reader.
     @Override
     public void reset() throws IOException {
         checkClosed();
@@ -125,6 +179,13 @@ public final class LimitedReader extends Reader {
         position = markPosition;
     }
 
+    /// Closes this reader and releases any system resources associated with it.
+    ///
+    /// Subsequent calls to read, skip, ready, or other I/O methods on this reader
+    /// will throw an [IOException]. Calling this method on an already-closed reader
+    /// has no effect.
+    ///
+    /// @throws IOException If an I/O error occurs while closing the wrapped reader.
     @Override
     public void close() throws IOException {
         if (!closed) {
@@ -133,55 +194,45 @@ public final class LimitedReader extends Reader {
         }
     }
 
-    ///
     /// Returns the number of characters read so far.
     ///
-    /// @return the number of characters read.
-    /// @throws IOException If closed.
-    ///
+    /// @return The number of characters read so far.
+    /// @throws IOException If this reader is closed.
     public long getPosition() throws IOException {
         checkClosed();
         return position;
     }
 
-    ///
     /// Returns the maximum number of characters that can be read.
     ///
-    /// @return the maximum number of characters.
-    /// @throws IOException If closed.
-    ///
+    /// @return The maximum number of characters.
+    /// @throws IOException If this reader is closed.
     public long getMaxSize() throws IOException {
         checkClosed();
         return maxSize;
     }
 
+    /// Returns the remaining number of characters that can be read before the read limit is reached.
     ///
-    /// Returns the remaining number of characters that can be read.
-    ///
-    /// @return the remaining characters.
-    /// @throws IOException If closed.
-    ///
+    /// @return The remaining number of characters that can be read.
+    /// @throws IOException If this reader is closed.
     public long getRemaining() throws IOException {
         checkClosed();
         return maxSize - position;
     }
 
-    ///
     /// Checks if a mark has been set.
     ///
-    /// @return {@code true} if a mark is set, {@code false} otherwise.
-    /// @throws IOException If closed.
-    ///
+    /// @return `true` if a mark is currently set, `false` otherwise.
+    /// @throws IOException If this reader is closed.
     public boolean isMarkSet() throws IOException {
         checkClosed();
         return markPosition >= 0;
     }
 
+    /// Returns whether this reader has been closed.
     ///
-    /// Checks if the stream was closed.
-    ///
-    /// @return {@code true} if this was closed, {@code false} otherwise.
-    ///
+    /// @return `true` if this reader has been closed, `false` otherwise.
     public boolean isClosed() {
         return closed;
     }

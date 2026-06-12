@@ -6,6 +6,10 @@ import module com.fasterxml.jackson.annotation;
 import module java.base;
 import module java.sql;
 
+/// Immutable JDBC connector that accepts an explicit JDBC URL and optional authentication.
+///
+/// @param url     The JDBC connection URL.
+/// @param optAuth The optional authentication credentials; [Optional#empty()] means no credentials are supplied.
 @ConnectorJsonKey("url")
 public record UrlConnector(
         @NonNull String url,
@@ -14,11 +18,20 @@ public record UrlConnector(
 {
     private static final UrlConnector STD = new UrlConnector("", Optional.empty());
 
+    /// Returns the standard pre-configured instance with default values suitable for local development.
+    ///
+    /// @return The standard `UrlConnector` instance.
     @NonNull
     public static UrlConnector std() {
         return STD;
     }
 
+    /// Creates a `UrlConnector` from an optional URL value, applying the present value over the default
+    /// returned by [#std()]. Any absent optional keeps the corresponding default.
+    ///
+    /// @param url The optional URL to override the default; if absent, the default URL is used.
+    /// @return A new `UrlConnector` with the applied overrides.
+    /// @throws IllegalArgumentException If `url` is `null`.
     @NonNull
     @JsonCreator
     public static UrlConnector create(
@@ -29,6 +42,13 @@ public record UrlConnector(
         return r[0];
     }
 
+    /// Creates a `UrlConnector` from optional field values, applying each present value over the defaults
+    /// returned by [#std()]. Any absent optional keeps the corresponding default.
+    ///
+    /// @param url  The optional URL to override the default; if absent, the default URL is used.
+    /// @param auth The optional authentication credentials to override the default; if absent, the default auth is used.
+    /// @return A new `UrlConnector` with the applied overrides.
+    /// @throws IllegalArgumentException If `url` or `auth` is `null`.
     @NonNull
     @JsonCreator
     public static UrlConnector create(
@@ -41,6 +61,16 @@ public record UrlConnector(
         return r[0];
     }
 
+    /// Creates a `UrlConnector` from optional field values, applying each present value over the defaults
+    /// returned by [#std()]. Any absent optional keeps the corresponding default.
+    /// The `user` and `password` optionals must be either both present or both absent.
+    ///
+    /// @param url The optional URL to override the default; if absent, the default URL is used.
+    /// @param user The optional username; if absent, the default user is used.
+    /// @param password The optional password; if absent, the default password is used.
+    /// @return A new `UrlConnector` with the applied overrides.
+    /// @throws IllegalArgumentException If `url`, `user`, or `password` is `null`, or if
+    ///         exactly one of `user` and `password` is present.
     @NonNull
     @JsonCreator
     public static UrlConnector create(
@@ -53,16 +83,31 @@ public record UrlConnector(
         return create(url, auth);
     }
 
+    /// Creates a connector with the given URL and no authentication.
+    ///
+    /// @param url The JDBC connection URL.
+    /// @throws IllegalArgumentException If `url` is `null`.
     public UrlConnector(@NonNull String url) {
         List.of(url); // Force lombok put the null-checks before the constructor call.
         this(url, Optional.empty());
     }
 
+    /// Creates a connector with the given URL and the given authentication.
+    ///
+    /// @param url  The JDBC connection URL.
+    /// @param auth The authentication credentials.
+    /// @throws IllegalArgumentException If `url` or `auth` is `null`.
     public UrlConnector(@NonNull String url, @NonNull Auth auth) {
         List.of(url, auth); // Force lombok put the null-checks before the constructor call.
         this(url, Optional.of(auth));
     }
 
+    /// Creates a connector with the given URL and username/password credentials.
+    ///
+    /// @param url      The JDBC connection URL.
+    /// @param user     The database username.
+    /// @param password The database password.
+    /// @throws IllegalArgumentException If `url`, `user`, or `password` is `null`.
     public UrlConnector(@NonNull String url, @NonNull String user, @NonNull String password) {
         List.of(url, user, password); // Force lombok put the null-checks before the constructor call.
         this(url, Optional.of(new Auth(user, password)));
@@ -75,6 +120,11 @@ public record UrlConnector(
         return DriverManager.getConnection(url, a.user(), a.password());
     }
 
+    /// Opens a new connection using the JDBC URL and credentials of this connector.
+    /// The connection has [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled.
+    ///
+    /// @return A new [Connection] configured for serializable transactions with autocommit disabled.
+    /// @throws SQLException If a database access error occurs.
     @NonNull
     @Override
     public Connection get() throws SQLException {
@@ -84,26 +134,50 @@ public record UrlConnector(
         return con;
     }
 
+    /// Returns a copy of this connector with the `url` field replaced by the given value.
+    ///
+    /// @param url The new JDBC connection URL.
+    /// @return A new `UrlConnector` with the updated url.
+    /// @throws IllegalArgumentException If `url` is `null`.
     @NonNull
     public UrlConnector withUrl(@NonNull String url) {
         return new UrlConnector(url, optAuth());
     }
 
+    /// Returns a copy of this connector with the authentication replaced by the given username and password.
+    ///
+    /// @param user     The new database username.
+    /// @param password The new database password.
+    /// @return A new `UrlConnector` with the updated authentication.
+    /// @throws IllegalArgumentException If `user` or `password` is `null`.
     @NonNull
     public UrlConnector withAuth(@NonNull String user, @NonNull String password) {
         return withOptAuth(Optional.of(new Auth(user, password)));
     }
 
+    /// Returns a copy of this connector with no authentication credentials.
+    ///
+    /// @return A new `UrlConnector` with the authentication removed.
     @NonNull
     public UrlConnector withNoAuth() {
         return withOptAuth(Optional.empty());
     }
 
+    /// Returns a copy of this connector with the authentication replaced by the given [Auth].
+    ///
+    /// @param auth The new authentication credentials.
+    /// @return A new `UrlConnector` with the updated authentication.
+    /// @throws IllegalArgumentException If `auth` is `null`.
     @NonNull
     public UrlConnector withAuth(@NonNull Auth auth) {
         return withOptAuth(Optional.of(auth));
     }
 
+    /// Returns a copy of this connector with the `optAuth` field replaced by the given value.
+    ///
+    /// @param optAuth The new optional authentication credentials.
+    /// @return A new `UrlConnector` with the updated optional authentication.
+    /// @throws IllegalArgumentException If `optAuth` is `null`.
     @NonNull
     public UrlConnector withOptAuth(@NonNull Optional<Auth> optAuth) {
         return new UrlConnector(url(), optAuth);

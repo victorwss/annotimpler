@@ -5,6 +5,9 @@ import lombok.NonNull;
 import module com.fasterxml.jackson.annotation;
 import module java.base;
 
+/// Immutable JDBC connector for SQLite databases.
+///
+/// @param filename The path to the SQLite database file.
 @ConnectorJsonKey("sqlite")
 public record SqliteConnector(
         @NonNull String filename
@@ -12,11 +15,20 @@ public record SqliteConnector(
 {
     private static final SqliteConnector STD = new SqliteConnector("");
 
+    /// Returns the standard pre-configured instance with default values suitable for local development.
+    ///
+    /// @return The standard `SqliteConnector` instance.
     @NonNull
     public static SqliteConnector std() {
         return STD;
     }
 
+    /// Creates a `SqliteConnector` from an optional filename value, applying the present value over the default
+    /// returned by [#std()]. Any absent optional keeps the corresponding default.
+    ///
+    /// @param filename The optional database file path to override the default; if absent, the default path is used.
+    /// @return A new `SqliteConnector` with the applied overrides.
+    /// @throws IllegalArgumentException If `filename` is `null`.
     @NonNull
     @JsonCreator
     public static SqliteConnector create(
@@ -27,12 +39,20 @@ public record SqliteConnector(
         return r[0];
     }
 
+    /// Returns the JDBC connection URL for this connector.
+    ///
+    /// @return The non-null JDBC URL string.
     @NonNull
     @Override
     public String url() {
         return "jdbc:sqlite:" + filename;
     }
 
+    /// Returns a copy of this connector with the `filename` field replaced by the given value.
+    ///
+    /// @param filename The new path to the SQLite database file.
+    /// @return A new `SqliteConnector` with the updated filename.
+    /// @throws IllegalArgumentException If `filename` is `null`.
     @NonNull
     public SqliteConnector withFilename(@NonNull String filename) {
         return new SqliteConnector(filename);

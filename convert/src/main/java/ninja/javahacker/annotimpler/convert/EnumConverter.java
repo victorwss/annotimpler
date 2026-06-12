@@ -60,6 +60,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return at(assertPresentGet(opt));
     }
 
+    @NonNull
     private Optional<E> at(int in) throws ConvertionException {
         return Optional.of(enumClass.getEnumConstants()[in]);
     }

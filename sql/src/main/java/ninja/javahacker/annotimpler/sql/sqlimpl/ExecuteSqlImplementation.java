@@ -70,7 +70,6 @@ public final class ExecuteSqlImplementation implements Implementation {
         return new CallContext<>() {
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
-                //if (es.validate() == SqlPreValidation.ON_EXECUTE) parset.prevalidate();
                 var params = parset.withValues(a);
                 var query = supplier.get();
                 var work = new SqlWorker(getConnection(), params, query, cvt, localizer);

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Timestamp;
 import lombok.NonNull;
 
@@ -11,9 +12,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: [LocalDate]/[LocalDateTime]/[OffsetDateTime]
 /// (via [LocalDateTimeConverter] then `Timestamp.valueOf`),
 /// [String] (via [LocalDateTimeConverter]; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum SqlTimestampConverter implements Converter<Timestamp> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

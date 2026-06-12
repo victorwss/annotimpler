@@ -568,7 +568,7 @@ public class LimitedInputStreamTest {
 
         @Test
         @SuppressWarnings("null")
-        @DisplayName("Should handle null buffer in read evn if closed.")
+        @DisplayName("Should handle null buffer in read even if closed.")
         public void shouldHandleNullBufferInReadEvenIfClosed() throws IOException {
             var limited = new LimitedInputStream(new ByteArrayInputStream(TEST_DATA), 10);
             limited.close();

@@ -72,31 +72,31 @@ public final class NameDictionary {
             });
             e.forEach(x -> {
                 add(Methods.getReturnType(x));
-                add(x.getGenericExceptionTypes());
-                add(x.getGenericParameterTypes());
-                add(x.getTypeParameters());
+                addAll(x.getGenericExceptionTypes());
+                addAll(x.getGenericParameterTypes());
+                addAll(x.getTypeParameters());
             });
             h.forEach(x -> {
                 add(Methods.getReturnType(x));
             });
         }
 
-        private void add(@NonNull Type[] ts) {
-            checkNotNull(ts); // Check recognized by lombok.
-            add(new HashSet<>(10), ts);
-        }
-
-        private void add(@NonNull Type t) {
-            checkNotNull(t); // Check recognized by lombok.
-            add(new HashSet<>(10), t);
-        }
-
-        private void add(@NonNull Set<Type> partial, @NonNull Type[] ts) {
+        private void addAll(@NonNull Set<Type> partial, @NonNull Type... ts) {
             checkNotNull(partial); // Check recognized by lombok.
             checkNotNull(ts); // Check recognized by lombok.
             for (var t : ts) {
                 add(partial, t);
             }
+        }
+
+        private void addAll(@NonNull Type... ts) {
+            checkNotNull(ts); // Check recognized by lombok.
+            addAll(new HashSet<>(10), ts);
+        }
+
+        private void add(@NonNull Type t) {
+            checkNotNull(t); // Check recognized by lombok.
+            add(new HashSet<>(10), t);
         }
 
         private void add(@NonNull Set<Type> partial, @Nullable Type t) {
@@ -109,15 +109,15 @@ public final class NameDictionary {
                     case ParameterizedType p -> {
                         add(partial, p.getOwnerType());
                         add(partial, p.getRawType());
-                        add(partial, p.getActualTypeArguments());
+                        addAll(partial, p.getActualTypeArguments());
                     }
                     case GenericArrayType g -> add(partial, g.getGenericComponentType());
                     case TypeVariable<?> v -> {
-                        add(partial, v.getBounds());
+                        addAll(partial, v.getBounds());
                     }
                     case WildcardType w -> {
-                        add(partial, w.getLowerBounds());
-                        add(partial, w.getUpperBounds());
+                        addAll(partial, w.getLowerBounds());
+                        addAll(partial, w.getUpperBounds());
                     }
                     default -> throw new AssertionError();
                 }
@@ -176,12 +176,12 @@ public final class NameDictionary {
 
             if (withClassName) {
                 formatType(klass, sb);
-                sb.append("/");
+                sb.append('/');
             }
 
             // Type parameters.
             if (what.getTypeParameters().length > 0) {
-                sb.append("<");
+                sb.append('<');
                 var typeParams = what.getTypeParameters();
                 for (var i = 0; i < typeParams.length; i++) {
                     if (i > 0) sb.append(", ");
@@ -204,19 +204,19 @@ public final class NameDictionary {
             formatType(Methods.getReturnType(what), sb);
 
             if (what instanceof Method) {
-                sb.append(" ");
+                sb.append(' ');
 
                 // Class name.
-                sb.append(what.getDeclaringClass().getSimpleName()).append(".");
+                sb.append(what.getDeclaringClass().getSimpleName()).append('.');
 
                 // Method name.
                 sb.append(what.getName());
             }
 
             // Parameters.
-            sb.append("(");
+            sb.append('(');
             formatParameterTypes(what, sb);
-            sb.append(")");
+            sb.append(')');
 
             return sb.toString();
         }
@@ -229,16 +229,16 @@ public final class NameDictionary {
 
             if (withClassName) {
                 formatType(klass, sb);
-                sb.append("/");
+                sb.append('/');
             }
 
             // Return type.
             formatType(Methods.getReturnType(field), sb);
-            sb.append(" ");
+            sb.append(' ');
 
             // Class name.
             formatType(field.getDeclaringClass(), sb);
-            sb.append(".");
+            sb.append('.');
 
             // Method name.
             sb.append(field.getName());

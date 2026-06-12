@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -11,9 +12,10 @@ import module ninja.javahacker.datetime;
 /// Supported conversions: [LocalTime] (at UTC offset), [LocalDateTime] (at UTC, extract offset time),
 /// [OffsetTime] (identity), [OffsetDateTime] (extract offset time),
 /// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum OffsetTimeConverter implements Converter<OffsetTime> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     /// Returns `OffsetTime.class`.

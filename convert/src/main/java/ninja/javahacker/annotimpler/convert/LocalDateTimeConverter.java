@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -11,9 +12,10 @@ import module ninja.javahacker.datetime;
 /// Supported conversions: [LocalDate] (start of day), [LocalDateTime] (identity),
 /// [OffsetDateTime] (extract local date-time),
 /// [String] (parsed via `MultiFormatters.YMD_DASH`; empty → empty).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum LocalDateTimeConverter implements Converter<LocalDateTime> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     /// Returns `LocalDateTime.class`.

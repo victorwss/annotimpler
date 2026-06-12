@@ -51,16 +51,23 @@ public class GenerateSqlImplementationTest {
         List<Long> insertListLong(String label) throws Exception;
     }
 
+    @SuppressWarnings("rawtypes")
     interface BadRawListDao {
-        @GenerateSql @Sql("INSERT INTO g (label) VALUES (:label)") List bad(String label) throws Exception;
+        @GenerateSql
+        @Sql("INSERT INTO g (label) VALUES (:label)")
+        List bad(String label) throws Exception;
     }
 
     interface BadStringListDao {
-        @GenerateSql @Sql("INSERT INTO g (label) VALUES (:label)") List<String> bad(String label) throws Exception;
+        @GenerateSql
+        @Sql("INSERT INTO g (label) VALUES (:label)")
+        List<String> bad(String label) throws Exception;
     }
 
     interface BadStringReturnDao {
-        @GenerateSql @Sql("INSERT INTO g (label) VALUES (:label)") String bad(String label) throws Exception;
+        @GenerateSql
+        @Sql("INSERT INTO g (label) VALUES (:label)")
+        String bad(String label) throws Exception;
     }
 
     // ── Infrastructure ─────────────────────────────────────────────────────────
@@ -120,24 +127,21 @@ public class GenerateSqlImplementationTest {
     public void testPrepareThrowsOnRawList() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
         var m = BadRawListDao.class.getMethod("bad", String.class);
-        Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadRawListDao.class, m, NO_DB_BAG));
+        Assertions.assertThrows(BadImplementationException.class, () -> impl.prepare(BadRawListDao.class, m, NO_DB_BAG));
     }
 
     @Test
     public void testPrepareThrowsOnStringList() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
         var m = BadStringListDao.class.getMethod("bad", String.class);
-        Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadStringListDao.class, m, NO_DB_BAG));
+        Assertions.assertThrows(BadImplementationException.class, () -> impl.prepare(BadStringListDao.class, m, NO_DB_BAG));
     }
 
     @Test
     public void testPrepareThrowsOnStringReturn() throws Exception {
         var impl = new GenerateSqlImplementation(NO_DB_BAG);
         var m = BadStringReturnDao.class.getMethod("bad", String.class);
-        Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadStringReturnDao.class, m, NO_DB_BAG));
+        Assertions.assertThrows(BadImplementationException.class, () -> impl.prepare(BadStringReturnDao.class, m, NO_DB_BAG));
     }
 
     // ── Tests: return type selection ──────────────────────────────────────────

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -10,9 +11,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Delegates to [StringConverter] and converts the resulting string to a char array.
 /// Supported conversions: [String], `byte[]`, [Blob], [Clob], [NClob], [SQLXML], [RowId].
 /// Returns an empty char array for `null` input.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum CharArrayConverter implements Converter<char[]> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface

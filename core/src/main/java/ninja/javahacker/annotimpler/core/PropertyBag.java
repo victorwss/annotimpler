@@ -122,6 +122,8 @@ public final class PropertyBag {
 
     /// Thrown by [PropertyBag#get] when the requested key has no associated value in the bag.
     public static class PropertyNotFoundException extends NoSuchElementException {
+
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @NonNull
@@ -146,6 +148,8 @@ public final class PropertyBag {
 
     /// Thrown by [PropertyBag#add] when the provided value is not an instance of the key's value type.
     public static class IllegalPropertyValueException extends IllegalArgumentException {
+
+        @Serial
         private static final long serialVersionUID = 1L;
 
         @NonNull

@@ -46,13 +46,13 @@ public final class TypeName {
             }
             case ParameterizedType paramType -> {
                 formatType(paramType.getRawType(), fullNameNeeded, sb);
-                sb.append("<");
+                sb.append('<');
                 var typeArgs = paramType.getActualTypeArguments();
                 for (var i = 0; i < typeArgs.length; i++) {
                     if (i > 0) sb.append(", ");
                     formatType(typeArgs[i], fullNameNeeded, sb);
                 }
-                sb.append(">");
+                sb.append('>');
             }
             case TypeVariable<?> tv -> {
                 sb.append(tv.getName());
@@ -62,7 +62,7 @@ public final class TypeName {
                 sb.append("[]");
             }
             case WildcardType wildcardType -> {
-                sb.append("?");
+                sb.append('?');
 
                 var upperBounds = wildcardType.getUpperBounds();
                 var lowerBounds = wildcardType.getLowerBounds();

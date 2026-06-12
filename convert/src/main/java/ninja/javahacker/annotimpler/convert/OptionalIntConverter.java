@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -13,9 +14,10 @@ import module ninja.javahacker.annotimpler.convert;
 /// Supported conversions: `boolean`, `byte`, `short`, `int`,
 /// `long`/`float`/`double`/[BigDecimal] (with range check),
 /// [String] (empty → `OptionalInt.empty()`).
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum OptionalIntConverter implements Converter<OptionalInt> {
 
-    /// Singeton instance.
+    /// Singleton instance.
     INSTANCE;
 
     @FunctionalInterface
