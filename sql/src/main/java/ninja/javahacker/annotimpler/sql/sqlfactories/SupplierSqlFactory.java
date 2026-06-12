@@ -6,9 +6,24 @@ import module java.base;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
+/// Singleton [SqlFactory] that delegates SQL retrieval to a user-provided [SqlSupplier] class, as specified
+/// by a [SqlFromClass]-annotated method.
+/// The supplier class is instantiated reflectively via [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
+/// If the supplier's constructor accepts a single `String` argument, the value of [SqlFromClass#key()] is
+/// passed to it; otherwise the no-arg constructor is used.
 public enum SupplierSqlFactory implements SqlFactory {
+
+    /// The sole instance of this factory.
     INSTANCE;
 
+    /// Instantiates the [SqlSupplier] class referenced by the [SqlFromClass] annotation on `m`
+    /// and returns it.
+    ///
+    /// @param m The method carrying the [SqlFromClass] annotation.
+    /// @return The instantiated [SqlSupplier].
+    /// @throws BadImplementationException If the supplier class cannot be instantiated.
+    /// @throws UnsupportedOperationException If `m` has no [SqlFromClass] annotation.
+    /// @throws IllegalArgumentException If `m` is `null`.
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromClass.class);

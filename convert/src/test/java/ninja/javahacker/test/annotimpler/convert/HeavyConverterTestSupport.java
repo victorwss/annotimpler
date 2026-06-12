@@ -176,9 +176,9 @@ public class HeavyConverterTestSupport {
         }
 
         if (targetClass.isEnum()) {
-            var badl = in instanceof Long   v && (v > Integer.MAX_VALUE);
-            var badf = in instanceof Float  v && (v > Integer.MAX_VALUE || v % 1F != 0F);
-            var badd = in instanceof Double v && (v > Integer.MAX_VALUE || v % 1D != 0D);
+            var badl = in instanceof Long   v && (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE);
+            var badf = in instanceof Float  v && (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE || v % 1F != 0F);
+            var badd = in instanceof Double v && (v > Integer.MAX_VALUE || v < Integer.MIN_VALUE || v % 1D != 0D);
             if (n == 3 || badl || badf || badd || BADS.contains(in)) {
                 parts.add(() -> Assertions.assertEquals(ConvertionException.class, next.getClass()));
                 parts.add(() -> Assertions.assertEquals("Can't read value as int.", next.getMessage()));

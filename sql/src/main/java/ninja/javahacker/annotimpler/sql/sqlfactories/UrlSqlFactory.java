@@ -6,9 +6,24 @@ import module java.base;
 import module java.net.http;
 import module ninja.javahacker.annotimpler.sql;
 
+/// Singleton [SqlFactory] that downloads the SQL string from an HTTP/HTTPS URL, as specified by a
+/// [SqlFromUrl]-annotated method.
+/// The download strategy (eager, lazy, etc.) is controlled by [SqlFromUrl#policy()].
+/// Character encoding is detected from the HTTP `Content-Type` response header when
+/// [SqlFromUrl#getEncodingFromHeaders()] is `true`; otherwise the [SqlFromUrl#fallbackEncoding()] is used.
 public enum UrlSqlFactory implements SqlFactory {
+
+    /// The sole instance of this factory.
     INSTANCE;
 
+    /// Returns a [SqlSupplier] that downloads the SQL from the URL specified in the [SqlFromUrl] annotation
+    /// on `m`, according to the configured policy.
+    ///
+    /// @param m The method carrying the [SqlFromUrl] annotation.
+    /// @return A [SqlSupplier] that supplies the downloaded SQL string.
+    /// @throws BadImplementationException If the URL is invalid or unreachable (for eager read policies).
+    /// @throws UnsupportedOperationException If `m` has no [SqlFromUrl] annotation.
+    /// @throws IllegalArgumentException If `m` is `null`.
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromUrl.class);
