@@ -35,7 +35,7 @@ public class NumericConverterTest {
         var doubles = h.e(double.class, Arrays.asList(
                 null, null, null,
                 0D, 1D, 9D, 42D, 55D, 127D, -30D, -128D, 32000D, 64000D,
-                489876544D, 12345678910D, 9876543210987654D, null, -489876544D, -12345678910D,
+                489876544D, 12345678910D, 9876543210987654D, null, -489876544D, -9876543210987654D,
                 16777217.0D, null,
                 3.5D, 0.078D, -177.77D, null,
                 Double.NaN, Double.POSITIVE_INFINITY, Double.NEGATIVE_INFINITY
