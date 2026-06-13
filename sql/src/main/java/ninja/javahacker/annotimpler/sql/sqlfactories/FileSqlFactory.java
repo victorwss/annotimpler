@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -8,6 +9,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Singleton [SqlFactory] that loads the SQL string from a file on the filesystem, as specified by a
 /// [SqlFromFile]-annotated method.
 /// The reading strategy (eager, lazy, etc.) is controlled by [SqlFromFile#policy()].
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum FileSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.

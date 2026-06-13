@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module com.fasterxml.jackson.annotation;
@@ -7,6 +8,7 @@ import module com.fasterxml.jackson.annotation;
 /// Singleton connector for an in-memory SQLite database.
 /// Use [#STD] or [#std()] to obtain the sole instance.
 @ConnectorJsonKey("sqlite-memory")
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum SqliteMemoryConnector implements Connector.NoAuthConnector {
 
     /// The sole instance of this connector.

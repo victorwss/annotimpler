@@ -129,7 +129,9 @@ public class GenerateSqlImplementationTest {
         return iface.cast(Proxy.newProxyInstance(
                 Thread.currentThread().getContextClassLoader(),
                 new Class<?>[]{ iface },
-                (p, m, a) -> { throw new AssertionError("Unexpected proxy call: " + m); }
+                (p, m, a) -> {
+                    throw new AssertionError("Unexpected proxy call: " + m);
+                }
         ));
     }
 

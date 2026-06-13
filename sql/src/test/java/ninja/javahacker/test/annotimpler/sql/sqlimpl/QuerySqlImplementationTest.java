@@ -144,7 +144,9 @@ public class QuerySqlImplementationTest {
         return iface.cast(Proxy.newProxyInstance(
                 Thread.currentThread().getContextClassLoader(),
                 new Class<?>[]{ iface },
-                (p, m, a) -> { throw new AssertionError("Unexpected proxy call: " + m); }
+                (p, m, a) -> {
+                    throw new AssertionError("Unexpected proxy call: " + m);
+                }
         ));
     }
 
@@ -157,7 +159,8 @@ public class QuerySqlImplementationTest {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
         var m = BadWildcardOptionalDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadWildcardOptionalDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadWildcardOptionalDao.class, m, NO_DB_BAG)
+        );
     }
 
     /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
@@ -167,7 +170,8 @@ public class QuerySqlImplementationTest {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
         var m = BadWildcardListDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadWildcardListDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadWildcardListDao.class, m, NO_DB_BAG)
+        );
     }
 
     /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
@@ -178,7 +182,8 @@ public class QuerySqlImplementationTest {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
         var m = BadMultiFieldNonRecordDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadMultiFieldNonRecordDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadMultiFieldNonRecordDao.class, m, NO_DB_BAG)
+        );
     }
 
     /// Verifies that [QuerySqlImplementation#prepare] throws [BadImplementationException]
@@ -189,7 +194,8 @@ public class QuerySqlImplementationTest {
         var impl = new QuerySqlImplementation(NO_DB_BAG);
         var m = BadRecordFieldMismatchDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadRecordFieldMismatchDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadRecordFieldMismatchDao.class, m, NO_DB_BAG)
+        );
     }
 
     // ── Tests: scalar / Optional return types ─────────────────────────────────
@@ -197,9 +203,9 @@ public class QuerySqlImplementationTest {
     /// Verifies scalar and `Optional` return types for [@QuerySql][QuerySql] methods that
     /// select a single column value:
     ///
-    /// - `Optional<String>`: present when a row is found, empty when none matches.
-    /// - Bare `String`: non-null value when found, `null` when no row matches.
-    /// - `OptionalInt`, `OptionalLong`, `OptionalDouble`: present with the numeric value when
+    /// - `Optional<String>`: Present when a row is found, empty when none matches.
+    /// - Bare `String`: Non-null value when found, `null` when no row matches.
+    /// - `OptionalInt`, `OptionalLong`, `OptionalDouble`: Present with the numeric value when
     ///   found, empty when none matches.
     @TestFactory
     public Stream<DynamicTest> testScalarReturnTypes() {
@@ -314,7 +320,8 @@ public class QuerySqlImplementationTest {
                     var m = QueryDao.class.getMethod("listLabels");
                     var ctx = impl.prepare(QueryDao.class, m, bag);
                     Assertions.assertEquals(List.of("alpha", "beta", "gamma"),
-                            ctx.execute(dummyProxy(QueryDao.class)));
+                            ctx.execute(dummyProxy(QueryDao.class))
+                    );
                 }).wrap()),
 
                 DynamicTest.dynamicTest(pf + "List<String> - empty table → empty list", ((ConnectionContext) con -> {
@@ -347,7 +354,8 @@ public class QuerySqlImplementationTest {
                     var m = QueryDao.class.getMethod("findItem", int.class);
                     var ctx = impl.prepare(QueryDao.class, m, bag);
                     Assertions.assertEquals(Optional.of(new Item("alpha", 10)),
-                            ctx.execute(dummyProxy(QueryDao.class), 1));
+                            ctx.execute(dummyProxy(QueryDao.class), 1)
+                    );
                 }).wrap()),
 
                 DynamicTest.dynamicTest(pf + "Optional<Item> - no row → Optional.empty()", ((ConnectionContext) con -> {
@@ -367,7 +375,8 @@ public class QuerySqlImplementationTest {
                     var ctx = impl.prepare(QueryDao.class, m, bag);
                     Assertions.assertEquals(
                             List.of(new Item("alpha", 10), new Item("beta", 20), new Item("gamma", 30)),
-                            ctx.execute(dummyProxy(QueryDao.class)));
+                            ctx.execute(dummyProxy(QueryDao.class))
+                    );
                 }).wrap()),
 
                 DynamicTest.dynamicTest(pf + "Optional<Item> with explicit field mapping - reversed columns", ((ConnectionContext) con -> {
@@ -378,7 +387,8 @@ public class QuerySqlImplementationTest {
                     var ctx = impl.prepare(QueryDao.class, m, bag);
                     // SELECT amount, label → col1=amount, col2=label; fields={2,1} → label←col2, amount←col1
                     Assertions.assertEquals(Optional.of(new Item("beta", 20)),
-                            ctx.execute(dummyProxy(QueryDao.class), 2));
+                            ctx.execute(dummyProxy(QueryDao.class), 2)
+                    );
                 }).wrap())
         );
     }

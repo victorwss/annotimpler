@@ -144,6 +144,17 @@ public final class PropertyBag {
         public KeyProperty<?> getProperty() {
             return property;
         }
+
+        /// Disabled. Should not be used. Does nothing.
+        ///
+        /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
+        /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
+        ///
+        /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
+        @Deprecated
+        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+        protected final void finalize() {
+        }
     }
 
     /// Thrown by [PropertyBag#add] when the provided value is not an instance of the key's value type.
@@ -169,6 +180,17 @@ public final class PropertyBag {
         @NonNull
         public KeyProperty<?> getProperty() {
             return property;
+        }
+
+        /// Disabled. Should not be used. Does nothing.
+        ///
+        /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
+        /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
+        ///
+        /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
+        @Deprecated
+        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+        protected final void finalize() {
         }
     }
 

@@ -61,4 +61,15 @@ public class UnavailableConverterException extends Exception {
     public Type getRoot() {
         return root;
     }
+
+    /// Disabled. Should not be used. Does nothing.
+    ///
+    /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
+    /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
+    ///
+    /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
+    @Deprecated
+    @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+    protected final void finalize() {
+    }
 }

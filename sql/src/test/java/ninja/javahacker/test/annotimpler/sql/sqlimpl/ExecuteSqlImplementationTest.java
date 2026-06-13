@@ -128,13 +128,17 @@ public class ExecuteSqlImplementationTest {
         return iface.cast(Proxy.newProxyInstance(
                 Thread.currentThread().getContextClassLoader(),
                 new Class<?>[]{ iface },
-                (p, m, a) -> { throw new AssertionError("Unexpected proxy call: " + m); }
+                (p, m, a) -> {
+                    throw new AssertionError("Unexpected proxy call: " + m);
+                }
         ));
     }
 
     private static int countRows(Connection con) throws SQLException {
-        try (var ps = con.prepareStatement("SELECT COUNT(*) FROM t");
-             var rs = ps.executeQuery()) {
+        try (
+                var ps = con.prepareStatement("SELECT COUNT(*) FROM t");
+                var rs = ps.executeQuery()
+        ) {
             rs.next();
             return rs.getInt(1);
         }
@@ -150,7 +154,8 @@ public class ExecuteSqlImplementationTest {
         var impl = new ExecuteSqlImplementation(NO_DB_BAG);
         var m = BadStringReturnDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadStringReturnDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadStringReturnDao.class, m, NO_DB_BAG)
+        );
     }
 
     /// Verifies that [ExecuteSqlImplementation#prepare] throws [BadImplementationException]
@@ -161,7 +166,8 @@ public class ExecuteSqlImplementationTest {
         var impl = new ExecuteSqlImplementation(NO_DB_BAG);
         var m = BadBooleanReturnDao.class.getMethod("bad");
         Assertions.assertThrows(BadImplementationException.class,
-                () -> impl.prepare(BadBooleanReturnDao.class, m, NO_DB_BAG));
+                () -> impl.prepare(BadBooleanReturnDao.class, m, NO_DB_BAG)
+        );
     }
 
     // ── Tests: return type selection ──────────────────────────────────────────

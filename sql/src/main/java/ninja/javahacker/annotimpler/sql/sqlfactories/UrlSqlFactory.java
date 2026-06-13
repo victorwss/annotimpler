@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -11,6 +12,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// The download strategy (eager, lazy, etc.) is controlled by [SqlFromUrl#policy()].
 /// Character encoding is detected from the HTTP `Content-Type` response header when
 /// [SqlFromUrl#getEncodingFromHeaders()] is `true`; otherwise the [SqlFromUrl#fallbackEncoding()] is used.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum UrlSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.

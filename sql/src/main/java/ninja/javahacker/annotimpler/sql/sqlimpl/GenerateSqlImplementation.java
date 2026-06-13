@@ -126,7 +126,7 @@ public final class GenerateSqlImplementation implements Implementation {
 
         return new CallContext<>() {
             @Override
-            public Object execute(@NonNull E instance, @NonNull Object... a) throws Throwable {
+            public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var query = supplier.get();
                 var params = parset.withValues(a);
                 var work = new SqlWorker(getConnection(), params, query, cvt, localizer);

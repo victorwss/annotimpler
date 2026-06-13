@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -11,6 +12,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// The supplier class is instantiated reflectively via [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
 /// If the supplier's constructor accepts a single `String` argument, the value of [SqlFromClass#key()] is
 /// passed to it; otherwise the no-arg constructor is used.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum SupplierSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.

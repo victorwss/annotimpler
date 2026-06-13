@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlfactories;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -8,6 +9,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Singleton [SqlFactory] that loads the SQL string from a classpath resource, as specified by a
 /// [SqlFromResource]-annotated method.
 /// The resource is always read eagerly at prepare time using [ReadPolicy#ON_STARTUP].
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum ResourceSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.

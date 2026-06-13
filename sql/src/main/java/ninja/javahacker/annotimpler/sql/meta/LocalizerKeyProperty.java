@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 
@@ -10,6 +12,7 @@ import module ninja.javahacker.annotimpler.core;
 ///
 /// @see ninja.javahacker.annotimpler.core.PropertyBag
 /// @see ninja.javahacker.annotimpler.core.KeyProperty
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum LocalizerKeyProperty implements KeyProperty<Locale> {
 
     /// The single instance of this key.

@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -10,6 +12,7 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// @see ninja.javahacker.annotimpler.core.PropertyBag
 /// @see ninja.javahacker.annotimpler.core.KeyProperty
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum ConnectionFactoryKeyProperty implements KeyProperty<ConnectionFactory> {
 
     /// The single instance of this key.
