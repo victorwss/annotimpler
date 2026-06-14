@@ -74,7 +74,7 @@ public enum ReadPolicy {
     /// @param <E> The type of the input data consumed by `impl`.
     /// @param impl The reader that extracts the SQL string from `inputData`.
     /// @param inputData The data passed to the reader (e.g., an annotation instance).
-    /// @return A non-null [SqlSupplier] that delivers the SQL string according to this policy.
+    /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
     /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
     /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
     public <E> SqlSupplier prepare(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {

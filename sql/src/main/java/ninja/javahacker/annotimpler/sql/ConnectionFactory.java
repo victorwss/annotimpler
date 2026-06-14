@@ -24,7 +24,7 @@ public interface ConnectionFactory {
 
     /// Opens a new [Connection].
     ///
-    /// @return A new, open, non-null database connection.
+    /// @return A new and open database connection; never `null`.
     /// @throws SQLException If a database access error occurs.
     @NonNull
     public Connection get() throws SQLException;
@@ -34,9 +34,10 @@ public interface ConnectionFactory {
     ///
     /// @param <E> The interface type to implement.
     /// @param iface The interface class to implement.
-    /// @return A non-null proxy instance implementing `iface`.
+    /// @return A proxy instance implementing `iface`; never `null`.
     /// @throws BadImplementationException If any annotated method on `iface` is malformed.
     /// @throws IllegalArgumentException If `iface` is `null`.
+    @NonNull
     public default <E> E create(@NonNull Class<E> iface) throws BadImplementationException {
         var m = PropertyBag.root()
                 .add(ConnectionFactoryKeyProperty.INSTANCE, this)

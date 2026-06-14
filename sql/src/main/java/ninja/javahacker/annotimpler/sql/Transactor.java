@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Proxy;
 import lombok.NonNull;
 
@@ -94,6 +95,7 @@ public final class Transactor {
         };
     }
 
+    @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // It is intentional here.
     private static <A> A unwrap(@NonNull XSupplier<A> input) throws Throwable {
         checkNotNull(input);
         try {
@@ -118,7 +120,7 @@ public final class Transactor {
     /// @param <E> The interface type of the returned proxy.
     /// @param <F> The concrete type of the wrapped object (must extend `E`).
     /// @param impl The object to wrap.
-    /// @return A non-null transactional proxy implementing the same interfaces as `impl`.
+    /// @return A transactional proxy implementing the same interfaces as `impl`; never `null`.
     /// @throws IllegalArgumentException If `impl` is already a transactional proxy (i.e.,
     ///         already implements [Marker]) or if `impl` is `null`.
     @SuppressWarnings("unchecked")
@@ -151,7 +153,7 @@ public final class Transactor {
     ///
     /// This is a convenience shortcut for `currentTransaction().connection()`.
     ///
-    /// @return The non-null active [Connection].
+    /// @return The active [Connection]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
     public Connection connection() {
         return currentTransaction().connection();
@@ -159,7 +161,7 @@ public final class Transactor {
 
     /// Returns the transaction currently active on this thread.
     ///
-    /// @return The non-null active [Transaction].
+    /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
     public Transaction currentTransaction() {
         var ret = local.get();

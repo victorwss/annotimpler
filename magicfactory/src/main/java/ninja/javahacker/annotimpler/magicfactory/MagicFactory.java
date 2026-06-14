@@ -157,7 +157,7 @@ public final class MagicFactory<E> {
             return checkOk(wrap).eraseU();
         } catch (NoSuchMethodException e) {
             var msg = "Failed to determine how to create an instance of " + klass.getSimpleName() + ".";
-            throw new CreatorSelectionException(msg, klass);
+            throw new CreatorSelectionException(msg, e, klass);
         }
     }
 

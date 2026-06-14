@@ -96,7 +96,7 @@ public interface CharsetSpec {
 
     /// Returns the [Charset] represented by this spec.
     ///
-    /// @return The non-null charset.
+    /// @return The charset; never `null`.
     public Charset get();
 
     /// Thrown when a [CharsetSpec] implementation cannot be instantiated.
@@ -132,6 +132,7 @@ public interface CharsetSpec {
     /// @return The decoded string.
     /// @throws IOException If the bytes cannot be decoded using this charset.
     /// @throws IllegalArgumentException If `input` is `null`.
+    @NonNull
     public default String decode(@NonNull byte[] input) throws IOException {
         var buf = ByteBuffer.wrap(input);
         var cs = get();
@@ -139,7 +140,7 @@ public interface CharsetSpec {
             var cb = cs.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(buf);
             return new String(cb.array(), 0, cb.length());
         } catch (IOException e) {
-            throw new IOException("String can't be coded as " + cs.displayName(Locale.ROOT) + ".");
+            throw new IOException("String can't be coded as " + cs.displayName(Locale.ROOT) + ".", e);
         }
     }
 
@@ -147,9 +148,10 @@ public interface CharsetSpec {
     /// [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
     ///
     /// @param k The `CharsetSpec` implementation class to instantiate.
-    /// @return A non-null instance of `k`.
-    /// @throws BadCharsetSpecException If the class cannot be instantiated.
+    /// @return An instance of `k`; never `null`.
+    /// @throws BadCharsetSpecException If the class `k` cannot be instantiated.
     /// @throws IllegalArgumentException If `k` is `null`.
+    @NonNull
     public static CharsetSpec instance(@NonNull Class<? extends CharsetSpec> k) throws BadCharsetSpecException {
         try {
             return MagicFactory.of(k).create();
@@ -164,6 +166,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF8;
@@ -176,18 +179,22 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_ASCII;
         }
     }
 
-    /// [CharsetSpec] implementation for ISO 8859-1 (Latin-1), with strict unmappable-character reporting.
+    /// [CharsetSpec] implementation for ISO 8859-1 (Latin-1),
+    /// with no extensions or additional characters like in [Windows-1252][Windows1252].
+    /// @see Windows1252
     public static enum Iso88591Strict implements CharsetSpec {
         /// The sole instance.
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_ISO_8859_1;
@@ -200,6 +207,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF16LE;
@@ -212,6 +220,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF16BE;
@@ -224,6 +233,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF16BOM;
@@ -236,6 +246,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF32LE;
@@ -248,6 +259,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF32BE;
@@ -260,6 +272,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_UTF32BOM;
@@ -272,6 +285,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_BIG5;
@@ -284,6 +298,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_GBK;
@@ -296,6 +311,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_SHIFT_JIS;
@@ -308,6 +324,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_EUC_JP;
@@ -320,6 +337,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_EUC_KR;
@@ -332,6 +350,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1250;
@@ -344,18 +363,22 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1251;
         }
     }
 
-    /// [CharsetSpec] implementation for Windows-1252 (Western European).
+    /// [CharsetSpec] implementation for Windows-1252 (Western European). A superset of [ISO-8859-1][Iso88591Strict], with just a few
+    /// rarely used characters added.
+    /// @see Iso88591Strict
     public static enum Windows1252 implements CharsetSpec {
         /// The sole instance.
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1252;
@@ -368,6 +391,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1254;
@@ -380,6 +404,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1255;
@@ -392,6 +417,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1256;
@@ -404,6 +430,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1257;
@@ -416,6 +443,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_1258;
@@ -428,6 +456,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_WINDOWS_874;
@@ -440,6 +469,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_ISO_8859_2;
@@ -452,6 +482,7 @@ public interface CharsetSpec {
         @Creator
         INSTANCE;
 
+        @NonNull
         @Override
         public Charset get() {
             return CS_ISO_8859_7;

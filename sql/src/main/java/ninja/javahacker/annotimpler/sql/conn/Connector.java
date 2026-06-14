@@ -22,7 +22,7 @@ public interface Connector extends ConnectionFactory {
 
     /// Returns the JDBC connection URL for this connector.
     ///
-    /// @return The non-null JDBC URL string.
+    /// @return The JDBC URL string; never `null`.
     @NonNull
     public String url();
 
@@ -57,7 +57,7 @@ public interface Connector extends ConnectionFactory {
     /// Otherwise, a new `UrlConnector` is constructed from the URL and credentials
     /// exposed by this connector.
     ///
-    /// @return A non-null [UrlConnector] representing this connector.
+    /// @return An [UrlConnector] representing this connector; never `null`.
     @NonNull
     public default UrlConnector asUrl() {
         return this instanceof UrlConnector me
@@ -70,7 +70,7 @@ public interface Connector extends ConnectionFactory {
     /// The returned connection has [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE]
     /// isolation level and autocommit disabled.
     ///
-    /// @return A new, open, non-null database connection.
+    /// @return A new and open database connection; never `null`.
     /// @throws SQLException If a database access error occurs or the connection URL is invalid.
     @Override
     public default Connection get() throws SQLException {
@@ -99,7 +99,7 @@ public interface Connector extends ConnectionFactory {
 
         /// Returns the database server hostname or IP address.
         ///
-        /// @return The non-null hostname string.
+        /// @return The hostname string; never `null`.
         @NonNull
         public String host();
 
@@ -133,19 +133,19 @@ public interface Connector extends ConnectionFactory {
 
         /// Returns the database username.
         ///
-        /// @return The non-null username string.
+        /// @return The username string; never `null`.
         @NonNull
         public String user();
 
         /// Returns the database password.
         ///
-        /// @return The non-null password string.
+        /// @return The password string; never `null`.
         @NonNull
         public String password();
 
         /// Returns the authentication credentials as an [Auth] object.
         ///
-        /// @return A non-null [Auth] containing the current username and password.
+        /// @return An [Auth] containing the current username and password; never `null`.
         @NonNull
         public default Auth auth() {
             return new Auth(user(), password());
@@ -153,7 +153,7 @@ public interface Connector extends ConnectionFactory {
 
         /// Returns an [Optional] always containing the authentication credentials of this connector.
         ///
-        /// @return A non-null, non-empty [Optional] wrapping the result of [#auth()].
+        /// @return A non-empty [Optional] wrapping the result of [#auth()]; never `null`.
         @Override
         @NonNull
         public default Optional<Auth> optAuth() {

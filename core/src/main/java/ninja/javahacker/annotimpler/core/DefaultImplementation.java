@@ -48,7 +48,7 @@ public final class DefaultImplementation {
         return new CallContext<>() {
 
             @Override
-            public Object execute(@NonNull E instance, @NonNull Object... args) throws Throwable {
+            public Object execute(@NonNull E instance, @NonNull Object... args) {
                 if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
                 if (!(Proxy.isProxyClass(instance.getClass()))) throw new IllegalArgumentException(NOT_PROXY);
                 return "impl[" + iface.getName() + "]-" + System.identityHashCode(instance);

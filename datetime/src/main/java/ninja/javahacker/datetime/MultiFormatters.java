@@ -224,7 +224,8 @@ public enum MultiFormatters {
             throw new DateTimeParseException(
                     e.getMessage() + " - " + this.name() + " [" + pattern + "]",
                     e.getParsedString(),
-                    e.getErrorIndex()
+                    e.getErrorIndex(),
+                    e
             );
         }
     }

@@ -65,7 +65,11 @@ public interface ParsedSqlSupplier {
         try {
             factory = MagicFactory.of(cls).create();
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException x) {
-            throw new BadImplementationException("Can't instantiate " + cls.getSimpleName() + " to handle " + name, m.getDeclaringClass());
+            throw new BadImplementationException(
+                    "Can't instantiate " + cls.getSimpleName() + " to handle " + name,
+                    x,
+                    m.getDeclaringClass()
+            );
         }
         var sup = factory.prepare(m);
         return () -> {

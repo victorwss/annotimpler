@@ -100,7 +100,7 @@ public enum CharacterConverter implements Converter<Character> {
             if (i != a) throw new ConvertionException(BigDecimal.class, getType());
             return Optional.of(a);
         } catch (ArithmeticException x) {
-            throw new ConvertionException(BigDecimal.class, getType());
+            throw new ConvertionException(x, BigDecimal.class, getType());
         }
     }
 

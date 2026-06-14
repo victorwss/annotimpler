@@ -748,7 +748,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
-    ///         or if `x` is non-null and `name` maps to more than one positional index.
+    ///         or if `x` is a [java.io.Reader] or a [java.io.InputStream] and `name` maps to more than one positional index.
     public default void setObject(@NonNull String name, @Nullable Object x) throws SQLException {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);

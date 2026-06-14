@@ -291,17 +291,14 @@ public final class SmartResultSet implements ResultSet {
         return wasNull() ? null : r;
     }
 
-    // May return null, Long, Integer, Byte, Short, Float, Double, Boolean,
-    // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
-    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId or Struct.
     /// Reads the value at `columnIndex` and returns it as the most appropriate Java type for the
     /// column's JDBC type code.
     ///
-    /// May return `null` for SQL `NULL`.  The possible non-null return types are: [Long],
+    /// May return `null` for SQL `NULL`. The possible non-null return types are: [Long],
     /// [Integer], [Byte], [Short], [Float], [Double], [Boolean], [String], [java.math.BigDecimal],
     /// `byte[]`, [java.time.LocalDate], [java.time.LocalTime], [java.time.LocalDateTime],
     /// [java.time.OffsetDateTime], [java.time.OffsetTime], [java.sql.Clob], [java.sql.NClob],
-    /// [java.sql.Blob], [java.sql.Array], [java.sql.Ref], [java.sql.SQLXML], [java.sql.RowId],
+    /// [java.sql.Blob], [java.sql.Array], [java.sql.Ref], [java.sql.SQLXML], [java.sql.RowId] or
     /// [java.sql.Struct].
     ///
     /// @param columnIndex The 1-based column index to read.
@@ -344,13 +341,10 @@ public final class SmartResultSet implements ResultSet {
         };
     }
 
-    // May return null, Long, Integer, Byte, Short, Float, Double, Boolean,
-    // String, BigDecimal, byte[], LocalDate, LocalTime, LocalDateTime, OffsetDateTime, OffsetTime,
-    // Clob, NClob, Blob, Array, Ref, SQLXML, RowId or Struct.
     /// Reads the value at the column identified by `columnLabel` (case-insensitive) and returns
     /// it as the most appropriate Java type for the column's JDBC type code.
     ///
-    /// May return `null` for SQL `NULL`.  The possible non-null return types are the same as
+    /// May return `null` for SQL `NULL`. The possible non-null return types are the same as
     /// for [#getTypedValue(int)].
     ///
     /// @param columnLabel The case-insensitive column label to read.

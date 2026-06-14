@@ -125,7 +125,7 @@ public final class QuerySqlImplementation implements Implementation {
     /// @param k The DAO interface class.
     /// @param m The annotated method to compile.
     /// @param props The property bag used to resolve runtime dependencies.
-    /// @return A non-null [CallContext] ready for repeated invocation.
+    /// @return A [CallContext] ready for repeated invocation; never `null`.
     /// @throws BadImplementationException If the method's return type uses a wildcard type
     ///         parameter; if `fields` specifies more than one index for a non-record element
     ///         type; or if the number of indices in `fields` does not match the number of

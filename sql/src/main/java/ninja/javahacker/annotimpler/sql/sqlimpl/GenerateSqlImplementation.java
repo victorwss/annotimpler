@@ -101,7 +101,7 @@ public final class GenerateSqlImplementation implements Implementation {
     /// @param k The DAO interface class.
     /// @param m The annotated method to compile.
     /// @param props The property bag used to resolve runtime dependencies.
-    /// @return A non-null [CallContext] ready for repeated invocation.
+    /// @return A [CallContext] ready for repeated invocation; never `null`.
     /// @throws BadImplementationException If the method's return type is not one of the
     ///         supported types (`int`, `Integer`, `OptionalInt`, `long`, `Long`, `OptionalLong`,
     ///         `List<Integer>`, `List<Long>`).

@@ -33,7 +33,7 @@ public enum SqliteMemoryConnector implements Connector.NoAuthConnector {
 
     /// Returns the JDBC connection URL for this connector.
     ///
-    /// @return The non-null JDBC URL string.
+    /// @return The JDBC URL string; never `null`.
     @NonNull
     @Override
     public String url() {

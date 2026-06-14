@@ -25,7 +25,7 @@ public @interface SqlFromClass {
 
     /// Returns the [ninja.javahacker.annotimpler.sql.meta.SqlSupplier] class to instantiate.
     ///
-    /// @return The non-null supplier class.
+    /// @return The supplier class; never `null`.
     public Class<? extends SqlSupplier> value();
 
     /// Returns the key passed to the supplier's single-`String`-argument constructor,
