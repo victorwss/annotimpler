@@ -70,7 +70,7 @@ public final class Transactor {
     }
 
     private <T> XSupplier<T> operate(@NonNull XSupplier<T> operation) {
-        checkNotNull(operation);
+        checkNotNull(operation); // Check recognized by lombok.
         return () -> {
             var alreadyHas = local.get() != null;
             if (alreadyHas) return operation.get();
@@ -97,7 +97,7 @@ public final class Transactor {
 
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // It is intentional here.
     private static <A> A unwrap(@NonNull XSupplier<A> input) throws Throwable {
-        checkNotNull(input);
+        checkNotNull(input); // Check recognized by lombok.
         try {
             return input.get();
         } catch (InvocationTargetException | UndeclaredThrowableException e) {

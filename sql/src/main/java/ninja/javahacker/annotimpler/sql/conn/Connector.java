@@ -79,7 +79,7 @@ public interface Connector extends ConnectionFactory {
 
     /// Holds the authentication credentials required to open a database connection.
     ///
-    /// @param user     The database username.
+    /// @param user The database username.
     /// @param password The database password.
     public static record Auth(@NonNull String user, @NonNull String password) {
 

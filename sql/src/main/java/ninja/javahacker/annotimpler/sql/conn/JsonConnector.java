@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
 import lombok.experimental.PackagePrivate;
@@ -33,13 +34,14 @@ public final class JsonConnector implements Connector {
             .registerModule(new Jdk8Module())
             .registerModule(new ParameterNamesModule());
 
-    private static final Map<String, Class<? extends Connector>> REGISTERED_CLASSES = new HashMap<>(20);
+    private static final Map<String, Class<? extends Connector>> REGISTERED_CLASSES;
     private static final Map<String, Class<? extends Connector>> STD_REGISTERED_CLASSES;
 
     @Delegate(types = Connector.class)
     private final Connector delegate;
 
     static {
+        REGISTERED_CLASSES = new HashMap<>(20);
         register(
                 AccessConnector.class,
                 Db2Connector.class,
@@ -127,7 +129,9 @@ public final class JsonConnector implements Connector {
         }
 
         @Override
-        public JsonConnector deserialize(JsonParser jp, DeserializationContext ctxt) throws IOException {
+        public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) throws IOException {
+            checkNotNull(jp); // Check recognized by lombok.
+            checkNotNull(ctxt); // Check recognized by lombok.
             var tree = jp.readValueAsTree();
             if (!(tree instanceof ObjectNode)) throw new UnknownConnectorException("JSON does not contain a connector.");
             var copy = ((ObjectNode) tree).deepCopy();
@@ -149,7 +153,10 @@ public final class JsonConnector implements Connector {
         }
 
         @Override
-        public void serialize(JsonConnector t, JsonGenerator jg, SerializerProvider sp) throws IOException {
+        public void serialize(@NonNull JsonConnector t, @NonNull JsonGenerator jg, @NonNull SerializerProvider sp) throws IOException {
+            checkNotNull(t); // Check recognized by lombok.
+            checkNotNull(jg); // Check recognized by lombok.
+            checkNotNull(sp); // Check recognized by lombok.
             var d = t.delegate;
             var c = d.getClass();
             var mapper = (ObjectMapper) jg.getCodec();
@@ -174,7 +181,7 @@ public final class JsonConnector implements Connector {
         /// @param message The detail message.
         /// @throws IllegalArgumentException If `message` is `null`.
         public UnknownConnectorException(@NonNull String message) {
-            List.of(message); // Force lombok put the null-checks before the constructor call.
+            List.of(message); // Force lombok to put the null-checks before the constructor call.
             super(message);
         }
 
@@ -185,7 +192,7 @@ public final class JsonConnector implements Connector {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
         protected final void finalize() {
         }
     }
@@ -226,16 +233,21 @@ public final class JsonConnector implements Connector {
         return r;
     }
 
-    /// Serialises this connector to a JSON string.
+    /// Serializes this connector to a JSON string.
     ///
     /// The output includes a `"type"` discriminator field alongside all fields of the
     /// wrapped connector.
     ///
-    /// @return The non-null JSON representation of this connector.
+    /// @return The JSON representation of this connector; never `null`.
     /// @throws IOException If the delegate connector class has no registered
     ///         [ConnectorJsonKey], or if any other serialization error occurs.
     @NonNull
     public String toJson() throws IOException {
         return MAPPER.writeValueAsString(this);
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }
