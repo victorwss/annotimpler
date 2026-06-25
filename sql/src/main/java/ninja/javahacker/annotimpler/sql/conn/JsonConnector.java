@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.sql.conn;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
@@ -71,7 +72,7 @@ public final class JsonConnector implements Connector {
     /// Returns the wrapped connector.
     ///
     /// @return The wrapped delegate connector; never `null`.
-    public Connector delegate() {
+    public Connector getDelegate() {
         return delegate;
     }
 
@@ -206,8 +207,9 @@ public final class JsonConnector implements Connector {
 
     /// {@inheritDoc}
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
-        return other instanceof JsonConnector jo && Objects.equals(this.delegate, jo.delegate());
+        return other instanceof JsonConnector jo && Objects.equals(this.delegate, jo.getDelegate());
     }
 
     /// {@inheritDoc}

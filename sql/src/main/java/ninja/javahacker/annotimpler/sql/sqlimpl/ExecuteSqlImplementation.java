@@ -87,6 +87,7 @@ public final class ExecuteSqlImplementation implements Implementation {
     ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@ExecuteSql][ExecuteSql].
     @NonNull
     @Override
+    @SuppressWarnings("Convert2Lambda") // Because there is @NonNull on lambda parameters.
     public <E> CallContext<E> prepare(
             @NonNull Class<E> k,
             @NonNull Method m,

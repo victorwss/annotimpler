@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -116,6 +117,7 @@ public final class PropertyBag {
     /// @param other The object to which this instance will be compared against for equality.
     /// @return If `other` is a [PropertyBag] with the same key-value pairs as this bag.
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
         return other instanceof PropertyBag pb && Objects.equals(pb.properties, this.properties);
     }

@@ -27,8 +27,8 @@ import module ninja.javahacker.annotimpler.sql;
 /// | `List<T>` | All rows mapped to `T`, in result-set order. |
 ///
 /// The element type `T` may be any scalar type supported by [ConverterFactory], or a Java
-/// `record`.  When `T` is a record, each result column is mapped to the corresponding record
-/// component.  The mapping order can be overridden by supplying explicit column indices via
+/// `record`. When `T` is a record, each result column is mapped to the corresponding record
+/// component. The mapping order can be overridden by supplying explicit column indices via
 /// the `fields` attribute of [@QuerySql][QuerySql].
 ///
 /// Wildcard type parameters (`Optional<?>`, `List<?>`) are rejected at preparation time.
@@ -134,6 +134,7 @@ public final class QuerySqlImplementation implements Implementation {
     ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@QuerySql][QuerySql].
     @NonNull
     @Override
+    @SuppressWarnings("Convert2Lambda") // Because there is @NonNull on lambda parameters.
     public <E> CallContext<E> prepare(
             @NonNull Class<E> k,
             @NonNull Method m,

@@ -15,8 +15,8 @@ public class HeavyConverterTestSupport {
     );
 
     private static final List<Class<?>> NUMERIC = List.of(
-            byte.class, short.class, int.class, long.class, float.class, double.class,
-            Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class,
+            byte.class, short.class, int.class, long.class, float.class, double.class, char.class,
+            Byte.class, Short.class, Integer.class, Long.class, Float.class, Double.class, Character.class,
             BigDecimal.class, BigInteger.class
     );
 
@@ -138,7 +138,7 @@ public class HeavyConverterTestSupport {
         for (Throwable k = ce; k.getCause() != null; k = k.getCause()) {
             n++;
         }
-        if (n > 4) throw new AssertionError();
+        if (n > 4) throw new AssertionError(ce);
 
         List<Executable> parts = new ArrayList<>(20);
         parts.add(() -> Assertions.assertEquals(errStr, ce.getMessage()));

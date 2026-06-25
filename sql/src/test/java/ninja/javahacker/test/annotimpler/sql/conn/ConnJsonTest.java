@@ -44,7 +44,7 @@ public class ConnJsonTest {
         var delegate = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         Assertions.assertAll(
                 () -> Assertions.assertEquals(new JsonConnector(delegate), con),
-                () -> Assertions.assertEquals(delegate, con.delegate())
+                () -> Assertions.assertEquals(delegate, con.getDelegate())
         );
     }
 
@@ -54,7 +54,7 @@ public class ConnJsonTest {
         var delegate = new MariaDbConnector("localhost", 3306, "admin", "secret", "test");
         Assertions.assertAll(
                 () -> Assertions.assertEquals(new JsonConnector(delegate), con),
-                () -> Assertions.assertEquals(delegate, con.delegate())
+                () -> Assertions.assertEquals(delegate, con.getDelegate())
         );
     }
 
@@ -86,14 +86,14 @@ public class ConnJsonTest {
                 n("equals reflexive shallow"   , () -> Assertions.assertTrue(jsc3.equals(jsc1))),
                 n("equals to deep copy"        , () -> Assertions.assertTrue(jsc1.equals(jsc2))),
                 n("equals reflexive deep"      , () -> Assertions.assertTrue(jsc2.equals(jsc1))),
-                n("delegate is same"           , () -> Assertions.assertEquals(jsc1.delegate(), jsc2.delegate())),
-                n("delegates are equals"       , () -> Assertions.assertEquals(jsc1.delegate(), jsc3.delegate())),
+                n("delegate is same"           , () -> Assertions.assertEquals(jsc1.getDelegate(), jsc2.getDelegate())),
+                n("delegates are equals"       , () -> Assertions.assertEquals(jsc1.getDelegate(), jsc3.getDelegate())),
                 n("same delegate hashCode"     , () -> Assertions.assertEquals(delegate1.hashCode(), jsc1.hashCode())),
                 n("distinct hashCode"          , () -> Assertions.assertNotEquals(jsc1.hashCode(), jsc4.hashCode())),
                 n("equals has same hashCode"   , () -> Assertions.assertEquals(jsc1.hashCode(), jsc2.hashCode())),
                 n("not equals"                 , () -> Assertions.assertFalse(jsc1.equals(jsc4))),
                 n("not equals reflexive"       , () -> Assertions.assertFalse(jsc4.equals(jsc1))),
-                n("not equals delegates"       , () -> Assertions.assertNotEquals(jsc1.delegate(), jsc4.delegate())),
+                n("not equals delegates"       , () -> Assertions.assertNotEquals(jsc1.getDelegate(), jsc4.getDelegate())),
                 n("not equals to unrelated"    , () -> Assertions.assertFalse(jsc1.equals("x"))),
                 n("not equals to null"         , () -> Assertions.assertFalse(jsc1.equals(null))),
                 n("toString 1"                 , () -> Assertions.assertEquals("JSON Connector: [" + delegate1.toString() + "]", jsc1.toString())),
@@ -331,11 +331,11 @@ public class ConnJsonTest {
         Assertions.assertAll(
                 () -> {
                     var con = JsonConnector.read("{\"type\":\"foo\"}");
-                    Assertions.assertEquals(FooConnector.class, con.delegate().getClass());
+                    Assertions.assertEquals(FooConnector.class, con.getDelegate().getClass());
                 },
                 () -> {
                     var con = mapper().readValue("{\"type\":\"bar\"}", JsonConnector.class);
-                    Assertions.assertEquals(BarConnector.class, con.delegate().getClass());
+                    Assertions.assertEquals(BarConnector.class, con.getDelegate().getClass());
                 },
                 () -> Assertions.assertEquals(Optional.of(FooConnector.class), JsonConnector.find("foo")),
                 () -> Assertions.assertEquals(Optional.of(BarConnector.class), JsonConnector.find("bar")),

@@ -305,6 +305,7 @@ public final class SmartResultSet implements ResultSet {
     /// @return The column value mapped to the most appropriate Java type, or `null` for SQL `NULL`.
     /// @throws SQLException If a database access error occurs.
     @Nullable
+    @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
     public Object getTypedValue(int columnIndex) throws SQLException {
         var columnType = metaData.getColumnType(columnIndex);

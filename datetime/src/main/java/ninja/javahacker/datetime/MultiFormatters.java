@@ -1,5 +1,6 @@
 package ninja.javahacker.datetime;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -42,6 +43,7 @@ import module java.base;
 /// (e.g., `12:34:56.100000000` is written as `12:34:56.1`).
 /// [format(Instant)] converts the instant to UTC and formats it as a local date-time string
 /// without a timezone indicator.
+@SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
 public enum MultiFormatters {
 
     /// Year-month-day order with dash separators (e.g., `2025-12-31`).
@@ -224,8 +226,7 @@ public enum MultiFormatters {
             throw new DateTimeParseException(
                     e.getMessage() + " - " + this.name() + " [" + pattern + "]",
                     e.getParsedString(),
-                    e.getErrorIndex(),
-                    e
+                    e.getErrorIndex()
             );
         }
     }
