@@ -298,15 +298,22 @@ public class UrlSqlFactoryTest {
         }));
     }
 
-    @TestFactory
-    public Stream<DynamicTest> testUrlSqlNoServer() throws Exception {
-        var pf = "[testUrlSqlNoServer] ";
-        return Stream.of("withSqlCrash6", "withSqlCrash7").map(m -> DynamicTest.dynamicTest(pf + m, () -> {
-            var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
-            Assertions.assertTrue(ex.getCause() instanceof IOException);
-            Assertions.assertTrue(ex.getCause().getCause() instanceof SocketException);
-            Assertions.assertEquals("Download failed. Server didn't answer.", ex.getMessage());
-        }));
+    @Test
+    public void testUrlSqlNoServer() throws Exception {
+        var m = "withSqlCrash6";
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertTrue(ex.getCause().getCause() instanceof SocketException);
+        Assertions.assertEquals("Download failed. Server didn't answer.", ex.getMessage());
+    }
+
+    @Test
+    public void testUrlSqlWrongPort() throws Exception {
+        var m = "withSqlCrash7";
+        var ex = Assertions.assertThrows(SQLException.class, () -> UrlSqlFactory.INSTANCE.prepare(mtd(m)).get());
+        Assertions.assertTrue(ex.getCause() instanceof IOException);
+        Assertions.assertTrue(ex.getCause().getCause() instanceof SocketException);
+        // Don't test the message. It varies between different JDK versions and isn't something important.
     }
 
     @TestFactory

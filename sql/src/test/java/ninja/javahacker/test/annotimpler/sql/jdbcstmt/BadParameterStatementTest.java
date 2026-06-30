@@ -2,8 +2,8 @@ package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
 import ninja.javahacker.annotimpler.sql.jdbcstmt.NamedParameterStatement;
 import java.lang.reflect.Proxy;
-import lombok.SneakyThrows;
 import ninja.javahacker.test.ForTests;
+import ninja.javahacker.test.Sneaky;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
@@ -124,7 +124,7 @@ public class BadParameterStatementTest {
             public int read() throws IOException {
                 if (t == 1) throw new IOException("wuf");
                 if (t == 2) throw new LameException();
-                if (t == 3) throw new LamerException();
+                if (t == 3) Sneaky.sneakyThrow(new LamerException());
                 throw new LamestError();
             }
 
@@ -146,7 +146,7 @@ public class BadParameterStatementTest {
             public int read(char[] cbuf, int off, int len) throws IOException {
                 if (t == 1) throw new IOException("wuf");
                 if (t == 2) throw new LameException();
-                if (t == 3) throw new LamerException();
+                if (t == 3) Sneaky.sneakyThrow(new LamerException());
                 throw new LamestError();
             }
 

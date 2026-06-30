@@ -467,7 +467,7 @@ public class MethodsSimpleTest {
 
     @TestFactory
     public Stream<DynamicTest> testDefault() throws NoSuchMethodException {
-        var isTrue = List.of(
+        var isTrue = new ArrayList<>(List.of(
             SampleIface.class.getMethod("foo1"),
             Comparator.class.getMethod("reversed"),
             Comparator.class.getMethod("thenComparing", Function.class, Comparator.class),
@@ -476,7 +476,14 @@ public class MethodsSimpleTest {
             Comparator.class.getMethod("thenComparingInt", ToIntFunction.class),
             Comparator.class.getMethod("thenComparingLong", ToLongFunction.class),
             Comparator.class.getMethod("thenComparingDouble", ToDoubleFunction.class)
-        );
+        ));
+        try {
+            // Java 26+.
+            isTrue.add(Comparator.class.getMethod("max", Object.class, Object.class));
+            isTrue.add(Comparator.class.getMethod("min", Object.class, Object.class));
+        } catch (NoSuchMethodException e) {
+            // Ignore. Maybe Java 25-...
+        }
         return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isDefault);
     }
 

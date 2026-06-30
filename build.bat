@@ -1,2 +1,2 @@
 chcp 65001 > nul
-gradle --warning-mode all --stacktrace clean fullBuild --continue
+gradle --warning-mode all --stacktrace clean fullBuild --continue --console=verbose

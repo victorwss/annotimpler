@@ -1,7 +1,7 @@
 package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
 import java.lang.reflect.Proxy;
-import lombok.SneakyThrows;
+import ninja.javahacker.test.Sneaky;
 
 import module java.base;
 import module java.sql;
@@ -181,11 +181,10 @@ public class ExtraParameterStatementTest {
     private static InputStream ix(int t) {
         return new InputStream() {
             @Override
-            @SneakyThrows
             public int read() throws IOException {
                 if (t == 1) throw new IOException("wuf");
                 if (t == 2) throw new LameException();
-                if (t == 3) throw new LamerException();
+                if (t == 3) Sneaky.sneakyThrow(new LamerException());
                 if (t == 4) throw new LamestError();
                 throw new AssertionError();
             }

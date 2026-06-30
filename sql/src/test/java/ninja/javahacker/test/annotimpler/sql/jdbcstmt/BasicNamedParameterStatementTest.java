@@ -1,6 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
-import lombok.SneakyThrows;
+import ninja.javahacker.test.Sneaky;
 import ninja.javahacker.test.limited.AssertionInputStream;
 import ninja.javahacker.test.limited.AssertionReader;
 import org.junit.jupiter.api.function.Executable;
@@ -139,21 +139,21 @@ public class BasicNamedParameterStatementTest {
     }
 
     @SneakyThrows
-    private static Blob b(PreparedStatement ps) {
+    private static Blob b(PreparedStatement ps) throws SQLException {
         var blob = ps.getConnection().createBlob();
         blob.setBytes(1, "blue".getBytes());
         return blob;
     }
 
     @SneakyThrows
-    private static Clob c(PreparedStatement ps) {
+    private static Clob c(PreparedStatement ps) throws SQLException {
         var clob = ps.getConnection().createClob();
         clob.setString(1, "blue");
         return clob;
     }
 
     @SneakyThrows
-    private static NClob n(PreparedStatement ps) {
+    private static NClob n(PreparedStatement ps) throws SQLException {
         var nclob = ps.getConnection().createNClob();
         nclob.setString(1, "blue");
         return nclob;
@@ -562,9 +562,9 @@ public class BasicNamedParameterStatementTest {
 
         Function<PreparedStatement, Object> o1 = ps -> i();
         Function<PreparedStatement, Object> o2 = ps -> r();
-        Function<PreparedStatement, Object> o3 = ps -> c(ps);
-        Function<PreparedStatement, Object> o4 = ps -> b(ps);
-        Function<PreparedStatement, Object> o5 = ps -> n(ps);
+        Function<PreparedStatement, Object> o3 = ps -> ((Sneaky) () -> c(ps)).sneakyGet();
+        Function<PreparedStatement, Object> o4 = ps -> ((Sneaky) () -> b(ps)).sneakyGet();
+        Function<PreparedStatement, Object> o5 = ps -> ((Sneaky) () -> n(ps)).sneakyGet();
         var cmap = Map.of(InputStream.class, o1, Reader.class, o2, Clob.class, o3, Blob.class, o4, NClob.class, o5);
         var pmap = Map.of(InputStream.class, "SNG-C-", Reader.class, "SNG-C-", Clob.class, "STR-C-", Blob.class, "STR-C-", NClob.class, "STR-C-");
         var tmap = Map.of(InputStream.class, Types.BLOB, Reader.class, Types.CLOB, Clob.class, Types.CLOB, Blob.class, Types.BLOB, NClob.class, Types.NCLOB);
