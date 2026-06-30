@@ -22,8 +22,8 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     private static ParameterReceiver.NamedAcceptor1 forRecord(@NonNull Class<? extends Record> k, @NonNull String name, boolean flat)
             throws BadImplementationException
     {
-        checkNotNull(k);
-        checkNotNull(name);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
         checkAccessible(k);
         // assert(k.isRecord());
 
@@ -41,7 +41,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
                 acceptors.add(each.handle(value));
             }
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps);
+                checkNotNull(ps); // Check recognized by lombok.
                 for (var each : acceptors) {
                     each.accept(ps);
                 }
@@ -60,9 +60,9 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             boolean flat)
             throws BadImplementationException
     {
-        checkNotNull(rc);
-        checkNotNull(k);
-        checkNotNull(name);
+        checkNotNull(rc); // Check recognized by lombok.
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
 
         var rct = rc.getGenericType();
 
@@ -88,15 +88,15 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
 
     @NonNull
     private static ParameterReceiver.NamedAcceptor1 forEnum(@NonNull Class<?> k, @NonNull String name) {
-        checkNotNull(k);
-        checkNotNull(name);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value != null && !k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
             if (!k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
             var value2 = (Enum<?>) value;
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps);
+                checkNotNull(ps); // Check recognized by lombok.
                 if (value2 == null) {
                     ps.receiveNull(name, int.class);
                 } else {
@@ -111,8 +111,8 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     private static ParameterReceiver.NamedAcceptor1 forOptional(@NonNull Class<?> k, @NonNull String name, boolean flat)
             throws BadImplementationException
     {
-        checkNotNull(k);
-        checkNotNull(name);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
 
         var in = forClass(k, name, flat);
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
@@ -127,8 +127,8 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     private static <E> ParameterReceiver.NamedAcceptor1 forClass(@NonNull Class<E> k, @NonNull String name, boolean flat)
             throws BadImplementationException
     {
-        checkNotNull(k);
-        checkNotNull(name);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
 
         if (k.isRecord()) return forRecord(k.asSubclass(Record.class), name, flat);
         if (flat) throw new UnsupportedOperationException();
@@ -142,7 +142,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             if (!pred.test(value)) throw new ParameterReceiver.IllegalValueException();
             var value2 = WrapperClass.wrap(k).cast(value);
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps);
+                checkNotNull(ps); // Check recognized by lombok.
                 if (value2 == null) {
                     ps.receiveNull(name, k);
                 } else {
@@ -155,11 +155,12 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     @NonNull
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Type type, @NonNull String name, boolean flat)
             throws BadImplementationException
     {
-        checkNotNull(type);
-        checkNotNull(name);
+        checkNotNull(type); // Check recognized by lombok.
+        checkNotNull(name); // Check recognized by lombok.
 
         if (type instanceof Class<?> kk) {
             return forClass(kk, name, flat);
@@ -173,14 +174,14 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
 
     @NonNull
     private static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Parameter p) throws BadImplementationException {
-        checkNotNull(p);
+        checkNotNull(p); // Check recognized by lombok.
         return makeStrategy(p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
     }
 
     @NonNull
     @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Method m) throws BadImplementationException {
-        checkNotNull(m);
+        checkNotNull(m); // Check recognized by lombok.
 
         var pp = m.getParameters();
         var all = new ArrayList<ParameterReceiver.NamedAcceptor1>(pp.length);
@@ -189,7 +190,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         }
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
-            if (value == null || !(value instanceof Object[] array) || array.length != all.size()) {
+            if (!(value instanceof Object[] array) || array.length != all.size()) { // Implicit null check with instanceof.
                 throw new ParameterReceiver.IllegalValueException();
             }
             var acceptors = new ArrayList<ParameterReceiver.Acceptor2>(array.length);

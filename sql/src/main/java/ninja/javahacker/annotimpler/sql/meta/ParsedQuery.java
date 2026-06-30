@@ -59,7 +59,7 @@ public record ParsedQuery(
 
     @NonNull
     private static <A, B> Map<A, List<B>> deepCopy2(@NonNull Map<A, List<B>> input) {
-        checkNotNull(input);
+        checkNotNull(input); // Check recognized by lombok.
         var sketch = new LinkedHashMap<A, List<B>>(input);
         sketch.replaceAll((k, v) -> List.copyOf(v));
         return Map.copyOf(sketch);
@@ -67,7 +67,7 @@ public record ParsedQuery(
 
     @NonNull
     private static Optional<String> readName(@NonNull String original, int i) {
-        checkNotNull(original);
+        checkNotNull(original); // Check recognized by lombok.
         var c = original.charAt(i);
         if (c != COLON) return Optional.empty();
         var length = original.length();

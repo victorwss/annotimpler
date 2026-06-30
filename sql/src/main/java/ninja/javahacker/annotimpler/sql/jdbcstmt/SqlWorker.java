@@ -12,8 +12,8 @@ import module ninja.javahacker.annotimpler.sql;
 /// parameters supplied by a [ParameterReceiver.Acceptor2], and returns the results mapped to
 /// the requested Java type via a [ConverterFactory].
 ///
-/// Instances are **not** designed to be reused across invocations; create a fresh [SqlWorker]
-/// for each SQL operation.
+/// Instances are **not** designed to be reusable across invocations and can only be reused in a few corner cases;
+/// it is much easier to just create a fresh [SqlWorker] for each SQL operation instead.
 public final class SqlWorker {
 
     @NonNull
@@ -39,6 +39,7 @@ public final class SqlWorker {
     /// @param factory The converter factory used to map result column values to Java types.
     /// @param localizer The locale used for case-insensitive column name matching.
     /// @throws IllegalArgumentException If any parameter is `null`.
+    @SuppressFBWarnings("EI_EXPOSE_REP2") // SpotBugs don't like wrapping the connection, but there is no problem at all.
     public SqlWorker(
             @NonNull Connection con,
             @NonNull ParameterReceiver.Acceptor2 ppq,
@@ -55,17 +56,25 @@ public final class SqlWorker {
 
     @NonNull
     private static int[] defaultRange(@NonNull Class<?> k) {
-        checkNotNull(k);
+        checkNotNull(k); // Check recognized by lombok.
         return IntStream.rangeClosed(1, k.isRecord() ? k.getRecordComponents().length : 1).toArray();
     }
 
     @NonNull
+    @SuppressFBWarnings({ // We are intentionally trusting ParsedQuery, but SpotBugs don't know that.
+        "SQL_INJECTION_JDBC",
+        "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"
+    })
     private NamedParameterStatement open() throws SQLException {
         var ps = con.prepareStatement(pq.parsed());
         return NamedParameterStatement.wrap(ps, pq.params());
     }
 
     @NonNull
+    @SuppressFBWarnings({ // We are intentionally trusting ParsedQuery, but SpotBugs don't know that.
+        "SQL_INJECTION_JDBC",
+        "SQL_PREPARED_STATEMENT_GENERATED_FROM_NONCONSTANT_STRING"
+    })
     private NamedParameterStatement openGenerate() throws SQLException {
         var ps = con.prepareStatement(pq.parsed(), Statement.RETURN_GENERATED_KEYS);
         return NamedParameterStatement.wrap(ps, pq.params());
@@ -73,8 +82,8 @@ public final class SqlWorker {
 
     @NonNull
     private <R extends Record> Optional<R> readRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
-        checkNotNull(k);
-        checkNotNull(fields);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(fields); // Check recognized by lombok.
 
         try (var ps = open()) {
             ppq.accept(ps);
@@ -87,7 +96,7 @@ public final class SqlWorker {
 
     @NonNull
     private <R> Optional<R> readSimple(@NonNull Class<R> k, int field) throws SQLException {
-        checkNotNull(k);
+        checkNotNull(k); // Check recognized by lombok.
 
         try (var ps = open()) {
             ppq.accept(ps);
@@ -138,8 +147,8 @@ public final class SqlWorker {
 
     @NonNull
     private <R extends Record> List<R> listRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
-        checkNotNull(k);
-        checkNotNull(fields);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(fields); // Check recognized by lombok.
 
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
@@ -155,7 +164,7 @@ public final class SqlWorker {
 
     @NonNull
     private <R> List<R> listSimple(@NonNull Class<R> k, int field) throws SQLException {
-        checkNotNull(k);
+        checkNotNull(k); // Check recognized by lombok.
 
         try (var ps = open()) {
             ppq.accept(ps);

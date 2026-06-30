@@ -34,7 +34,7 @@ public enum UrlSqlFactory implements SqlFactory {
     }
 
     private static String download(@NonNull SqlFromUrl anno) throws IOException {
-        checkNotNull(anno);
+        checkNotNull(anno); // Check recognized by lombok.
         var key = "charset=";
         var url = anno.value();
         try (var client = HttpClient.newHttpClient()) {

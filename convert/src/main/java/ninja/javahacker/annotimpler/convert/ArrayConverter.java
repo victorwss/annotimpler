@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -11,6 +13,8 @@ import module ninja.javahacker.annotimpler.convert;
 /// For any other non-null input, converts it using the element converter and returns a single-element `E[1]`.
 ///
 /// @param <E> The element type of the array.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class ArrayConverter<E> implements Converter<E[]> {
 
     @NonNull
@@ -54,7 +58,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
 
         @NonNull
         public default Optional<E> rework(@NonNull Class<E[]> arrayClass) throws ConvertionException {
-            checkNotNull(arrayClass);
+            checkNotNull(arrayClass); // Check recognized by lombok.
             try {
                 return work();
             } catch (ConvertionException e) {

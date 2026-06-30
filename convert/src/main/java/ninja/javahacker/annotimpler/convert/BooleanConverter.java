@@ -103,7 +103,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         var n = in.toUpperCase(Locale.ROOT);
         if (TRUES.contains(n)) return OPT_TRUE;
         if (FALSES.contains(n)) return OPT_FALSE;
-        if (in.isEmpty()) return this == PRIMITIVE ? Optional.of(false) : Optional.empty();
+        if (in.isEmpty()) return this == PRIMITIVE ? OPT_FALSE : Optional.empty();
         throw new ConvertionException(String.class, getType());
     }
 }

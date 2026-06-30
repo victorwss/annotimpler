@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -11,6 +13,8 @@ import module ninja.javahacker.annotimpler.convert;
 /// For any other non-null input, converts the element and returns `List.of(element)`.
 ///
 /// @param <E> The element type of the list.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class ListConverter<E> implements Converter<List<E>> {
 
     @NonNull
@@ -55,7 +59,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
 
         @NonNull
         public default Optional<List<E>> rework(@NonNull Type baseType) throws ConvertionException {
-            checkNotNull(baseType);
+            checkNotNull(baseType); // Check recognized by lombok.
             try {
                 return Optional.of(work().map(List::of).orElse(List.of()));
             } catch (ConvertionException e) {
@@ -69,7 +73,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
 
     @NonNull
     private Optional<List<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
-        checkNotNull(e);
+        checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }
 

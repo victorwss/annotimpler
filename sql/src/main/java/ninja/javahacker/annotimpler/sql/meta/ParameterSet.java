@@ -19,6 +19,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 ///
 /// @see ParameterReceiver
 /// @see ParsedSqlSupplier#find
+@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"}) // Wraps a Method intentionally, but SpotBugs don't like that.
 public final class ParameterSet {
 
     @NonNull
@@ -76,6 +77,7 @@ public final class ParameterSet {
     /// @param other The object to compare against this instance.
     /// @return `true` if `other` is a [ParameterSet] with the same underlying method.
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
         return other instanceof ParameterSet ps && Objects.equals(this.state(), ps.state());
     }

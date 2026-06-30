@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -11,6 +13,8 @@ import module ninja.javahacker.annotimpler.convert;
 /// For any other non-null input, converts the element and returns `List.of(element)`.
 ///
 /// @param <E> The element type of the collection.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class CollectionConverter<E> implements Converter<Collection<E>> {
 
     @NonNull
@@ -27,8 +31,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     /// @param baseType The parameterized type `Collection<X>`.
     /// @throws UnavailableConverterException If `baseType` is not `Collection<X>` for some class `X`,
     ///         or if no converter is available for the element type.
-    /// @throws IllegalArgumentException If `factory` is `null`.
-    /// @throws IllegalArgumentException If `baseType` is `null`.
+    /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
     public CollectionConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
@@ -56,7 +59,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
 
         @NonNull
         public default Optional<Collection<E>> rework(@NonNull Type baseType) throws ConvertionException {
-            checkNotNull(baseType);
+            checkNotNull(baseType); // Check recognized by lombok.
             try {
                 return Optional.of(work().map(List::of).orElse(List.of()));
             } catch (ConvertionException e) {
@@ -70,7 +73,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
 
     @NonNull
     private Optional<Collection<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
-        checkNotNull(e);
+        checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }
 

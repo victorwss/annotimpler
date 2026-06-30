@@ -78,8 +78,8 @@ public enum FloatConverter implements Converter<Float> {
 
     @NonNull
     private Optional<Float> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
-        checkNotNull(what);
-        checkNotNull(in);
+        checkNotNull(what); // Check recognized by lombok.
+        checkNotNull(in); // Check recognized by lombok.
         var a = in.floatValue();
         if (in.compareTo(FloatAndDouble.makeBig(a)) != 0) throw new ConvertionException(what, getType());
         return Optional.of(a);

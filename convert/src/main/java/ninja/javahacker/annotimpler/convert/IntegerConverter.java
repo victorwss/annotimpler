@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -71,8 +72,8 @@ public enum IntegerConverter implements Converter<Integer> {
 
     @NonNull
     private Optional<Integer> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
-        checkNotNull(what);
-        checkNotNull(in);
+        checkNotNull(what); // Check recognized by lombok.
+        checkNotNull(in); // Check recognized by lombok.
         try {
             return Optional.of(in.intValueExact());
         } catch (ArithmeticException x) {
@@ -88,6 +89,7 @@ public enum IntegerConverter implements Converter<Integer> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Integer> from(double in) throws ConvertionException {
         var a = (int) in;
         if (in != a) throw new ConvertionException(double.class, getType());

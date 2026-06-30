@@ -95,6 +95,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     @Override
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public default Converter<?> get(@NonNull Type t) throws UnavailableConverterException {
         if (t instanceof Class<?> k) return getOf(k);
         if (t instanceof ParameterizedType p) return getOf(p);

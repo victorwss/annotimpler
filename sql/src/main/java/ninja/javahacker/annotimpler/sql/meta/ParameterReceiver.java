@@ -98,6 +98,8 @@ public interface ParameterReceiver {
     /// Thrown by [Acceptor1#handle] when the supplied value is not compatible with the
     /// expected parameter type.
     public static class IllegalValueException extends Exception {
+
+        @Serial
         private static final long serialVersionUID = 1L;
 
         /// Creates a new [IllegalValueException] with no detail message.

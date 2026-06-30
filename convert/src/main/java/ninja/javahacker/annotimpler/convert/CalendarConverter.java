@@ -24,7 +24,7 @@ public enum CalendarConverter implements Converter<Calendar> {
 
     @NonNull
     private Optional<Calendar> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {

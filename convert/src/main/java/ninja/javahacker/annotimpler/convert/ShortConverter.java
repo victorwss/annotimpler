@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -72,6 +73,7 @@ public enum ShortConverter implements Converter<Short> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Short> from(float in) throws ConvertionException {
         var a = (short) in;
         if (in != a) throw new ConvertionException(float.class, getType());
@@ -80,6 +82,7 @@ public enum ShortConverter implements Converter<Short> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Short> from(double in) throws ConvertionException {
         var a = (short) in;
         if (in != a) throw new ConvertionException(double.class, getType());

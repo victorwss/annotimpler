@@ -31,7 +31,7 @@ public enum FileSqlFactory implements SqlFactory {
     }
 
     private static String read(@NonNull SqlFromFile anno) throws IOException {
-        checkNotNull(anno);
+        checkNotNull(anno); // Check recognized by lombok.
         var value = anno.value();
         var path = Path.of(value).normalize().toAbsolutePath();
         var content = Files.readAllBytes(path);

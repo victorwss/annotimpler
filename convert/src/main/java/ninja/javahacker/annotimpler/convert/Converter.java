@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -25,6 +26,7 @@ public interface Converter<E> {
     /// @return An optional containing the converted value.
     /// @throws ConvertionException If the runtime type of `in` is not supported by this converter.
     @NonNull
+    @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
     public default Optional<E> fromObj(@Nullable Object in) throws ConvertionException {
         return switch (in) {
             case null -> fromNull();
@@ -56,20 +58,20 @@ public interface Converter<E> {
     }
 
     private static boolean typeFilter(@NonNull Type t) {
-        checkNotNull(t);
+        checkNotNull(t); // Check recognized by lombok.
         return t instanceof ParameterizedType p && Converter.class.isAssignableFrom((Class<?>) p.getRawType());
     }
 
     @SuppressWarnings("InfiniteRecursion")
     private static boolean isInvariant(@NonNull Type t) {
-        checkNotNull(t);
+        checkNotNull(t); // Check recognized by lombok.
         return t instanceof Class<?>
                 || t instanceof ParameterizedType
                 || (t instanceof GenericArrayType ga && isInvariant(ga.getGenericComponentType()));
     }
 
     private static Stream<Type> getAllInterfaces(@NonNull Type t) {
-        checkNotNull(t);
+        checkNotNull(t); // Check recognized by lombok.
         assertExtendable(t);
 
         var e = (Class<?>) (t instanceof ParameterizedType p ? p.getRawType() : t);
@@ -79,7 +81,7 @@ public interface Converter<E> {
         var b = sc == null ? Stream.<Type>of() : getAllInterfaces(sc);
         var c = a.stream().flatMap(Converter::getAllInterfaces);
 
-        return Stream.of(a.stream(), b, c, Stream.of(e)).flatMap(x -> x);
+        return Stream.of(a.stream(), b, c, Stream.of(e)).flatMap(Function.identity());
     }
 
     /// Returns the target type `E` that this converter produces.
@@ -361,6 +363,7 @@ public interface Converter<E> {
     }
 
     @Generated
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     private static void assertExtendable(Type t) {
         if (t instanceof Class<?>) return;
         if (t instanceof ParameterizedType) return;

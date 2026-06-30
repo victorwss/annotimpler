@@ -34,7 +34,7 @@ public enum ResourceSqlFactory implements SqlFactory {
     }
 
     private static String read(@NonNull Resource res) throws IOException {
-        checkNotNull(res);
+        checkNotNull(res); // Check recognized by lombok.
         var anno = res.anno();
         var value = anno.value();
         var fromClass = anno.fromClass();

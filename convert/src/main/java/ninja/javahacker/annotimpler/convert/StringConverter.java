@@ -65,7 +65,7 @@ public enum StringConverter implements Converter<String> {
         if (in == Float.NEGATIVE_INFINITY) return Optional.of("-Infinity");
         if (Float.isNaN(in)) return Optional.of("NaN");
         if (Float.floatToRawIntBits(in) == Integer.MIN_VALUE) return Optional.of("-0");
-        return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
+        return BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::toPlainString);
     }
 
     @NonNull
@@ -75,7 +75,7 @@ public enum StringConverter implements Converter<String> {
         if (in == Double.NEGATIVE_INFINITY) return Optional.of("-Infinity");
         if (Double.isNaN(in)) return Optional.of("NaN");
         if (Double.doubleToRawLongBits(in) == Long.MIN_VALUE) return Optional.of("-0");
-        return BigDecimalConverter.INSTANCE.from(in).map(bd -> bd.toPlainString());
+        return BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::toPlainString);
     }
 
     @NonNull

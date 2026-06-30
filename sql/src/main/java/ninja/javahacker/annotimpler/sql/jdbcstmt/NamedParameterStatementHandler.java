@@ -55,7 +55,7 @@ interface NamedParameterStatementHandler<T> {
 
     @SuppressWarnings("unchecked")
     public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
-        checkNotNull(k);
+        checkNotNull(k); // Check recognized by lombok.
         var h = (NamedParameterStatementHandler<K>) NamedParameterStatementHandler.ENTRIES.get(k);
         if (h == null) throw new UnsupportedOperationException();
         return h;
@@ -67,11 +67,11 @@ interface NamedParameterStatementHandler<T> {
             @NonNull NamedParameterStatementHandler<E> h,
             int type)
     {
-        checkNotNull(k);
-        checkNotNull(h);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(h); // Check recognized by lombok.
         return Map.entry(k, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable E value) -> {
-            checkNotNull(ps);
-            checkNotNull(name);
+            checkNotNull(ps); // Check recognized by lombok.
+            checkNotNull(name); // Check recognized by lombok.
             if (value == null) {
                 ps.setNull(name, type);
             } else {
@@ -85,16 +85,16 @@ interface NamedParameterStatementHandler<T> {
             @NonNull Class<E> k,
             @NonNull NamedParameterStatementHandler<E> h)
     {
-        checkNotNull(k);
-        checkNotNull(h);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(h); // Check recognized by lombok.
         return Map.entry(k, h);
     }
 
     @NonNull
     private static Map.Entry<Class<Void>, NamedParameterStatementHandler<Void>> nully(boolean k) {
         return Map.entry(k ? void.class : Void.class, (@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable Void value) -> {
-            checkNotNull(ps);
-            checkNotNull(name);
+            checkNotNull(ps); // Check recognized by lombok.
+            checkNotNull(name); // Check recognized by lombok.
             ps.setNull(name, Types.NULL);
         });
     }

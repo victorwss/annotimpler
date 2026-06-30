@@ -133,22 +133,19 @@ public final class NameDictionary {
                 add(partial, klass.getComponentType());
                 return;
             }
-            if (seen.contains(klass)) return;
+            if (!seen.add(klass)) return;
             var simple = klass.getSimpleName();
-            if (simpleNamesSeen.containsKey(simple)) {
-                var conflict = simpleNamesSeen.get(simple);
+            var conflict = simpleNamesSeen.get(simple);
+            if (conflict == null) {
+                simpleNamesSeen.put(simple, klass);
+            } else {
                 if (conflict != void.class) {
                     simpleNamesSeen.put(simple, void.class);
                     simpleNamesSeen.put(conflict.getName(), conflict);
-                    seen.add(conflict);
                     fullNameNeeded.add(conflict);
                 }
                 simpleNamesSeen.put(klass.getName(), klass);
-                seen.add(klass);
                 fullNameNeeded.add(klass);
-            } else {
-                simpleNamesSeen.put(simple, klass);
-                seen.add(klass);
             }
         }
 

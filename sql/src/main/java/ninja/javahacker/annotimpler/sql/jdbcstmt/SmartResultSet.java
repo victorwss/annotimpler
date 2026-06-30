@@ -94,8 +94,8 @@ public final class SmartResultSet implements ResultSet {
         private final Locale localizer;
 
         public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizer) throws SQLException {
-            checkNotNull(rsmd);
-            checkNotNull(localizer);
+            checkNotNull(rsmd); // Check recognized by lombok.
+            checkNotNull(localizer); // Check recognized by lombok.
 
             var count = rsmd.getColumnCount();
             var keys = new ArrayList<Optional<String>>(count);
@@ -137,7 +137,7 @@ public final class SmartResultSet implements ResultSet {
         }
 
         public int indexOf(@NonNull String columnName) {
-            checkNotNull(columnName);
+            checkNotNull(columnName); // Check recognized by lombok.
             var name = columnName.toUpperCase(localizer);
             var v = columnIndexes.get(name);
             if (v == null) {
@@ -435,9 +435,9 @@ public final class SmartResultSet implements ResultSet {
             @NonNull Map<String, Object> map)
             throws SQLException
     {
-        checkNotNull(k);
-        checkNotNull(remapper);
-        checkNotNull(map);
+        checkNotNull(k); // Check recognized by lombok.
+        checkNotNull(remapper); // Check recognized by lombok.
+        checkNotNull(map); // Check recognized by lombok.
         try {
             var remappedMap = map.entrySet().stream()
                     .collect(Collectors.toUnmodifiableMap(e -> remapper.apply(e.getKey()), Map.Entry::getValue));

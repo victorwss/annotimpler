@@ -77,6 +77,7 @@ public enum CharacterConverter implements Converter<Character> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Character> from(float in) throws ConvertionException {
         var a = (char) in;
         if (in != a) throw new ConvertionException(float.class, getType());
@@ -85,6 +86,7 @@ public enum CharacterConverter implements Converter<Character> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Character> from(double in) throws ConvertionException {
         var a = (char) in;
         if (in != a) throw new ConvertionException(double.class, getType());

@@ -59,7 +59,7 @@ public interface ParsedSqlSupplier {
         if (annos.isEmpty()) throw new BadImplementationException("No SQL annotation found on " + name, m.getDeclaringClass());
         if (annos.size() > 1) throw new BadImplementationException("More than one SQL annotation found on " + name, m.getDeclaringClass());
         var sqls = annos.getFirst().annotationType().getAnnotation(SqlSource.class);
-        if (sqls == null) throw new AssertionError();
+        checkNotNull(sqls);
         var cls = sqls.value();
         SqlFactory factory;
         try {
@@ -73,7 +73,6 @@ public interface ParsedSqlSupplier {
         }
         var sup = factory.prepare(m);
         return () -> {
-            checkNotNull(pset);
             var sql = sup.get();
             var pq = ParsedQuery.parse(sql);
             if (strict) {

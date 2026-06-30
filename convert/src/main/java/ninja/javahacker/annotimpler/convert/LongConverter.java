@@ -69,8 +69,8 @@ public enum LongConverter implements Converter<Long> {
 
     @NonNull
     private Optional<Long> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
-        checkNotNull(what);
-        checkNotNull(in);
+        checkNotNull(what); // Check recognized by lombok.
+        checkNotNull(in); // Check recognized by lombok.
         try {
             return Optional.of(in.longValueExact());
         } catch (ArithmeticException x) {

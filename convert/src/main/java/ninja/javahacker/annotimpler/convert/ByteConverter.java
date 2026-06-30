@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -74,6 +75,7 @@ public enum ByteConverter implements Converter<Byte> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Byte> from(float in) throws ConvertionException {
         var a = (byte) in;
         if (in != a) throw new ConvertionException(float.class, getType());
@@ -82,6 +84,7 @@ public enum ByteConverter implements Converter<Byte> {
 
     @NonNull
     @Override
+    @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
     public Optional<Byte> from(double in) throws ConvertionException {
         var a = (byte) in;
         if (in != a) throw new ConvertionException(double.class, getType());

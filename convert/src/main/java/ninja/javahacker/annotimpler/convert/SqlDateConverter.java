@@ -25,7 +25,7 @@ public enum SqlDateConverter implements Converter<Date> {
 
     @NonNull
     private Optional<Date> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {

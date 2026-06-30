@@ -19,7 +19,7 @@ final class FloatAndDouble {
 
     @NonNull
     private static BigDecimal normalize(@NonNull BigDecimal in) {
-        checkNotNull(in);
+        checkNotNull(in); // Check recognized by lombok.
         var in2 = in.stripTrailingZeros();
         if (in2.scale() < 0) in2 = in2.setScale(0);
         return in2;
@@ -65,7 +65,7 @@ final class FloatAndDouble {
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
     public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
-        checkNotNull(target);
+        checkNotNull(target); // Check recognized by lombok.
         if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
             throw new ConvertionException(float.class, target);
         }
@@ -82,7 +82,7 @@ final class FloatAndDouble {
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
     public static BigDecimal makeBig(double in, @NonNull Class<?> target) throws ConvertionException {
-        checkNotNull(target);
+        checkNotNull(target); // Check recognized by lombok.
         if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {
             throw new ConvertionException(double.class, target);
         }

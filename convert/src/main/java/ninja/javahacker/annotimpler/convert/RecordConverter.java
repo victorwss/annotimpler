@@ -1,8 +1,10 @@
 package ninja.javahacker.annotimpler.convert;
 
-import lombok.NonNull;
-
 import edu.umd.cs.findbugs.annotations.Nullable;
+
+import lombok.EqualsAndHashCode;
+import lombok.NonNull;
+import lombok.ToString;
 
 import java.lang.reflect.Array;
 
@@ -19,6 +21,8 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// and throws [UnavailableConverterException] if recursion is detected.
 ///
 /// @param <R> The record type this converter targets.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public class RecordConverter<R extends Record> implements Converter<R> {
 
     @NonNull
@@ -96,7 +100,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
 
     @NonNull
     private Class<?> unwrap(@NonNull Class<?> inClass) {
-        checkNotNull(inClass);
+        checkNotNull(inClass); // Check recognized by lombok.
         if (NClob.class.isAssignableFrom(inClass)) return NClob.class;
         if (Clob.class.isAssignableFrom(inClass)) return Clob.class;
         if (Blob.class.isAssignableFrom(inClass)) return Blob.class;
@@ -109,9 +113,10 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     }
 
     @NonNull
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING") // Special handling for Collection and Optional.
     private Optional<R> wrap(@NonNull Class<?> inClass, @NonNull IntermediateProducer p) throws ConvertionException {
-        checkNotNull(inClass);
-        checkNotNull(p);
+        checkNotNull(inClass); // Check recognized by lombok.
+        checkNotNull(p); // Check recognized by lombok.
         Optional<?> in2a;
         try {
             in2a = p.produce();
@@ -299,7 +304,7 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     ///
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
-    @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+    @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
     protected final void finalize() {
     }
 }

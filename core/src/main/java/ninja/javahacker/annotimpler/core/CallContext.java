@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 /// Represents the execution logic for a single interface method dispatch.
@@ -26,5 +27,9 @@ public interface CallContext<E> {
     /// @throws Throwable Any exception the method may declare or propagate.
     /// @throws IllegalArgumentException If `instance` or `args` is `null`.
     @Nullable
+    @SuppressFBWarnings({
+        // Since this wraps any method, it must also wrap anything in the throws clause.
+        "THROWS_METHOD_THROWS_CLAUSE_THROWABLE"
+    })
     public Object execute(@NonNull E instance, @NonNull Object... args) throws Throwable;
 }

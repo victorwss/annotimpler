@@ -121,7 +121,7 @@ public interface CharsetSpec {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
+        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
         protected final void finalize() {
         }
     }

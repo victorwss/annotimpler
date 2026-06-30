@@ -1066,8 +1066,8 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     }
 
     private <K> void receiveIn(@NonNull String name, @NonNull Class<K> k, @Nullable Object value) throws SQLException {
-        checkNotNull(name);
-        checkNotNull(k);
+        checkNotNull(name); // Check recognized by lombok.
+        checkNotNull(k); // Check recognized by lombok.
         NamedParameterStatementHandler.forClass(k).handle(NamedParameterStatement.this, name, k.cast(value));
     }
 

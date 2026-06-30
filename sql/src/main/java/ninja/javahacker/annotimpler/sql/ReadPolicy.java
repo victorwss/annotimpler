@@ -82,8 +82,8 @@ public enum ReadPolicy {
     }
 
     private static <E> SqlSupplier onStartup(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {
-        checkNotNull(impl);
-        checkNotNull(inputData);
+        checkNotNull(impl); // Check recognized by lombok.
+        checkNotNull(inputData); // Check recognized by lombok.
 
         try {
             var out = impl.read(inputData);
@@ -96,8 +96,8 @@ public enum ReadPolicy {
     }
 
     private static <E> SqlSupplier everyTime(@NonNull Impl<E> impl, @NonNull E inputData) {
-        checkNotNull(impl);
-        checkNotNull(inputData);
+        checkNotNull(impl); // Check recognized by lombok.
+        checkNotNull(inputData); // Check recognized by lombok.
 
         return () -> {
             try {
@@ -109,8 +109,8 @@ public enum ReadPolicy {
     }
 
     private static <E> SqlSupplier onFirstTimeThatWorks(@NonNull Impl<E> impl, @NonNull E inputData) {
-        checkNotNull(impl);
-        checkNotNull(inputData);
+        checkNotNull(impl); // Check recognized by lombok.
+        checkNotNull(inputData); // Check recognized by lombok.
 
         return new ThreadTracerSqlSupplier(() -> {
             try {
@@ -123,8 +123,8 @@ public enum ReadPolicy {
     }
 
     private static <E> SqlSupplier onFirstTimeDontRetry(@NonNull Impl<E> impl, @NonNull E inputData) {
-        checkNotNull(impl);
-        checkNotNull(inputData);
+        checkNotNull(impl); // Check recognized by lombok.
+        checkNotNull(inputData); // Check recognized by lombok.
 
         return new ThreadTracerSqlSupplier(() -> {
             try {

@@ -41,8 +41,10 @@ public final class ExecuteSqlImplementation implements Implementation {
     ///
     /// @param dependencies The property bag from which the [ConnectionFactory],
     ///        [ConverterFactory] and [Locale] (localizer) are extracted.
+    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
     /// @throws IllegalArgumentException If `dependencies` is `null`.
-    public ExecuteSqlImplementation(@NonNull PropertyBag dependencies) {
+    @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
+    public ExecuteSqlImplementation(@NonNull PropertyBag dependencies) throws PropertyBag.PropertyNotFoundException {
         this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
         this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
         this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);

@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.annotation.Annotation;
 import lombok.Generated;
 import lombok.NonNull;
@@ -114,10 +115,7 @@ public interface MethodWrapper<E, U> {
     ///
     /// @return The string representation with the first character upper-cased; never `null`.
     @NonNull
-    public default String toStringUp() {
-        var x = this.toString();
-        return x.substring(0, 1).toUpperCase(Locale.ROOT) + x.substring(1);
-    }
+    public String toStringUp();
 
     /// Returns `true` if the annotation of the given type is present on the wrapped member.
     ///
@@ -209,7 +207,7 @@ public interface MethodWrapper<E, U> {
         SimpleMethodWrapper.Call<E> scall = args -> {
             return (E) what.invoke(null, args);
         };
-        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
+        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
     }
 
     /// Creates a wrapper for the given [Constructor].
@@ -227,7 +225,7 @@ public interface MethodWrapper<E, U> {
         var pub = Modifier.isPublic(what.getModifiers());
         var abs = Modifier.isAbstract(what.getDeclaringClass().getModifiers());
         SimpleMethodWrapper.Call<E> call = args -> what.newInstance(args);
-        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, abs, pub, call, what::getAnnotation);
+        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, true, abs, pub, call, what::getAnnotation);
     }
 
     /// Creates a wrapper for the given [Executable], dispatching to [#of(Method)] or
@@ -240,6 +238,7 @@ public interface MethodWrapper<E, U> {
     @NonNull
     @Generated
     @SuppressWarnings("unchecked")
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public static <E> MethodWrapper<E, ?> of(@NonNull Executable what) {
         if (what instanceof Method m) return MethodWrapper.<E>of(m);
         if (what instanceof Constructor<?> c) return of((Constructor<E>) c);
@@ -269,7 +268,7 @@ public interface MethodWrapper<E, U> {
             assertEquals(args.length, stt ? 0 : 1);
             return (E) what.get(stt ? null : args[0]);
         };
-        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, stt, false, pub, call, what::getAnnotation);
+        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, false, pub, call, what::getAnnotation);
     }
 
     /// Creates a no-argument constant wrapper that always returns `what`.
@@ -292,12 +291,7 @@ public interface MethodWrapper<E, U> {
             assertEquals(args.length, 0);
             return what;
         };
-        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, false, true, call, ann) {
-            @Override
-            public String toStringUp() {
-                return this.toString();
-            }
-        };
+        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, false, true, false, true, call, ann);
     }
 
     @Generated

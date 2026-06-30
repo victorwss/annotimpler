@@ -21,8 +21,8 @@ final class InternalNamedParameterStatement implements NamedParameterStatement {
     private final Map<String, List<Integer>> paramMap;
 
     public InternalNamedParameterStatement(@NonNull PreparedStatement statement, @NonNull Map<String, List<Integer>> params) {
-        checkNotNull(statement);
-        checkNotNull(params);
+        checkNotNull(statement); // Check recognized by lombok.
+        checkNotNull(params); // Check recognized by lombok.
         var copy = params.entrySet().stream().collect(Collectors.toMap(e -> e.getKey(), e -> List.copyOf(e.getValue())));
         this.statement = statement;
         this.paramMap = copy;
@@ -37,12 +37,13 @@ final class InternalNamedParameterStatement implements NamedParameterStatement {
 
     @FunctionalInterface
     private static interface HandleVoid {
+        @SuppressFBWarnings("THROWS_METHOD_THROWS_CLAUSE_THROWABLE") // The only purpose of this is exactly the throws Throwable.
         public void doIt() throws Throwable;
     }
 
     @SuppressWarnings({"BroadCatchBlock", "TooBroadCatch"})
     private static void handle(@NonNull HandleVoid h) throws SQLException {
-        checkNotNull(h);
+        checkNotNull(h); // Check recognized by lombok.
         try {
             h.doIt();
         } catch (SQLException e) {

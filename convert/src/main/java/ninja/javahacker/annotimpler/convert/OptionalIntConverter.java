@@ -27,7 +27,7 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
 
     @NonNull
     private Optional<OptionalInt> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {
@@ -102,7 +102,7 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
     @NonNull
     @Override
     public Optional<OptionalInt> from(@NonNull String in) throws ConvertionException {
-        return rewrap(() -> Optional.of(IntegerConverter.WRAPPER.from(in).map(OptionalInt::of).orElse(OptionalInt.empty())));
+        return rewrap(() -> Optional.of(IntegerConverter.WRAPPER.from(in).map(OptionalInt::of).orElseGet(OptionalInt::empty)));
     }
 
     @Generated

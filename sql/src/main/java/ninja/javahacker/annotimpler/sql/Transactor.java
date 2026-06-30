@@ -29,7 +29,10 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public final class Transactor {
 
     private final ConnectionFactory factory;
+
+    @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL") // We really intentionally want a ThreadLocal per instance.
     private final ThreadLocal<Transaction> local = new ThreadLocal<>();
+
     private final Supplier<String> generateIds;
 
     /// Creates a new `Transactor` backed by the given connection factory and ID generator.
@@ -46,7 +49,7 @@ public final class Transactor {
     ///
     /// @param connection The open database connection for the current transaction.
     /// @param id The unique string identifier assigned to this transaction.
-    public static record Transaction(@NonNull Connection connection, @NonNull String id) {
+    private static record Transaction(@NonNull Connection connection, @NonNull String id) {
 
         /// Creates a `Transaction` with the given connection and identifier.
         ///
@@ -66,6 +69,7 @@ public final class Transactor {
         ///
         /// @return The supplied value.
         /// @throws Throwable If any error occurs.
+        @SuppressFBWarnings("THROWS_METHOD_THROWS_CLAUSE_THROWABLE") // The only purpose of this is exactly the throws Throwable.
         public E get() throws Throwable;
     }
 
@@ -151,19 +155,25 @@ public final class Transactor {
 
     /// Returns the database connection of the transaction currently active on this thread.
     ///
-    /// This is a convenience shortcut for `currentTransaction().connection()`.
-    ///
     /// @return The active [Connection]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
     public Connection connection() {
         return currentTransaction().connection();
     }
 
+    /// Returns the transaction id of the transaction currently active on this thread.
+    ///
+    /// @return The active transaction id; never `null`.
+    /// @throws IllegalStateException If no transaction is active on the current thread.
+    public String transactionId() {
+        return currentTransaction().id();
+    }
+
     /// Returns the transaction currently active on this thread.
     ///
     /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
-    public Transaction currentTransaction() {
+    private Transaction currentTransaction() {
         var ret = local.get();
         if (ret == null) throw new IllegalStateException("No active transaction.");
         return ret;

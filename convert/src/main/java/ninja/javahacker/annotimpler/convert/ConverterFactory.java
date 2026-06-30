@@ -86,7 +86,7 @@ public interface ConverterFactory {
 
     /*@NonNull
     private static String camelCaseToSnakeCase(@NonNull String paramName) {
-        checkNotNull(paramName);
+        checkNotNull(paramName); // Check recognized by lombok.
         var tam = paramName.length();
         var sb = new StringBuilder(tam);
         for (var i = 0; i < tam; i++) {

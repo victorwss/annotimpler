@@ -1,11 +1,10 @@
 package ninja.javahacker.test.annotimpler.sql;
 
-import org.junit.jupiter.api.function.ThrowingSupplier;
 import lombok.experimental.Delegate;
-
+import org.junit.jupiter.api.function.ThrowingSupplier;
 import ninja.javahacker.test.ControlledMock;
-
 import ninja.javahacker.test.ForTests;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
@@ -135,9 +134,7 @@ public class TransactorTest {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals("1", tx.id());
+            Assertions.assertEquals("1", t.transactionId());
             return "foo";
         };
 
@@ -168,9 +165,7 @@ public class TransactorTest {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals("1", tx.id());
+            Assertions.assertEquals("1", t.transactionId());
             throw new IllegalArgumentException("blabla");
         };
 
@@ -232,26 +227,24 @@ public class TransactorTest {
             var n = sf.get();
             var tc = tcs.get(n);
             Assertions.assertEquals((n + 1) * 42, a);
-            System.out.println("a... " + n);
+            System.out.println("Starting thread " + n + ".");
             cb1.await(5, TimeUnit.SECONDS);
-            System.out.println("a-ok " + n);
+            System.out.println("Starting waited for thread " + n + ".");
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            var tx2 = t.currentTransaction();
+            var tx = t.connection();
+            var tx2 = t.connection();
+            var tid = t.transactionId();
+            var tid2 = t.transactionId();
             Assertions.assertSame(tx, tx2);
-            System.out.println("ooo " + n);
-            var tid = tx.id();
-            System.out.println("ooo2 " + n);
+            Assertions.assertSame(tid, tid2);
             var tidx = idByThread.get(Thread.currentThread());
-            System.out.println("ooo3 " + n);
-            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID");
+            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID.");
             Assertions.assertEquals(tidx, tid);
-            System.out.println("uuu " + n + " - " + tid);
-            tc.assertSameConnection(tx.connection());
-            System.out.println("b... " + n);
+            tc.assertSameConnection(t.connection());
+            System.out.println("Transaction data ok for thread " + n + ". ID is " + tid + ".");
             cb2.await(5, TimeUnit.SECONDS);
-            System.out.println("b-ok " + n);
+            System.out.println("Finished waited for thread " + n + ".");
             if (n == 1) throw new SomeException();
             if (n == 0) return "foo";
             return "bar";
@@ -262,26 +255,24 @@ public class TransactorTest {
             var tc = tcs.get(n);
             Assertions.assertEquals(n * 42 + "", a);
             Assertions.assertEquals(n * 31 + "", b);
-            System.out.println("a... " + n);
+            System.out.println("Starting thread " + n + ".");
             cb1.await(5, TimeUnit.SECONDS);
-            System.out.println("a-ok " + n);
+            System.out.println("Starting waited for thread " + n + ".");
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            var tx2 = t.currentTransaction();
+            var tx = t.connection();
+            var tx2 = t.connection();
+            var tid = t.transactionId();
+            var tid2 = t.transactionId();
             Assertions.assertSame(tx, tx2);
-            System.out.println("ooo " + n);
-            var tid = tx.id();
-            System.out.println("ooo2 " + n);
+            Assertions.assertSame(tid, tid2);
             var tidx = idByThread.get(Thread.currentThread());
-            System.out.println("ooo3 " + n);
-            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID");
+            Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID.");
             Assertions.assertEquals(tidx, tid);
-            System.out.println("uuu " + n + " - " + tid);
-            tc.assertSameConnection(tx.connection());
-            System.out.println("b... " + n);
+            tc.assertSameConnection(t.connection());
+            System.out.println("Transaction data ok for thread " + n + ". ID is " + tid + ".");
             cb2.await(5, TimeUnit.SECONDS);
-            System.out.println("b-ok " + n);
+            System.out.println("Finished waited for thread " + n + ".");
             if (n == 3) throw new OtherException();
             return n * 7;
         };
@@ -345,7 +336,7 @@ public class TransactorTest {
 
         Assertions.assertAll(
                 () -> Assertions.assertThrows(IllegalStateException.class, () -> t.connection(), "No active transaction."),
-                () -> Assertions.assertThrows(IllegalStateException.class, () -> t.currentTransaction(), "No active transaction.")
+                () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
         );
     }
 
@@ -366,7 +357,7 @@ public class TransactorTest {
         Runnable check = () -> {
             Assertions.assertAll(
                     () -> Assertions.assertThrows(IllegalStateException.class, () -> t.connection(), "No active transaction."),
-                    () -> Assertions.assertThrows(IllegalStateException.class, () -> t.currentTransaction(), "No active transaction.")
+                    () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
             );
             called[0]++;
         };
@@ -435,16 +426,12 @@ public class TransactorTest {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals("1", tx.id());
+            Assertions.assertEquals("1", t.transactionId());
             var z = foos[0].yyy("blue", "red");
             Assertions.assertFalse(tc.finishing());
             Assertions.assertFalse(tc.finished());
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx2 = t.currentTransaction();
-            tc.assertSameConnection(tx2.connection());
             return "foo" + z;
         };
 
@@ -453,9 +440,7 @@ public class TransactorTest {
             Assertions.assertEquals("red", b);
             tc.assertConnected();
             tc.assertSameConnection(t.connection());
-            var tx = t.currentTransaction();
-            tc.assertSameConnection(tx.connection());
-            Assertions.assertEquals("1", tx.id());
+            Assertions.assertEquals("1", t.transactionId());
             return 37;
         };
 

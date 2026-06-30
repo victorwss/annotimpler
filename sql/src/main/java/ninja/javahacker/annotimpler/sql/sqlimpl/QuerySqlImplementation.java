@@ -50,8 +50,10 @@ public final class QuerySqlImplementation implements Implementation {
     ///
     /// @param dependencies The property bag from which the [ConnectionFactory],
     ///        [ConverterFactory] and [Locale] (localizer) are extracted.
+    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
     /// @throws IllegalArgumentException If `dependencies` is `null`.
-    public QuerySqlImplementation(@NonNull PropertyBag dependencies) {
+    @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
+    public QuerySqlImplementation(@NonNull PropertyBag dependencies) throws PropertyBag.PropertyNotFoundException {
         this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
         this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
         this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);
@@ -74,6 +76,7 @@ public final class QuerySqlImplementation implements Implementation {
     }
 
     @NonNull
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     private static SpecialFunc selectOperation(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
         checkNotNull(q); // Check recognized by lombok.
@@ -163,19 +166,19 @@ public final class QuerySqlImplementation implements Implementation {
 
     @Nullable
     private static OptionalInt asInt(@NonNull Optional<Integer> opt) {
-        checkNotNull(opt);
+        checkNotNull(opt); // Check recognized by lombok.
         return opt.isEmpty() ? OptionalInt.empty() : OptionalInt.of(opt.get());
     }
 
     @Nullable
     private static OptionalLong asLong(@NonNull Optional<Long> opt) {
-        checkNotNull(opt);
+        checkNotNull(opt); // Check recognized by lombok.
         return opt.isEmpty() ? OptionalLong.empty() : OptionalLong.of(opt.get());
     }
 
     @Nullable
     private static OptionalDouble asDouble(@NonNull Optional<Double> opt) {
-        checkNotNull(opt);
+        checkNotNull(opt); // Check recognized by lombok.
         return opt.isEmpty() ? OptionalDouble.empty() : OptionalDouble.of(opt.get());
     }
 

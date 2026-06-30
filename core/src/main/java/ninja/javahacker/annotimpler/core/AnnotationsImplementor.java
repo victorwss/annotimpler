@@ -44,15 +44,20 @@ public final class AnnotationsImplementor {
     }
 
     @Nullable
+    @SuppressFBWarnings(
+            // Any sane implementation of Implementation.prepare should be @NonNull and not needed to be checked against it.
+            // However, we don't trust that since malicious or ill-defined implementations might exist. So we check it anyway.
+            "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"
+    )
     private static <E> CallContext<E> findImplementation(
             @NonNull Class<E> iface,
             @NonNull Method m,
             @NonNull PropertyBag props)
             throws BadImplementationException
     {
-        checkNotNull(iface);
-        checkNotNull(m);
-        checkNotNull(props);
+        checkNotNull(iface); // Check recognized by lombok.
+        checkNotNull(m); // Check recognized by lombok.
+        checkNotNull(props); // Check recognized by lombok.
 
         assertTrue(Stream.of(iface.getMethods(), iface.getDeclaredMethods()).flatMap(Stream::of).toList().contains(m));
 
@@ -70,8 +75,8 @@ public final class AnnotationsImplementor {
                 throw new BadImplementationException(msg, m.getDeclaringClass());
             }
             return (@NonNull E instance, @NonNull Object... args) -> {
-                checkNotNull(instance);
-                checkNotNull(args);
+                checkNotNull(instance); // Check recognized by lombok.
+                checkNotNull(args); // Check recognized by lombok.
                 return InvocationHandler.invokeDefault(instance, m, args);
             };
         }
@@ -163,8 +168,8 @@ public final class AnnotationsImplementor {
         meths.put(Methods.TO_STRING, DefaultImplementation.forToString(iface));
 
         InvocationHandler ih = (@NonNull Object p, @NonNull Method m, @Nullable Object... a) -> {
-            checkNotNull(p);
-            checkNotNull(m);
+            checkNotNull(p); // Check recognized by lombok.
+            checkNotNull(m); // Check recognized by lombok.
             var impl = meths.get(m);
             checkNotNull(impl);
             return impl.execute(iface.cast(p), a == null ? new Object[0] : a);

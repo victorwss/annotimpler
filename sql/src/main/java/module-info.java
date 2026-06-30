@@ -21,7 +21,7 @@
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
 open module ninja.javahacker.annotimpler.sql {
-    requires java.sql;
+    requires transitive java.sql;
     requires java.net.http;
     requires com.fasterxml.jackson.annotation;
     requires com.fasterxml.jackson.core;

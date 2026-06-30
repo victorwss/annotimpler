@@ -43,6 +43,7 @@ import module java.base;
 /// (e.g., `12:34:56.100000000` is written as `12:34:56.1`).
 /// [format(Instant)] converts the instant to UTC and formats it as a local date-time string
 /// without a timezone indicator.
+@SuppressWarnings("PMD.NonSerializableClass")
 @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
 public enum MultiFormatters {
 
@@ -78,27 +79,6 @@ public enum MultiFormatters {
     ISO_8601;
 
     @NonNull
-    private static final String TIME_REGEX = "[0-9]{2}\\:[0-9]{2}(?:\\:[0-9]{2}(?:\\.[0-9]{1,9})?)?";
-
-    @NonNull
-    private static final String ZONE_REGEX = "(?:\\+|\\-)[0-9]{2}\\:[0-9]{2}(?:\\:[0-9]{2})?";
-
-    @NonNull
-    private static final String ISO_ZONE_REGEX = "(?:Z|" + ZONE_REGEX + ")";
-
-    @NonNull
-    private static final Pattern PATTERN_TZ_DEF = Pattern.compile("^" + TIME_REGEX + " " + ZONE_REGEX + "$");
-
-    @NonNull
-    private static final Pattern PATTERN_TZ_ISO = Pattern.compile("^" + TIME_REGEX + ISO_ZONE_REGEX + "$");
-
-    @NonNull
-    private static final Pattern PATTERN_T = Pattern.compile("^" + TIME_REGEX + "$");
-
-    @NonNull
-    private static final Pattern PATTERN_TS = Pattern.compile("^[0-9]{2}\\:[0-9]{2}\\:[0-9]{2}\\.[0-9]{1,9}$");
-
-    @NonNull
     private static final DateTimeFormatter FORMATTER_TZ_DEF;
 
     @NonNull
@@ -112,15 +92,6 @@ public enum MultiFormatters {
     }
 
     @NonNull
-    private final Pattern patternDTZ;
-
-    @NonNull
-    private final Pattern patternDT;
-
-    @NonNull
-    private final Pattern patternD;
-
-    @NonNull
     private final DateTimeFormatter formatterDTZ;
 
     @NonNull
@@ -129,50 +100,48 @@ public enum MultiFormatters {
     @NonNull
     private final DateTimeFormatter formatterD;
 
+    @NonNull
+    private final DateTimeGrammar parser;
+
     private MultiFormatters() {
-        var dot = name().contains("DOT");
-        var slash = name().contains("SLASH");
         var iso = name().contains("ISO");
-        var ymd = name().contains("YMD");
-        var dmy = name().contains("DMY");
-        var digit4 = "[0-9]{4}";
-        var digit2 = "[0-9]{2}";
-        var dateSeparatorRegex = dot ? "\\." : slash ? "/" : "\\-";
-        var dateSeparatorPlain = dot ? '.' : slash ? '/' : '-';
-        var dateRegex = ymd || iso
-                ? digit4 + dateSeparatorRegex + digit2 + dateSeparatorRegex + digit2
-                : digit2 + dateSeparatorRegex + digit2 + dateSeparatorRegex + digit4;
-        var zoneRegex = iso ? ISO_ZONE_REGEX : ZONE_REGEX;
-        var fieldSeparator1 = iso ? "T" : " ";
-        var fieldSeparator2 = iso ? "" : " ";
-        this.patternDTZ = Pattern.compile("^" + dateRegex + fieldSeparator1 + TIME_REGEX + fieldSeparator2 + zoneRegex + "$");
-        this.patternDT = Pattern.compile("^" + dateRegex + fieldSeparator1 + TIME_REGEX + "$");
-        this.patternD = Pattern.compile("^" + dateRegex + "$");
         if (iso) {
             this.formatterDTZ = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
             this.formatterDT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             this.formatterD = DateTimeFormatter.ISO_LOCAL_DATE;
+            this.parser = new DateTimeGrammar('-', 'T', DateTimeGrammar.DateFormat.YMD, true);
         } else {
-            var formatD = (ymd ? "uuuu'-'MM'-'dd" : dmy ? "dd'-'MM'-'uuuu" : "MM'-'dd'-'uuuu").replace('-', dateSeparatorPlain);
+            var ymd = name().contains("YMD");
+            var dmy = name().contains("DMY");
+            var dot = name().contains("DOT");
+            var slash = name().contains("SLASH");
+            var dateSeparatorPlain = dot ? '.' : slash ? '/' : '-';
+            var formatD = (ymd ? "yyyy'-'MM'-'dd" : dmy ? "dd'-'MM'-'yyyy" : "MM'-'dd'-'yyyy").replace('-', dateSeparatorPlain);
             var formatDTZ = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
             var formatDT = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS";
             this.formatterDTZ = DateTimeFormatter.ofPattern(formatDTZ).withResolverStyle(ResolverStyle.STRICT);
             this.formatterDT = DateTimeFormatter.ofPattern(formatDT).withResolverStyle(ResolverStyle.STRICT);
             this.formatterD = DateTimeFormatter.ofPattern(formatD).withResolverStyle(ResolverStyle.STRICT);
+            var tt = ymd ? DateTimeGrammar.DateFormat.YMD : dmy ? DateTimeGrammar.DateFormat.DMY : DateTimeGrammar.DateFormat.MDY;
+            this.parser = new DateTimeGrammar(dateSeparatorPlain, ' ', tt, false);
         }
     }
 
-    @NonNull
-    private static String fillUpToNanoSeconds(@NonNull String input) {
+    /// Check if the input matches `NN:NN:NN.NNNNNNNNNN`. Fractions of seconds with at least one digit (at least ten overall).
+    /// We used to use a regex before, but manually handling it give better results.
+    /// @param input What to be checked.
+    /// @return If it matches the pattern or not.
+    private static boolean hasFractionsOfSeconds(@NonNull String input) {
         checkNotNull(input); // Check recognized by lombok.
-        if (!PATTERN_T.asPredicate().test(input)) return input;
-        var complement = "00:00:00.000000000";
-        return input + complement.substring(input.length());
-    }
 
-    @NonNull
-    private Pattern patternTZ() {
-        return this == ISO_8601 ? PATTERN_TZ_ISO : PATTERN_TZ_DEF;
+        var len = input.length();
+        if (len > 18 || len < 10 || input.charAt(2) != ':' || input.charAt(5) != ':' || input.charAt(8) != '.') return false;
+        for (var i = 0; i < len; i++) {
+            if (i == 2 || i == 5 || i == 8) continue;
+            var c = input.charAt(i);
+            if (c < '0' || c > '9') return false;
+        }
+        return true;
     }
 
     @NonNull
@@ -183,52 +152,6 @@ public enum MultiFormatters {
     @NonNull
     private DateTimeFormatter formatterT() {
         return this == ISO_8601 ? DateTimeFormatter.ISO_LOCAL_TIME : FORMATTER_T_DEF;
-    }
-
-    @NonNull
-    private <E> E parse(
-            @NonNull String input,
-            @NonNull BiFunction<CharSequence, DateTimeFormatter, E> func,
-            boolean mustHaveDate)
-            throws DateTimeParseException
-    {
-        checkNotNull(input); // Check recognized by lombok.
-        checkNotNull(func); // Check recognized by lombok.
-
-        var pTZ = patternTZ();
-
-        var dtz = patternDTZ.asPredicate().test(input);
-        var dt = patternDT.asPredicate().test(input);
-        var d = patternD.asPredicate().test(input);
-        var tz = pTZ.asPredicate().test(input);
-        var t = PATTERN_T.asPredicate().test(input);
-
-        var howMany = List.of(dtz, dt, d, tz, t).stream().filter(x -> x).count();
-        assertLE(howMany, 1L);
-
-        var input2 = Stream.of(input.split(" ")).map(MultiFormatters::fillUpToNanoSeconds).collect(Collectors.joining(" "));
-
-        var format = dtz || (mustHaveDate && tz) ? formatterDTZ
-                : dt || (mustHaveDate && t) ? formatterDT
-                : d ? formatterD
-                : tz ? formatterTZ()
-                : formatterT();
-
-        var pattern = dtz || (mustHaveDate && tz) ? patternDTZ
-                : dt || (mustHaveDate && t) ? patternDT
-                : d ? patternD
-                : tz ? pTZ
-                : PATTERN_T;
-
-        try {
-            return func.apply(input2, format);
-        } catch (DateTimeParseException e) {
-            throw new DateTimeParseException(
-                    e.getMessage() + " - " + this.name() + " [" + pattern + "]",
-                    e.getParsedString(),
-                    e.getErrorIndex()
-            );
-        }
     }
 
     /// Parses the given string as an [Instant].
@@ -256,16 +179,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public OffsetDateTime parseOffsetDateTime(@NonNull String input) throws DateTimeParseException {
-        try {
-            return parse(input, OffsetDateTime::parse, true);
-        } catch (DateTimeParseException a) {
-            try {
-                return parseLocalDateTime(input).atOffset(ZoneOffset.UTC);
-            } catch (DateTimeParseException b) {
-                // Ignore.
-            }
-            throw a;
-        }
+        return parser.dateTimeZone(input);
     }
 
     /// Parses the given string as a [ZonedDateTime].
@@ -279,16 +193,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public ZonedDateTime parseZonedDateTime(@NonNull String input) throws DateTimeParseException {
-        try {
-            return parse(input, ZonedDateTime::parse, true);
-        } catch (DateTimeParseException a) {
-            try {
-                return parseLocalDateTime(input).atZone(ZoneOffset.UTC);
-            } catch (DateTimeParseException b) {
-                // Ignore.
-            }
-            throw a;
-        }
+        return parseOffsetDateTime(input).toZonedDateTime();
     }
 
     /// Parses the given string as a [LocalDateTime].
@@ -301,16 +206,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalDateTime parseLocalDateTime(@NonNull String input) throws DateTimeParseException {
-        try {
-            return parse(input, LocalDateTime::parse, true);
-        } catch (DateTimeParseException a) {
-            try {
-                return parseLocalDate(input).atTime(LocalTime.MIN);
-            } catch (DateTimeParseException b) {
-                // Ignore.
-            }
-            throw a;
-        }
+        return parser.dateTime(input);
     }
 
     /// Parses the given string as a [LocalDate].
@@ -321,7 +217,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalDate parseLocalDate(@NonNull String input) throws DateTimeParseException {
-        return parse(input, LocalDate::parse, true);
+        return parser.date(input);
     }
 
     /// Parses the given string as an [OffsetTime].
@@ -334,17 +230,9 @@ public enum MultiFormatters {
     /// @throws DateTimeParseException If the input cannot be parsed according to this format.
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
+    @SuppressWarnings("PMD.EmptyCatchBlock")
     public OffsetTime parseOffsetTime(@NonNull String input) throws DateTimeParseException {
-        try {
-            return parse(input, OffsetTime::parse, false);
-        } catch (DateTimeParseException a) {
-            try {
-                return parseLocalTime(input).atOffset(ZoneOffset.UTC);
-            } catch (DateTimeParseException b) {
-                // Ignore.
-            }
-            throw a;
-        }
+        return parser.timeZone(input);
     }
 
     /// Parses the given string as a [LocalTime].
@@ -355,13 +243,13 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public LocalTime parseLocalTime(@NonNull String input) throws DateTimeParseException {
-        return parse(input, LocalTime::parse, false);
+        return parser.time(input);
     }
 
     @NonNull
     private static String removeExcessZerosPart(@NonNull String part) {
         checkNotNull(part); // Check recognized by lombok.
-        if (!PATTERN_TS.asPredicate().test(part)) return part;
+        if (!hasFractionsOfSeconds(part)) return part;
         var t = part.length();
         while (part.charAt(t - 1) == '0') {
             t--;
@@ -464,11 +352,6 @@ public enum MultiFormatters {
     @NonNull
     public String format(@NonNull LocalTime input) {
         return removeExcessZeros(formatterT().format(input));
-    }
-
-    @Generated
-    private static void assertLE(long a, long b) {
-        if (a > b) throw new AssertionError(a + ":" + b);
     }
 
     @Generated

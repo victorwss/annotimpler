@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.annotation.Annotation;
 import lombok.Generated;
 import lombok.NonNull;
@@ -9,7 +10,7 @@ import lombok.experimental.PackagePrivate;
 import module java.base;
 
 @PackagePrivate
-class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
+final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     @NonNull
     public static final List<Parameter> EMPTY1 = List.of();
@@ -46,6 +47,9 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @NonNull
     private final String str;
 
+    @NonNull
+    private final String upStr;
+
     private final boolean staticModifier;
 
     private final boolean abstractModifier;
@@ -77,6 +81,7 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
             @NonNull Type rt,
             @NonNull Optional<Class<?>> it,
             @NonNull String str,
+            boolean capitalize,
             boolean staticModifier,
             boolean abstractModifier,
             boolean publicModifier,
@@ -84,14 +89,14 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
             @NonNull Annotator annotator
     )
     {
-        checkNotNull(what);
-        checkNotNull(params);
-        checkNotNull(types);
-        checkNotNull(rt);
-        checkNotNull(it);
-        checkNotNull(str);
-        checkNotNull(caller);
-        checkNotNull(annotator);
+        checkNotNull(what); // Check recognized by lombok.
+        checkNotNull(params); // Check recognized by lombok.
+        checkNotNull(types); // Check recognized by lombok.
+        checkNotNull(rt); // Check recognized by lombok.
+        checkNotNull(it); // Check recognized by lombok.
+        checkNotNull(str); // Check recognized by lombok.
+        checkNotNull(caller); // Check recognized by lombok.
+        checkNotNull(annotator); // Check recognized by lombok.
 
         this.what = what;
         this.params = List.copyOf(params);
@@ -99,6 +104,7 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         this.rt = rt;
         this.it = it;
         this.str = str;
+        this.upStr = capitalize ? str.substring(0, 1).toUpperCase(Locale.ROOT) + str.substring(1) : str;
         this.staticModifier = staticModifier;
         this.abstractModifier = abstractModifier;
         this.publicModifier = publicModifier;
@@ -168,6 +174,7 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     }
 
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
         return other instanceof SimpleMethodWrapper<?, ?> g && Objects.equals(g.unwrap(), what);
     }
@@ -182,19 +189,13 @@ class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         return str;
     }
 
+    @Override
+    public String toStringUp() {
+        return upStr;
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
-    }
-
-    /// Disabled. Should not be used. Does nothing.
-    ///
-    /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
-    /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
-    ///
-    /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
-    @Deprecated
-    @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration"})
-    protected final void finalize() {
     }
 }

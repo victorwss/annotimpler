@@ -24,7 +24,7 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
 
     @NonNull
     private Optional<GregorianCalendar> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {

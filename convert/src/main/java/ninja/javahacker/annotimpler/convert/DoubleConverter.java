@@ -74,8 +74,8 @@ public enum DoubleConverter implements Converter<Double> {
 
     @NonNull
     private Optional<Double> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
-        checkNotNull(what);
-        checkNotNull(in);
+        checkNotNull(what); // Check recognized by lombok.
+        checkNotNull(in); // Check recognized by lombok.
         var a = in.doubleValue();
         if (in.compareTo(FloatAndDouble.makeBig(a)) != 0) throw new ConvertionException(what, getType());
         return Optional.of(a);

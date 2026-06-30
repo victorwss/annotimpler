@@ -4,7 +4,9 @@ import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.NClob;
 import lombok.Generated;
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 
@@ -18,6 +20,8 @@ import module java.base;
 /// The default `fromNull()` is inherited and returns `Optional.empty()`.
 ///
 /// @param <E> The enum type this converter targets.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
@@ -30,7 +34,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
     private <T> Optional<T> rewrap(@NonNull Work<T> w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {
@@ -55,8 +59,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     }
 
     @NonNull
-    private Optional<E> cvt(@NonNull Optional<Integer> opt) throws ConvertionException  {
-        checkNotNull(opt);
+    private Optional<E> cvt(@NonNull Optional<Integer> opt) {
+        checkNotNull(opt); // Check recognized by lombok.
         return at(assertPresentGet(opt));
     }
 
@@ -136,8 +140,8 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     }
 
     private Optional<E> from(@NonNull String in, @NonNull Class<?> inType) throws ConvertionException {
-        checkNotNull(in);
-        checkNotNull(inType);
+        checkNotNull(in); // Check recognized by lombok.
+        checkNotNull(inType); // Check recognized by lombok.
 
         if (in.isEmpty()) return Optional.empty();
         try {

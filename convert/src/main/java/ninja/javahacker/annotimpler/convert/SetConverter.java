@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -11,6 +13,8 @@ import module ninja.javahacker.annotimpler.convert;
 /// For any other non-null input, converts the element and returns `Set.of(element)`.
 ///
 /// @param <E> The element type of the set.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class SetConverter<E> implements Converter<Set<E>> {
 
     @NonNull
@@ -27,8 +31,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     /// @param baseType The parameterized type `Set<X>`.
     /// @throws UnavailableConverterException If `baseType` is not `Set<X>` for some class `X`,
     ///         or if no converter is available for the element type.
-    /// @throws IllegalArgumentException If `factory` is `null`.
-    /// @throws IllegalArgumentException If `baseType` is `null`.
+    /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
     public SetConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
         var baseClass = baseType.getActualTypeArguments()[0];
@@ -56,7 +59,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
 
         @NonNull
         public default Optional<Set<E>> rework(@NonNull Type baseType) throws ConvertionException {
-            checkNotNull(baseType);
+            checkNotNull(baseType); // Check recognized by lombok.
             try {
                 return Optional.of(work().map(Set::of).orElse(Set.of()));
             } catch (ConvertionException e) {

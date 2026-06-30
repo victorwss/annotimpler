@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.SneakyThrows;
@@ -237,7 +238,8 @@ public final class Methods {
     /// @return `true` if equals.
     /// @throws IllegalArgumentException If `m` is `null`.
     public static boolean isEquals(@NonNull Method m) {
-        return m.getParameterCount() == 1 && "equals".equals(m.getName()) && m.getParameterTypes()[0] == Object.class;
+        var t = m.getParameterTypes();
+        return t.length == 1 && t[0] == Object.class && "equals".equals(m.getName());
     }
 
     /// Returns `true` if `m` is considered *simple* and can be handled generically.
@@ -283,6 +285,7 @@ public final class Methods {
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @Generated
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public static Type getReturnType(@NonNull Executable what) {
         if (what instanceof Method m) return getReturnType(m);
         if (what instanceof Constructor<?> c) return getReturnType(c);
@@ -340,6 +343,7 @@ public final class Methods {
     /// @see Constructor#newInstance(Object...)
     @Nullable
     @Generated
+    @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public static Object invoke(@NonNull Executable what, @NonNull Object... args)
             throws IllegalAccessException, InvocationTargetException, InstantiationException
     {

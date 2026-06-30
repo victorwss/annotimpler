@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.convert;
 
+import lombok.EqualsAndHashCode;
 import lombok.NonNull;
+import lombok.ToString;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -13,6 +15,8 @@ import module ninja.javahacker.annotimpler.convert;
 /// `Optional.of(Optional.of(element))`; otherwise returns `Optional.of(Optional.empty())`.
 ///
 /// @param <E> The element type of the inner optional.
+@ToString(doNotUseGetters = true)
+@EqualsAndHashCode(doNotUseGetters = true)
 public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
     @NonNull
@@ -58,9 +62,9 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
         @NonNull
         public default Optional<Optional<E>> rework(@NonNull Type baseType) throws ConvertionException {
-            checkNotNull(baseType);
+            checkNotNull(baseType); // Check recognized by lombok.
             try {
-                return Optional.of(work().map(Optional::of).orElse(Optional.empty()));
+                return Optional.of(work().map(Optional::of).orElseGet(Optional::empty));
             } catch (ConvertionException e) {
                 if (e.getMessage().contains("Unsupported ")) {
                     throw new ConvertionException(e.getMessage(), e, e.getIn(), baseType);
@@ -72,7 +76,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
     @NonNull
     private Optional<Optional<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
-        checkNotNull(e);
+        checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }
 

@@ -24,7 +24,7 @@ public enum CharArrayConverter implements Converter<char[]> {
 
     @NonNull
     private Optional<char[]> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {

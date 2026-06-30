@@ -25,7 +25,7 @@ public enum SqlTimeConverter implements Converter<Time> {
 
     @NonNull
     private Optional<Time> rewrap(@NonNull Work w) throws ConvertionException {
-        checkNotNull(w);
+        checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
         } catch (ConvertionException e) {

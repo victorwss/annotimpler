@@ -75,14 +75,14 @@ public class MultiFormattersTest {
         var s2 = p.indexOf('_', s1 + 1);
 
         if (s2 < 0) {
-            var md = p.substring(s1 + 1);
-            return md + "_" + y + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
+            var md = p.substring(s1 + 1).replace("_", "-");
+            return md + "-" + y + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
         }
 
         var m = p.substring(s1 + 1, s2);
         var d = p.substring(s2 + 1, end);
 
-        return y + "_" + m + "_" + d + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
+        return y + "-" + m + "-" + d + r.replace(" +", "+").replace(" -", "-").replace("+00:00", "Z").replace(" ", "T");
     }
 
     private static String ymd2fmt(String in, MultiFormatters fmt) {
@@ -96,7 +96,7 @@ public class MultiFormattersTest {
             case MDY_DASH -> ymd2mdy(in).replace("_", "-");
             case MDY_DOT -> ymd2mdy(in).replace("_", ".");
             case MDY_SLASH -> ymd2mdy(in).replace("_", "/");
-            case ISO_8601 -> ymd2iso(in).replace("_", "-");
+            case ISO_8601 -> ymd2iso(in);
         };
     }
 
@@ -105,7 +105,7 @@ public class MultiFormattersTest {
         Assertions.assertEquals(paramName + " is marked non-null but is null", ex.getMessage());
     }
 
-    // ---------- Falhas. ----------
+    // ---------- Failures. ----------
 
     @TestFactory
     public Stream<DynamicTest> testParseInvalidThrowsConvertionException() {
@@ -120,12 +120,12 @@ public class MultiFormattersTest {
                 new Case(OffsetDateTime.class, fmt, () -> fmt.parseOffsetDateTime(s)),
                 new Case(OffsetTime.class    , fmt, () -> fmt.parseOffsetTime    (s))
         )).map(c -> DynamicTest.dynamicTest(
-                "parse: " + c.klass().getSimpleName() + " (" + c.fmt().name() + ")",
+                "parse: " + c.klass().getSimpleName() + " - not-a-date (" + c.fmt().name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.parse())
         ));
     }
 
-    // ---------- Formatação e parsing bem-sucedidos. ----------
+    // ---------- Successful formating and parsing. ----------
 
     @TestFactory
     public Stream<DynamicNode> testParseAndFormat() {
@@ -137,7 +137,7 @@ public class MultiFormattersTest {
                     () -> Assertions.assertEquals(textOk, formatter.work(obj))
                 );
                 var parse = DynamicTest.dynamicTest(
-                    "parse: " + obj.getClass().getSimpleName() + " - " + text + " (" + fmt.name() + ")",
+                    "parse: " + obj.getClass().getSimpleName() + " - " + textOk + " (" + fmt.name() + ")",
                     () -> Assertions.assertEquals(obj, parser.work(textOk))
                 );
                 return DynamicContainer.dynamicContainer("Parse and format " + textOk + " (" + fmt.name() + ")", Stream.of(format, parse));
@@ -203,7 +203,7 @@ public class MultiFormattersTest {
                 new Case(ZonedDateTime .class, fmt, () -> fmt.parseZonedDateTime (null)),
                 new Case(Instant       .class, fmt, () -> fmt.parseInstant       (null))
         )).map(c -> DynamicTest.dynamicTest(
-                "parse: " + c.which().getSimpleName() + " (" + c.fmt().name() + ")",
+                "parse: " + c.which().getSimpleName() + " - [null] (" + c.fmt().name() + ")",
                 () -> testNull("input", c.withNull())
         ));
     }
@@ -227,21 +227,24 @@ public class MultiFormattersTest {
         ));
     }
 
+    // ---------- Invalid data tests. ----------
+
     @TestFactory
     public Stream<DynamicTest> testInvalidRangesDateAndTimeLimits() {
 
         record Case(String name, String input, MultiFormatters fmt, Executable exec) {}
 
         return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
-            new Case("day 0"               , "2024_01_00 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_00 12:34:56"           , fmt))),
-            new Case("day 32"              , "2024_01_32 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_32 12:34:56"           , fmt))),
-            new Case("month 0"             , "2024_00_10 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_00_10 12:34:56"           , fmt))),
-            new Case("month 13"            , "2024_13_10 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_13_10 12:34:56"           , fmt))),
-            new Case("hour 24"             , "2024_01_10 24:00:00"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 24:00:00"           , fmt))),
-            new Case("minute 60"           , "2024_01_10 12:60:00"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:60:00"           , fmt))),
-            new Case("second 60"           , "2024_01_10 12:34:60"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:34:60"           , fmt))),
-            new Case("nano > 9 digits"     , "2024_01_10 12:34:56.1234567890", fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:34:56.1234567890", fmt))),
-            new Case("dot without fraction", "2024_01_10 12:34:56."          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:34:56."          , fmt)))
+                new Case("day 0"               ,  "2024_01_00 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_00 12:34:56"           , fmt))),
+                new Case("day 32"              ,  "2024_01_32 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_32 12:34:56"           , fmt))),
+                new Case("month 0"             ,  "2024_00_10 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_00_10 12:34:56"           , fmt))),
+                new Case("month 13"            ,  "2024_13_10 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_13_10 12:34:56"           , fmt))),
+                new Case("hour 24"             ,  "2024_01_10 24:00:00"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_10 24:00:00"           , fmt))),
+                new Case("minute 60"           ,  "2024_01_10 12:60:00"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_10 12:60:00"           , fmt))),
+                new Case("second 60"           ,  "2024_01_10 12:34:60"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_10 12:34:60"           , fmt))),
+                new Case("nano > 9 digits"     ,  "2024_01_10 12:34:56.1234567890", fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_10 12:34:56.1234567890", fmt))),
+                new Case("dot without fraction",  "2024_01_10 12:34:56."          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt( "2024_01_10 12:34:56."          , fmt))),
+                new Case("negative year"       , "-2024_01_10 12:34:56"           , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("-2024_01_10 12:34:56"           , fmt)))
         )).map(c -> DynamicTest.dynamicTest(
                 c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
@@ -254,29 +257,19 @@ public class MultiFormattersTest {
         record Case(String name, String input, MultiFormatters fmt) {}
 
         return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
-            new Case("31 feb"     , "2024_02_31", fmt),
-            new Case("31 apr"     , "2024_04_31", fmt),
-            new Case("31 jun"     , "2024_06_31", fmt),
-            new Case("31 sep"     , "2024_09_31", fmt),
-            new Case("31 nov"     , "2024_11_31", fmt),
-            new Case("30 feb"     , "2024_02_30", fmt),
-            new Case("29 feb 2023", "2023_02_29", fmt),
-            new Case("29 feb 1900", "1900_02_29", fmt),
-            new Case("29 feb 2100", "2100_02_29", fmt)
+                new Case("31 feb"     , "2024_02_31", fmt),
+                new Case("31 apr"     , "2024_04_31", fmt),
+                new Case("31 jun"     , "2024_06_31", fmt),
+                new Case("31 sep"     , "2024_09_31", fmt),
+                new Case("31 nov"     , "2024_11_31", fmt),
+                new Case("30 feb"     , "2024_02_30", fmt),
+                new Case("29 feb 2023", "2023_02_29", fmt),
+                new Case("29 feb 1900", "1900_02_29", fmt),
+                new Case("29 feb 2100", "2100_02_29", fmt)
         )).map(c -> DynamicTest.dynamicTest(
                 c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, () -> c.fmt.parseLocalDate(ymd2fmt(c.input, c.fmt)))
         ));
-    }
-
-    @TestFactory
-    public Stream<DynamicTest> testValidLeapYear() {
-        return Stream.of(MultiFormatters.values()).map(fmt ->
-            DynamicTest.dynamicTest("29 feb 2024 valid (" + fmt.name() + ")", () -> {
-                var parsed = fmt.parseLocalDate(ymd2fmt("2024_02_29", fmt));
-                Assertions.assertEquals(29, parsed.getDayOfMonth());
-            })
-        );
     }
 
     private static List<String> mutatePartsIn(String input) {
@@ -315,7 +308,7 @@ public class MultiFormattersTest {
         record Case(MultiFormatters fmt, String input, String n, BiFunction<MultiFormatters, String, ?> recv) {
             public DynamicTest test() {
                 return DynamicTest.dynamicTest(
-                        "incomplete: " + input + " (" + fmt.name() + " - " + n + ")",
+                        "incomplete: " + ymd2fmt(input, fmt) + " (" + fmt.name() + " - " + n + ")",
                         () -> Assertions.assertThrows(DateTimeParseException.class, () -> recv.apply(fmt, ymd2fmt(input, fmt)))
                 );
             }
@@ -351,5 +344,39 @@ public class MultiFormattersTest {
                 .filter(c -> c.fmt != MultiFormatters.ISO_8601
                         || (!c.input.contains("9+0") && !c.input.contains("8+0") && !c.input.contains("7+0") && !c.input.contains("6+0") && !c.input.contains("5+0")))
                 .map(Case::test);
+    }
+
+    // ---------- Leap year test. ----------
+
+    @TestFactory
+    public Stream<DynamicTest> testValidLeapYear() {
+        var a = Stream.of(MultiFormatters.values()).map(fmt ->
+            DynamicTest.dynamicTest("29 feb 2024 valid (" + fmt.name() + ")", () -> {
+                var parsed = fmt.parseLocalDate(ymd2fmt("2024_02_29", fmt));
+                Assertions.assertEquals(29, parsed.getDayOfMonth());
+            })
+        );
+        var b = Stream.of(MultiFormatters.values()).map(fmt ->
+            DynamicTest.dynamicTest("29 feb 2000 valid (" + fmt.name() + ")", () -> {
+                var parsed = fmt.parseLocalDate(ymd2fmt("2000_02_29", fmt));
+                Assertions.assertEquals(29, parsed.getDayOfMonth());
+            })
+        );
+        return Stream.concat(a, b);
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testInvalidLeapYear() {
+        var a = Stream.of(MultiFormatters.values()).map(fmt ->
+            DynamicTest.dynamicTest("29 feb 2023 invalid (" + fmt.name() + ")", () -> {
+                Assertions.assertThrows(DateTimeParseException.class, () -> fmt.parseLocalDate(ymd2fmt("2023_02_29", fmt)));
+            })
+        );
+        var b = Stream.of(MultiFormatters.values()).map(fmt ->
+            DynamicTest.dynamicTest("29 feb 1900 invalid (" + fmt.name() + ")", () -> {
+                Assertions.assertThrows(DateTimeParseException.class, () -> fmt.parseLocalDate(ymd2fmt("1900_02_29", fmt)));
+            })
+        );
+        return Stream.concat(a, b);
     }
 }
