@@ -12,7 +12,7 @@ import module ninja.javahacker.annotimpler.convert;
 /// column name lookup, and automatic mapping of result rows to Java `record` types.
 ///
 /// All [java.sql.ResultSet] methods are delegated to the underlying result set via Lombok
-/// `@Delegate`.  The additional methods provided by this class are:
+/// `@Delegate`. The additional methods provided by this class are:
 ///
 /// - [#getTypedValue(int)] / [#getTypedValue(String)] — return the value at a column as the
 ///   most appropriate Java type for the JDBC type code.
@@ -403,20 +403,6 @@ public final class SmartResultSet implements ResultSet {
         return getRecord(k, remapper, allFields());
     }
 
-    // Builds a remapper that converts column keys (stored uppercase by ColumnMapping using localizer)
-    // back to the exact record field names, enabling case-insensitive column-to-field matching.
-    // The same locale used by ColumnMapping is applied here so that locale-specific uppercasing
-    // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
-    @NonNull
-    private <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {
-        var components = k.getRecordComponents();
-        var mapping = new HashMap<String, String>(components.length);
-        for (var rc : components) {
-            mapping.put(rc.getName().toUpperCase(localizer), rc.getName());
-        }
-        return key -> mapping.getOrDefault(key, key);
-    }
-
     @NonNull
     private <R extends Record> R getRecord(
             @NonNull Class<R> k,
@@ -482,6 +468,20 @@ public final class SmartResultSet implements ResultSet {
     {
         var map = getMapByLabels(fields);
         return getRecord(k, remapper, map);
+    }
+
+    // Builds a remapper that converts column keys (stored uppercase by ColumnMapping using localizer)
+    // back to the exact record field names, enabling case-insensitive column-to-field matching.
+    // The same locale used by ColumnMapping is applied here so that locale-specific uppercasing
+    // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
+    @NonNull
+    private <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {
+        var components = k.getRecordComponents();
+        var mapping = new HashMap<String, String>(components.length);
+        for (var rc : components) {
+            mapping.put(rc.getName().toUpperCase(localizer), rc.getName());
+        }
+        return key -> mapping.getOrDefault(key, key);
     }
 
     @Nullable
