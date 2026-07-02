@@ -281,6 +281,13 @@ subprojects {
         }
     }
 
+    tasks.withType(Checkstyle) {
+        reports {
+            xml.required = true      // needed for aggregateCheckstyleReport
+            html.required = true
+        }
+    }
+
     jar {
         dependsOn(compileJava)
         duplicatesStrategy = "exclude"
@@ -504,12 +511,43 @@ tasks.register("aggregateSpotBugsReport") {
     }
 }
 
+// ── Aggregate Checkstyle Report ───────────────────────────────────────────────
+tasks.register("aggregateCheckstyleReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.named("checkstyleMain") })
+    group = "verification"
+    description = "Generates an aggregate Checkstyle HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/checkstyle/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/checkstyle/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).file.each { fileNode ->
+                    def path = fileNode.@name.replace(rootDir.absolutePath, "").replace("\\", "/")
+                    fileNode.error.each { e ->
+                        rows << [sp.name, path, e.@line ?: "", e.@severity ?: "", e.@source ?: "", e.text().trim()]
+                    }
+                }
+            } catch (Exception e) { println "Checkstyle parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "Checkstyle Aggregate Report", "#7a6da7",
+            ["Project", "File", "Line", "Severity", "Source", "Message"], rows,
+            "${rows.size()} violation(s)")
+        println "Checkstyle aggregate report: ${outputFile.toURI()}"
+    }
+}
+
 // ── aggregateReports convenience task ────────────────────────────────────────
 // Runs all aggregate reports at once. Individual tasks can still be run separately.
 tasks.register("aggregateReports") {
     group = "verification"
-    description = "Generates all aggregate reports (tests, coverage, PMD, SpotBugs, Javadoc)."
-    dependsOn("aggregateTestReport", "aggregateJacocoReport", "aggregatePmdReport", "aggregateSpotBugsReport", "allJavadoc")
+    description = "Generates all aggregate reports (tests, coverage, PMD, SpotBugs, Checkstyle, Javadoc)."
+    dependsOn("aggregateTestReport", "aggregateJacocoReport", "aggregatePmdReport", "aggregateSpotBugsReport", "aggregateCheckstyleReport", "allJavadoc")
 }
 
 // ── fullBuild lifecycle task ──────────────────────────────────────────────────
