@@ -105,6 +105,20 @@ public interface StdConverterFactory extends ConverterFactory {
         return getOfUndetermined(t);
     }
 
+    /// Returns a typed converter for the given undetermined type.
+    ///
+    ///The default implementation does not supports this operation and always throws an
+    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    ///
+    /// @param t The undetermined type.
+    /// @return A [Converter] typed to the given type.
+    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
+    /// @throws IllegalArgumentException If `t` is `null`.
+    @NonNull
+    public default Converter<?> getOfUndetermined(@NonNull Type t) throws UnavailableConverterException {
+        throw UnavailableConverterException.noConverterFor(t);
+    }
+
     /// Returns a converter for the parameterized type `t`.
     ///
     /// Tries [#makeList(ParameterizedType)], [#makeSet(ParameterizedType)],
@@ -174,20 +188,6 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws IllegalArgumentException If `t` is `null`.
     @NonNull
     public default Converter<?> getOf(@NonNull TypeVariable<?> t) throws UnavailableConverterException {
-        throw UnavailableConverterException.noConverterFor(t);
-    }
-
-    /// Returns a typed converter for the given undetermined type.
-    ///
-    ///The default implementation does not supports this operation and always throws an
-    ///[UnavailableConverterException], but overriden implementations may do otherwise.
-    ///
-    /// @param t The undetermined type.
-    /// @return A [Converter] typed to the given type.
-    /// @throws UnavailableConverterException If no converter is available for `t` or if this operation is not supported.
-    /// @throws IllegalArgumentException If `t` is `null`.
-    @NonNull
-    public default Converter<?> getOfUndetermined(@NonNull Type t) throws UnavailableConverterException {
         throw UnavailableConverterException.noConverterFor(t);
     }
 

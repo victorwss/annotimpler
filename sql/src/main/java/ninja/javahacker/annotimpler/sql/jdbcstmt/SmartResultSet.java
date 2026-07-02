@@ -155,8 +155,7 @@ public final class SmartResultSet implements ResultSet {
         }
     }
 
-    /// Returns an unmodifiable map of all columns in the current row, keyed by upper-cased
-    /// column label.
+    /// Returns an unmodifiable map of all columns in the current row, keyed by upper-cased column label.
     ///
     /// Columns with null, empty, or duplicate (case-insensitive) labels are silently skipped.
     ///
@@ -247,50 +246,6 @@ public final class SmartResultSet implements ResultSet {
         return getTypedValueOpt(columnLabel, target).orElse(null);
     }
 
-    /// Reads the value at `columnIndex`, converts it to type `E`, and wraps the result in an
-    /// [java.util.Optional].
-    ///
-    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
-    ///
-    /// @param <E> The target Java type.
-    /// @param columnIndex The 1-based column index to read.
-    /// @param target The class of the target type.
-    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
-    /// @throws SQLException If a database access error occurs or conversion fails.
-    /// @throws IllegalArgumentException If `target` is `null`.
-    @NonNull
-    public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
-        try {
-            var raw = getTypedValue(columnIndex);
-            return factory.getOf(target).fromObj(raw);
-        } catch (ConvertionException | UnavailableConverterException e) {
-            throw new SQLException(e);
-        }
-    }
-
-    /// Reads the value at the column identified by `columnLabel` (case-insensitive), converts it
-    /// to type `E`, and wraps the result in an [java.util.Optional].
-    ///
-    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
-    ///
-    /// @param <E> The target Java type.
-    /// @param columnLabel The case-insensitive column label to read.
-    /// @param target The class of the target type.
-    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
-    /// @throws SQLException If a database access error occurs or conversion fails.
-    /// @throws IllegalArgumentException If `columnLabel` or `target` is `null`, or the label is
-    ///                                  not found.
-    @NonNull
-    public <E> Optional<E> getTypedValueOpt(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
-        var idx = this.mappings.indexOf(columnLabel);
-        return getTypedValueOpt(idx, target);
-    }
-
-    @Nullable
-    private <E> E nully(@Nullable E r) throws SQLException {
-        return wasNull() ? null : r;
-    }
-
     /// Reads the value at `columnIndex` and returns it as the most appropriate Java type for the
     /// column's JDBC type code.
     ///
@@ -335,9 +290,8 @@ public final class SmartResultSet implements ResultSet {
             case Types.SQLXML                                       -> getSQLXML    (columnIndex);
             case Types.ROWID                                        -> getRowId     (columnIndex);
             case Types.STRUCT                              -> (Struct) getObject    (columnIndex);
-            case Types.VARCHAR, Types.CHAR,
-                 Types.LONGVARCHAR, Types.DISTINCT, Types.DATALINK,
-                 Types.JAVA_OBJECT, Types.OTHER                     -> getString    (columnIndex);
+            case Types.VARCHAR, Types.CHAR, Types.LONGVARCHAR, Types.DISTINCT, Types.DATALINK,
+                    Types.JAVA_OBJECT, Types.OTHER                  -> getString    (columnIndex);
             default                                                 -> getString    (columnIndex);
         };
     }
@@ -357,6 +311,43 @@ public final class SmartResultSet implements ResultSet {
     public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
         var idx = this.mappings.indexOf(columnLabel);
         return getTypedValue(idx);
+    }
+
+    /// Reads the value at `columnIndex`, converts it to type `E`, and wraps the result in an [java.util.Optional].
+    ///
+    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
+    ///
+    /// @param <E> The target Java type.
+    /// @param columnIndex The 1-based column index to read.
+    /// @param target The class of the target type.
+    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
+    /// @throws SQLException If a database access error occurs or conversion fails.
+    /// @throws IllegalArgumentException If `target` is `null`.
+    @NonNull
+    public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
+        try {
+            var raw = getTypedValue(columnIndex);
+            return factory.getOf(target).fromObj(raw);
+        } catch (ConvertionException | UnavailableConverterException e) {
+            throw new SQLException(e);
+        }
+    }
+
+    /// Reads the value at the column identified by `columnLabel` (case-insensitive), converts it
+    /// to type `E`, and wraps the result in an [java.util.Optional].
+    ///
+    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
+    ///
+    /// @param <E> The target Java type.
+    /// @param columnLabel The case-insensitive column label to read.
+    /// @param target The class of the target type.
+    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
+    /// @throws SQLException If a database access error occurs or conversion fails.
+    /// @throws IllegalArgumentException If `columnLabel` or `target` is `null`, or the label is not found.
+    @NonNull
+    public <E> Optional<E> getTypedValueOpt(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
+        var idx = this.mappings.indexOf(columnLabel);
+        return getTypedValueOpt(idx, target);
     }
 
     /// Maps all columns of the current row to a record of type `R` using default column order
@@ -385,8 +376,7 @@ public final class SmartResultSet implements ResultSet {
         return getRecord(k, defaultRemapper(k), fields);
     }
 
-    /// Maps the specified columns (by case-insensitive label) of the current row to a record of
-    /// type `R`.
+    /// Maps the specified columns (by case-insensitive label) of the current row to a record of type `R`.
     ///
     /// @param <R> The record type.
     /// @param k The class of the record type.
@@ -404,8 +394,7 @@ public final class SmartResultSet implements ResultSet {
     ///
     /// @param <R> The record type.
     /// @param k The class of the record type.
-    /// @param remapper A function that translates an upper-cased column name to the matching
-    ///                 record component name.
+    /// @param remapper A function that translates an upper-cased column name to the matching record component name.
     /// @return A new instance of `R` populated from the current row.
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` or `remapper` is `null`.
@@ -456,8 +445,7 @@ public final class SmartResultSet implements ResultSet {
     ///
     /// @param <R> The record type.
     /// @param k The class of the record type.
-    /// @param remapper A function that translates an upper-cased column name to the matching
-    ///                 record component name.
+    /// @param remapper A function that translates an upper-cased column name to the matching record component name.
     /// @param fields The 1-based column indices to map, in component order.
     /// @return A new instance of `R` populated from the specified columns.
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
@@ -484,8 +472,7 @@ public final class SmartResultSet implements ResultSet {
     /// @param fields The column labels to map; must not contain `null`.
     /// @return A new instance of `R` populated from the specified columns.
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
-    /// @throws IllegalArgumentException If `k` or `remapper` is `null`, or any label is `null`
-    ///                                  or not found.
+    /// @throws IllegalArgumentException If `k` or `remapper` is `null`, or any label is `null` or not found.
     @NonNull
     public <R extends Record> R getRecord(
             @NonNull Class<R> k,
@@ -495,6 +482,11 @@ public final class SmartResultSet implements ResultSet {
     {
         var map = getMapByLabels(fields);
         return getRecord(k, remapper, map);
+    }
+
+    @Nullable
+    private <E> E nully(@Nullable E r) throws SQLException {
+        return wasNull() ? null : r;
     }
 
     @Generated

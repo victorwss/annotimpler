@@ -371,20 +371,6 @@ public final class Methods {
         return what.newInstance(args);
     }
 
-    @NonNull
-    @Generated
-    private static NullPointerException npe(@NonNull Method what) {
-        if (what == null) throw new AssertionError();
-        try {
-            what.invoke(null);
-            throw new AssertionError();
-        } catch (NullPointerException npe) {
-            return npe;
-        } catch (Exception x) {
-            throw new AssertionError(x);
-        }
-    }
-
     /// Invokes the given [Method] with the supplied arguments.
     ///
     /// For **static** methods, `args` are the method arguments.
@@ -409,5 +395,19 @@ public final class Methods {
         var rest = new Object[args.length - 1];
         System.arraycopy(args, 1, rest, 0, rest.length);
         return what.invoke(inst, rest);
+    }
+
+    @NonNull
+    @Generated
+    private static NullPointerException npe(@NonNull Method what) {
+        if (what == null) throw new AssertionError();
+        try {
+            what.invoke(null);
+            throw new AssertionError();
+        } catch (NullPointerException npe) {
+            return npe;
+        } catch (Exception x) {
+            throw new AssertionError(x);
+        }
     }
 }

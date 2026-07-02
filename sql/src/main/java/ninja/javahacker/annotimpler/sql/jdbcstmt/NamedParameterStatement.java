@@ -200,7 +200,8 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream] up to `length` bytes.
+    /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream]
+    /// up to `length` bytes.
     /// @param name The name of the SQL parameter to set.
     /// @param inputStream The stream whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -317,7 +318,8 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader] up to `length` characters.
+    /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader]
+    /// up to `length` characters.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -695,7 +697,8 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader] up to `length` characters.
+    /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader]
+    /// up to `length` characters.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -798,12 +801,15 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param targetType The target SQL type for the conversion.
-    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for `VARCHAR`/`LONGVARCHAR`.
+    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for
+    ///        `VARCHAR`/`LONGVARCHAR`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
     ///         or if `x` is non-null and `name` maps to more than one positional index.
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public default void setObject(@NonNull String name, @Nullable Object x, @Nullable SQLType targetType, int scaleOrLength) throws SQLException {
+    public default void setObject(@NonNull String name, @Nullable Object x, @Nullable SQLType targetType, int scaleOrLength)
+            throws SQLException
+    {
         var all = getIndexes(name);
         if (x instanceof Reader && all.size() > 1) throw new SQLException(READER_MESSAGE);
         if (x instanceof InputStream && all.size() > 1) throw new SQLException(INPUT_STREAM_MESSAGE);
@@ -816,7 +822,8 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param targetType The target SQL type for the conversion.
-    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for `VARCHAR`/`LONGVARCHAR`.
+    /// @param scaleOrLength The number of digits after the decimal point for `DECIMAL`/`NUMERIC`, or the length for
+    ///        `VARCHAR`/`LONGVARCHAR`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws java.sql.SQLException If a database access error occurs, if this method is called on a closed statement,
     ///         or if `x` is non-null and `name` maps to more than one positional index.

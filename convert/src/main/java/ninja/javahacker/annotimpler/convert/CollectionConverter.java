@@ -33,7 +33,11 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     ///         or if no converter is available for the element type.
     /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
-    public CollectionConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
+    public CollectionConverter(
+            @NonNull ConverterFactory factory,
+            @NonNull ParameterizedType baseType)
+            throws UnavailableConverterException
+    {
         var baseClass = baseType.getActualTypeArguments()[0];
         if (baseType.getRawType() != Collection.class || !(baseClass instanceof Class<?>)) {
             throw new UnavailableConverterException("The baseType must be a Collection of some class.", baseClass);

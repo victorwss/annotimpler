@@ -33,7 +33,11 @@ public final class ListConverter<E> implements Converter<List<E>> {
     ///         or if no converter is available for the element type.
     /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
-    public ListConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
+    public ListConverter(
+            @NonNull ConverterFactory factory,
+            @NonNull ParameterizedType baseType)
+            throws UnavailableConverterException
+    {
         var baseClass = baseType.getActualTypeArguments()[0];
         if (baseType.getRawType() != List.class || !(baseClass instanceof Class<?>)) {
             throw new UnavailableConverterException("The baseType must be a List of some class.", baseClass);

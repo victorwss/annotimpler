@@ -1,7 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
-import lombok.NonNull;
 import java.lang.reflect.Proxy;
+import lombok.NonNull;
 
 /// Provides default [CallContext] implementations for [Object#equals], [Object#hashCode],
 /// and [Object#toString] for proxy objects created by [AnnotationsImplementor].

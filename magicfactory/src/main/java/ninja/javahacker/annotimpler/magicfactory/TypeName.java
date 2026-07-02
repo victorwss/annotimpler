@@ -39,7 +39,9 @@ public final class TypeName {
                     formatType(clazz.getComponentType(), fullNameNeeded, sb);
                     sb.append("[]");
                 } else {
-                    var c = fullNameNeeded.contains(clazz) || clazz.isAnonymousClass() || clazz.isHidden() ? clazz.getName() : clazz.getSimpleName();
+                    var c = fullNameNeeded.contains(clazz) || clazz.isAnonymousClass() || clazz.isHidden()
+                            ? clazz.getName()
+                            : clazz.getSimpleName();
                     checkNotNull(c);
                     sb.append(c);
                 }

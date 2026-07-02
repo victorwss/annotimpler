@@ -61,12 +61,12 @@ public record PostgreSqlConnector(
     @NonNull
     @JsonCreator
     public static PostgreSqlConnector create(
-        @NonNull Optional<String> host,
-        @NonNull OptionalInt port,
-        @NonNull Optional<String> user,
-        @NonNull Optional<String> password,
-        @NonNull Optional<String> database,
-        @NonNull Optional<Boolean> ssl)
+            @NonNull Optional<String> host,
+            @NonNull OptionalInt port,
+            @NonNull Optional<String> user,
+            @NonNull Optional<String> password,
+            @NonNull Optional<String> database,
+            @NonNull Optional<Boolean> ssl)
     {
         var r = new PostgreSqlConnector[] {STD};
         host.ifPresent(v -> r[0] = r[0].withHost(v));

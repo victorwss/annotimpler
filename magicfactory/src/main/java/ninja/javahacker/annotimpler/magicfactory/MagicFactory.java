@@ -180,7 +180,9 @@ public final class MagicFactory<E> {
         } catch (IllegalAccessException | InstantiationException e) {
             throw new CreationException("Creator of " + klass.getSimpleName() + " doesn't work.", e, klass);
         } catch (IllegalArgumentException e) {
-            throw new CreationException("Creator of " + klass.getSimpleName() + " (" + wrapper + ") was called with the wrong arguments " + Arrays.asList(args) + ".", e, klass);
+            var msg = "Creator of " + klass.getSimpleName()
+                    + " (" + wrapper + ") was called with the wrong arguments " + Arrays.asList(args) + ".";
+            throw new CreationException(msg, e, klass);
         } catch (InvocationTargetException e) {
             throw new CreationException("The instantiation of " + klass.getSimpleName() + " threw an exception.", e.getCause(), klass);
         }
@@ -276,7 +278,9 @@ public final class MagicFactory<E> {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
+        @SuppressWarnings({
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+        })
         protected final void finalize() {
         }
     }
@@ -331,7 +335,9 @@ public final class MagicFactory<E> {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
+        @SuppressWarnings({
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+        })
         protected final void finalize() {
         }
     }

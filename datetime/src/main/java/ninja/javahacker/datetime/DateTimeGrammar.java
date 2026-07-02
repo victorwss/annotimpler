@@ -69,7 +69,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
         }
 
         @NonNull
-        public static ThreeNumbers z() {
+        public static ThreeNumbers zero() {
             return new ThreeNumbers(0, 0, 0, false);
         }
     }
@@ -78,17 +78,6 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
         @NonNull
         public LocalTime time() {
             return LocalTime.of(a, b, c, d);
-        }
-    }
-
-    private record ZoneNumbers(char lead, @NonNull ThreeNumbers time) {
-        public ZoneNumbers {
-            checkNotNull(time); // Check recognized by lombok.
-        }
-
-        @NonNull
-        public static ZoneNumbers z() {
-            return new ZoneNumbers('Z', ThreeNumbers.z());
         }
     }
 
@@ -214,14 +203,14 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
 
         @NonNull
         private Optional<Match<Character>> dtSep(int position) {
-            return aChar(grammarDetails.dateTimeSeparator(), position);
+            return singleChar(grammarDetails.dateTimeSeparator(), position);
         }
 
         @NonNull
         private Optional<Match<Character>> tzSep(int position) {
             return grammarDetails.acceptsZ()
                     ? Optional.of(new Match<>(' ', position, position))
-                    : aChar(grammarDetails.dateTimeSeparator(), position);
+                    : singleChar(grammarDetails.dateTimeSeparator(), position);
         }
 
         @NonNull
@@ -246,7 +235,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             if (ohms.isEmpty()) return Optional.empty();
             var a = ohms.get();
 
-            var os1 = a.content().reallyThree() ? aChar('.', a.end()) : Optional.<Match<Character>>empty();
+            var os1 = a.content().reallyThree() ? singleChar('.', a.end()) : Optional.<Match<Character>>empty();
             if (os1.isEmpty()) return Optional.of(new Match<>(a.content().withD(0).time(), position, a.end()));
             var s1 = os1.get();
 
@@ -265,7 +254,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
 
         @NonNull
         private Optional<Match<ZoneOffset>> zone(int position) {
-            var os1 = aChar(c -> c == '+' || c == '-' || (grammarDetails.acceptsZ() && c == 'Z'), position);
+            var os1 = singleChar(c -> c == '+' || c == '-' || (grammarDetails.acceptsZ() && c == 'Z'), position);
             if (os1.isEmpty()) return Optional.empty();
             var s1 = os1.get();
             var s1c = s1.content();
@@ -288,7 +277,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             if (oa.isEmpty()) return Optional.empty();
             var a = oa.get();
 
-            var os1 = aChar(separator, a.end());
+            var os1 = singleChar(separator, a.end());
             if (os1.isEmpty()) return Optional.empty();
             var s1 = os1.get();
 
@@ -305,7 +294,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             if (oab.isEmpty()) return Optional.empty();
             var ab = oab.get();
 
-            var os2 = aChar(separator, ab.end());
+            var os2 = singleChar(separator, ab.end());
             if (os2.isEmpty()) return Optional.empty();
             var s2 = os2.get();
 
@@ -322,7 +311,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             if (oab.isEmpty()) return Optional.empty();
             var ab = oab.get();
 
-            var os2 = aChar(separator, ab.end());
+            var os2 = singleChar(separator, ab.end());
             if (os2.isEmpty()) return Optional.of(new Match<>(ab.content().asThree(), position, ab.end()));
             var s2 = os2.get();
 
@@ -358,22 +347,22 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
 
         @NonNull
         private Optional<Match<Integer>> digit(int which, int position) {
-            return someChar(position).filter(m -> m.content() == '0' + which).map(m -> m.withContent(which));
+            return anyChar(position).filter(m -> m.content() == '0' + which).map(m -> m.withContent(which));
         }
 
         @NonNull
-        private Optional<Match<Character>> aChar(char which, int position) {
-            return someChar(position).filter(m -> m.content() == which);
+        private Optional<Match<Character>> singleChar(char which, int position) {
+            return anyChar(position).filter(m -> m.content() == which);
         }
 
         @NonNull
-        private Optional<Match<Character>> aChar(@NonNull Predicate<Character> tester, int position) {
+        private Optional<Match<Character>> singleChar(@NonNull Predicate<Character> tester, int position) {
             checkNotNull(tester); // Check recognized by lombok.
-            return someChar(position).filter(m -> tester.test(m.content()));
+            return anyChar(position).filter(m -> tester.test(m.content()));
         }
 
         @NonNull
-        private Optional<Match<Character>> someChar(int position) {
+        private Optional<Match<Character>> anyChar(int position) {
             if (position >= input.length()) return Optional.empty();
             var matched = input.charAt(position);
             return Optional.of(new Match<>(matched, position, position + 1));

@@ -162,14 +162,6 @@ public record UrlConnector(
         return withOptAuth(Optional.of(new Auth(user, password)));
     }
 
-    /// Returns a copy of this connector with no authentication credentials.
-    ///
-    /// @return A new `UrlConnector` with the authentication removed.
-    @NonNull
-    public UrlConnector withNoAuth() {
-        return withOptAuth(Optional.empty());
-    }
-
     /// Returns a copy of this connector with the authentication replaced by the given [Auth].
     ///
     /// @param auth The new authentication credentials.
@@ -178,6 +170,14 @@ public record UrlConnector(
     @NonNull
     public UrlConnector withAuth(@NonNull Auth auth) {
         return withOptAuth(Optional.of(auth));
+    }
+
+    /// Returns a copy of this connector with no authentication credentials.
+    ///
+    /// @return A new `UrlConnector` with the authentication removed.
+    @NonNull
+    public UrlConnector withNoAuth() {
+        return withOptAuth(Optional.empty());
     }
 
     /// Returns a copy of this connector with the `optAuth` field replaced by the given value.

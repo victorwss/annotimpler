@@ -79,26 +79,26 @@ public enum MultiFormatters {
     ISO_8601;
 
     @NonNull
-    private static final DateTimeFormatter FORMATTER_TZ_DEF;
+    private static final DateTimeFormatter FORMATTER_TIME_ZONE;
 
     @NonNull
-    private static final DateTimeFormatter FORMATTER_T_DEF;
+    private static final DateTimeFormatter FORMATTER_TIME;
 
     static {
-        var formatTZ = "HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
-        var formatT = "HH':'mm':'ss'.'SSSSSSSSS";
-        FORMATTER_TZ_DEF = DateTimeFormatter.ofPattern(formatTZ).withResolverStyle(ResolverStyle.STRICT);
-        FORMATTER_T_DEF = DateTimeFormatter.ofPattern(formatT).withResolverStyle(ResolverStyle.STRICT);
+        var formatTimeZone = "HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
+        var formatTimeOnly = "HH':'mm':'ss'.'SSSSSSSSS";
+        FORMATTER_TIME_ZONE = DateTimeFormatter.ofPattern(formatTimeZone).withResolverStyle(ResolverStyle.STRICT);
+        FORMATTER_TIME = DateTimeFormatter.ofPattern(formatTimeOnly).withResolverStyle(ResolverStyle.STRICT);
     }
 
     @NonNull
-    private final DateTimeFormatter formatterDTZ;
+    private final DateTimeFormatter formatterDateTimeZone;
 
     @NonNull
-    private final DateTimeFormatter formatterDT;
+    private final DateTimeFormatter formatterDateTime;
 
     @NonNull
-    private final DateTimeFormatter formatterD;
+    private final DateTimeFormatter formatterDate;
 
     @NonNull
     private final DateTimeGrammar parser;
@@ -106,9 +106,9 @@ public enum MultiFormatters {
     private MultiFormatters() {
         var iso = name().contains("ISO");
         if (iso) {
-            this.formatterDTZ = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
-            this.formatterDT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            this.formatterD = DateTimeFormatter.ISO_LOCAL_DATE;
+            this.formatterDateTimeZone = DateTimeFormatter.ISO_OFFSET_DATE_TIME;
+            this.formatterDateTime = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            this.formatterDate = DateTimeFormatter.ISO_LOCAL_DATE;
             this.parser = new DateTimeGrammar('-', 'T', DateTimeGrammar.DateFormat.YMD, true);
         } else {
             var ymd = name().contains("YMD");
@@ -116,12 +116,12 @@ public enum MultiFormatters {
             var dot = name().contains("DOT");
             var slash = name().contains("SLASH");
             var dateSeparatorPlain = dot ? '.' : slash ? '/' : '-';
-            var formatD = (ymd ? "yyyy'-'MM'-'dd" : dmy ? "dd'-'MM'-'yyyy" : "MM'-'dd'-'yyyy").replace('-', dateSeparatorPlain);
-            var formatDTZ = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
-            var formatDT = formatD + "' 'HH':'mm':'ss'.'SSSSSSSSS";
-            this.formatterDTZ = DateTimeFormatter.ofPattern(formatDTZ).withResolverStyle(ResolverStyle.STRICT);
-            this.formatterDT = DateTimeFormatter.ofPattern(formatDT).withResolverStyle(ResolverStyle.STRICT);
-            this.formatterD = DateTimeFormatter.ofPattern(formatD).withResolverStyle(ResolverStyle.STRICT);
+            var format1 = (ymd ? "yyyy'-'MM'-'dd" : dmy ? "dd'-'MM'-'yyyy" : "MM'-'dd'-'yyyy").replace('-', dateSeparatorPlain);
+            var format2 = format1 + "' 'HH':'mm':'ss'.'SSSSSSSSS";
+            var format3 = format1 + "' 'HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
+            this.formatterDate = DateTimeFormatter.ofPattern(format1).withResolverStyle(ResolverStyle.STRICT);
+            this.formatterDateTime = DateTimeFormatter.ofPattern(format2).withResolverStyle(ResolverStyle.STRICT);
+            this.formatterDateTimeZone = DateTimeFormatter.ofPattern(format3).withResolverStyle(ResolverStyle.STRICT);
             var tt = ymd ? DateTimeGrammar.DateFormat.YMD : dmy ? DateTimeGrammar.DateFormat.DMY : DateTimeGrammar.DateFormat.MDY;
             this.parser = new DateTimeGrammar(dateSeparatorPlain, ' ', tt, false);
         }
@@ -146,12 +146,12 @@ public enum MultiFormatters {
 
     @NonNull
     private DateTimeFormatter formatterTZ() {
-        return this == ISO_8601 ? DateTimeFormatter.ISO_OFFSET_TIME : FORMATTER_TZ_DEF;
+        return this == ISO_8601 ? DateTimeFormatter.ISO_OFFSET_TIME : FORMATTER_TIME_ZONE;
     }
 
     @NonNull
     private DateTimeFormatter formatterT() {
-        return this == ISO_8601 ? DateTimeFormatter.ISO_LOCAL_TIME : FORMATTER_T_DEF;
+        return this == ISO_8601 ? DateTimeFormatter.ISO_LOCAL_TIME : FORMATTER_TIME;
     }
 
     /// Parses the given string as an [Instant].
@@ -292,7 +292,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull OffsetDateTime input) {
-        return removeExcessZeros(formatterDTZ.format(input));
+        return removeExcessZeros(formatterDateTimeZone.format(input));
     }
 
     /// Formats a [ZonedDateTime] as a string using this formatter's date-time-with-timezone notation.
@@ -305,7 +305,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull ZonedDateTime input) {
-        return removeExcessZeros(formatterDTZ.format(input));
+        return removeExcessZeros(formatterDateTimeZone.format(input));
     }
 
     /// Formats a [LocalDateTime] as a string using this formatter's date-time notation.
@@ -317,7 +317,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull LocalDateTime input) {
-        return removeExcessZeros(formatterDT.format(input));
+        return removeExcessZeros(formatterDateTime.format(input));
     }
 
     /// Formats a [LocalDate] as a string using this formatter's date notation.
@@ -327,7 +327,7 @@ public enum MultiFormatters {
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
     public String format(@NonNull LocalDate input) {
-        return formatterD.format(input);
+        return formatterDate.format(input);
     }
 
     /// Formats an [OffsetTime] as a string using this formatter's time-with-timezone notation.

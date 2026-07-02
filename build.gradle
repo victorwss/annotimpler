@@ -77,7 +77,7 @@ subprojects {
     apply(plugin: "com.github.spotbugs")
     apply(plugin: "java-library")
     apply(plugin: "maven-publish")
-    //apply(plugin: "checkstyle")
+    apply(plugin: "checkstyle")
     apply(plugin: "signing")
     apply(plugin: "jacoco")
     apply(plugin: "pmd")

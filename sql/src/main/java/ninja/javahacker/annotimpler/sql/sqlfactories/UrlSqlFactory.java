@@ -58,9 +58,9 @@ public enum UrlSqlFactory implements SqlFactory {
             var idx = contentType.indexOf(key);
             CharsetSpec spec;
             if (idx >= 0 && anno.getEncodingFromHeaders()) {
-                 var charsetName = contentType.substring(idx + key.length());
-                 var charset = Charset.forName(charsetName);
-                 spec = () -> charset;
+                var charsetName = contentType.substring(idx + key.length());
+                var charset = Charset.forName(charsetName);
+                spec = () -> charset;
             } else {
                 spec = CharsetSpec.instance(anno.fallbackEncoding());
             }

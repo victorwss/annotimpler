@@ -1,12 +1,10 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
-
+import java.lang.reflect.Array;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
-
-import java.lang.reflect.Array;
 
 import module java.base;
 import module java.sql;
@@ -304,7 +302,9 @@ public class RecordConverter<R extends Record> implements Converter<R> {
     ///
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
-    @SuppressWarnings({"override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer"})
+    @SuppressWarnings({
+        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+    })
     protected final void finalize() {
     }
 }

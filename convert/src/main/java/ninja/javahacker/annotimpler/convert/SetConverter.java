@@ -33,7 +33,11 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     ///         or if no converter is available for the element type.
     /// @throws IllegalArgumentException If `factory` or `baseType` is `null`.
     @SuppressWarnings("unchecked")
-    public SetConverter(@NonNull ConverterFactory factory, @NonNull ParameterizedType baseType) throws UnavailableConverterException {
+    public SetConverter(
+            @NonNull ConverterFactory factory,
+            @NonNull ParameterizedType baseType)
+            throws UnavailableConverterException
+    {
         var baseClass = baseType.getActualTypeArguments()[0];
         if (baseType.getRawType() != Set.class || !(baseClass instanceof Class<?>)) {
             throw new UnavailableConverterException("The baseType must be a Set of some class.", baseClass);

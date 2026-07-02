@@ -57,25 +57,29 @@ public final class NameDictionary {
             this.seen = new HashSet<>(20);
             this.fullNameNeeded = new HashSet<>(20);
             this.simpleNamesSeen = new HashMap<>(20);
+
+            add(k);
+
+            var t = Stream.of(k.getTypeParameters());
+            t.forEach(x -> {
+                add(x);
+            });
+
             var a = Stream.of(k.getDeclaredMethods());
             var b = Stream.of(k.getMethods());
             var c = Stream.of(k.getDeclaredConstructors());
             var d = Stream.of(k.getConstructors());
-            var e = Stream.concat(Stream.concat(a, b), Stream.concat(c, d));
-            var f = Stream.of(k.getDeclaredFields());
-            var g = Stream.of(k.getFields());
-            var h = Stream.concat(f, g);
-            var t = Stream.of(k.getTypeParameters());
-            add(k);
-            t.forEach(x -> {
-                add(x);
-            });
+            var e = Stream.of(a, b, c, d).flatMap(s -> s);
             e.forEach(x -> {
                 add(Methods.getReturnType(x));
                 addAll(x.getGenericExceptionTypes());
                 addAll(x.getGenericParameterTypes());
                 addAll(x.getTypeParameters());
             });
+
+            var f = Stream.of(k.getDeclaredFields());
+            var g = Stream.of(k.getFields());
+            var h = Stream.concat(f, g);
             h.forEach(x -> {
                 add(Methods.getReturnType(x));
             });

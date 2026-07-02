@@ -1,14 +1,12 @@
 package ninja.javahacker.annotimpler.convert;
 
-import java.sql.Blob;
-import java.sql.Clob;
-import java.sql.NClob;
-import lombok.Generated;
 import lombok.EqualsAndHashCode;
+import lombok.Generated;
 import lombok.NonNull;
 import lombok.ToString;
 
 import module java.base;
+import module java.sql;
 
 /// A [Converter] for enum types.
 ///

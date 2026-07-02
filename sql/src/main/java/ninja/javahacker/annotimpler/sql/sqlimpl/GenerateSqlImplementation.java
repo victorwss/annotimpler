@@ -75,7 +75,6 @@ public final class GenerateSqlImplementation implements Implementation {
         checkNotNull(m); // Check recognized by lombok.
 
         var rtb = m.getGenericReturnType();
-        var raw = m.getReturnType();
 
         if (rtb == long.class) return work -> work.generateLong().getAsLong();
         if (rtb == Long.class) return work -> getOrNull(work.generateLong());
@@ -83,15 +82,19 @@ public final class GenerateSqlImplementation implements Implementation {
         if (rtb == int.class) return work -> work.generate().getAsInt();
         if (rtb == Integer.class) return work -> getOrNull(work.generate());
         if (rtb == OptionalInt.class) return work -> work.generate();
+
         if (rtb instanceof ParameterizedType pt && pt.getRawType() == List.class) {
             var p2 = pt.getActualTypeArguments()[0];
             if (p2 == Integer.class) return work -> work.generateList();
             if (p2 == Long.class) return work -> work.generateLongList();
             throw new BadImplementationException("Unsupported return @Generate list type on: " + name(m), m.getDeclaringClass());
         }
+
+        var raw = m.getReturnType();
         if (raw == List.class) {
             throw new BadImplementationException("Incomplete return @Generate list type on: " + name(m), m.getDeclaringClass());
         }
+
         throw new BadImplementationException("Unsupported return @Generate type on: " + name(m), m.getDeclaringClass());
     }
 

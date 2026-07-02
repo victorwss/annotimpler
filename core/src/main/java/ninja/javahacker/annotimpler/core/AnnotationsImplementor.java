@@ -86,7 +86,7 @@ public final class AnnotationsImplementor {
             throw new BadImplementationException("Can't use @" + implName + " annotation on static methods.", mc);
         }
         if (Methods.isPrivate(m)) {
-            throw new BadImplementationException("Can't use @" + implName+ " annotation on private methods.", mc);
+            throw new BadImplementationException("Can't use @" + implName + " annotation on private methods.", mc);
         }
         if (Methods.isEquals(m)) {
             throw new BadImplementationException("Can't use @" + implName + " annotation on equals(Object) method.", mc);
