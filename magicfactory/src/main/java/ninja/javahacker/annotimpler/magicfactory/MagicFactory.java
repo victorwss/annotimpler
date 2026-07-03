@@ -12,7 +12,7 @@ import module java.base;
 /// instances of the target class. `MagicFactory` selects the creator using the following
 /// priority order:
 ///
-/// 1. A member explicitly annotated with [@Creator] — constructor, static method, or static
+/// 1. A member explicitly annotated with `@`[Creator] — constructor, static method, or static
 ///    field. Exactly one such annotation is allowed; multiple annotations cause
 ///    [CreatorSelectionException].
 /// 2. For **enums** with a single constant, that constant is used as the creator.
@@ -50,7 +50,7 @@ public final class MagicFactory<E> {
     /// @param klass The class to inspect; must be public; must not be `null`.
     /// @return A new `MagicFactory` for `klass`.
     /// @throws CreatorSelectionException If no suitable creator can be determined, if more
-    ///         than one [@Creator]-annotated member exists, or if the resolved creator fails
+    ///         than one `@`[Creator]-annotated member exists, or if the resolved creator fails
     ///         validation.
     /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
@@ -227,8 +227,8 @@ public final class MagicFactory<E> {
     ///
     /// Common causes include:
     /// - The class is not public.
-    /// - More than one member is annotated with [@Creator].
-    /// - The [@Creator]-annotated member is not public, not static, abstract, or returns the
+    /// - More than one member is annotated with `@`[Creator].
+    /// - The `@`[Creator]-annotated member is not public, not static, abstract, or returns the
     ///   wrong type.
     /// - The class has multiple constructors and none of the heuristics applies.
     public static class CreatorSelectionException extends Exception {
