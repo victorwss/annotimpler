@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -231,6 +232,7 @@ public final class MagicFactory<E> {
     /// - The `@`[Creator]-annotated member is not public, not static, abstract, or returns the
     ///   wrong type.
     /// - The class has multiple constructors and none of the heuristics applies.
+    @SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_EQUALS") // Useless for exception classes.
     public static class CreatorSelectionException extends Exception {
 
         @Serial
@@ -289,6 +291,7 @@ public final class MagicFactory<E> {
     ///
     /// Common causes include insufficient access rights, mismatched argument types or counts,
     /// or an exception thrown by the creator itself.
+    @SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_EQUALS") // Useless for exception classes.
     public static class CreationException extends Exception {
 
         @Serial

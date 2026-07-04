@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -7,6 +8,7 @@ import module java.base;
 /// Thrown when no [Converter] is available for a requested [Type].
 ///
 /// Carries the root [Type] for which no converter could be found.
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_EQUALS") // Useless for exception classes.
 public class UnavailableConverterException extends Exception {
 
     @Serial

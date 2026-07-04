@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -8,6 +9,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// Thrown when a value cannot be converted from its source type to the desired target type.
 ///
 /// Carries the source [Class] (`in`) and the target [Type] (`out`) of the failed conversion.
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_EQUALS") // Useless for exception classes.
 public class ConvertionException extends Exception {
 
     @Serial
