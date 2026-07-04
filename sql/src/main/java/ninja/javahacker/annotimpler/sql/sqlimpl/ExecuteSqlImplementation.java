@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -25,6 +26,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// | `int` / `Integer` | Row count capped at [Integer#MAX_VALUE]. |
 ///
 /// Any other return type causes [BadImplementationException] to be thrown at preparation time.
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class ExecuteSqlImplementation implements Implementation {
 
     @NonNull

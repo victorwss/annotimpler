@@ -9,7 +9,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Singleton [SqlFactory] that extracts the SQL string directly from the [Sql#value()] attribute of a
 /// [Sql]-annotated method.
 /// The SQL string is captured at prepare time and returned on every call.
-@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
+@SuppressFBWarnings({"ENMI_ONE_ENUM_VALUE", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})
 public enum StringSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.

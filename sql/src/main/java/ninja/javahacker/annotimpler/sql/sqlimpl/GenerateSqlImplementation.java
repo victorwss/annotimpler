@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -29,6 +30,7 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// Any other return type (including raw `List`, `List<String>`, or arbitrary types) causes
 /// [BadImplementationException] to be thrown at preparation time.
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class GenerateSqlImplementation implements Implementation {
 
     @NonNull

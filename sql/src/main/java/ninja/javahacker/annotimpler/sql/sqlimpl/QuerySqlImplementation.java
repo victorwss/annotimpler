@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -34,6 +35,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Wildcard type parameters (`Optional<?>`, `List<?>`) are rejected at preparation time.
 /// When `fields` contains more than one index, `T` must be a record and the number of indices
 /// must exactly match the number of record components.
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public final class QuerySqlImplementation implements Implementation {
 
     @NonNull

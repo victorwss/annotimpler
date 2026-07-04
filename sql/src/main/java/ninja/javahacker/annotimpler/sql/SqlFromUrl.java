@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.sql;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -21,6 +23,7 @@ import module ninja.javahacker.annotimpler.sql;
 @SqlSource(UrlSqlFactory.class)
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
+@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
 public @interface SqlFromUrl {
 
     /// Returns the URL from which the SQL string is downloaded.

@@ -12,7 +12,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// The download strategy (eager, lazy, etc.) is controlled by [SqlFromUrl#policy()].
 /// Character encoding is detected from the HTTP `Content-Type` response header when
 /// [SqlFromUrl#getEncodingFromHeaders()] is `true`; otherwise the [SqlFromUrl#fallbackEncoding()] is used.
-@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
+@SuppressFBWarnings({"ENMI_ONE_ENUM_VALUE", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})
 public enum UrlSqlFactory implements SqlFactory {
 
     /// The sole instance of this factory.
