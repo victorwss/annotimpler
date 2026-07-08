@@ -25,8 +25,7 @@ public class ConvertionException extends Exception {
     ///
     /// @param in The source type that failed to convert.
     /// @param out The target type of the failed conversion.
-    /// @throws IllegalArgumentException If `in` is `null`.
-    /// @throws IllegalArgumentException If `out` is `null`.
+    /// @throws IllegalArgumentException If `in` or `out` is `null`.
     public ConvertionException(@NonNull Class<?> in, @NonNull Type out) {
         List.of(in, out); // Force lombok to put the null-checks before the constructor call.
         this("Can't read value as $$$.".replace("$$$", TypeName.of(out)), in, out);
@@ -37,9 +36,7 @@ public class ConvertionException extends Exception {
     /// @param message The detail message describing the conversion failure.
     /// @param in The source type that failed to convert.
     /// @param out The target type of the failed conversion.
-    /// @throws IllegalArgumentException If `message` is `null`.
-    /// @throws IllegalArgumentException If `in` is `null`.
-    /// @throws IllegalArgumentException If `out` is `null`.
+    /// @throws IllegalArgumentException If `message`, `in` or `out` is `null`.
     public ConvertionException(@NonNull String message, @NonNull Class<?> in, @NonNull Type out) {
         List.of(message, in, out); // Force lombok to put the null-checks before the constructor call.
         super(message);
@@ -52,9 +49,7 @@ public class ConvertionException extends Exception {
     /// @param cause The underlying exception that caused the conversion failure.
     /// @param in The source type that failed to convert.
     /// @param out The target type of the failed conversion.
-    /// @throws IllegalArgumentException If `cause` is `null`.
-    /// @throws IllegalArgumentException If `in` is `null`.
-    /// @throws IllegalArgumentException If `out` is `null`.
+    /// @throws IllegalArgumentException If `cause`, `in` or `out` is `null`.
     public ConvertionException(@NonNull Throwable cause, @NonNull Class<?> in, @NonNull Type out) {
         List.of(cause, in, out); // Force lombok to put the null-checks before the constructor call.
         this("Can't read value as $$$.".replace("$$$", TypeName.of(out)), cause, in, out);
@@ -66,10 +61,7 @@ public class ConvertionException extends Exception {
     /// @param cause The underlying exception that caused the conversion failure.
     /// @param in The source type that failed to convert.
     /// @param out The target type of the failed conversion.
-    /// @throws IllegalArgumentException If `message` is `null`.
-    /// @throws IllegalArgumentException If `cause` is `null`.
-    /// @throws IllegalArgumentException If `in` is `null`.
-    /// @throws IllegalArgumentException If `out` is `null`.
+    /// @throws IllegalArgumentException If `message`, `cause`, `in` or `out` is `null`.
     public ConvertionException(@NonNull String message, @NonNull Throwable cause, @NonNull Class<?> in, @NonNull Type out) {
         List.of(message, cause, in, out); // Force lombok to put the null-checks before the constructor call.
         super(message, cause);

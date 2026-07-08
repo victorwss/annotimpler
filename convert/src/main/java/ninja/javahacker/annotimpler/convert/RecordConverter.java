@@ -2,7 +2,6 @@ package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.reflect.Array;
-import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.ToString;
 
@@ -20,8 +19,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 ///
 /// @param <R> The record type this converter targets.
 @ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true)
-public class RecordConverter<R extends Record> implements Converter<R> {
+public final class RecordConverter<R extends Record> implements Converter<R> {
 
     @NonNull
     private final Class<R> recordClass;
@@ -290,21 +288,20 @@ public class RecordConverter<R extends Record> implements Converter<R> {
         return wrap(java.sql.Array.class, () -> inFactory.from(in));
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(recordClass, inFactory);
+    }
+
+    @Override
+    public boolean equals(@Nullable Object other) {
+        return other instanceof RecordConverter<?> ot
+                && Objects.equals(this.recordClass, ot.recordClass)
+                && Objects.equals(this.inFactory, ot.inFactory);
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
-    }
-
-    /// Disabled. Should not be used. Does nothing.
-    ///
-    /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
-    /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
-    ///
-    /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
-    @Deprecated
-    @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
-    })
-    protected final void finalize() {
     }
 }

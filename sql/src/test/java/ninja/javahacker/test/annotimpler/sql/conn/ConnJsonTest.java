@@ -3,10 +3,8 @@ package ninja.javahacker.test.annotimpler.sql.conn;
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
 
-import module com.fasterxml.jackson.core;
-import module com.fasterxml.jackson.databind;
-import module com.fasterxml.jackson.datatype.jdk8;
-import module com.fasterxml.jackson.module.paramnames;
+import module tools.jackson.core;
+import module tools.jackson.databind;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module org.junit.jupiter.api;
@@ -31,11 +29,10 @@ public class ConnJsonTest {
         return DynamicTest.dynamicTest(name, ctx);
     }
 
-    private static ObjectMapper mapper() {
-        return new ObjectMapper()
-            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-            .registerModule(new Jdk8Module())
-            .registerModule(new ParameterNamesModule());
+    private static JsonMapper mapper() {
+        return JsonMapper.builder()
+                .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
+                .build();
     }
 
     @Test
@@ -128,11 +125,11 @@ public class ConnJsonTest {
     public void testReadBadJson1() throws Exception {
         var bad = JSON.replace("mariadb", "bad");
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
-        var ex = Assertions.assertThrows(JsonMappingException.class, () -> mapper().readValue(bad, JsonConnector.class));
+        var ex = Assertions.assertThrows(JacksonException.class, () -> mapper().readValue(bad, JsonConnector.class));
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
-                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains("UnknownConnectorException")),
                 () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
                 () -> Assertions.assertTrue(ex.getMessage().contains("Unknown connector: \"bad\"."))
         );
@@ -140,23 +137,23 @@ public class ConnJsonTest {
 
     @Test
     public void testReadBadJson2() throws Exception {
-        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(""));
+        Assertions.assertThrows(JacksonException.class, () -> JsonConnector.read(""));
     }
 
     @Test
     public void testReadBadJson3() throws Exception {
-        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read("{["));
+        Assertions.assertThrows(JacksonException.class, () -> JsonConnector.read("{["));
     }
 
     @Test
     public void testReadBadJson4() throws Exception {
         var bad = "{\"blah\":46,\"wha\":[]}";
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
-        var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
+        var ex = Assertions.assertThrows(JacksonException.class, () -> JsonConnector.read(bad));
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
-                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains("UnknownConnectorException")),
                 () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
                 () -> Assertions.assertTrue(ex.getMessage().contains("JSON has no type field."))
         );
@@ -165,18 +162,18 @@ public class ConnJsonTest {
     @Test
     public void testReadBadJson5() throws Exception {
         var bad2 = JSON.substring(0, JSON.length() - 1) + ",\"wtf\":\"oops\"}";
-        Assertions.assertThrows(JsonProcessingException.class, () -> JsonConnector.read(bad2));
+        Assertions.assertThrows(JacksonException.class, () -> JsonConnector.read(bad2));
     }
 
     @Test
     public void testReadBadJson6() throws Exception {
         var bad = "[1,2,3]";
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
-        var ex = Assertions.assertThrows(JsonMappingException.class, () -> JsonConnector.read(bad));
+        var ex = Assertions.assertThrows(JacksonException.class, () -> JsonConnector.read(bad));
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Unknown connector \"bad\".", ex.getCause().getMessage()),
-                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains("UnknownConnectorException")),
                 () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
                 () -> Assertions.assertTrue(ex.getMessage().contains("JSON does not contain a connector."))
         );
@@ -198,11 +195,11 @@ public class ConnJsonTest {
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var name2 = BadConnector.class.getName();
         var jsc = new JsonConnector(new BadConnector());
-        var ex = Assertions.assertThrows(JsonMappingException.class, () -> mapper().writeValueAsString(jsc));
+        var ex = Assertions.assertThrows(JacksonException.class, () -> mapper().writeValueAsString(jsc));
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Untyped connector \"bad\".", ex.getCause().getMessage()),
-                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains("UnknownConnectorException")),
                 () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
                 () -> Assertions.assertTrue(ex.getMessage().contains("Untyped connector: \"" + name2 + "\"."))
         );
@@ -213,11 +210,11 @@ public class ConnJsonTest {
         var name1 = JsonConnector.UnknownConnectorException.class.getName();
         var name2 = BadConnector.class.getName();
         var jsc = new JsonConnector(new BadConnector());
-        var ex = Assertions.assertThrows(JsonMappingException.class, () -> jsc.toJson());
+        var ex = Assertions.assertThrows(JacksonException.class, () -> jsc.toJson());
         Assertions.assertAll(
                 //() -> Assertions.assertEquals(JsonConnector.UnknownConnectorException.class, ex.getCause().getClass()),
                 //() -> Assertions.assertEquals("Untyped connector \"bad\".", ex.getCause().getMessage()),
-                () -> Assertions.assertTrue(ex.getMessage().contains("IOException")),
+                () -> Assertions.assertTrue(ex.getMessage().contains("UnknownConnectorException")),
                 () -> Assertions.assertTrue(ex.getMessage().contains(name1)),
                 () -> Assertions.assertTrue(ex.getMessage().contains("Untyped connector: \"" + name2 + "\"."))
         );
@@ -367,11 +364,11 @@ public class ConnJsonTest {
         Assertions.assertThrows(UnsupportedOperationException.class, () -> JsonConnector.register(GooConnector.class, BadConnector.class));
         Assertions.assertAll(
                 () -> Assertions.assertThrows(
-                        JsonMappingException.class,
+                        JacksonException.class,
                         () -> mapper().readValue("{\"type\":\"goo\"}", JsonConnector.class)
                 ),
                 () -> Assertions.assertThrows(
-                        JsonMappingException.class,
+                        JacksonException.class,
                         () -> mapper().readValue("{\"type\":\"bad\"}", JsonConnector.class)
                 ),
                 () -> Assertions.assertEquals(Optional.empty(), JsonConnector.find("goo")),

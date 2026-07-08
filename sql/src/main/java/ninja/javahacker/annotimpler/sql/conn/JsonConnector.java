@@ -7,10 +7,8 @@ import lombok.NonNull;
 import lombok.experimental.Delegate;
 import lombok.experimental.PackagePrivate;
 
-import module com.fasterxml.jackson.core;
-import module com.fasterxml.jackson.databind;
-import module com.fasterxml.jackson.datatype.jdk8;
-import module com.fasterxml.jackson.module.paramnames;
+import module tools.jackson.core;
+import module tools.jackson.databind;
 import module java.base;
 
 /// JSON-serializable wrapper for any [Connector].
@@ -30,10 +28,9 @@ import module java.base;
 @JsonSerialize(using = JsonConnector.Serializer.class)
 public final class JsonConnector implements Connector {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper()
+    private static final JsonMapper MAPPER = JsonMapper.builder()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
-            .registerModule(new Jdk8Module())
-            .registerModule(new ParameterNamesModule());
+            .build();
 
     private static final Map<String, Class<? extends Connector>> REGISTERED_CLASSES;
     private static final Map<String, Class<? extends Connector>> STD_REGISTERED_CLASSES;
@@ -124,44 +121,42 @@ public final class JsonConnector implements Connector {
     }
 
     @PackagePrivate
-    static class Deserializer extends JsonDeserializer<JsonConnector> {
+    static class Deserializer extends ValueDeserializer<JsonConnector> {
 
         public Deserializer() {
         }
 
         @Override
-        public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) throws IOException {
+        public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) throws JacksonException {
             checkNotNull(jp); // Check recognized by lombok.
             checkNotNull(ctxt); // Check recognized by lombok.
             var tree = jp.readValueAsTree();
             if (!(tree instanceof ObjectNode)) throw new UnknownConnectorException("JSON does not contain a connector.");
             var copy = ((ObjectNode) tree).deepCopy();
-            var mapper = (ObjectMapper) jp.getCodec();
             var node = copy.get("type");
             if (node == null) throw new UnknownConnectorException("JSON has no type field.");
-            var type = node.asText();
+            var type = node.asString();
             copy.remove("type");
             var targetClass = find(type).orElseThrow(() -> new UnknownConnectorException("Unknown connector: \"" + type + "\"."));
-            var delegate = mapper.readValue(copy + "", targetClass);
+            var delegate = MAPPER.readValue(copy + "", targetClass);
             return new JsonConnector(delegate);
         }
     }
 
     @PackagePrivate
-    static class Serializer extends JsonSerializer<JsonConnector> {
+    static class Serializer extends ValueSerializer<JsonConnector> {
 
         public Serializer() {
         }
 
         @Override
-        public void serialize(@NonNull JsonConnector t, @NonNull JsonGenerator jg, @NonNull SerializerProvider sp) throws IOException {
+        public void serialize(@NonNull JsonConnector t, @NonNull JsonGenerator jg, @NonNull SerializationContext sp) throws JacksonException {
             checkNotNull(t); // Check recognized by lombok.
             checkNotNull(jg); // Check recognized by lombok.
             checkNotNull(sp); // Check recognized by lombok.
             var d = t.delegate;
             var c = d.getClass();
-            var mapper = (ObjectMapper) jg.getCodec();
-            var inner = mapper.writeValueAsString(d);
+            var inner = MAPPER.writeValueAsString(d);
             var annot = c.getAnnotation(ConnectorJsonKey.class);
             if (annot == null) throw new UnknownConnectorException("Untyped connector: \"" + c.getName() + "\".");
             var key = annot.value();
@@ -172,7 +167,7 @@ public final class JsonConnector implements Connector {
 
     /// Thrown when a JSON object refers to a connector type that is not registered in the
     /// global type registry.
-    public static class UnknownConnectorException extends IOException {
+    public static class UnknownConnectorException extends JacksonException {
 
         @Serial
         private static final long serialVersionUID = 1L;

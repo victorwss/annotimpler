@@ -6,11 +6,8 @@ open module ninja.javahacker.test.annotimpler.sql {
 
     requires transitive org.junit.jupiter.api;
     requires transitive org.junit.jupiter.params;
-    requires com.fasterxml.jackson.core;
-    requires com.fasterxml.jackson.databind;
-    requires com.fasterxml.jackson.datatype.jdk8;
-    requires com.fasterxml.jackson.datatype.jsr310;
-    requires com.fasterxml.jackson.module.paramnames;
+    requires tools.jackson.core;
+    requires tools.jackson.databind;
     requires org.xerial.sqlitejdbc;
     requires com.h2database;
     requires static lombok;

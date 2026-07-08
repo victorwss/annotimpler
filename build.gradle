@@ -27,11 +27,12 @@ def versionApiguardian = "1.1.2"
 def versionAsm         = "9.10.1"
 def versionCheckstyle  = "13.7.0"
 def versionFindSecBugs = "1.14.0"
-def versionJackson     = "2.19.4" // TODO: Jackson 3.
+def versionJackson     = "3.2.0"
+def versionJacksonAnn  = "2.22"
 def versionJaCoCo      = "0.8.15"
 def versionJcip        = "1.0-1"
 def versionJunit       = "6.1.1"
-def versionLombok      = "1.18.43" // TODO: Newer version.
+def versionLombok      = "1.18.47"
 def versionPmd         = "7.25.0"
 def versionSbContrib   = "7.7.4"
 def versionSpotBugs    = "4.10.2"
@@ -688,12 +689,9 @@ project(":sql") {
         api(project(":core"))
 
         // Jackson.
-        implementation("com.fasterxml.jackson.core:jackson-core:"                     + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-databind:"                 + versionJackson)
-        implementation("com.fasterxml.jackson.core:jackson-annotations:"              + versionJackson)
-        implementation("com.fasterxml.jackson.module:jackson-module-parameter-names:" + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:"      + versionJackson)
-        implementation("com.fasterxml.jackson.datatype:jackson-datatype-jdk8:"        + versionJackson)
+        implementation("tools.jackson.core:jackson-core:"     + versionJackson)
+        implementation("tools.jackson.core:jackson-databind:" + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:" + versionJacksonAnn)
 
         // H2.
         testImplementation("com.h2database:h2:" + versionH2)
