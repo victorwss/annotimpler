@@ -35,6 +35,7 @@ final class FloatAndDouble {
     /// @param in A finite `float` value (infinities and NaN are not accepted).
     /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
+    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(float in) {
         assertFloatOk(in);
         return normalize(Math.abs(in) >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Float.toString(in)));
@@ -50,6 +51,7 @@ final class FloatAndDouble {
     /// @param in A finite `double` value (infinities and NaN are not accepted).
     /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
+    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(double in) {
         assertDoubleOk(in);
         return normalize(Math.abs(in) >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Double.toString(in)));
@@ -64,6 +66,7 @@ final class FloatAndDouble {
     /// @throws ConvertionException If `in` is infinite or NaN.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
+    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target); // Check recognized by lombok.
         if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
@@ -81,6 +84,7 @@ final class FloatAndDouble {
     /// @throws ConvertionException If `in` is infinite or NaN.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
+    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(double in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target); // Check recognized by lombok.
         if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {

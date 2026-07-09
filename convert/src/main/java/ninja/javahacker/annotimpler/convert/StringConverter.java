@@ -28,36 +28,42 @@ public enum StringConverter implements Converter<String> {
         return String.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(boolean in) {
         return Optional.of(String.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(byte in) {
         return Optional.of(String.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(short in) {
         return Optional.of(String.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(int in) {
         return Optional.of(String.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(long in) {
         return Optional.of(String.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(float in) throws ConvertionException {
@@ -68,6 +74,7 @@ public enum StringConverter implements Converter<String> {
         return BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::toPlainString);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(double in) throws ConvertionException {
@@ -78,54 +85,63 @@ public enum StringConverter implements Converter<String> {
         return BigDecimalConverter.INSTANCE.from(in).map(BigDecimal::toPlainString);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull BigDecimal in) {
         return Optional.of(in.toPlainString());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalDate in) {
         return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalTime in) {
         return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull LocalDateTime in) {
         return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetTime in) {
         return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull OffsetDateTime in) {
         return Optional.of(MultiFormatters.YMD_DASH.format(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull String in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull byte[] in) {
         return Optional.of(new String(in, StandardCharsets.UTF_8));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull Blob in) throws ConvertionException {
@@ -136,6 +152,7 @@ public enum StringConverter implements Converter<String> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull Clob in) throws ConvertionException {
@@ -146,6 +163,7 @@ public enum StringConverter implements Converter<String> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull NClob in) throws ConvertionException {
@@ -156,6 +174,7 @@ public enum StringConverter implements Converter<String> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull SQLXML in) throws ConvertionException {
@@ -166,6 +185,7 @@ public enum StringConverter implements Converter<String> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<String> from(@NonNull RowId in) {

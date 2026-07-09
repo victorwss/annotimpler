@@ -40,30 +40,35 @@ public enum DoubleConverter implements Converter<Double> {
         return this == PRIMITIVE ? Optional.of(0.0) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(boolean in) {
         return Optional.of(in ? 1.0 : 0.0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(byte in) {
         return Optional.of((double) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(short in) {
         return Optional.of((double) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(int in) {
         return Optional.of((double) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(long in) throws ConvertionException {
@@ -72,6 +77,7 @@ public enum DoubleConverter implements Converter<Double> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     private Optional<Double> from(@NonNull Class<?> what, @NonNull BigDecimal in) throws ConvertionException {
         checkNotNull(what); // Check recognized by lombok.
@@ -81,6 +87,7 @@ public enum DoubleConverter implements Converter<Double> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(float in) throws ConvertionException {
@@ -91,18 +98,21 @@ public enum DoubleConverter implements Converter<Double> {
         return from(float.class, FloatAndDouble.makeBig(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(double in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(@NonNull BigDecimal in) throws ConvertionException {
         return from(BigDecimal.class, in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Double> from(@NonNull String in) throws ConvertionException {

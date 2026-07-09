@@ -36,24 +36,28 @@ public enum FloatConverter implements Converter<Float> {
         return this == PRIMITIVE ? Optional.of(0F) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(boolean in) {
         return Optional.of(in ? 1F : 0F);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(byte in) {
         return Optional.of((float) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(short in) {
         return Optional.of((float) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(int in) throws ConvertionException {
@@ -62,6 +66,7 @@ public enum FloatConverter implements Converter<Float> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(long in) throws ConvertionException {
@@ -70,6 +75,7 @@ public enum FloatConverter implements Converter<Float> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(float in) {
@@ -85,6 +91,7 @@ public enum FloatConverter implements Converter<Float> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(double in) throws ConvertionException {
@@ -95,12 +102,14 @@ public enum FloatConverter implements Converter<Float> {
         return from(double.class, FloatAndDouble.makeBig(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(@NonNull BigDecimal in) throws ConvertionException {
         return from(BigDecimal.class, in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Float> from(@NonNull String in) throws ConvertionException {

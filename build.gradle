@@ -262,6 +262,7 @@ subprojects {
     }
 
     pmd {
+        ruleSetFiles = files("${rootDir}/config/pmd-ruleset.xml")
         toolVersion = versionPmd
         ignoreFailures = true
     }

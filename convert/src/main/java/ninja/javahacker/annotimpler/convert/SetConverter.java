@@ -88,138 +88,161 @@ public final class SetConverter<E> implements Converter<Set<E>> {
         return Optional.of(Set.of());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(boolean in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(byte in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(short in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(int in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(long in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(float in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(double in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull BigDecimal in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull LocalDate in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull LocalTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull LocalDateTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull OffsetTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull OffsetDateTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull String in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull byte[] in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull Blob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull Clob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull NClob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull SQLXML in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull RowId in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Set<E>> from(@NonNull Ref in) throws ConvertionException {

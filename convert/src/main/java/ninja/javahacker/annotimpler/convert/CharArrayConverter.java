@@ -44,95 +44,53 @@ public enum CharArrayConverter implements Converter<char[]> {
     /// Returns `Optional.of(new char[0])` (an empty char array).
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
     public Optional<char[]> fromNull() {
         return Optional.of(new char[0]);
     }
 
-    /*@NonNull
-    @Override
-    public Optional<char[]> from(boolean in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(byte in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(short in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(int in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(long in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(float in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(double in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }
-
-    @NonNull
-    @Override
-    public Optional<char[]> from(@NonNull BigDecimal in) throws ConvertionException {
-        return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
-    }*/
-
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull String in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull byte[] in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull Blob in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull Clob in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull NClob in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull SQLXML in) throws ConvertionException {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<char[]> from(@NonNull RowId in) throws ConvertionException {

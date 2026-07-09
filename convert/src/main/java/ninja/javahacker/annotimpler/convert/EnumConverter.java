@@ -43,7 +43,6 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     /// Returns the enum class `E` that this converter targets.
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
     public Class<E> getType() {
         return enumClass;
     }
@@ -67,6 +66,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return Optional.of(enumClass.getEnumConstants()[in]);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(byte in) throws ConvertionException {
@@ -77,6 +77,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(short in) throws ConvertionException {
@@ -87,6 +88,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(int in) throws ConvertionException {
@@ -97,6 +99,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(long in) throws ConvertionException {
@@ -107,6 +110,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(float in) throws ConvertionException {
@@ -117,6 +121,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(double in) throws ConvertionException {
@@ -127,6 +132,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -153,12 +159,14 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(@NonNull String in) throws ConvertionException {
         return from(in, String.class);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(@NonNull Blob in) throws ConvertionException {
@@ -166,6 +174,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return from(assertPresentGet(a), Blob.class);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(@NonNull Clob in) throws ConvertionException {
@@ -173,6 +182,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         return from(assertPresentGet(a), Clob.class);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<E> from(@NonNull NClob in) throws ConvertionException {

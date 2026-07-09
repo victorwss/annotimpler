@@ -20,9 +20,16 @@ public enum BooleanConverter implements Converter<Boolean> {
     /// Targets `Boolean.class`.
     WRAPPER;
 
+    @NonNull
     private static final Set<String> FALSES = Set.of("false", "FALSE", "0", "-0");
+
+    @NonNull
     private static final Set<String> TRUES  = Set.of("true" , "TRUE" , "1");
+
+    @NonNull
     private static final Optional<Boolean> OPT_TRUE = Optional.of(Boolean.TRUE);
+
+    @NonNull
     private static final Optional<Boolean> OPT_FALSE = Optional.of(Boolean.FALSE);
 
     /// Returns `boolean.class` for [#PRIMITIVE] or `Boolean.class` for [#WRAPPER].
@@ -41,12 +48,14 @@ public enum BooleanConverter implements Converter<Boolean> {
         return this == PRIMITIVE ? OPT_FALSE : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(boolean in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(byte in) throws ConvertionException {
@@ -54,6 +63,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != (byte) 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(short in) throws ConvertionException {
@@ -61,6 +71,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != (short) 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(int in) throws ConvertionException {
@@ -68,6 +79,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(long in) throws ConvertionException {
@@ -75,6 +87,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != 0L);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(float in) throws ConvertionException {
@@ -82,6 +95,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != 0F);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(double in) throws ConvertionException {
@@ -89,6 +103,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         return Optional.of(in != 0D);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -97,6 +112,7 @@ public enum BooleanConverter implements Converter<Boolean> {
         throw new ConvertionException(BigDecimal.class, getType());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Boolean> from(@NonNull String in) throws ConvertionException {

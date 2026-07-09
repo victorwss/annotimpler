@@ -22,6 +22,7 @@ public enum RowIdConverter implements Converter<RowId> {
         return RowId.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<RowId> from(@NonNull RowId in) {

@@ -27,30 +27,35 @@ public enum LocalTimeConverter implements Converter<LocalTime> {
         return LocalTime.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalTime> from(@NonNull LocalTime in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalTime> from(@NonNull LocalDateTime in) {
         return Optional.of(in.toLocalTime());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalTime> from(@NonNull OffsetTime in) {
         return Optional.of(in.toLocalTime());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalTime> from(@NonNull OffsetDateTime in) {
         return Optional.of(in.toLocalTime());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalTime> from(@NonNull String in) throws ConvertionException {

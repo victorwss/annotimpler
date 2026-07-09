@@ -78,7 +78,6 @@ public interface StdConverterFactory extends ConverterFactory {
     ///
     /// @return The map of [Class] to [Converter] for all pre-registered types.
     @NonNull
-    @SuppressWarnings("element-type-mismatch")
     public static Map<Class<?>, Converter<?>> rootMap() {
         return INSTANCE.directMappings();
     }
@@ -151,8 +150,8 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Returns a typed converter for the given generic array type.
     ///
-    ///The default implementation does not supports this operation and always throws an
-    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    /// The default implementation does not supports this operation and always throws an
+    /// [UnavailableConverterException], but overriden implementations may do otherwise.
     ///
     /// @param t The generic array type.
     /// @return A [Converter] typed to the given type.
@@ -165,8 +164,8 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Returns a typed converter for the given wildcard type.
     ///
-    ///The default implementation does not supports this operation and always throws an
-    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    /// The default implementation does not supports this operation and always throws an
+    /// [UnavailableConverterException], but overriden implementations may do otherwise.
     ///
     /// @param t The wildcard type.
     /// @return A [Converter] typed to the given type.
@@ -179,8 +178,8 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Returns a typed converter for the given type variable.
     ///
-    ///The default implementation does not supports this operation and always throws an
-    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    /// The default implementation does not supports this operation and always throws an
+    /// [UnavailableConverterException], but overriden implementations may do otherwise.
     ///
     /// @param t The type variable.
     /// @return A [Converter] typed to the given type.
@@ -222,7 +221,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Creates a converter for the given class if it is a non-multidimensional array class.
     ///
-    ///The default implementation always returns a [ArrayConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [ArrayConverter], but overriden implementations may do otherwise.
     ///
     /// @param <E> The array type.
     /// @param klass The class to inspect.
@@ -240,7 +239,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Creates a converter for the given class if it is an enum class.
     ///
-    ///The default implementation always returns a [EnumConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [EnumConverter], but overriden implementations may do otherwise.
     ///
     /// @param <E> The enum type.
     /// @param klass The class to inspect.
@@ -257,7 +256,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Creates a converter for the given class if it is a record class.
     ///
-    ///The default implementation always returns a [RecordConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [RecordConverter], but overriden implementations may do otherwise.
     ///
     /// @param <E> The record type.
     /// @param klass The class to inspect.
@@ -289,7 +288,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// If `p` is `Collection<X>` for some concrete class `X`, creates a converter.
     ///
-    ///The default implementation always returns a [CollectionConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [CollectionConverter], but overriden implementations may do otherwise.
     ///
     /// @param p The parameterized type to inspect.
     /// @return An optional converter for `p`; empty if `p` is not `Collection<X>`.
@@ -310,7 +309,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// If `p` is `Set<X>` for some concrete class `X`, creates a converter.
     ///
-    ///The default implementation always returns a [SetConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [SetConverter], but overriden implementations may do otherwise.
     ///
     /// @param p The parameterized type to inspect.
     /// @return An optional converter for `p`; empty if `p` is not `Set<X>`.
@@ -331,7 +330,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// If `p` is `List<X>` for some concrete class `X`, creates a converter.
     ///
-    ///The default implementation always returns a [ListConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [ListConverter], but overriden implementations may do otherwise.
     ///
     /// @param p The parameterized type to inspect.
     /// @return An optional converter for `p`; empty if `p` is not `List<X>`.
@@ -352,7 +351,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// If `p` is `Optional<X>` for some concrete class `X`, creates a converter.
     ///
-    ///The default implementation always returns a [OptionalConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns a [OptionalConverter], but overriden implementations may do otherwise.
     ///
     /// @param p The parameterized type to inspect.
     /// @return An optional converter for `p`; empty if `p` is not `Optional<X>`.

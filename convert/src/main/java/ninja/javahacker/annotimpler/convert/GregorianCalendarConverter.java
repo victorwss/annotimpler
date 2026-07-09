@@ -41,21 +41,25 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
         return GregorianCalendar.class;
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<GregorianCalendar> from(@NonNull LocalDate in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<GregorianCalendar> from(@NonNull LocalDateTime in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<GregorianCalendar> from(@NonNull OffsetDateTime in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<GregorianCalendar> from(@NonNull String in) throws ConvertionException {
         return rewrap(() -> ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from));

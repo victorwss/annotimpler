@@ -37,30 +37,35 @@ public enum LongConverter implements Converter<Long> {
         return this == PRIMITIVE ? Optional.of(0L) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(boolean in) {
         return Optional.of(in ? 1L : 0L);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(byte in) {
         return Optional.of((long) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(short in) {
         return Optional.of((long) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(int in) {
         return Optional.of((long) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(long in) {
@@ -78,24 +83,28 @@ public enum LongConverter implements Converter<Long> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(float in) throws ConvertionException {
         return from(float.class, FloatAndDouble.makeBig(in, getType()));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(double in) throws ConvertionException {
         return from(double.class, FloatAndDouble.makeBig(in, getType()));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(@NonNull BigDecimal in) throws ConvertionException {
         return from(BigDecimal.class, in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Long> from(@NonNull String in) throws ConvertionException {

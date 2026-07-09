@@ -42,30 +42,35 @@ public enum SqlTimeConverter implements Converter<Time> {
         return Time.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Time> from(@NonNull LocalTime in) {
         return Optional.of(Time.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Time> from(@NonNull LocalDateTime in) {
         return LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Time> from(@NonNull OffsetTime in) {
         return LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Time> from(@NonNull OffsetDateTime in) {
         return LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Time> from(@NonNull String in) throws ConvertionException {

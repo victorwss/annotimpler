@@ -150,7 +150,12 @@ public final class JsonConnector implements Connector {
         }
 
         @Override
-        public void serialize(@NonNull JsonConnector t, @NonNull JsonGenerator jg, @NonNull SerializationContext sp) throws JacksonException {
+        public void serialize(
+                @NonNull JsonConnector t,
+                @NonNull JsonGenerator jg,
+                @NonNull SerializationContext sp)
+                throws JacksonException
+        {
             checkNotNull(t); // Check recognized by lombok.
             checkNotNull(jg); // Check recognized by lombok.
             checkNotNull(sp); // Check recognized by lombok.
@@ -167,7 +172,7 @@ public final class JsonConnector implements Connector {
 
     /// Thrown when a JSON object refers to a connector type that is not registered in the
     /// global type registry.
-    public static class UnknownConnectorException extends JacksonException {
+    public static class UnknownConnectorException extends RuntimeException {
 
         @Serial
         private static final long serialVersionUID = 1L;

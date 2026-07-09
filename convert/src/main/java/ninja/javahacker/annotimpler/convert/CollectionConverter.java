@@ -88,138 +88,161 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
         return Optional.of(List.of());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(boolean in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(byte in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(short in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(int in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(long in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(float in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(double in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull BigDecimal in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalDate in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull LocalDateTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull OffsetTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull OffsetDateTime in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull String in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull byte[] in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Blob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Clob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull NClob in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull SQLXML in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull RowId in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull java.sql.Array in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Struct in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Collection<E>> from(@NonNull Ref in) throws ConvertionException {

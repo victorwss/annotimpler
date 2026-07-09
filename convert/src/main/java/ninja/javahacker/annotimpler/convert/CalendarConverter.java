@@ -22,6 +22,7 @@ public enum CalendarConverter implements Converter<Calendar> {
         public Optional<Calendar> work() throws ConvertionException;
     }
 
+    /// {@inheritDoc}
     @NonNull
     private Optional<Calendar> rewrap(@NonNull Work w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
@@ -41,21 +42,25 @@ public enum CalendarConverter implements Converter<Calendar> {
         return Calendar.class;
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<Calendar> from(@NonNull LocalDate in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<Calendar> from(@NonNull LocalDateTime in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<Calendar> from(@NonNull OffsetDateTime in) {
         return ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<Calendar> from(@NonNull String in) throws ConvertionException {
         return rewrap(() -> ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from));

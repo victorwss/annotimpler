@@ -37,18 +37,21 @@ public enum ByteConverter implements Converter<Byte> {
         return this == PRIMITIVE ? Optional.of((byte) 0) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(boolean in) {
         return Optional.of(in ? (byte) 1 : (byte) 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(byte in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(short in) throws ConvertionException {
@@ -57,6 +60,7 @@ public enum ByteConverter implements Converter<Byte> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(int in) throws ConvertionException {
@@ -65,6 +69,7 @@ public enum ByteConverter implements Converter<Byte> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(long in) throws ConvertionException {
@@ -73,6 +78,7 @@ public enum ByteConverter implements Converter<Byte> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -82,6 +88,7 @@ public enum ByteConverter implements Converter<Byte> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -91,6 +98,7 @@ public enum ByteConverter implements Converter<Byte> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -101,6 +109,7 @@ public enum ByteConverter implements Converter<Byte> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Byte> from(@NonNull String in) throws ConvertionException {

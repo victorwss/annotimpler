@@ -26,24 +26,28 @@ public enum LocalDateConverter implements Converter<LocalDate> {
         return LocalDate.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalDate> from(@NonNull LocalDate in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalDate> from(@NonNull LocalDateTime in) {
         return Optional.of(in.toLocalDate());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalDate> from(@NonNull OffsetDateTime in) {
         return Optional.of(in.toLocalDate());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<LocalDate> from(@NonNull String in) throws ConvertionException {

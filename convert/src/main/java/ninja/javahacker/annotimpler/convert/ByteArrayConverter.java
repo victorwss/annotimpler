@@ -29,65 +29,39 @@ public enum ByteArrayConverter implements Converter<byte[]> {
     /// Returns `Optional.of(new byte[0])` (an empty byte array).
     @NonNull
     @Override
-    @SuppressWarnings("unchecked")
     public Optional<byte[]> fromNull() {
         return Optional.of(new byte[0]);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(boolean in) {
         return Optional.of(new byte[] {in ? (byte) 1 : (byte) 0});
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(byte in) {
         return Optional.of(new byte[] {in});
     }
 
-    /*@NonNull
-    @Override
-    public Optional<byte[]> from(short in) {
-        return Optional.of(ByteBuffer.allocate(2).putShort(in).array());
-    }
-
-    @NonNull
-    @Override
-    public Optional<byte[]> from(int in) {
-        return Optional.of(ByteBuffer.allocate(4).putInt(in).array());
-    }
-
-    @NonNull
-    @Override
-    public Optional<byte[]> from(long in) {
-        return Optional.of(ByteBuffer.allocate(8).putLong(in).array());
-    }
-
-    @NonNull
-    @Override
-    public Optional<byte[]> from(float in) {
-        return Optional.of(ByteBuffer.allocate(4).putFloat(in).array());
-    }
-
-    @NonNull
-    @Override
-    public Optional<byte[]> from(double in) {
-        return Optional.of(ByteBuffer.allocate(8).putDouble(in).array());
-    }*/
-
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull String in) {
         return Optional.of(in.getBytes(StandardCharsets.UTF_8));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull byte[] in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull Blob in) throws ConvertionException {
@@ -98,6 +72,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull Clob in) throws ConvertionException {
@@ -108,6 +83,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull NClob in) throws ConvertionException {
@@ -118,6 +94,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull SQLXML in) throws ConvertionException {
@@ -128,6 +105,7 @@ public enum ByteArrayConverter implements Converter<byte[]> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<byte[]> from(@NonNull RowId in) {

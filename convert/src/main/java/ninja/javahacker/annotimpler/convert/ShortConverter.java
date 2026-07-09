@@ -37,24 +37,28 @@ public enum ShortConverter implements Converter<Short> {
         return this == PRIMITIVE ? Optional.of((short) 0) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(boolean in) {
         return Optional.of(in ? (short) 1 : (short) 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(byte in) {
         return Optional.of((short) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(short in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(int in) throws ConvertionException {
@@ -63,6 +67,7 @@ public enum ShortConverter implements Converter<Short> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(long in) throws ConvertionException {
@@ -71,6 +76,7 @@ public enum ShortConverter implements Converter<Short> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -80,6 +86,7 @@ public enum ShortConverter implements Converter<Short> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -89,6 +96,7 @@ public enum ShortConverter implements Converter<Short> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -99,6 +107,7 @@ public enum ShortConverter implements Converter<Short> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Short> from(@NonNull String in) throws ConvertionException {

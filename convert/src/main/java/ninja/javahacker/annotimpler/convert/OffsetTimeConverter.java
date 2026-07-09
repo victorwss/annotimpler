@@ -27,30 +27,35 @@ public enum OffsetTimeConverter implements Converter<OffsetTime> {
         return OffsetTime.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OffsetTime> from(@NonNull LocalTime in) {
         return Optional.of(in.atOffset(ZoneOffset.UTC));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OffsetTime> from(@NonNull LocalDateTime in) {
         return Optional.of(in.atOffset(ZoneOffset.UTC).toOffsetTime());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OffsetTime> from(@NonNull OffsetTime in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OffsetTime> from(@NonNull OffsetDateTime in) {
         return Optional.of(in.toOffsetTime());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OffsetTime> from(@NonNull String in) throws ConvertionException {

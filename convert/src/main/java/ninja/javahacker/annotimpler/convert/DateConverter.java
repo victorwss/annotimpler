@@ -42,24 +42,28 @@ public enum DateConverter implements Converter<Date> {
         return Date.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Date> from(@NonNull LocalDate in) {
         return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Date> from(@NonNull LocalDateTime in) {
         return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Date> from(@NonNull OffsetDateTime in) {
         return InstantConverter.INSTANCE.from(in).map(Date::from);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Date> from(@NonNull String in) throws ConvertionException {

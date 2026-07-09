@@ -38,30 +38,35 @@ public enum IntegerConverter implements Converter<Integer> {
         return this == PRIMITIVE ? Optional.of(0) : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(boolean in) {
         return Optional.of(in ? 1 : 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(byte in) {
         return Optional.of((int) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(short in) {
         return Optional.of((int) in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(int in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(long in) throws ConvertionException {
@@ -81,12 +86,14 @@ public enum IntegerConverter implements Converter<Integer> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(float in) throws ConvertionException {
         return from(float.class, FloatAndDouble.makeBig(in, getType()));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -96,12 +103,14 @@ public enum IntegerConverter implements Converter<Integer> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(@NonNull BigDecimal in) throws ConvertionException {
         return from(BigDecimal.class, in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Integer> from(@NonNull String in) throws ConvertionException {

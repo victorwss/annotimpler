@@ -37,12 +37,14 @@ public enum CharacterConverter implements Converter<Character> {
         return this == PRIMITIVE ? Optional.of('\0') : Optional.empty();
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(boolean in) {
         return Optional.of(in ? (char) 1 : (char) 0);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(byte in) throws ConvertionException {
@@ -51,6 +53,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(short in) throws ConvertionException {
@@ -59,6 +62,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(int in) throws ConvertionException {
@@ -67,6 +71,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(long in) throws ConvertionException {
@@ -75,6 +80,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -84,6 +90,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     @SuppressFBWarnings("FE_FLOATING_POINT_EQUALITY")
@@ -93,6 +100,7 @@ public enum CharacterConverter implements Converter<Character> {
         return Optional.of(a);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -106,6 +114,7 @@ public enum CharacterConverter implements Converter<Character> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Character> from(@NonNull String in) throws ConvertionException {

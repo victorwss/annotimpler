@@ -22,6 +22,7 @@ public enum RefConverter implements Converter<Ref> {
         return Ref.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Ref> from(@NonNull Ref in) {

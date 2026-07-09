@@ -27,24 +27,28 @@ public enum InstantConverter implements Converter<Instant> {
         return Instant.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Instant> from(@NonNull LocalDate in) {
         return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Instant> from(@NonNull LocalDateTime in) {
         return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Instant> from(@NonNull OffsetDateTime in) {
         return OffsetDateTimeConverter.INSTANCE.from(in).map(OffsetDateTime::toInstant);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Instant> from(@NonNull String in) throws ConvertionException {

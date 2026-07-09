@@ -25,36 +25,42 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
         return BigInteger.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(boolean in) {
         return Optional.of(in ? BigInteger.ONE : BigInteger.ZERO);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(byte in) {
         return Optional.of(BigInteger.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(short in) {
         return Optional.of(BigInteger.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(int in) {
         return Optional.of(BigInteger.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(long in) {
         return Optional.of(BigInteger.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(float in) throws ConvertionException {
@@ -68,6 +74,7 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(double in) throws ConvertionException {
@@ -81,6 +88,7 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(@NonNull BigDecimal in) throws ConvertionException {
@@ -91,6 +99,7 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigInteger> from(@NonNull String in) throws ConvertionException {

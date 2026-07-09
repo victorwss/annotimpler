@@ -42,24 +42,28 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
         return Timestamp.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Timestamp> from(@NonNull LocalDate in) {
         return LocalDateTimeConverter.INSTANCE.from(in).map(Timestamp::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Timestamp> from(@NonNull LocalDateTime in) {
         return LocalDateTimeConverter.INSTANCE.from(in).map(Timestamp::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Timestamp> from(@NonNull OffsetDateTime in) {
         return LocalDateTimeConverter.INSTANCE.from(in).map(Timestamp::valueOf);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Timestamp> from(@NonNull String in) throws ConvertionException {

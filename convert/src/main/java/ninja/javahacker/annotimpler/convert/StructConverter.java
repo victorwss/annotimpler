@@ -22,6 +22,7 @@ public enum StructConverter implements Converter<Struct> {
         return Struct.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<Struct> from(@NonNull Struct in) {

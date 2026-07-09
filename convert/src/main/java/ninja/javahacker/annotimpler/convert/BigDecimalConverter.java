@@ -25,54 +25,63 @@ public enum BigDecimalConverter implements Converter<BigDecimal> {
         return BigDecimal.class;
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(boolean in) {
         return Optional.of(in ? BigDecimal.ONE : BigDecimal.ZERO);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(byte in) {
         return Optional.of(BigDecimal.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(short in) {
         return Optional.of(BigDecimal.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(int in) {
         return Optional.of(BigDecimal.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(long in) {
         return Optional.of(BigDecimal.valueOf(in));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(float in) throws ConvertionException {
         return Optional.of(FloatAndDouble.makeBig(in, getType()));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(double in) throws ConvertionException {
         return Optional.of(FloatAndDouble.makeBig(in, getType()));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(@NonNull BigDecimal in) {
         return Optional.of(in);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<BigDecimal> from(@NonNull String in) throws ConvertionException {

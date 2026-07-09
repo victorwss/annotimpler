@@ -51,54 +51,63 @@ public enum OptionalLongConverter implements Converter<OptionalLong> {
         return Optional.of(OptionalLong.empty());
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(boolean in) {
         return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(byte in) {
         return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(short in) {
         return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(int in) {
         return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(long in) {
         return LongConverter.WRAPPER.from(in).map(OptionalLong::of);
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(float in) throws ConvertionException {
         return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(double in) throws ConvertionException {
         return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(@NonNull BigDecimal in) throws ConvertionException {
         return rewrap(() -> LongConverter.WRAPPER.from(in).map(OptionalLong::of));
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<OptionalLong> from(@NonNull String in) throws ConvertionException {
