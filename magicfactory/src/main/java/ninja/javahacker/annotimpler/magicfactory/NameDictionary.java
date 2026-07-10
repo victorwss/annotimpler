@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -22,26 +23,39 @@ import module java.base;
 /// per-class dictionary is built lazily under a `synchronized` lock.
 public final class NameDictionary {
 
+    /// The default global instance. Can be used as a singleton, although additional instances can be created.
     @NonNull
     private static final NameDictionary GLOBAL_INSTANCE = new NameDictionary();
 
+    /// The synchronization lock for mutating this instance.
     @NonNull
-    private final Object lock;
+    private final ReentrantLock lock;
 
+    /// The set of subdictionaries for each class.
     @NonNull
     private final Map<Class<?>, ClassDictionary<?>> map;
 
-    /// Creates a new, empty `NameDictionary`. Per-class dictionaries are built lazily on
-    /// first access.
+    /*
+    /// The set of partial subdictionaries, used for locking without blocking when not needed.
+    @NonNull
+    private final Set<Class<?>> partial;
+    */
+
+    /// Creates a new, empty `NameDictionary`. Per-class dictionaries are built lazily on first access.
     public NameDictionary() {
-        this.lock = new Object();
+        this.lock = new ReentrantLock();
         this.map = new HashMap<>(10);
+        //this.partial = new HashSet<>(10);
     }
 
+    /// Internal dictionary representing a single class.
     private static final class ClassDictionary<T> {
+
+        /// The class represented.
         @NonNull
         private final Class<T> klass;
 
+        /// 
         @NonNull
         private final Set<Class<?>> seen;
 
@@ -51,6 +65,7 @@ public final class NameDictionary {
         @NonNull
         private final Map<String, Class<?>> simpleNamesSeen;
 
+        @SuppressFBWarnings("FII_USE_FUNCTION_IDENTITY") // Can't use Function.identity() without making a mess with generics.
         private ClassDictionary(@NonNull Class<T> k) {
             checkNotNull(k); // Check recognized by lombok.
             this.klass = k;
@@ -169,6 +184,28 @@ public final class NameDictionary {
             TypeName.formatType(type, fullNameNeeded, sb);
         }
 
+        private void appendTypeParameters(@NonNull Executable what, @NonNull StringBuilder sb) {
+            checkNotNull(what); // Check recognized by lombok.
+            checkNotNull(sb); // Check recognized by lombok.
+            sb.append('<');
+            var typeParams = what.getTypeParameters();
+            for (var i = 0; i < typeParams.length; i++) {
+                if (i > 0) sb.append(", ");
+                sb.append(typeParams[i].getName());
+                var bounds = typeParams[i].getBounds();
+                assertNonZero(bounds.length);
+                var s = (bounds[0] == Object.class) ? 1 : 0;
+                if (bounds.length - s > 0) {
+                    sb.append(" extends ");
+                    for (var j = s; j < bounds.length; j++) {
+                        if (j > s) sb.append(" & ");
+                        formatType(bounds[j], sb);
+                    }
+                }
+            }
+            sb.append("> ");
+        }
+
         @NonNull
         private String getSimplifiedGenericString(@NonNull Executable what, boolean withClassName) {
             checkNotNull(what); // Check recognized by lombok.
@@ -181,37 +218,16 @@ public final class NameDictionary {
             }
 
             // Type parameters.
-            if (what.getTypeParameters().length > 0) {
-                sb.append('<');
-                var typeParams = what.getTypeParameters();
-                for (var i = 0; i < typeParams.length; i++) {
-                    if (i > 0) sb.append(", ");
-                    sb.append(typeParams[i].getName());
-                    var bounds = typeParams[i].getBounds();
-                    assertNonZero(bounds.length);
-                    var s = (bounds[0] == Object.class) ? 1 : 0;
-                    if (bounds.length - s > 0) {
-                        sb.append(" extends ");
-                        for (var j = s; j < bounds.length; j++) {
-                            if (j > s) sb.append(" & ");
-                            formatType(bounds[j], sb);
-                        }
-                    }
-                }
-                sb.append("> ");
-            }
+            if (what.getTypeParameters().length > 0) appendTypeParameters(what, sb);
 
             // Return type.
             formatType(Methods.getReturnType(what), sb);
 
+            // Add the class name and method name if needed.
             if (what instanceof Method) {
-                sb.append(' ');
-
-                // Class name.
-                sb.append(what.getDeclaringClass().getSimpleName()).append('.');
-
-                // Method name.
-                sb.append(what.getName());
+                var className = what.getDeclaringClass().getSimpleName();
+                var methodName = what.getName();
+                sb.append(' ').append(className).append('.').append(methodName);
             }
 
             // Parameters.
@@ -239,12 +255,9 @@ public final class NameDictionary {
 
             // Class name.
             formatType(field.getDeclaringClass(), sb);
-            sb.append('.');
 
-            // Method name.
-            sb.append(field.getName());
-
-            return sb.toString();
+            // Method name and return.
+            return sb.append('.').append(field.getName()).toString();
         }
     }
 
@@ -252,12 +265,15 @@ public final class NameDictionary {
     @SuppressWarnings("unchecked")
     private <T> ClassDictionary<T> getFor(@NonNull Class<T> klass) {
         checkNotNull(klass); // Check recognized by lombok.
-        synchronized (lock) {
+        try {
+            lock.lock();
             var d = (ClassDictionary<T>) map.get(klass);
             if (d != null) return d;
             d = new ClassDictionary<>(klass); // TODO: Slow inside synchronized!
             map.put(klass, d);
             return d;
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -299,6 +315,25 @@ public final class NameDictionary {
     @NonNull
     public static NameDictionary global() {
         return GLOBAL_INSTANCE;
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public int hashCode() {
+        return System.identityHashCode(this);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    public boolean equals(@Nullable Object other) {
+        return other == this;
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return "NameDictionary";
     }
 
     @Generated

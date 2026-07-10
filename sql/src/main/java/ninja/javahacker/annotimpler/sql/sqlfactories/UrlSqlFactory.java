@@ -11,7 +11,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// [SqlFromUrl]-annotated method.
 /// The download strategy (eager, lazy, etc.) is controlled by [SqlFromUrl#policy()].
 /// Character encoding is detected from the HTTP `Content-Type` response header when
-/// [SqlFromUrl#getEncodingFromHeaders()] is `true`; otherwise the [SqlFromUrl#fallbackEncoding()] is used.
+/// [SqlFromUrl#readEncodingFromHeaders()] is `true`; otherwise the [SqlFromUrl#fallbackEncoding()] is used.
 @SuppressFBWarnings({"ENMI_ONE_ENUM_VALUE", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})
 public enum UrlSqlFactory implements SqlFactory {
 
@@ -57,7 +57,7 @@ public enum UrlSqlFactory implements SqlFactory {
             var contentType = response.headers().firstValue("Content-Type").orElse("charset=UTF-8");
             var idx = contentType.indexOf(key);
             CharsetSpec spec;
-            if (idx >= 0 && anno.getEncodingFromHeaders()) {
+            if (idx >= 0 && anno.readEncodingFromHeaders()) {
                 var charsetName = contentType.substring(idx + key.length());
                 var charset = Charset.forName(charsetName);
                 spec = () -> charset;

@@ -19,16 +19,23 @@ import module java.base;
 /// @see KeyProperty
 public final class PropertyBag {
 
+    /// Initial instance containing an empty set of properties.
     @NonNull
     private static final PropertyBag ROOT_INSTANCE = new PropertyBag();
 
+    /// The properties inside this [PropertyBag].
     @NonNull
     private final Map<KeyProperty<?>, Object> properties;
 
+    /// Initial constructor containing an empty set of properties.
     private PropertyBag() {
         this.properties = Map.of();
     }
 
+    /// Creates an instance with the given set of properties.
+    ///
+    /// @param properties The set of properties for this instance.
+    /// @throws IllegalArgumentException If `properties` is `null`.
     private PropertyBag(@NonNull Map<KeyProperty<?>, Object> properties) {
         checkNotNull(properties); // Check recognized by lombok.
         this.properties = Map.copyOf(properties);
@@ -128,6 +135,7 @@ public final class PropertyBag {
         @Serial
         private static final long serialVersionUID = 1L;
 
+        /// The key that was not found.
         @NonNull
         private final KeyProperty<?> property;
 
@@ -155,9 +163,11 @@ public final class PropertyBag {
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
         @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
         })
         protected final void finalize() {
+            // Do nothing.
         }
     }
 
@@ -167,6 +177,7 @@ public final class PropertyBag {
         @Serial
         private static final long serialVersionUID = 1L;
 
+        /// The key whose value type was violated.
         @NonNull
         private final KeyProperty<?> property;
 
@@ -194,9 +205,11 @@ public final class PropertyBag {
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
         @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
         })
         protected final void finalize() {
+            // Do nothing.
         }
     }
 

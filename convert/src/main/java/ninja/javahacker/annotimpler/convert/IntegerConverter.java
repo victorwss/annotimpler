@@ -14,6 +14,7 @@ import module java.base;
 /// Supported conversions: `boolean`, `byte`, `short`, `int`, `long` (range check),
 /// `float` (via [BigDecimal] exact), `double` (range check), [BigDecimal] (exact),
 /// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
+@SuppressFBWarnings("OI_OPTIONAL_ISSUES_PRIMITIVE_VARIANT_PREFERRED")
 public enum IntegerConverter implements Converter<Integer> {
 
     /// Targets `int.class`.

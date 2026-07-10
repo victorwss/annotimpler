@@ -21,6 +21,13 @@ public record SqlServerConnector(
         @NonNull String database
 ) implements Connector.MandatoryAuthConnector<SqlServerConnector>, Connector.HostConnector<SqlServerConnector>
 {
+
+    /// The standard TCP port for SQL Server (1433).
+    public static final int STD_PORT = 1433;
+
+    /// Standard partially configured instance filled with default values to act as the base of a builder.
+    private static final SqlServerConnector STD = new SqlServerConnector("localhost", STD_PORT, "admin", "admin", "");
+
     /// Creates a `SqlServerConnector` with the given connection parameters.
     ///
     /// @param host The database server hostname or IP address.
@@ -30,11 +37,6 @@ public record SqlServerConnector(
     /// @param database The name of the database to connect to.
     /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
     public SqlServerConnector {}
-
-    /// The standard TCP port for SQL Server (1433).
-    public static final int STD_PORT = 1433;
-
-    private static final SqlServerConnector STD = new SqlServerConnector("localhost", STD_PORT, "admin", "admin", "");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

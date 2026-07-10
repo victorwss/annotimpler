@@ -14,6 +14,7 @@ public class UnavailableConverterException extends Exception {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /// The type for which no converter is available.
     @NonNull
     private final Type root;
 
@@ -72,8 +73,10 @@ public class UnavailableConverterException extends Exception {
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
     @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+        "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
     })
     protected final void finalize() {
+        // Do nothing.
     }
 }

@@ -56,7 +56,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     }
 
     @FunctionalInterface
-    private interface Work<E> {
+    private interface InternalWork<E> {
 
         @NonNull
         public Optional<E> work() throws ConvertionException;
@@ -76,7 +76,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     }
 
     @NonNull
-    private Optional<Set<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+    private Optional<Set<E>> wrap(@NonNull InternalWork<E> e) throws ConvertionException {
         checkNotNull(e);
         return e.rework(baseType);
     }

@@ -1,5 +1,5 @@
 plugins {
-    id("com.github.spotbugs") version "6.0.22"
+    id("com.github.spotbugs") version "6.5.8"
     id("java-library")
     id("maven-publish")
     id("checkstyle")
@@ -13,7 +13,7 @@ plugins {
 
 allprojects {
     group = "ninja.javahacker.annotimpler"
-    version = "1.0.0-2026.07.03"
+    version = "1.0.0-2026.07.10"
 }
 
 def repoVar = System.getenv("maven.repo.local")
@@ -33,7 +33,7 @@ def versionJaCoCo      = "0.8.15"
 def versionJcip        = "1.0-1"
 def versionJunit       = "6.1.1"
 def versionLombok      = "1.18.47"
-def versionPmd         = "7.25.0"
+def versionPmd         = "7.26.0"
 def versionSbContrib   = "7.7.4"
 def versionSpotBugs    = "4.10.2"
 def versionSlf4j       = "2.0.18"
@@ -364,7 +364,7 @@ tasks.register("allJavadoc") {
     dependsOn(subprojects.collect { it.tasks.named("prepareJavadocSource") })
     group = "documentation"
     description = "Generates unified Javadoc for all modules."
-    def outputDir   = file("${buildDir}/docs/javadoc")
+    def outputDir    = file("${buildDir}/docs/javadoc")
     def mergedSrcDir = file("${buildDir}/all-javadoc-src")
     outputs.dir(outputDir)
 
@@ -385,8 +385,10 @@ tasks.register("allJavadoc") {
             // Place each module's source under <mergedSrcDir>/<moduleName>/ so that
             // javadoc --module-source-path <mergedSrcDir> can find them by module name.
             project.copy { from srcDir; into new File(mergedSrcDir, moduleName) }
-            try { allModulePaths.addAll(sp.configurations.compileClasspath.files) }
-            catch (Exception ignored) {}
+            try {
+                allModulePaths.addAll(sp.configurations.compileClasspath.files)
+            } catch (Exception ignored) {
+            }
         }
 
         def cmd = [org.gradle.internal.jvm.Jvm.current().javadocExecutable.absolutePath]
@@ -395,14 +397,15 @@ tasks.register("allJavadoc") {
         if (!allModulePaths.isEmpty()) {
             cmd += ["--module-path", allModulePaths*.absolutePath.join(File.pathSeparator)]
         }
-        cmd += ["-d",           outputDir.absolutePath]
-        cmd += ["-encoding",    "UTF-8", "-charset", "UTF-8", "-docencoding", "UTF-8"]
-        cmd += ["-doctitle",    "Annotimpler API", "-windowtitle", "Annotimpler API"]
-        cmd += ["-header",      "<b>Annotimpler</b>"]
+        cmd += ["-d", outputDir.absolutePath]
+        cmd += ["-encoding", "UTF-8", "-charset", "UTF-8", "-docencoding", "UTF-8"]
+        cmd += ["-doctitle", "Annotimpler API", "-windowtitle", "Annotimpler API"]
+        cmd += ["-header", "<b>Annotimpler</b>"]
         cmd += ["-html5"]
         cmd += ["-tag", "apiNote:a:API Note:",
                 "-tag", "implSpec:a:Implementation Requirements:",
-                "-tag", "implNote:a:Implementation Note:"]
+                "-tag", "implNote:a:Implementation Note:"
+                ]
         cmd += [doclint ? "-Xdoclint:all" : "-Xdoclint:none"]
         cmd += ["-Xmaxerrs", "1000", "-Xmaxwarns", "1000"]
 

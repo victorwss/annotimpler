@@ -36,7 +36,7 @@ public class ReadPolicyThreadingTest {
     @Timeout(5)
     public void testOnFirstTimeThatWorksReadsGloballyOnce() throws Exception {
         var callCount = new AtomicInteger(0);
-        ReadPolicy.Impl<String> impl = input -> {
+        ReadPolicy.StringExtractor<String> impl = input -> {
             callCount.incrementAndGet();
             return "SELECT " + input;
         };
@@ -77,7 +77,7 @@ public class ReadPolicyThreadingTest {
     public void testOnFirstTimeThatWorksFailureDoesNotCache() throws Exception {
         var callCount = new AtomicInteger(0);
         var shouldFail = new AtomicBoolean(true);
-        ReadPolicy.Impl<String> impl = input -> {
+        ReadPolicy.StringExtractor<String> impl = input -> {
             callCount.incrementAndGet();
             if (shouldFail.get()) throw new IOException("Simulated failure");
             return "SELECT " + input;
@@ -148,7 +148,7 @@ public class ReadPolicyThreadingTest {
     @Timeout(5)
     public void testOnFirstTimeDontRetryReadsGloballyOnce() throws Exception {
         var callCount = new AtomicInteger(0);
-        ReadPolicy.Impl<String> impl = input -> {
+        ReadPolicy.StringExtractor<String> impl = input -> {
             callCount.incrementAndGet();
             return "SELECT " + input;
         };
@@ -188,7 +188,7 @@ public class ReadPolicyThreadingTest {
     public void testOnFirstTimeDontRetryCachesFailureGlobally() throws Exception {
         var callCount = new AtomicInteger(0);
         var shouldFail = new AtomicBoolean(true);
-        ReadPolicy.Impl<String> impl = input -> {
+        ReadPolicy.StringExtractor<String> impl = input -> {
             callCount.incrementAndGet();
             if (shouldFail.get()) throw new IOException("Simulated failure");
             return "SELECT " + input;

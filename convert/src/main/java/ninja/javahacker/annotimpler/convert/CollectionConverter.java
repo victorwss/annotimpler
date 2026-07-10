@@ -56,7 +56,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     }
 
     @FunctionalInterface
-    private interface Work<E> {
+    private interface InternalWork<E> {
 
         @NonNull
         public Optional<E> work() throws ConvertionException;
@@ -76,7 +76,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     }
 
     @NonNull
-    private Optional<Collection<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+    private Optional<Collection<E>> wrap(@NonNull InternalWork<E> e) throws ConvertionException {
         checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }

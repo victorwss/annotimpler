@@ -55,7 +55,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     }
 
     @FunctionalInterface
-    private interface Work<E> {
+    private interface InternalWork<E> {
 
         @NonNull
         public Optional<E> work() throws ConvertionException;
@@ -75,7 +75,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     }
 
     @NonNull
-    private Optional<Optional<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+    private Optional<Optional<E>> wrap(@NonNull InternalWork<E> e) throws ConvertionException {
         checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }

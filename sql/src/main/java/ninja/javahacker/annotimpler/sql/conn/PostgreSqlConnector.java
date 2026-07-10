@@ -23,6 +23,13 @@ public record PostgreSqlConnector(
         boolean ssl
 ) implements Connector.MandatoryAuthConnector<PostgreSqlConnector>, Connector.HostConnector<PostgreSqlConnector>
 {
+
+    /// The standard TCP port for PostgreSQL (5432).
+    public static final int STD_PORT = 5432;
+
+    /// Standard partially configured instance filled with default values to act as the base of a builder.
+    private static final PostgreSqlConnector STD = new PostgreSqlConnector("localhost", STD_PORT, "admin", "admin", "", true);
+
     /// Creates a `PostgreSqlConnector` with the given connection parameters.
     ///
     /// @param host The database server hostname or IP address.
@@ -33,11 +40,6 @@ public record PostgreSqlConnector(
     /// @param ssl Whether to enable SSL/TLS encryption for the connection.
     /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
     public PostgreSqlConnector {}
-
-    /// The standard TCP port for PostgreSQL (5432).
-    public static final int STD_PORT = 5432;
-
-    private static final PostgreSqlConnector STD = new PostgreSqlConnector("localhost", STD_PORT, "admin", "admin", "", true);
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

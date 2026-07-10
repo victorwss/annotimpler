@@ -67,7 +67,8 @@ public interface StdConverterFactory extends ConverterFactory {
         return new StdConverterFactory() {
             @NonNull
             @Override
-            @SuppressWarnings("ReturnOfCollectionOrArrayField")
+            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the map returned is immutable.
+            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the map returned is immutable.
             public Map<Class<?>, Converter<?>> directMappings() {
                 return map;
             }
@@ -84,9 +85,12 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Dispatches the type `t` to the appropriate typed `getOf` overload.
     ///
-    /// Dispatches as follows: [Class] → [#getOf(Class)], [ParameterizedType] → [#getOf(ParameterizedType)],
-    /// [WildcardType] → [#getOf(WildcardType)], [GenericArrayType] → [#getOf(GenericArrayType)],
-    /// [TypeVariable] → [#getOf(TypeVariable)], other → [#getOfUndetermined(Type)].
+    /// Dispatches as follows: [Class] → [#getOf(Class)],
+    /// [ParameterizedType] → [#getOf(ParameterizedType)],
+    /// [WildcardType] → [#getOf(WildcardType)],
+    /// [GenericArrayType] → [#getOf(GenericArrayType)],
+    /// [TypeVariable] → [#getOf(TypeVariable)],
+    /// other → [#getOfUndetermined(Type)].
     ///
     /// @param t The type to look up.
     /// @return A [Converter] for the given type.
@@ -409,7 +413,8 @@ public interface StdConverterFactory extends ConverterFactory {
         return new StdConverterFactory() {
             @NonNull
             @Override
-            @SuppressWarnings("ReturnOfCollectionOrArrayField")
+            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the map returned is immutable.
+            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the map returned is immutable.
             public Map<Class<?>, Converter<?>> directMappings() {
                 return map;
             }

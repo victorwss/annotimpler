@@ -44,20 +44,37 @@ public enum ReadPolicy {
     /// each call. Any [java.io.IOException] is wrapped in a [java.sql.SQLException].
     EVERY_TIME(ReadPolicy::everyTime);
 
-    private final InImpl in;
+    /// The method reference of the actual behaviour wrapped by this object.
+    private final ReadPolicyStrategy strategy;
 
-    private ReadPolicy(InImpl in) {
-        this.in = in;
+    /// Sole constructor.
+    ///
+    /// @param strategy The behaviour of the constructed object.
+    private ReadPolicy(@NonNull ReadPolicyStrategy strategy) {
+        checkNotNull(strategy); // Check recognized by lombok.
+        this.strategy = strategy;
     }
 
-    private static interface InImpl {
-        public <E> SqlSupplier go(Impl<E> impl, E in) throws BadImplementationException;
+    /// Wraps a method reference for the actual internal behaviour of a [ReadPolicy] instance about the [#prepare(Impl, E)] method.
+    /// Refer to the Strategy design pattern.
+    @FunctionalInterface
+    private static interface ReadPolicyStrategy {
+
+        /// The behaviour of some [ReadPolicy] instance. Creates some implementation of a [SqlSupplier].
+        /// @param <E> The type of the input data consumed by `impl`.
+        /// @param impl The reader that extracts the SQL string from `inputData`.
+        /// @param inputData The data passed to the reader (e.g., an annotation instance).
+        /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
+        /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
+        /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
+        public <E> SqlSupplier apply(StringExtractor<E> impl, E in) throws BadImplementationException;
     }
 
     /// A reader that extracts a SQL string from an input of type `E`.
     ///
     /// @param <E> The type of the input (e.g., an annotation instance).
-    public static interface Impl<E> {
+    @FunctionalInterface
+    public static interface StringExtractor<E> {
 
         /// Reads and returns the SQL string from the given input.
         ///
@@ -77,11 +94,20 @@ public enum ReadPolicy {
     /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
     /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
     /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
-    public <E> SqlSupplier prepare(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {
-        return in.go(impl, inputData);
+    @NonNull
+    public <E> SqlSupplier prepare(@NonNull StringExtractor<E> impl, @NonNull E inputData) throws BadImplementationException {
+        return strategy.apply(impl, inputData);
     }
 
-    private static <E> SqlSupplier onStartup(@NonNull Impl<E> impl, @NonNull E inputData) throws BadImplementationException {
+    /// The behaviour of the [#ON_STARTUP] element.
+    /// @param <E> The type of the input data consumed by `impl`.
+    /// @param impl The reader that extracts the SQL string from `inputData`.
+    /// @param inputData The data passed to the reader (e.g., an annotation instance).
+    /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
+    /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
+    /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
+    @NonNull
+    private static <E> SqlSupplier onStartup(@NonNull StringExtractor<E> impl, @NonNull E inputData) throws BadImplementationException {
         checkNotNull(impl); // Check recognized by lombok.
         checkNotNull(inputData); // Check recognized by lombok.
 
@@ -95,7 +121,15 @@ public enum ReadPolicy {
         }
     }
 
-    private static <E> SqlSupplier everyTime(@NonNull Impl<E> impl, @NonNull E inputData) {
+    /// The behaviour of the [#EVERY_TIME] element.
+    /// @param <E> The type of the input data consumed by `impl`.
+    /// @param impl The reader that extracts the SQL string from `inputData`.
+    /// @param inputData The data passed to the reader (e.g., an annotation instance).
+    /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
+    /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
+    /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
+    @NonNull
+    private static <E> SqlSupplier everyTime(@NonNull StringExtractor<E> impl, @NonNull E inputData) {
         checkNotNull(impl); // Check recognized by lombok.
         checkNotNull(inputData); // Check recognized by lombok.
 
@@ -108,7 +142,15 @@ public enum ReadPolicy {
         };
     }
 
-    private static <E> SqlSupplier onFirstTimeThatWorks(@NonNull Impl<E> impl, @NonNull E inputData) {
+    /// The behaviour of the [#ON_FIRST_TIME_THAT_WORKS] element.
+    /// @param <E> The type of the input data consumed by `impl`.
+    /// @param impl The reader that extracts the SQL string from `inputData`.
+    /// @param inputData The data passed to the reader (e.g., an annotation instance).
+    /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
+    /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
+    /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
+    @NonNull
+    private static <E> SqlSupplier onFirstTimeThatWorks(@NonNull StringExtractor<E> impl, @NonNull E inputData) {
         checkNotNull(impl); // Check recognized by lombok.
         checkNotNull(inputData); // Check recognized by lombok.
 
@@ -122,7 +164,15 @@ public enum ReadPolicy {
         });
     }
 
-    private static <E> SqlSupplier onFirstTimeDontRetry(@NonNull Impl<E> impl, @NonNull E inputData) {
+    /// The behaviour of the [#ON_FIRST_TIME_DONT_RETRY] element.
+    /// @param <E> The type of the input data consumed by `impl`.
+    /// @param impl The reader that extracts the SQL string from `inputData`.
+    /// @param inputData The data passed to the reader (e.g., an annotation instance).
+    /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
+    /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
+    /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
+    @NonNull
+    private static <E> SqlSupplier onFirstTimeDontRetry(@NonNull StringExtractor<E> impl, @NonNull E inputData) {
         checkNotNull(impl); // Check recognized by lombok.
         checkNotNull(inputData); // Check recognized by lombok.
 

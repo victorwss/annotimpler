@@ -204,6 +204,7 @@ public interface Connector extends ConnectionFactory {
     /// such as file-based or in-memory databases.
     ///
     /// The [#optAuth()] method always returns an empty optional.
+    @SuppressWarnings("PMD.ImplicitFunctionalInterface")
     public static interface NoAuthConnector extends Connector {
 
         /// Returns an empty optional, since connectors of this type require no authentication.

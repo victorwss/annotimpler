@@ -21,6 +21,10 @@ public record H2Connector(
         @NonNull String timezone
 ) implements Connector.MandatoryAuthConnector<H2Connector>
 {
+
+    /// Standard partially configured instance filled with default values to act as the base of a builder.
+    private static final H2Connector STD = new H2Connector("sa", "password", "", false, "");
+
     /// Creates an `H2Connector` with the given connection parameters.
     ///
     /// @param user The database username.
@@ -30,8 +34,6 @@ public record H2Connector(
     /// @param timezone The timezone identifier, or an empty string for no timezone override.
     /// @throws IllegalArgumentException If `user`, `password`, `filename`, or `timezone` is `null`.
     public H2Connector {}
-
-    private static final H2Connector STD = new H2Connector("sa", "password", "", false, "");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

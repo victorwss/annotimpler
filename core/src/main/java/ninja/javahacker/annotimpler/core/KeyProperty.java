@@ -14,6 +14,7 @@ import module java.base;
 /// @param <V> The type of value associated with this key.
 ///
 /// @see PropertyBag
+@FunctionalInterface
 public interface KeyProperty<V> extends Serializable {
     /// Returns the [Class] token for the value type `V` associated with this key.
     ///

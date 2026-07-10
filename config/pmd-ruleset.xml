@@ -9,12 +9,14 @@
     <!-- Import common rule categories for Java development -->
     <rule ref="category/java/bestpractices.xml"/>
     <rule ref="category/java/codestyle.xml">
-        <exclude name="UseExplicitTypes" />
+        <exclude name="CallSuperInConstructor" />
         <exclude name="LocalVariableCouldBeFinal" />
+        <exclude name="LongVariable" />
         <exclude name="MethodArgumentCouldBeFinal" />
         <exclude name="OnlyOneReturn" />
         <exclude name="ShortVariable" />
         <exclude name="UnnecessaryModifier" />
+        <exclude name="UseExplicitTypes" />
     </rule>
     <rule ref="category/java/codestyle.xml/ControlStatementBraces">
         <properties>

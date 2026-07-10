@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -14,6 +15,7 @@ import module java.base;
 /// `float` (special handling for infinity/NaN/negative-zero), `double`,
 /// [BigDecimal] (roundtrip check), [String] (roundtrip parse check; empty → 0.0 for [#PRIMITIVE] or empty for [#WRAPPER]).
 /// Infinity and NaN from [BigDecimal] throw [ConvertionException].
+@SuppressFBWarnings("OI_OPTIONAL_ISSUES_PRIMITIVE_VARIANT_PREFERRED")
 public enum DoubleConverter implements Converter<Double> {
 
     /// Targets `double.class`.

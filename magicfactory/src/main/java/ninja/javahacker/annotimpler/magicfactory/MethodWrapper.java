@@ -198,15 +198,13 @@ public interface MethodWrapper<E, U> {
         var abs = Modifier.isAbstract(what.getModifiers());
         var pub = Modifier.isPublic(what.getModifiers());
         Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
-        SimpleMethodWrapper.Call<E> icall = args -> {
+        SimpleMethodWrapper.Invoker<E> icall = args -> {
             var inst = args[0];
             var nargs = new Object[args.length - 1];
             System.arraycopy(args, 1, nargs, 0, nargs.length);
             return (E) what.invoke(inst, nargs);
         };
-        SimpleMethodWrapper.Call<E> scall = args -> {
-            return (E) what.invoke(null, args);
-        };
+        SimpleMethodWrapper.Invoker<E> scall = args -> (E) what.invoke(null, args);
         return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
     }
 
@@ -224,7 +222,7 @@ public interface MethodWrapper<E, U> {
         var str = "constructor " + NameDictionary.global().getSimplifiedGenericString(what, false);
         var pub = Modifier.isPublic(what.getModifiers());
         var abs = Modifier.isAbstract(what.getDeclaringClass().getModifiers());
-        SimpleMethodWrapper.Call<E> call = args -> what.newInstance(args);
+        SimpleMethodWrapper.Invoker<E> call = what::newInstance;
         return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, true, abs, pub, call, what::getAnnotation);
     }
 
@@ -264,7 +262,7 @@ public interface MethodWrapper<E, U> {
         var stt = Modifier.isStatic(what.getModifiers());
         var pub = Modifier.isPublic(what.getModifiers());
         Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
-        SimpleMethodWrapper.Call<E> call = args -> {
+        SimpleMethodWrapper.Invoker<E> call = args -> {
             assertEquals(args.length, stt ? 0 : 1);
             return (E) what.get(stt ? null : args[0]);
         };
@@ -287,7 +285,7 @@ public interface MethodWrapper<E, U> {
         var ann = SimpleMethodWrapper.NULL_ANNOTATOR;
         var rt = what.getClass();
         var str = String.valueOf(what);
-        SimpleMethodWrapper.Call<E> call = args -> {
+        SimpleMethodWrapper.Invoker<E> call = args -> {
             assertEquals(args.length, 0);
             return what;
         };

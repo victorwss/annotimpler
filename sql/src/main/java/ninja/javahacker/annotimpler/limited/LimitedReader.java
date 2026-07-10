@@ -1,21 +1,34 @@
 package ninja.javahacker.annotimpler.limited;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
 
 /// [Reader] decorator that limits the maximum number of characters that can be read,
 /// with support for mark and reset operations.
+@SuppressWarnings("PMD.TooManyMethods")
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_TOSTRING")
 public final class LimitedReader extends Reader {
 
+    /// The [Reader] instance that was wrapped. I.e., the one that is being limited.
     @NonNull
     private final Reader wrapped;
 
+    /// The limited maximum size of this reader.
     private final long maxSize;
+
+    /// The position where this reader is being read.
     private long position;
+
+    /// The position of the mark.
     private long markPosition;
+
+    /// The `readAheadLimit` limit of the mark.
     private long markLimit;
+
+    /// If this instance was closed.
     private boolean closed;
 
     /// Creates a new `LimitedReader` that wraps the given [Reader]
@@ -79,6 +92,7 @@ public final class LimitedReader extends Reader {
     ///         or `off + len` exceeds the length of `cbuf`.
     /// @throws IOException If this reader is closed or if an I/O error occurs.
     @Override
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidThrowingNullPointerException"})
     public int read(/*@NonNull*/ char[] cbuf, int off, int len) throws IOException {
         if (cbuf == null) throw new NullPointerException("Buffer cannot be null.");
         checkClosed();

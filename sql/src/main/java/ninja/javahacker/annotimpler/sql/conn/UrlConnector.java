@@ -16,14 +16,16 @@ public record UrlConnector(
         @NonNull Optional<Auth> optAuth
 ) implements Connector
 {
+
+    /// Standard unconfigured instance to act as the base of a builder.
+    private static final UrlConnector STD = new UrlConnector("", Optional.empty());
+
     /// Creates a `UrlConnector` with the given URL and optional authentication.
     ///
     /// @param url The JDBC connection URL.
     /// @param optAuth The optional authentication credentials.
     /// @throws IllegalArgumentException If `url` or `optAuth` is `null`.
     public UrlConnector {}
-
-    private static final UrlConnector STD = new UrlConnector("", Optional.empty());
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

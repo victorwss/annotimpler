@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -13,6 +14,7 @@ import module java.base;
 /// Supported conversions: `boolean`, `byte`, `short`, `int`, `long`,
 /// `float`/`double` (via [BigDecimal] exact), [BigDecimal] (exact),
 /// [String] (parsed; empty → 0 for [#PRIMITIVE] or empty for [#WRAPPER]).
+@SuppressFBWarnings("OI_OPTIONAL_ISSUES_PRIMITIVE_VARIANT_PREFERRED")
 public enum LongConverter implements Converter<Long> {
 
     /// Targets `long.class`.

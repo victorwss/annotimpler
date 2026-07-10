@@ -19,6 +19,10 @@ public record HsqldbConnector(
         boolean memory
 ) implements Connector.MandatoryAuthConnector<HsqldbConnector>
 {
+
+    /// Standard partially configured instance filled with default values to act as the base of a builder.
+    private static final HsqldbConnector STD = new HsqldbConnector("SA", "password", "", false);
+
     /// Creates an `HsqldbConnector` with the given connection parameters.
     ///
     /// @param user The database username.
@@ -27,8 +31,6 @@ public record HsqldbConnector(
     /// @param memory Whether to use an in-memory database.
     /// @throws IllegalArgumentException If `user`, `password`, or `filename` is `null`.
     public HsqldbConnector {}
-
-    private static final HsqldbConnector STD = new HsqldbConnector("SA", "password", "", false);
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

@@ -6,7 +6,6 @@ import lombok.NonNull;
 
 import module java.base;
 import module java.sql;
-import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 /// Wraps an object's method calls in database transactions, ensuring that each top-level call
@@ -28,11 +27,15 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// ```
 public final class Transactor {
 
+    /// The object (possibly a lambda or method reference) that produces new [Connection]s.
     private final ConnectionFactory factory;
 
+    /// Stores the current transaction, if open.
+    /// This is thread-local, since different thread can't and shouldn't share a transaction.
     @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL") // We really intentionally want a ThreadLocal per instance.
     private final ThreadLocal<Transaction> local = new ThreadLocal<>();
 
+    /// The object (likely a lambda or method reference) that produces new transaction IDs.
     private final Supplier<String> generateIds;
 
     /// Creates a new `Transactor` backed by the given connection factory and ID generator.

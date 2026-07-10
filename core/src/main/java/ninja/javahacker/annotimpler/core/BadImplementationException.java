@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.core;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -11,11 +12,13 @@ import module java.base;
 /// [Implementation] class cannot be instantiated or used with no arguments, or when
 /// [Implementation#prepare] returns `null`.
 /// Custom [Implementation] classes may also throw it as part of their own validation.
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_EQUALS") // Useless for exception classes.
 public class BadImplementationException extends Exception {
 
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /// The type where the failure originated.
     @NonNull
     private final Type root;
 
@@ -62,8 +65,10 @@ public class BadImplementationException extends Exception {
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
     @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+        "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
     })
     protected final void finalize() {
+        // Do nothing.
     }
 }

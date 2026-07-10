@@ -22,6 +22,7 @@ import module java.base;
 /// This class is not instantiable.
 public final class Methods {
 
+    /// The [Object] class methods methods for `wait`, `notify`, `notifyAll`, `getClass`, `clone` and `finalize` (if not removed yet).
     @NonNull
     private static final Set<Method> INTRINSICS;
 
@@ -50,6 +51,7 @@ public final class Methods {
         INTRINSICS = Set.copyOf(sketch);
     }
 
+    /// This class can't be instantiated.
     private Methods() {
         throw new UnsupportedOperationException();
     }
@@ -387,6 +389,7 @@ public final class Methods {
     /// @throws IllegalArgumentException If `what` or `args` is `null` or if the `args` do not match the `what` signature.
     /// @throws ExceptionInInitializerError If the invocation of `what` tries to initialize a class, but the initialization fails.
     /// @see Method#invoke(Object, Object...)
+    @SuppressWarnings("PMD.AvoidThrowingNullPointerException")
     @Nullable
     public static Object invoke(@NonNull Method what, @NonNull Object... args) throws IllegalAccessException, InvocationTargetException {
         if (Modifier.isStatic(what.getModifiers())) return what.invoke(null, args);
@@ -399,6 +402,7 @@ public final class Methods {
 
     @NonNull
     @Generated
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
     private static NullPointerException npe(@NonNull Method what) {
         if (what == null) throw new AssertionError();
         try {

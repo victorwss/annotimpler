@@ -1,21 +1,34 @@
 package ninja.javahacker.annotimpler.limited;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
 
 /// [InputStream] decorator that limits the maximum number of bytes that can be read,
 /// with support for mark and reset operations.
+@SuppressWarnings("PMD.TooManyMethods")
+@SuppressFBWarnings("IMC_IMMATURE_CLASS_NO_TOSTRING")
 public final class LimitedInputStream extends InputStream {
 
+    /// The [InputStream] instance that was wrapped. I.e., the one that is being limited.
     @NonNull
     private final InputStream wrapped;
 
+    /// The limited maximum size of this stream.
     private final long maxSize;
+
+    /// The position where this stream is being read.
     private long position;
+
+    /// The position of the mark.
     private long markPosition;
+
+    /// The `readAheadLimit` limit of the mark.
     private long markLimit;
+
+    /// If this instance was closed.
     private boolean closed;
 
     /// Creates a new `LimitedInputStream` that wraps the given [InputStream]
@@ -79,6 +92,7 @@ public final class LimitedInputStream extends InputStream {
     ///         or `off + len` exceeds the length of `b`.
     /// @throws IOException If this stream is closed or if an I/O error occurs.
     @Override
+    @SuppressWarnings({"PMD.CyclomaticComplexity", "PMD.AvoidThrowingNullPointerException"})
     public int read(/*@NonNull*/ byte[] b, int off, int len) throws IOException {
         if (b == null) throw new NullPointerException("Buffer cannot be null.");
         checkClosed();

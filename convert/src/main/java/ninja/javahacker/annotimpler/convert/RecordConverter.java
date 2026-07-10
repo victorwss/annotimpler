@@ -319,6 +319,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
 
     /// {@inheritDoc}
     @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
         return other instanceof RecordConverter<?> ot
                 && Objects.equals(this.recordClass, ot.recordClass)

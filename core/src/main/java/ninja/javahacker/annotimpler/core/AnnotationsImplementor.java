@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
 import lombok.NonNull;
 
@@ -43,10 +44,49 @@ public final class AnnotationsImplementor {
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
+    private static void validate(@NonNull Method m, @NonNull Class<? extends Annotation> implAnnon) throws BadImplementationException {
+        checkNotNull(m); // Check recognized by lombok.
+        var mc = m.getDeclaringClass();
+        var implName = implAnnon.getSimpleName();
+        var prefix = "Can't use @" + implName + " annotation on ";
+        if (Methods.isStatic(m)) {
+            throw new BadImplementationException(prefix + "static methods.", mc);
+        }
+        if (Methods.isPrivate(m)) {
+            throw new BadImplementationException(prefix + "private methods.", mc);
+        }
+        if (Methods.isEquals(m)) {
+            throw new BadImplementationException(prefix + "equals(Object) method.", mc);
+        }
+        if (Methods.isHashCode(m)) {
+            throw new BadImplementationException(prefix + "hashCode() method.", mc);
+        }
+        if (Methods.isToString(m)) {
+            throw new BadImplementationException(prefix + "toString() method.", mc);
+        }
+    }
+
+    @Nullable
+    private static <E> CallContext<E> findSimpleImplementation(@NonNull Method m) throws BadImplementationException {
+        checkNotNull(m); // Check recognized by lombok.
+        if (Methods.isPrivate(m) || Methods.isStatic(m) || Methods.isEquals(m) || Methods.isHashCode(m) || Methods.isToString(m)) {
+            return null;
+        }
+        if (!m.isDefault()) {
+            var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
+            throw new BadImplementationException(msg, m.getDeclaringClass());
+        }
+        return (@NonNull E instance, @NonNull Object... args) -> {
+            checkNotNull(instance); // Check recognized by lombok.
+            checkNotNull(args); // Check recognized by lombok.
+            return InvocationHandler.invokeDefault(instance, m, args);
+        };
+    }
+
     @Nullable
     @SuppressFBWarnings(
             // Any sane implementation of Implementation.prepare should be @NonNull and not needed to be checked against it.
-            // However, we don't trust that since malicious or ill-defined implementations might exist. So we check it anyway.
+            // However, we don't trust that, since malicious or ill-defined implementations might exist. So we check it anyway.
             "RCN_REDUNDANT_NULLCHECK_OF_NONNULL_VALUE"
     )
     private static <E> CallContext<E> findImplementation(
@@ -66,37 +106,9 @@ public final class AnnotationsImplementor {
         if (impls.size() > 1) {
             throw new BadImplementationException("Too many implementations by annotations on: " + name(m), mc);
         }
-        if (impls.isEmpty()) {
-            if (Methods.isPrivate(m) || Methods.isStatic(m) || Methods.isEquals(m) || Methods.isHashCode(m) || Methods.isToString(m)) {
-                return null;
-            }
-            if (!m.isDefault()) {
-                var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
-                throw new BadImplementationException(msg, m.getDeclaringClass());
-            }
-            return (@NonNull E instance, @NonNull Object... args) -> {
-                checkNotNull(instance); // Check recognized by lombok.
-                checkNotNull(args); // Check recognized by lombok.
-                return InvocationHandler.invokeDefault(instance, m, args);
-            };
-        }
+        if (impls.isEmpty()) return findSimpleImplementation(m);
         var implAnnon = impls.getFirst().annotationType();
-        var implName = implAnnon.getSimpleName();
-        if (Methods.isStatic(m)) {
-            throw new BadImplementationException("Can't use @" + implName + " annotation on static methods.", mc);
-        }
-        if (Methods.isPrivate(m)) {
-            throw new BadImplementationException("Can't use @" + implName + " annotation on private methods.", mc);
-        }
-        if (Methods.isEquals(m)) {
-            throw new BadImplementationException("Can't use @" + implName + " annotation on equals(Object) method.", mc);
-        }
-        if (Methods.isHashCode(m)) {
-            throw new BadImplementationException("Can't use @" + implName + " annotation on hashCode() method.", mc);
-        }
-        if (Methods.isToString(m)) {
-            throw new BadImplementationException("Can't use @" + implName + " annotation on toString() method.", mc);
-        }
+        validate(m, implAnnon);
         var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
         try {
             var mf = MagicFactory.of(implClass);
@@ -105,16 +117,15 @@ public final class AnnotationsImplementor {
             }
 
             // If the creator takes a single PropertyBag argument, inject the current bag;
-            // otherwise invoke it with no arguments. Remove this workaround if a future
-            // Java release allows a cleaner dependency-injection mechanism here.
-            var createArgs = mf.arity() == 0 ? new Object[0] : new Object[]{ props };
+            // otherwise invoke it with no arguments.
+            var createArgs = mf.arity() == 0 ? new Object[0] : new Object[] { props };
             var instance = mf.create(createArgs);
-            var c = instance.prepare(iface, m, props);
+            var context = instance.prepare(iface, m, props);
 
             // Should never happen if implClass is properly implemented, but we shouldn't trust that.
-            if (c == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
+            if (context == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
 
-            return c;
+            return context;
         } catch (MagicFactory.CreatorSelectionException | MagicFactory.CreationException e) {
             throw new BadImplementationException(e.getMessage(), e, m.getDeclaringClass());
         }

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.magicfactory;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
@@ -32,12 +33,20 @@ import module java.base;
 /// @param <E> The type of objects produced by this factory.
 public final class MagicFactory<E> {
 
+    /// The class that should be instantated.
     @NonNull
     private final Class<E> klass;
 
+    /// The cached method, constructor or something else that should be called in order to
+    /// retrieve an instance of the target class.
     @NonNull
     private final MethodWrapper<E, Object> wrapper;
 
+    /// Single constructor.
+    ///
+    /// @param klass The target class wrapped by this instance.
+    /// @throws IllegalArgumentException If `klass` is `null`.
+    /// @throws CreatorSelectionException If no way to create instances of the given class can be discovered.
     private MagicFactory(@NonNull Class<E> klass) throws CreatorSelectionException {
         checkNotNull(klass); // Check recognized by lombok.
         this.klass = klass;
@@ -223,6 +232,25 @@ public final class MagicFactory<E> {
         return wrapper.arity();
     }
 
+    /// {@inheritDoc}
+    @Override
+    public int hashCode() {
+        return klass.hashCode();
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    public boolean equals(@Nullable Object other) {
+        return other instanceof MagicFactory<?> mf && this.klass == mf.klass;
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return TypeName.of(klass);
+    }
+
     /// Thrown when [MagicFactory#of(Class)] cannot determine a unique, valid creator for the
     /// target class.
     ///
@@ -238,6 +266,7 @@ public final class MagicFactory<E> {
         @Serial
         private static final long serialVersionUID = 1L;
 
+        /// The class whose creator selection failed.
         @NonNull
         private final Class<?> root;
 
@@ -281,9 +310,11 @@ public final class MagicFactory<E> {
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
         @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
         })
         protected final void finalize() {
+            // Do nothing.
         }
     }
 
@@ -297,6 +328,7 @@ public final class MagicFactory<E> {
         @Serial
         private static final long serialVersionUID = 1L;
 
+        /// The class that could not be instantiated.
         @NonNull
         private final Class<?> root;
 
@@ -339,9 +371,11 @@ public final class MagicFactory<E> {
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
         @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
         })
         protected final void finalize() {
+            // Do nothing.
         }
     }
 

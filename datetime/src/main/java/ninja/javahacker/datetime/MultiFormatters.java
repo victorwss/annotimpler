@@ -78,9 +78,11 @@ public enum MultiFormatters {
     /// and `Z` or `±HH:MM` as the timezone offset.
     ISO_8601;
 
+    /// The formatter which includes a time and a time zone. It is the same for all [MultiFormatters]' instance, so it is static.
     @NonNull
     private static final DateTimeFormatter FORMATTER_TIME_ZONE;
 
+    /// The formatter which includes a time, but no time zone. It is the same for all [MultiFormatters]' instance, so it is static.
     @NonNull
     private static final DateTimeFormatter FORMATTER_TIME;
 
@@ -91,18 +93,23 @@ public enum MultiFormatters {
         FORMATTER_TIME = DateTimeFormatter.ofPattern(formatTimeOnly).withResolverStyle(ResolverStyle.STRICT);
     }
 
+    /// The formatter which includes a date, a time and a time zone. It is specific for each [MultiFormatters]' instance.
     @NonNull
     private final DateTimeFormatter formatterDateTimeZone;
 
+    /// The formatter which includes a date and a time, but no time zone. It is specific for each [MultiFormatters]' instance.
     @NonNull
     private final DateTimeFormatter formatterDateTime;
 
+    /// The formatter which includes a date without time or time zone. It is specific for each [MultiFormatters]' instance.
     @NonNull
     private final DateTimeFormatter formatterDate;
 
+    /// Internal object responsible for compiling date and time objects from strings in the format expected by this instance.
     @NonNull
     private final DateTimeGrammar parser;
 
+    // The constructor of thsi class.
     private MultiFormatters() {
         var iso = name().contains("ISO");
         if (iso) {

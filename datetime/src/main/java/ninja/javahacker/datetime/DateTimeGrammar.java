@@ -9,6 +9,7 @@ import module java.base;
 
 /// [DateTimeFormatter] is too much flexible about parsing and always ends up accepting something that it should not
 /// without further validation with tools like regex, which also have their own problems, so we use this class as a custom parser instead.
+///
 /// @param dateSeparator What is used to separate date components. Might be dot (`.`), slash (`/`) or dash (`-`).
 /// @param dateTimeSeparator What separates the date component from the time component.
 ///        Normally this is an space, but ISO 8601 uses `T` instead.
@@ -21,8 +22,16 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
         checkNotNull(type); // Check recognized by lombok.
     }
 
+    /// Specifies an ordering format for dates to be recognized by a [DateTimeGrammar] instance.
     public static enum DateFormat {
-        DMY, MDY, YMD;
+        /// Refers to `dd/MM/yyyy`, `dd-MM-yyyy` or `dd.MM.yyyy`. Year last, day first.
+        DMY,
+
+        /// Refers to `MM/dd/yyyy`, `MM-dd-yyyy` or `MM.dd.yyyy`. Year last, month first.
+        MDY,
+
+        /// Refers to `yyyy/MM/dd`, `yyyy-MM-dd` or `yyyy.MM.dd`. Year first, day last.
+        YMD;
     }
 
     private record Match<E>(@NonNull E content, int position, int end) {
@@ -123,26 +132,56 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
         }
     }
 
+    /// Parses the input into a [LocalDate].
+    ///
+    /// @param input What should be parsed.
+    /// @return The parsed [LocalDate].
+    /// @throws IllegalArgumentExcception If the `input` is `null`.
+    /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalDate].
     @NonNull
     public LocalDate date(@NonNull String input) {
         return wrap(input, "date", () -> new Parser(input, this).parseAll(true, Pieces::date));
     }
 
+    /// Parses the input into a [LocalTime].
+    ///
+    /// @param input What should be parsed.
+    /// @return The parsed [LocalTime].
+    /// @throws IllegalArgumentExcception If the `input` is `null`.
+    /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalTime].
     @NonNull
     public LocalTime time(@NonNull String input) {
         return wrap(input, "time", () -> new Parser(input, this).parseAll(false, Pieces::time));
     }
 
+    /// Parses the input into a [LocalDateTime].
+    ///
+    /// @param input What should be parsed.
+    /// @return The parsed [LocalDateTime].
+    /// @throws IllegalArgumentExcception If the `input` is `null`.
+    /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalDateTime].
     @NonNull
     public LocalDateTime dateTime(@NonNull String input) {
         return wrap(input, "date-time", () -> new Parser(input, this).parseAll(true, Pieces::dateTime));
     }
 
+    /// Parses the input into an [OffsetDateTime].
+    ///
+    /// @param input What should be parsed.
+    /// @return The parsed [OffsetDateTime].
+    /// @throws IllegalArgumentExcception If the `input` is `null`.
+    /// @throws DateTimeParseException If the `input` can't be parsed as an [OffsetDateTime].
     @NonNull
     public OffsetDateTime dateTimeZone(@NonNull String input) {
         return wrap(input, "date-time-zone", () -> new Parser(input, this).parseAll(true, Pieces::dateTimeZone));
     }
 
+    /// Parses the input into an [OffsetTime].
+    ///
+    /// @param input What should be parsed.
+    /// @return The parsed [OffsetDate].
+    /// @throws IllegalArgumentExcception If the `input` is `null`.
+    /// @throws DateTimeParseException If the `input` can't be parsed as an [OffsetTime].
     @NonNull
     public OffsetTime timeZone(@NonNull String input) {
         return wrap(input, "time-zone", () -> new Parser(input, this).parseAll(false, Pieces::timeZone));
@@ -266,7 +305,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             var a = ohms.get();
             var ac = a.content();
 
-            var sg = (s1c == '-' ? -1 : 1);
+            var sg = s1c == '-' ? -1 : 1;
             var zn = ZoneOffset.ofHoursMinutesSeconds(sg * ac.a(), sg * ac.b(), sg * ac.c());
             return Optional.of(new Match<>(zn, position, a.end()));
         }

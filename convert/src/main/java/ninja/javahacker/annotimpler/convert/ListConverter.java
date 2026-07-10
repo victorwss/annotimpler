@@ -56,7 +56,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
     }
 
     @FunctionalInterface
-    private interface Work<E> {
+    private interface InternalWork<E> {
 
         @NonNull
         public Optional<E> work() throws ConvertionException;
@@ -76,7 +76,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
     }
 
     @NonNull
-    private Optional<List<E>> wrap(@NonNull Work<E> e) throws ConvertionException {
+    private Optional<List<E>> wrap(@NonNull InternalWork<E> e) throws ConvertionException {
         checkNotNull(e); // Check recognized by lombok.
         return e.rework(baseType);
     }

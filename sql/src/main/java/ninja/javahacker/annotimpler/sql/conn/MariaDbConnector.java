@@ -21,6 +21,13 @@ public record MariaDbConnector(
         @NonNull String database
 ) implements Connector.MandatoryAuthConnector<MariaDbConnector>, Connector.HostConnector<MariaDbConnector>
 {
+
+    /// The standard TCP port for MariaDB (3306).
+    public static final int STD_PORT = 3306;
+
+    /// Standard partially configured instance filled with default values to act as the base of a builder.
+    private static final MariaDbConnector STD = new MariaDbConnector("localhost", STD_PORT, "admin", "admin", "");
+
     /// Creates a `MariaDbConnector` with the given connection parameters.
     ///
     /// @param host The database server hostname or IP address.
@@ -30,11 +37,6 @@ public record MariaDbConnector(
     /// @param database The name of the database to connect to.
     /// @throws IllegalArgumentException If `host`, `user`, `password`, or `database` is `null`.
     public MariaDbConnector {}
-
-    /// The standard TCP port for MariaDB (3306).
-    public static final int STD_PORT = 3306;
-
-    private static final MariaDbConnector STD = new MariaDbConnector("localhost", STD_PORT, "admin", "admin", "");
 
     /// Returns the standard pre-configured instance with default values suitable for local development.
     ///

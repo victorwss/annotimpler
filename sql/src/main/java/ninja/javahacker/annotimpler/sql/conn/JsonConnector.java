@@ -28,13 +28,21 @@ import module java.base;
 @JsonSerialize(using = JsonConnector.Serializer.class)
 public final class JsonConnector implements Connector {
 
+    /// The Jackson's JSON mapper used to map JSON-formatted [Connecrtor]s.
     private static final JsonMapper MAPPER = JsonMapper.builder()
             .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, true)
             .build();
 
+    /// The globally mutable set of registered classes, mapped by names.
     private static final Map<String, Class<? extends Connector>> REGISTERED_CLASSES;
+
+    /// The standard immutable set of registered classes, mapped by names.
     private static final Map<String, Class<? extends Connector>> STD_REGISTERED_CLASSES;
 
+    /// The lock for messing with [#REGISTERED_CLASSES].
+    private static final ReentrantLock LOCK = new ReentrantLock();
+
+    /// The wrapped [Connector].
     @Delegate(types = Connector.class)
     private final Connector delegate;
 
@@ -89,12 +97,15 @@ public final class JsonConnector implements Connector {
             if (key == null) throw new UnsupportedOperationException();
         }
 
-        synchronized (REGISTERED_CLASSES) {
+        try {
+            LOCK.lock();
             for (var k : classes) {
                 var key = k.getAnnotation(ConnectorJsonKey.class);
                 var kv = key.value();
                 REGISTERED_CLASSES.put(kv, k);
             }
+        } finally {
+            LOCK.unlock();
         }
     }
 
@@ -102,9 +113,12 @@ public final class JsonConnector implements Connector {
     ///
     /// Any classes previously added via [#register(Class[])] are removed.
     public static void resetRegister() {
-        synchronized (REGISTERED_CLASSES) {
+        try {
+            LOCK.lock();
             REGISTERED_CLASSES.clear();
             REGISTERED_CLASSES.putAll(STD_REGISTERED_CLASSES);
+        } finally {
+            LOCK.unlock();
         }
     }
 
@@ -115,19 +129,25 @@ public final class JsonConnector implements Connector {
     ///         or an empty optional if no class is registered under that key.
     /// @throws IllegalArgumentException If `key` is `null`.
     public static Optional<Class<? extends Connector>> find(@NonNull String key) {
-        synchronized (REGISTERED_CLASSES) {
+        try {
+            LOCK.lock();
             return Optional.ofNullable(REGISTERED_CLASSES.get(key));
+        } finally {
+            LOCK.unlock();
         }
     }
 
+    /// JSON Deserializer for [JsonConnector].
     @PackagePrivate
     static class Deserializer extends ValueDeserializer<JsonConnector> {
 
+        /// Sole constructor.
         public Deserializer() {
         }
 
+        /// {@inheritDoc}
         @Override
-        public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) throws JacksonException {
+        public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) {
             checkNotNull(jp); // Check recognized by lombok.
             checkNotNull(ctxt); // Check recognized by lombok.
             var tree = jp.readValueAsTree();
@@ -138,24 +158,22 @@ public final class JsonConnector implements Connector {
             var type = node.asString();
             copy.remove("type");
             var targetClass = find(type).orElseThrow(() -> new UnknownConnectorException("Unknown connector: \"" + type + "\"."));
-            var delegate = MAPPER.readValue(copy + "", targetClass);
+            var delegate = MAPPER.readValue(copy.toString(), targetClass);
             return new JsonConnector(delegate);
         }
     }
 
+    /// JSON Serializer for [JsonConnector].
     @PackagePrivate
     static class Serializer extends ValueSerializer<JsonConnector> {
 
+        /// Sole constructor.
         public Serializer() {
         }
 
+        /// {@inheritDoc}
         @Override
-        public void serialize(
-                @NonNull JsonConnector t,
-                @NonNull JsonGenerator jg,
-                @NonNull SerializationContext sp)
-                throws JacksonException
-        {
+        public void serialize(@NonNull JsonConnector t, @NonNull JsonGenerator jg, @NonNull SerializationContext sp) {
             checkNotNull(t); // Check recognized by lombok.
             checkNotNull(jg); // Check recognized by lombok.
             checkNotNull(sp); // Check recognized by lombok.

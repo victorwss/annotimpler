@@ -13,6 +13,7 @@ import module java.base;
 /// This class is not instantiable.
 public final class WrapperClass {
 
+    /// Map primitive classes to their wrappers.
     private static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
             boolean.class, Boolean.class,
             byte.class, Byte.class,
@@ -25,9 +26,11 @@ public final class WrapperClass {
             void.class, Void.class
     );
 
+    /// Map wrapper classes to their primitives.
     private static final Map<Class<?>, Class<?>> PRIMITIVES =
             WRAPPERS.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
+    /// This class isn't instantiable.
     private WrapperClass() {
         throw new UnsupportedOperationException();
     }

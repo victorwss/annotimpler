@@ -51,7 +51,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     }
 
     @FunctionalInterface
-    private interface Work<E> {
+    private interface InternalWork<E> {
 
         @NonNull
         public Optional<E> work() throws ConvertionException;
@@ -72,7 +72,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    private Optional<E[]> wrap(Work<E> e) throws ConvertionException {
+    private Optional<E[]> wrap(InternalWork<E> e) throws ConvertionException {
         var e2 = (Optional<Object>) e.rework(arrayClass);
         var array = e2.map(c -> {
             var ret = java.lang.reflect.Array.newInstance(baseClass, 1);

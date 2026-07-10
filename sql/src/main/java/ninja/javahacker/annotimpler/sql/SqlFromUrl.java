@@ -10,7 +10,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// The method must also carry a SQL-operation annotation ([ExecuteSql], [GenerateSql],
 /// or [QuerySql]). The download strategy is controlled by [#policy()]. Character
 /// encoding is auto-detected from the HTTP `Content-Type` response header when
-/// [#getEncodingFromHeaders()] is `true`; the [#fallbackEncoding()] is used
+/// [#readEncodingFromHeaders()] is `true`; the [#fallbackEncoding()] is used
 /// when the header is absent or detection is disabled.
 ///
 /// Example:
@@ -39,14 +39,14 @@ public @interface SqlFromUrl {
     /// Whether to detect the character encoding from the HTTP `Content-Type` response header.
     ///
     /// When `true` (the default) and the header contains a `charset` parameter,
-    /// that charset is used.  Otherwise, [#fallbackEncoding()] is used.
+    /// that charset is used. Otherwise, [#fallbackEncoding()] is used.
     ///
     /// @return `true` to use the encoding from the response header, `false` to
     ///         always use the fallback encoding.
-    public boolean getEncodingFromHeaders() default true;
+    public boolean readEncodingFromHeaders() default true;
 
     /// Returns the fallback character encoding used when the HTTP response headers do not
-    /// specify a charset, or when [#getEncodingFromHeaders()] is `false`.
+    /// specify a charset, or when [#readEncodingFromHeaders()] is `false`.
     ///
     /// @return The fallback charset spec class; defaults to [CharsetSpec.Utf8].
     public Class<? extends CharsetSpec> fallbackEncoding() default CharsetSpec.Utf8.class;

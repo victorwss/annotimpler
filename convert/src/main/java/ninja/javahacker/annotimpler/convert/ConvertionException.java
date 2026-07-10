@@ -15,9 +15,11 @@ public class ConvertionException extends Exception {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /// The source type that failed to convert.
     @NonNull
     private final Class<?> in;
 
+    /// The target type of the failed conversion.
     @NonNull
     private final Type out;
 
@@ -93,8 +95,10 @@ public class ConvertionException extends Exception {
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
     @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
+        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
+        "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
     })
     protected final void finalize() {
+        // Do nothing.
     }
 }
