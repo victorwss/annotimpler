@@ -1,8 +1,9 @@
-/// Runtime implementations that back the [@ExecuteSql][ExecuteSql], [@GenerateSql][GenerateSql]
-/// and [@QuerySql][QuerySql] annotations.
+/// Runtime implementations that back the [@ExecuteSql][ninja.javahacker.annotimpler.sql.ExecuteSql],
+/// [@GenerateSql][ninja.javahacker.annotimpler.sql.GenerateSql]
+/// and [@QuerySql][ninja.javahacker.annotimpler.sql.QuerySql] annotations.
 ///
-/// Each class in this package is an [Implementation] that is selected at DAO creation time
-/// by [AnnotationsImplementor] and is responsible for compiling a particular kind of SQL
+/// Each class in this package is an [Implementation][ninja.javahacker.annotimpler.core.Implementation]
+/// that is selected at DAO creation time by [AnnotationsImplementor] and is responsible for compiling a particular kind of SQL
 /// operation from the annotated method signature and for executing it against the database on
 /// every invocation.
 ///

@@ -142,10 +142,11 @@ public interface MethodWrapper<E, U> {
     @NonNull
     public default Map<String, Object> paramMap(@NonNull Object... args) {
         var pp = getParameters();
-        var base = isStatic() ? 0 : 1;
+        var staticCall = isStatic();
+        var base = staticCall ? 0 : 1;
         if (pp.size() + base != args.length) throw new IllegalArgumentException();
         var map = new LinkedHashMap<String, Object>(args.length + base);
-        if (base == 1) {
+        if (staticCall) {
             var it = getInstanceType().orElseThrow(AssertionError::new);
             var a = args[0];
             if (!WrapperClass.wrap(it).isInstance(a)) throw new IllegalArgumentException(it + "---" + a);
