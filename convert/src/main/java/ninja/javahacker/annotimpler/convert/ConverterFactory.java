@@ -7,14 +7,19 @@ import module ninja.javahacker.annotimpler.magicfactory;
 
 /// A functional interface for obtaining [Converter] instances for arbitrary [Type] values.
 ///
-/// The standard implementation is accessible via [#STD]. Custom implementations can
-/// be created by implementing [#get(Type)] or by extending [StdConverterFactory] using [StdConverterFactory#extend(Class, Converter)].
+/// The standard implementation is accessible via [#std()]. Custom implementations can
+/// be created by implementing [#get(Type)] or by extending [StdConverterFactory]
+/// using [StdConverterFactory#extend(Class, Converter)].
 @FunctionalInterface
 public interface ConverterFactory {
 
-    /// The standard converter factory with pre-registered converters for all built-in supported types.
+    /// Returns the standard converter factory with pre-registered converters for all built-in supported types.
+    ///
+    /// @return The standard converter factory with pre-registered converters for all built-in supported types.
     @NonNull
-    public static final StdConverterFactory STD = StdConverterFactory.INSTANCE;
+    public static StdConverterFactory std() {
+        return StdConverterFactory.INSTANCE;
+    }
 
     /// Returns a [Converter] for the given type.
     ///

@@ -370,7 +370,7 @@ public class ConverterFactoryTest {
         var copy = Map.copyOf(a1);
 
         return Stream.of(
-                DynamicTest.dynamicTest("[testDirectMappings] public fields", () -> Assertions.assertSame(StdConverterFactory.INSTANCE, ConverterFactory.STD)),
+                DynamicTest.dynamicTest("[testDirectMappings] public fields", () -> Assertions.assertSame(StdConverterFactory.INSTANCE, ConverterFactory.std())),
                 DynamicTest.dynamicTest("[testDirectMappings] root map 1", () -> Assertions.assertSame(a1, a2)),
                 DynamicTest.dynamicTest("[testDirectMappings] root map 2", () -> Assertions.assertSame(b1, b2)),
                 DynamicTest.dynamicTest("[testDirectMappings] root map 3", () -> Assertions.assertSame(a1, b1)),
@@ -425,9 +425,9 @@ public class ConverterFactoryTest {
 
         return Stream.of(
                 DynamicTest.dynamicTest("[testExtends] not INSTANCE 1", () -> Assertions.assertNotEquals(StdConverterFactory.INSTANCE, extend1)),
-                DynamicTest.dynamicTest("[testExtends] not STD 1", () -> Assertions.assertNotEquals(StdConverterFactory.STD, extend1)),
+                DynamicTest.dynamicTest("[testExtends] not STD 1", () -> Assertions.assertNotEquals(ConverterFactory.std(), extend1)),
                 DynamicTest.dynamicTest("[testExtends] not INSTANCE 2", () -> Assertions.assertNotEquals(StdConverterFactory.INSTANCE, extended)),
-                DynamicTest.dynamicTest("[testExtends] not STD 2", () -> Assertions.assertNotEquals(StdConverterFactory.STD, extended)),
+                DynamicTest.dynamicTest("[testExtends] not STD 2", () -> Assertions.assertNotEquals(ConverterFactory.std(), extended)),
                 DynamicTest.dynamicTest("[testExtends] 1 is not 2", () -> Assertions.assertNotEquals(extend1, extended)),
                 DynamicTest.dynamicTest("[testExtends] not root", () -> Assertions.assertNotEquals(root, maps)),
                 DynamicTest.dynamicTest("[testExtends] map structure", () -> Assertions.assertEquals(newMap, maps)),

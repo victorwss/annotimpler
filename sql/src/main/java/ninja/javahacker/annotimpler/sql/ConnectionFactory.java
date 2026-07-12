@@ -30,7 +30,7 @@ public interface ConnectionFactory {
     public Connection get() throws SQLException;
 
     /// Creates an annotation-driven implementation of the given interface, using this factory
-    /// as the connection source and [ConverterFactory#STD] as the type converter.
+    /// as the connection source and [ConverterFactory#std()] as the type converter.
     ///
     /// @param <E> The interface type to implement.
     /// @param iface The interface class to implement.
@@ -41,7 +41,7 @@ public interface ConnectionFactory {
     public default <E> E create(@NonNull Class<E> iface) throws BadImplementationException {
         var m = PropertyBag.root()
                 .add(ConnectionFactoryKeyProperty.INSTANCE, this)
-                .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.STD)
+                .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.std())
                 .add(LocalizerKeyProperty.INSTANCE, Locale.ROOT);
         return AnnotationsImplementor.implement(iface, m);
     }

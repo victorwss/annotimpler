@@ -55,16 +55,21 @@ public final class NameDictionary {
         @NonNull
         private final Class<T> klass;
 
-        /// 
+        /// Classes that were already visited.
         @NonNull
         private final Set<Class<?>> seen;
 
+        /// Classes that can't be referenced only by their simple name due to ambiguity.
         @NonNull
         private final Set<Class<?>> fullNameNeeded;
 
+        /// Classes that can be referenced by their simple name, mapped by their simple name.
+        /// Classes that can't be referenced by their simple name have simple names that maps up to `void.class`.
         @NonNull
         private final Map<String, Class<?>> simpleNamesSeen;
 
+        /// Creates an instance that represents the given class.
+        /// @param k The class to represent on this instance.
         @SuppressFBWarnings("FII_USE_FUNCTION_IDENTITY") // Can't use Function.identity() without making a mess with generics.
         private ClassDictionary(@NonNull Class<T> k) {
             checkNotNull(k); // Check recognized by lombok.

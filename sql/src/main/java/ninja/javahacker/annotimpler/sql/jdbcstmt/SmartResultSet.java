@@ -50,7 +50,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws IllegalArgumentException If `rs` is `null`.
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
         List.of(rs); // Force lombok do the check before the constructor call.
-        this(rs, ConverterFactory.STD, Locale.ROOT);
+        this(rs, ConverterFactory.std(), Locale.ROOT);
     }
 
     /// Creates a [SmartResultSet] wrapping the given [java.sql.ResultSet] with the specified

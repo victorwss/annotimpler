@@ -272,20 +272,20 @@ public class HeavyConverterTestSupport {
                     var o2 = TestTypes.wrap(out, k2);
 
                     Executable nd1Ok = () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
+                        var cvt = ConverterFactory.std().get(k2);
                         TestTypes.compare(o2, m.receive(cvt, in).get());
                     };
                     Executable nd2Ok = () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
+                        var cvt = ConverterFactory.std().get(k2);
                         TestTypes.compare(o2, cvt.fromObj(in).get());
                     };
                     Executable nd1Err = () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
+                        var cvt = ConverterFactory.std().get(k2);
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt, in));
                         checkException(ce, errorType, inputType, k2, in);
                     };
                     Executable nd2Err = () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
+                        var cvt = ConverterFactory.std().get(k2);
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.fromObj(in));
                         checkException(ce, errorType, inputType, k2, in);
                     };
@@ -340,7 +340,7 @@ public class HeavyConverterTestSupport {
                     var res = " - should be unsupported.";
 
                     var nd2 = DynamicTest.dynamicTest(prefix + " Converter for " + name(k2) + " fromObj " + inStr + res, () -> {
-                        var cvt = ConverterFactory.STD.get(k2);
+                        var cvt = ConverterFactory.std().get(k2);
                         var ce = Assertions.assertThrows(ConvertionException.class, () -> cvt.fromObj(in));
                         checkException(ce, ExceptionType.UNSUPPORTED_TYPE, inputType, k2, in);
                     });

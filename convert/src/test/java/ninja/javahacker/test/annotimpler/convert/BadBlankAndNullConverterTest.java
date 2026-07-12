@@ -25,7 +25,7 @@ public class BadBlankAndNullConverterTest {
                 var nd1 = DynamicTest.dynamicTest(
                         "Converter for " + TypeName.of(k2) + " from " + base.getSimpleName() + " as null.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             ForTests.testNull("in", () -> m.receive(cvt));
                         }
                 );
@@ -160,7 +160,7 @@ public class BadBlankAndNullConverterTest {
                 var nd1 = DynamicTest.dynamicTest(
                         "[testFromOkNull fromObj] Converter for " + TypeName.of(k2) + " from Object null.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(z, cvt.fromObj(null));
                         }
                 );
@@ -168,7 +168,7 @@ public class BadBlankAndNullConverterTest {
                 var nd2 = DynamicTest.dynamicTest(
                         "[testFromOkNull fromNull] Converter for " + TypeName.of(k2) + " fromNull.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(z, cvt.fromNull());
                         }
                 );
@@ -195,7 +195,7 @@ public class BadBlankAndNullConverterTest {
                 var nd1 = DynamicTest.dynamicTest(
                         "[testFromBadJunkString] Converter for " + TypeName.of(k2) + " with bad String.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ex.getMessage()),
@@ -220,7 +220,7 @@ public class BadBlankAndNullConverterTest {
                 var nd1 = DynamicTest.dynamicTest(
                         "[testFromBadJunkObject] Converter for " + TypeName.of(k2) + " with bad Object.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                             Assertions.assertAll(
                                     () -> Assertions.assertEquals("Unsupported Type: java.lang.Thread.", ex.getMessage()),
@@ -246,7 +246,7 @@ public class BadBlankAndNullConverterTest {
                 var nd1 = DynamicTest.dynamicTest(
                         "[testFromEmpty] Converter for " + TypeName.of(k2) + " with empty String.",
                         () -> {
-                            var cvt = ConverterFactory.STD.get(k2);
+                            var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(Optional.ofNullable(empty(k2)), m.receive(cvt));
                         }
                 );
@@ -441,7 +441,7 @@ public class BadBlankAndNullConverterTest {
                     var nd2 = DynamicTest.dynamicTest(
                             "[testFromBadLob] Converter for " + TypeName.of(k2) + " with " + k3.name() + ".",
                             () -> {
-                                var cvt = ConverterFactory.STD.get(k2);
+                                var cvt = ConverterFactory.std().get(k2);
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> k3.spec().receive(cvt));
                                 checkException(ce, k1, k2, k3);
                             }

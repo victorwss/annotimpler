@@ -91,9 +91,11 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
         ///
         /// @param params The parameters used in the call.
         /// @return The result of the call, or `null` if the method is `void`-typed.
-        /// @throws IllegalAccessException If this object wraps a non-public method or constructor or is encapsulated in an innacessible module.
+        /// @throws IllegalAccessException If this object wraps a non-public method or constructor or is encapsulated
+        ///         in an innacessible module.
         /// @throws InstantiationException If this object wraps a constructor of an abstract class.
-        /// @throws IllegalArgumentException If `params` is `null` or if there is a mismatch between the received argument and the expected ones.
+        /// @throws IllegalArgumentException If `params` is `null` or if there is a mismatch between the received
+        ///         argument and the expected ones.
         /// @throws InvocationTargetException If the invoked method or constructor throws an arbitrary exception.
         @Nullable
         public E call(@NonNull Object... params) throws IllegalAccessException, InstantiationException, InvocationTargetException;

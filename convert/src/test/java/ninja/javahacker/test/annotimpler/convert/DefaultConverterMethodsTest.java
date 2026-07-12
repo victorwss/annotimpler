@@ -93,7 +93,7 @@ public class DefaultConverterMethodsTest {
     @TestFactory
     public Stream<DynamicNode> testStdGetType() throws Exception {
         return TestTypes.CVT_TYPES.stream().map(t -> DynamicTest.dynamicTest("[testStdGetType] " + TypeName.of(t), () -> {
-            var cvt = ConverterFactory.STD.get(t);
+            var cvt = ConverterFactory.std().get(t);
             Assertions.assertEquals(t, cvt.getType());
         }));
     }

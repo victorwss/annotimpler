@@ -211,7 +211,7 @@ public class CompositeCustomConverterTest {
 
     @Test
     public void testBadRecordConverter1() throws Exception {
-        var uce = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.STD.get(Bad1.class).from("xxx"));
+        var uce = Assertions.assertThrows(UnavailableConverterException.class, () -> ConverterFactory.std().get(Bad1.class).from("xxx"));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(MagicFactory.CreatorSelectionException.class, uce.getCause().getClass()),
                 () -> Assertions.assertEquals(uce.getCause().getMessage(), uce.getMessage()),
@@ -223,7 +223,7 @@ public class CompositeCustomConverterTest {
 
     @Test
     public void testBadRecordConverter2() throws Exception {
-        var ce = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.STD.get(Bad2.class).from("xxx"));
+        var ce = Assertions.assertThrows(ConvertionException.class, () -> ConverterFactory.std().get(Bad2.class).from("xxx"));
         Assertions.assertAll(
                 () -> Assertions.assertEquals(MagicFactory.CreationException.class, ce.getCause().getClass()),
                 () -> Assertions.assertEquals(ce.getCause().getMessage(), ce.getMessage()),
