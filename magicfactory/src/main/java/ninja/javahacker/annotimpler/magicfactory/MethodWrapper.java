@@ -146,7 +146,7 @@ public interface MethodWrapper<E, U> {
         var base = staticCall ? 0 : 1;
         if (pp.size() + base != args.length) throw new IllegalArgumentException();
         var map = new LinkedHashMap<String, Object>(args.length + base);
-        if (staticCall) {
+        if (!staticCall) {
             var it = getInstanceType().orElseThrow(AssertionError::new);
             var a = args[0];
             if (!WrapperClass.wrap(it).isInstance(a)) throw new IllegalArgumentException(it + "---" + a);

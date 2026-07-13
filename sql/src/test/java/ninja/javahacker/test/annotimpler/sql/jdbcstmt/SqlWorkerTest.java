@@ -60,7 +60,7 @@ public class SqlWorkerTest {
     }
 
     private static SqlWorker worker(Connection con, ParameterReceiver.Acceptor2 ppq, String sql) {
-        return new SqlWorker(con, ppq, ParsedQuery.parse(sql), ConverterFactory.STD, Locale.ROOT);
+        return new SqlWorker(con, ppq, ParsedQuery.parse(sql), ConverterFactory.std(), Locale.ROOT);
     }
 
     private static SqlWorker worker(Connection con, String sql) {
@@ -361,15 +361,15 @@ public class SqlWorkerTest {
         ParameterReceiver.Acceptor2 noop = pr -> {};
         return Stream.of(
                 DynamicTest.dynamicTest(pf + "con null → @NonNull", () ->
-                        ForTests.testNull("con", () -> new SqlWorker(null, noop, pq, ConverterFactory.STD, Locale.ROOT))
+                        ForTests.testNull("con", () -> new SqlWorker(null, noop, pq, ConverterFactory.std(), Locale.ROOT))
                 ),
 
                 DynamicTest.dynamicTest(pf + "ppq null → @NonNull", ((ConnectionContext) con ->
-                        ForTests.testNull("ppq", () -> new SqlWorker(con, null, pq, ConverterFactory.STD, Locale.ROOT))
+                        ForTests.testNull("ppq", () -> new SqlWorker(con, null, pq, ConverterFactory.std(), Locale.ROOT))
                 ).wrap()),
 
                 DynamicTest.dynamicTest(pf + "pq null → @NonNull", ((ConnectionContext) con ->
-                        ForTests.testNull("pq", () -> new SqlWorker(con, noop, null, ConverterFactory.STD, Locale.ROOT))
+                        ForTests.testNull("pq", () -> new SqlWorker(con, noop, null, ConverterFactory.std(), Locale.ROOT))
                 ).wrap()),
 
                 DynamicTest.dynamicTest(pf + "factory null → @NonNull", ((ConnectionContext) con ->
@@ -377,7 +377,7 @@ public class SqlWorkerTest {
                 ).wrap()),
 
                 DynamicTest.dynamicTest(pf + "localizer null → @NonNull", ((ConnectionContext) con ->
-                        ForTests.testNull("localizer", () -> new SqlWorker(con, noop, pq, ConverterFactory.STD, null))
+                        ForTests.testNull("localizer", () -> new SqlWorker(con, noop, pq, ConverterFactory.std(), null))
                 ).wrap()),
 
                 DynamicTest.dynamicTest(pf + "read(null class) → @NonNull", ((ConnectionContext) con -> {

@@ -178,7 +178,7 @@ public class SmartResultSetTest {
             if (m.getName().equals("getMetaData")) return md.getMock();
             throw new AssertionError(m);
         });
-        SmartResultSet s = new SmartResultSet(rs.getMock(), ConverterFactory.STD, Locale.ROOT);
+        SmartResultSet s = new SmartResultSet(rs.getMock(), ConverterFactory.std(), Locale.ROOT);
         Assertions.assertSame(md.getMock(), s.getMetaData());
     }
 
@@ -267,31 +267,31 @@ public class SmartResultSetTest {
         var turkish = Locale.forLanguageTag("TR-tr");
 
         return Stream.of(
-                DynamicTest.dynamicTest("[testMapping] empty"     , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.STD, Locale.ROOT).getMap())),
-                DynamicTest.dynamicTest("[testMapping] empty N"   , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers())),
-                DynamicTest.dynamicTest("[testMapping] empty S"   , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.STD, Locale.ROOT).getMapByLabels())),
+                DynamicTest.dynamicTest("[testMapping] empty"     , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.std(), Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] empty N"   , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers())),
+                DynamicTest.dynamicTest("[testMapping] empty S"   , () -> Assertions.assertEquals(map3 , makeMock(EMPTY  , ConverterFactory.std(), Locale.ROOT).getMapByLabels())),
 
-                DynamicTest.dynamicTest("[testMapping] simple"    , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMap())),
-                DynamicTest.dynamicTest("[testMapping] simple S"  , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 2, 3))),
-                DynamicTest.dynamicTest("[testMapping] simple S p", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 3))),
-                DynamicTest.dynamicTest("[testMapping] simple S r", () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(3, 1, 2, 1, 2, 2, 3, 1))),
-                DynamicTest.dynamicTest("[testMapping] simple N"  , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", "F2", "f3"))),
-                DynamicTest.dynamicTest("[testMapping] simple N p", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", "F3"))),
-                DynamicTest.dynamicTest("[testMapping] simple N r", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByLabels("f3", "F3", "f1", "F1", "F1"))),
-                DynamicTest.dynamicTest("[testMapping] no labels" , () -> Assertions.assertEquals(map3 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByLabels())),
-                DynamicTest.dynamicTest("[testMapping] no nums"   , () -> Assertions.assertEquals(map3 , makeMock(SIMPLE , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers())),
+                DynamicTest.dynamicTest("[testMapping] simple"    , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] simple S"  , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 2, 3))),
+                DynamicTest.dynamicTest("[testMapping] simple S p", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 3))),
+                DynamicTest.dynamicTest("[testMapping] simple S r", () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(3, 1, 2, 1, 2, 2, 3, 1))),
+                DynamicTest.dynamicTest("[testMapping] simple N"  , () -> Assertions.assertEquals(map1 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByLabels("f1", "F2", "f3"))),
+                DynamicTest.dynamicTest("[testMapping] simple N p", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByLabels("f1", "F3"))),
+                DynamicTest.dynamicTest("[testMapping] simple N r", () -> Assertions.assertEquals(map1b, makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByLabels("f3", "F3", "f1", "F1", "F1"))),
+                DynamicTest.dynamicTest("[testMapping] no labels" , () -> Assertions.assertEquals(map3 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByLabels())),
+                DynamicTest.dynamicTest("[testMapping] no nums"   , () -> Assertions.assertEquals(map3 , makeMock(SIMPLE , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers())),
 
-                DynamicTest.dynamicTest("[testMapping] bad keys"  , () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.STD, Locale.ROOT).getMap())),
-                DynamicTest.dynamicTest("[testMapping] bad keys N", () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 2, 3, 4, 5, 6))),
-                DynamicTest.dynamicTest("[testMapping] bad keys S", () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.STD, Locale.ROOT).getMapByLabels("aaAi"))),
-                DynamicTest.dynamicTest("[testMapping] bad keys X", () -> Assertions.assertEquals(map3 , makeMock(BAD    , ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(2))),
-                DynamicTest.dynamicTest("[testMapping] bad keys Y", () -> Assertions.assertEquals(map3 , makeMock(BAD    , ConverterFactory.STD, Locale.ROOT).getMapByLabels())),
+                DynamicTest.dynamicTest("[testMapping] bad keys"  , () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.std(), Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] bad keys N", () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 2, 3, 4, 5, 6))),
+                DynamicTest.dynamicTest("[testMapping] bad keys S", () -> Assertions.assertEquals(map2 , makeMock(BAD    , ConverterFactory.std(), Locale.ROOT).getMapByLabels("aaAi"))),
+                DynamicTest.dynamicTest("[testMapping] bad keys X", () -> Assertions.assertEquals(map3 , makeMock(BAD    , ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(2))),
+                DynamicTest.dynamicTest("[testMapping] bad keys Y", () -> Assertions.assertEquals(map3 , makeMock(BAD    , ConverterFactory.std(), Locale.ROOT).getMapByLabels())),
 
-                DynamicTest.dynamicTest("[testMapping] vacuous"   , () -> Assertions.assertEquals(map3 , makeMock(VACUOUS, ConverterFactory.STD, Locale.ROOT).getMap())),
-                DynamicTest.dynamicTest("[testMapping] vacuous N" , () -> Assertions.assertEquals(map3 , makeMock(VACUOUS, ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 2, 3))),
+                DynamicTest.dynamicTest("[testMapping] vacuous"   , () -> Assertions.assertEquals(map3 , makeMock(VACUOUS, ConverterFactory.std(), Locale.ROOT).getMap())),
+                DynamicTest.dynamicTest("[testMapping] vacuous N" , () -> Assertions.assertEquals(map3 , makeMock(VACUOUS, ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 2, 3))),
 
-                DynamicTest.dynamicTest("[testMapping] turkish"   , () -> Assertions.assertEquals(map4 , makeMock(BAD    , ConverterFactory.STD, turkish    ).getMap())),
-                DynamicTest.dynamicTest("[testMapping] turkish S" , () -> Assertions.assertEquals(map4 , makeMock(BAD    , ConverterFactory.STD, turkish    ).getMapByLabels("AAAi", "aaaI")))
+                DynamicTest.dynamicTest("[testMapping] turkish"   , () -> Assertions.assertEquals(map4 , makeMock(BAD    , ConverterFactory.std(), turkish    ).getMap())),
+                DynamicTest.dynamicTest("[testMapping] turkish S" , () -> Assertions.assertEquals(map4 , makeMock(BAD    , ConverterFactory.std(), turkish    ).getMapByLabels("AAAi", "aaaI")))
         );
     }
 
@@ -300,25 +300,25 @@ public class SmartResultSetTest {
     public Stream<DynamicTest> testDoNotExists() throws Exception {
         return Stream.of(
                 DynamicTest.dynamicTest("[testDoNotExists] column number 4",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 2, 3, 4), "There is no column 2.")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 2, 3, 4), "There is no column 2.")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 0",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 0, 2), "There is no column 0.")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 0, 2), "There is no column 0.")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number -1",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, -1, 2), "There is no column -1.")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, -1, 2), "There is no column -1.")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByColumnNumbers(1, 2, 5, 3, 4), "There is no column 5.")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByColumnNumbers(1, 2, 5, 3, 4), "There is no column 5.")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByLabels("bla"), "There is no column \"bla\".")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByLabels("bla"), "There is no column \"bla\".")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", "f2", ""), "There is no column \"\".")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByLabels("f1", "f2", ""), "There is no column \"\".")
                 ),
                 DynamicTest.dynamicTest("[testDoNotExists] column number 5 and 4",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.STD, Locale.ROOT).getMapByLabels("f1", null, "f1"), "Null-named columns are not allowed.")
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> makeMock(SIMPLE, ConverterFactory.std(), Locale.ROOT).getMapByLabels("f1", null, "f1"), "Null-named columns are not allowed.")
                 )
         );
     }
@@ -336,7 +336,7 @@ public class SmartResultSetTest {
             if ("getMetaData".equals(m.getName())) return mdMock.getMock();
             return rsHandler.invoke(px, m, a);
         });
-        return new SmartResultSet(rsMock.getMock(), ConverterFactory.STD, Locale.ROOT);
+        return new SmartResultSet(rsMock.getMock(), ConverterFactory.std(), Locale.ROOT);
     }
 
     @TestFactory
@@ -1194,9 +1194,9 @@ public class SmartResultSetTest {
 
         return Stream.of(
                 DynamicTest.dynamicTest("[testNulls] constructor(ResultSet)"                 , () -> ForTests.testNull("rs"         , () -> new SmartResultSet(null))),
-                DynamicTest.dynamicTest("[testNulls] constructor(3)-1"                       , () -> ForTests.testNull("rs"         , () -> new SmartResultSet(null, ConverterFactory.STD, Locale.ROOT))),
+                DynamicTest.dynamicTest("[testNulls] constructor(3)-1"                       , () -> ForTests.testNull("rs"         , () -> new SmartResultSet(null, ConverterFactory.std(), Locale.ROOT))),
                 DynamicTest.dynamicTest("[testNulls] constructor(3)-2"                       , () -> ForTests.testNull("factory"    , () -> new SmartResultSet(rs, null, Locale.ROOT))),
-                DynamicTest.dynamicTest("[testNulls] constructor(3)-3"                       , () -> ForTests.testNull("localizer"  , () -> new SmartResultSet(rs, ConverterFactory.STD, null))),
+                DynamicTest.dynamicTest("[testNulls] constructor(3)-3"                       , () -> ForTests.testNull("localizer"  , () -> new SmartResultSet(rs, ConverterFactory.std(), null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByColumnNumber(int...)"           , () -> ForTests.testNull("fields"     , () -> mock0().getMapByColumnNumbers((int[]) null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByLabels(String...)"              , () -> ForTests.testNull("fields"     , () -> mock0().getMapByLabels((String[]) null))),
                 DynamicTest.dynamicTest("[testNulls] getTypedValue(int, Class)-2"            , () -> ForTests.testNull("target"     , () -> mock0().getTypedValue(1, null))),

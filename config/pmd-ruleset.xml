@@ -23,6 +23,12 @@
             <property name="checkSingleIfStmt" value="false" />
         </properties>
     </rule>
+    <rule ref="category/java/codestyle.xml/CommentDefaultAccessModifier">
+        <properties>
+            <property name="ignoredAnnotations" value="lombok.experimental.PackagePrivate" />
+            <property name="checkTopLevelTypes" value="true" />
+        </properties>
+    </rule>
     <rule ref="category/java/design.xml">
         <exclude name="AvoidUncheckedExceptionsInSignatures" />
         <exclude name="LoosePackageCoupling" />

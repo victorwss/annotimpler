@@ -136,10 +136,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     ///
     /// @param input What should be parsed.
     /// @return The parsed [LocalDate].
-    /// @throws IllegalArgumentExcception If the `input` is `null`.
     /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalDate].
     @NonNull
     public LocalDate date(@NonNull String input) {
+        checkNotNull(input); // Check recognized by lombok.
         return wrap(input, "date", () -> new Parser(input, this).parseAll(true, Pieces::date));
     }
 
@@ -147,10 +147,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     ///
     /// @param input What should be parsed.
     /// @return The parsed [LocalTime].
-    /// @throws IllegalArgumentExcception If the `input` is `null`.
     /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalTime].
     @NonNull
     public LocalTime time(@NonNull String input) {
+        checkNotNull(input); // Check recognized by lombok.
         return wrap(input, "time", () -> new Parser(input, this).parseAll(false, Pieces::time));
     }
 
@@ -158,10 +158,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     ///
     /// @param input What should be parsed.
     /// @return The parsed [LocalDateTime].
-    /// @throws IllegalArgumentExcception If the `input` is `null`.
     /// @throws DateTimeParseException If the `input` can't be parsed as a [LocalDateTime].
     @NonNull
     public LocalDateTime dateTime(@NonNull String input) {
+        checkNotNull(input); // Check recognized by lombok.
         return wrap(input, "date-time", () -> new Parser(input, this).parseAll(true, Pieces::dateTime));
     }
 
@@ -169,10 +169,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     ///
     /// @param input What should be parsed.
     /// @return The parsed [OffsetDateTime].
-    /// @throws IllegalArgumentExcception If the `input` is `null`.
     /// @throws DateTimeParseException If the `input` can't be parsed as an [OffsetDateTime].
     @NonNull
     public OffsetDateTime dateTimeZone(@NonNull String input) {
+        checkNotNull(input); // Check recognized by lombok.
         return wrap(input, "date-time-zone", () -> new Parser(input, this).parseAll(true, Pieces::dateTimeZone));
     }
 
@@ -180,10 +180,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     ///
     /// @param input What should be parsed.
     /// @return The parsed [OffsetDate].
-    /// @throws IllegalArgumentExcception If the `input` is `null`.
     /// @throws DateTimeParseException If the `input` can't be parsed as an [OffsetTime].
     @NonNull
     public OffsetTime timeZone(@NonNull String input) {
+        checkNotNull(input); // Check recognized by lombok.
         return wrap(input, "time-zone", () -> new Parser(input, this).parseAll(false, Pieces::timeZone));
     }
 

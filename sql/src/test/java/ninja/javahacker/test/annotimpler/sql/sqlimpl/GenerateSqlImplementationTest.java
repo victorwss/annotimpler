@@ -90,7 +90,7 @@ public class GenerateSqlImplementationTest {
 
     private static final PropertyBag NO_DB_BAG = PropertyBag.root()
             .add(ConnectionFactoryKeyProperty.INSTANCE, NEVER_CONNECT)
-            .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.STD)
+            .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.std())
             .add(LocalizerKeyProperty.INSTANCE, Locale.ROOT);
 
     @FunctionalInterface
@@ -120,7 +120,7 @@ public class GenerateSqlImplementationTest {
     private static PropertyBag bagFor(Connection con) {
         return PropertyBag.root()
                 .add(ConnectionFactoryKeyProperty.INSTANCE, () -> con)
-                .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.STD)
+                .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.std())
                 .add(LocalizerKeyProperty.INSTANCE, Locale.ROOT);
     }
 

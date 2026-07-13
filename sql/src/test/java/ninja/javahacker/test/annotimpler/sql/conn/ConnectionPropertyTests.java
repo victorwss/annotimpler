@@ -391,6 +391,14 @@ public class ConnectionPropertyTests {
     }
 
     @TestFactory
+    public Stream<DynamicTest> testAuthNulls() {
+        return Stream.of(
+                n("user", () -> ForTests.testNull("user", () -> new Connector.Auth(null, "x"))),
+                n("password", () -> ForTests.testNull("password", () -> new Connector.Auth("x", null)))
+        );
+    }
+
+    @TestFactory
     public Stream<DynamicTest> testMariaDbProps() {
         var url1 = "jdbc:mariadb://localhost:3306/test";
         Supplier<Connector> obj1 = () -> new MariaDbConnector("localhost", 3306, "admin", "secret", "test");

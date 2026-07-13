@@ -34,6 +34,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// @see PropertyBag
 public final class AnnotationsImplementor {
 
+    /// This class is not instantiable.
     private AnnotationsImplementor() {
         throw new UnsupportedOperationException();
     }
@@ -46,6 +47,7 @@ public final class AnnotationsImplementor {
 
     private static void validate(@NonNull Method m, @NonNull Class<? extends Annotation> implAnnon) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
+        checkNotNull(implAnnon); // Check recognized by lombok.
         var mc = m.getDeclaringClass();
         var implName = implAnnon.getSimpleName();
         var prefix = "Can't use @" + implName + " annotation on ";
