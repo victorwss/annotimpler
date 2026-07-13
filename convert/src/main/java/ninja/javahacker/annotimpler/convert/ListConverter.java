@@ -1,11 +1,26 @@
 package ninja.javahacker.annotimpler.convert;
 
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
+import java.sql.Ref;
+import java.sql.RowId;
+import java.sql.SQLXML;
+import java.sql.Struct;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 import lombok.EqualsAndHashCode;
+import lombok.Generated;
 import lombok.NonNull;
 import lombok.ToString;
-
-import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] that wraps an element [Converter] and produces `List<E>`.
 ///

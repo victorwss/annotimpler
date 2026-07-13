@@ -2,7 +2,6 @@ package ninja.javahacker.annotimpler.convert;
 
 import lombok.NonNull;
 
-import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
 /// An extended [ConverterFactory] with built-in support for all standard Java types.

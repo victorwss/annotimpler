@@ -1,12 +1,27 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import java.io.InputStream;
+import java.io.Reader;
+import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.List;
+import java.util.Map;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
 import lombok.Generated;
 import lombok.NonNull;
 
-import module java.base;
-import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
 /// A [PreparedStatement] extension that supports named parameters in SQL queries.

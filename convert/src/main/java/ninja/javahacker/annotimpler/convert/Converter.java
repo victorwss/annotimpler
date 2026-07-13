@@ -2,11 +2,28 @@ package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
+import java.sql.Ref;
+import java.sql.RowId;
+import java.sql.SQLXML;
+import java.sql.Struct;
+import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.util.List;
+import java.util.function.Function;
+import java.util.stream.Stream;
 import lombok.Generated;
 import lombok.NonNull;
-
-import module java.base;
-import module java.sql;
 
 /// A type converter that transforms an input value of any supported type into an optional value of type `E`.
 ///

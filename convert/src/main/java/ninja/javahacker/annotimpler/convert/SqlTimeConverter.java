@@ -2,10 +2,13 @@ package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.sql.Time;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.util.Optional;
+import lombok.Generated;
 import lombok.NonNull;
-
-import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] for `java.sql.Time` values.
 ///

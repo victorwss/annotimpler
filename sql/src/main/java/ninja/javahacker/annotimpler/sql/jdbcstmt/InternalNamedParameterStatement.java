@@ -1,14 +1,20 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.InputStream;
+import java.io.Reader;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
 import lombok.experimental.PackagePrivate;
-
-import module java.base;
-import module java.sql;
-import module ninja.javahacker.annotimpler.sql;
+import ninja.javahacker.annotimpler.limited.LimitedInputStream;
+import ninja.javahacker.annotimpler.limited.LimitedReader;
 
 /// Implementation of [NamedParameterStatement] that works as an decorator over a standard [PreparedStatement].
 @PackagePrivate
