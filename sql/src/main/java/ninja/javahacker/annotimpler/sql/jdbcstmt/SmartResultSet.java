@@ -475,12 +475,13 @@ public final class SmartResultSet implements ResultSet {
         return getRecord(k, remapper, map);
     }
 
-    // Builds a remapper that converts column keys (stored uppercase by ColumnMapping using localizer)
+    // Builds a remapper that converts column keys (stored uppercase by [ColumnMapping] using [#localizer])
     // back to the exact record field names, enabling case-insensitive column-to-field matching.
-    // The same locale used by ColumnMapping is applied here so that locale-specific uppercasing
+    // The same locale used by [ColumnMapping] is applied here so that locale-specific uppercasing
     // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
     @NonNull
     private <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {
+        checkNotNull(k); // Check recognized by lombok.
         var components = k.getRecordComponents();
         var mapping = new HashMap<String, String>(components.length);
         for (var rc : components) {

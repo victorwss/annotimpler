@@ -421,13 +421,13 @@ public final class SqlWorker {
 
     @Nullable
     private static Integer getOrNull(@NonNull OptionalInt opt) {
-        if (opt == null) throw new AssertionError();
+        checkNotNull(opt); // Check recognized by lombok.
         return opt.isEmpty() ? null : opt.getAsInt();
     }
 
     @Nullable
     private static Long getOrNull(@NonNull OptionalLong opt) {
-        if (opt == null) throw new AssertionError();
+        checkNotNull(opt); // Check recognized by lombok.
         return opt.isEmpty() ? null : opt.getAsLong();
     }
 

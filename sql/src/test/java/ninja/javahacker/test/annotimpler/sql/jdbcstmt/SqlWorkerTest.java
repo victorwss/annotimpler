@@ -27,6 +27,10 @@ public class SqlWorkerTest {
             "CREATE TABLE g (id INT AUTO_INCREMENT PRIMARY KEY, label VARCHAR(50))"
     );
 
+    private static final List<String> N_SCHEMA = List.of(
+            "CREATE TABLE n (id INT PRIMARY KEY, label VARCHAR(50))"
+    );
+
     // ── Record types ─────────────────────────────────────────────────────────
 
     public record Item(String label, Integer amount) {}
@@ -383,13 +387,159 @@ public class SqlWorkerTest {
         );
     }
 
+    // ── Tests: generate() edge cases (multiple rows) ──────────────────────────
+
+    @TestFactory
+    public Stream<DynamicTest> testGenerateEdgeCases() {
+        var pf = "[testGenerateEdgeCases] ";
+        return Stream.of(
+                // ──── generateOptional() with multiple rows affected ────
+                DynamicTest.dynamicTest(pf + "generateOptional() multi-row → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    // Insert multiple rows with a single statement (H2 supports it)
+                    var w = worker(con, "INSERT INTO g (label) VALUES ('a'), ('b')");
+                    Assertions.assertThrows(SQLException.class, w::generateOptional);
+                }).wrap()),
+
+                // ──── generateOptionalLong() with multiple rows affected ────
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() multi-row → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    // Insert multiple rows with a single statement (H2 supports it)
+                    var w = worker(con, "INSERT INTO g (label) VALUES ('a'), ('b')");
+                    Assertions.assertThrows(SQLException.class, w::generateOptionalLong);
+                }).wrap()),
+
+                // ──── generate() with multiple rows affected ────
+                DynamicTest.dynamicTest(pf + "generate() multi-row → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    // Insert multiple rows with a single statement
+                    var w = worker(con, "INSERT INTO g (label) VALUES ('x'), ('y')");
+                    Assertions.assertThrows(SQLException.class, w::generate);
+                }).wrap()),
+
+                // ──── generateLong() with multiple rows affected ────
+                DynamicTest.dynamicTest(pf + "generateLong() multi-row → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    // Insert multiple rows with a single statement
+                    var w = worker(con, "INSERT INTO g (label) VALUES ('m'), ('n')");
+                    Assertions.assertThrows(SQLException.class, w::generateLong);
+                }).wrap())
+        );
+    }
+
+    // ── Tests: generateList() and generateLongList() edge cases ──────────────
+
+    @TestFactory
+    public Stream<DynamicTest> testGenerateListEdgeCases() {
+        var pf = "[testGenerateListEdgeCases] ";
+        var sql = "INSERT INTO g (label) VALUES (:label)";
+        return Stream.of(
+                // ──── generateList() with no rows ────
+                DynamicTest.dynamicTest(pf + "generateList() no rows → empty list", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var keys = worker(con, "DELETE FROM g").generateList();
+                    Assertions.assertEquals(List.of(), keys);
+                }).wrap()),
+
+                // ──── generateList() with multiple rows ────
+                DynamicTest.dynamicTest(pf + "generateList() multi-row → all keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var keys = worker(con, "INSERT INTO g (label) VALUES ('a'), ('b'), ('c')").generateList();
+                    Assertions.assertEquals(List.of(1, 2, 3), keys);
+                }).wrap()),
+
+                // ──── generateLongList() with no rows ────
+                DynamicTest.dynamicTest(pf + "generateLongList() no rows → empty list", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var keys = worker(con, "DELETE FROM g").generateLongList();
+                    Assertions.assertEquals(List.of(), keys);
+                }).wrap()),
+
+                // ──── generateLongList() with multiple rows ────
+                DynamicTest.dynamicTest(pf + "generateLongList() multi-row → all keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var keys = worker(con, "INSERT INTO g (label) VALUES ('x'), ('y'), ('z')").generateLongList();
+                    Assertions.assertEquals(List.of(1L, 2L, 3L), keys);
+                }).wrap()),
+
+                // ──── Sequential generateList() calls ────
+                DynamicTest.dynamicTest(pf + "generateList() multi-row sequential inserts", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var k1 = worker(con, "INSERT INTO g (label) VALUES ('a'), ('b')").generateList();
+                    var k2 = worker(con, pr -> pr.receive("label", "c"), sql).generateList();
+                    Assertions.assertEquals(List.of(1, 2), k1);
+                    Assertions.assertEquals(List.of(3), k2);
+                }).wrap()),
+
+                // ──── Sequential generateLongList() calls ────
+                DynamicTest.dynamicTest(pf + "generateLongList() multi-row sequential inserts", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var k1 = worker(con, "INSERT INTO g (label) VALUES ('a'), ('b')").generateLongList();
+                    var k2 = worker(con, pr -> pr.receive("label", "c"), sql).generateLongList();
+                    Assertions.assertEquals(List.of(1L, 2L), k1);
+                    Assertions.assertEquals(List.of(3L), k2);
+                }).wrap())
+        );
+    }
+
+    // ── Tests: generate*() returning empty/null when no keys generated ───────
+
+    @TestFactory
+    public Stream<DynamicTest> testGenerateNoKeysCovered() {
+        var pf = "[testGenerateNoKeysCovered] ";
+        return Stream.of(
+                // ──── generateOptional() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generateOptional() no keys → OptionalInt.empty()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    // INSERT that affects no rows → rs.next() returns false
+                    var key = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0").generateOptional();
+                    Assertions.assertEquals(OptionalInt.empty(), key);
+                }).wrap()),
+
+                // ──── generateOrNull() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generateOrNull() no keys → null", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0").generateOrNull();
+                    Assertions.assertNull(key);
+                }).wrap()),
+
+                // ──── generate() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generate() no keys → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var w = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0");
+                    Assertions.assertThrows(SQLException.class, w::generate);
+                }).wrap()),
+
+                // ──── generateOptionalLong() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() no keys → OptionalLong.empty()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0").generateOptionalLong();
+                    Assertions.assertEquals(OptionalLong.empty(), key);
+                }).wrap()),
+
+                // ──── generateLongOrNull() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generateLongOrNull() no keys → null", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0").generateLongOrNull();
+                    Assertions.assertNull(key);
+                }).wrap()),
+
+                // ──── generateLong() with no keys generated ────
+                DynamicTest.dynamicTest(pf + "generateLong() no keys → SQLException", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var w = worker(con, "INSERT INTO g (label) SELECT 'test' WHERE 1 = 0");
+                    Assertions.assertThrows(SQLException.class, w::generateLong);
+                }).wrap())
+        );
+    }
+
     // ── Tests: @NonNull violations ────────────────────────────────────────────
 
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() {
         var pf = "[testNulls] ";
-        var pq  = ParsedQuery.parse("SELECT 1");
+        var pq = ParsedQuery.parse("SELECT 1");
         ParameterReceiver.Acceptor2 noop = pr -> {};
         return Stream.of(
                 DynamicTest.dynamicTest(pf + "con null → @NonNull", () ->
@@ -417,9 +567,29 @@ public class SqlWorkerTest {
                     ForTests.testNull("k", () -> worker(con, "SELECT label FROM t").read(null));
                 }).wrap()),
 
+                DynamicTest.dynamicTest(pf + "read(null class, fields) → @NonNull", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    ForTests.testNull("k", () -> worker(con, "SELECT label, amount FROM t").read(null, 1, 2));
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "read(class, null) → @NonNull", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    ForTests.testNull("fields", () -> worker(con, "SELECT label, amount FROM t").read(Item.class, null));
+                }).wrap()),
+
                 DynamicTest.dynamicTest(pf + "list(null class) → @NonNull", ((ConnectionContext) con -> {
                     setup(con, T_SCHEMA);
                     ForTests.testNull("k", () -> worker(con, "SELECT label FROM t").list(null));
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "list(null class, fields) → @NonNull", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    ForTests.testNull("k", () -> worker(con, "SELECT label, amount FROM t").list(null, 1, 2));
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "list(class, null) → @NonNull", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    ForTests.testNull("fields", () -> worker(con, "SELECT label, amount FROM t").list(Item.class, null));
                 }).wrap())
         );
     }
