@@ -18,12 +18,12 @@ public enum CharArrayConverter implements Converter<char[]> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<char[]> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<char[]> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<char[]> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

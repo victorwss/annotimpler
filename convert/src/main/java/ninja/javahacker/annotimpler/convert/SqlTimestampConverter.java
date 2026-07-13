@@ -21,12 +21,12 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<Timestamp> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<Timestamp> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<Timestamp> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

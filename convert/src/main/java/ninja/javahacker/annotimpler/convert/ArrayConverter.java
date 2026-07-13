@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.convert;
 
+import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
 import java.sql.NClob;
@@ -12,7 +13,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
-import java.math.BigDecimal;
 import java.util.Optional;
 import lombok.EqualsAndHashCode;
 import lombok.Generated;

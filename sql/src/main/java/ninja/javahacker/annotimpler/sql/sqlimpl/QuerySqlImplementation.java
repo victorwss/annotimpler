@@ -6,7 +6,6 @@ import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -44,6 +43,7 @@ public final class QuerySqlImplementation implements Implementation {
     @NonNull
     private final ConverterFactory cvt;
 
+    /// The locale used for case-insensitive column name matching.
     @NonNull
     private final Locale localizer;
 
@@ -89,7 +89,6 @@ public final class QuerySqlImplementation implements Implementation {
 
         var fields = q.fields();
         var rtb = m.getGenericReturnType();
-        var raw = m.getReturnType();
 
         Class<?> rt;
         if (rtb instanceof ParameterizedType pt) {
@@ -115,6 +114,7 @@ public final class QuerySqlImplementation implements Implementation {
             throw new BadImplementationException("Mismatch single-field return @Query record on: " + name(m), m.getDeclaringClass());
         }
 
+        var raw = m.getReturnType();
         if (raw == List.class) return work -> work.list(rt, fields);
         if (raw == Optional.class) return work -> work.read(rt, fields);
         if (rtb == OptionalInt.class) return work -> asInt(work.read(Integer.class, fields));

@@ -273,7 +273,7 @@ public class SqlWorkerTest {
         );
     }
 
-    // ── Tests: generate() and generateLong() ─────────────────────────────────
+    // ── Tests: generate(), generateLong() and friends ─────────────────────────────────
 
     @TestFactory
     public Stream<DynamicTest> testGenerate() {
@@ -283,35 +283,67 @@ public class SqlWorkerTest {
                 DynamicTest.dynamicTest(pf + "generate() first row → key = 1", ((ConnectionContext) con -> {
                     setup(con, G_SCHEMA);
                     var key = worker(con, pr -> pr.receive("label", "foo"), sql).generate();
+                    Assertions.assertEquals(1, key);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLong() first row → key = 1", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, pr -> pr.receive("label", "foo"), sql).generateLong();
+                    Assertions.assertEquals(1L, key);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOrNull() first row → key = 1", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    Integer key = worker(con, pr -> pr.receive("label", "foo"), sql).generateOrNull();
+                    Assertions.assertEquals(Integer.valueOf(1), key);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLongOrNull() first row → key = 1", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    Long key = worker(con, pr -> pr.receive("label", "foo"), sql).generateLongOrNull();
+                    Assertions.assertEquals(Long.valueOf(1L), key);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptional() first row → key = 1", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, pr -> pr.receive("label", "foo"), sql).generateOptional();
                     Assertions.assertEquals(OptionalInt.of(1), key);
                 }).wrap()),
 
-                DynamicTest.dynamicTest(pf + "generate() second row → key = 2", ((ConnectionContext) con -> {
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() first row → key = 1L", ((ConnectionContext) con -> {
                     setup(con, G_SCHEMA);
-                    worker(con, pr -> pr.receive("label", "foo"), sql).generate();
-                    var key2 = worker(con, pr -> pr.receive("label", "bar"), sql).generate();
+                    var key = worker(con, pr -> pr.receive("label", "foo"), sql).generateOptionalLong();
+                    Assertions.assertEquals(OptionalLong.of(1L), key);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptional() second row → key = 2", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    worker(con, pr -> pr.receive("label", "foo"), sql).generateOptional();
+                    var key2 = worker(con, pr -> pr.receive("label", "bar"), sql).generateOptional();
                     Assertions.assertEquals(OptionalInt.of(2), key2);
                 }).wrap()),
 
-                DynamicTest.dynamicTest(pf + "generate() then verify row in DB", ((ConnectionContext) con -> {
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() second row → key = 2L", ((ConnectionContext) con -> {
                     setup(con, G_SCHEMA);
-                    var key = worker(con, pr -> pr.receive("label", "hello"), sql).generate();
+                    worker(con, pr -> pr.receive("label", "foo"), sql).generateOptionalLong();
+                    var key2 = worker(con, pr -> pr.receive("label", "bar"), sql).generateOptionalLong();
+                    Assertions.assertEquals(OptionalLong.of(2L), key2);
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptional() then verify row in DB", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var key = worker(con, pr -> pr.receive("label", "hello"), sql).generateOptional();
                     Assertions.assertTrue(key.isPresent());
                     var check = worker(con, pr -> pr.receive("id", key.getAsInt()), "SELECT label FROM g WHERE id = :id");
                     Assertions.assertEquals(Optional.of("hello"), check.read(String.class));
                 }).wrap()),
 
-                DynamicTest.dynamicTest(pf + "generateLong() first row → key = 1L", ((ConnectionContext) con -> {
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() then verify row in DB", ((ConnectionContext) con -> {
                     setup(con, G_SCHEMA);
-                    var key = worker(con, pr -> pr.receive("label", "foo"), sql).generateLong();
-                    Assertions.assertEquals(OptionalLong.of(1L), key);
-                }).wrap()),
-
-                DynamicTest.dynamicTest(pf + "generateLong() second row → key = 2L", ((ConnectionContext) con -> {
-                    setup(con, G_SCHEMA);
-                    worker(con, pr -> pr.receive("label", "foo"), sql).generateLong();
-                    var key2 = worker(con, pr -> pr.receive("label", "bar"), sql).generateLong();
-                    Assertions.assertEquals(OptionalLong.of(2L), key2);
+                    var key = worker(con, pr -> pr.receive("label", "hello"), sql).generateOptionalLong();
+                    Assertions.assertTrue(key.isPresent());
+                    var check = worker(con, pr -> pr.receive("id", key.getAsLong()), "SELECT label FROM g WHERE id = :id");
+                    Assertions.assertEquals(Optional.of("hello"), check.read(String.class));
                 }).wrap())
         );
     }

@@ -26,19 +26,24 @@ import module ninja.javahacker.annotimpler.convert;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {
 
+    /// The converter factory used to convert column values to target Java types.
     @NonNull
     private final ConverterFactory factory;
 
+    /// The wrapped [java.sql.ResultSet] to decorate.
     @NonNull
     @Delegate(types = ResultSet.class)
     private final ResultSet rs;
 
+    /// The metada from the result set, used to retrieve metadata from columns.
     @NonNull
     private final ResultSetMetaData metaData;
 
+    /// Caches data for each column.
     @NonNull
     private final ColumnMapping mappings;
 
+    /// The locale used for case-insensitive column name matching.
     @NonNull
     private final Locale localizer;
 
@@ -261,7 +266,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs.
     @Nullable
     @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
+    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad", "PMD.LawOfDemeter"})
     public Object getTypedValue(int columnIndex) throws SQLException {
         var columnType = metaData.getColumnType(columnIndex);
         return switch (columnType) {

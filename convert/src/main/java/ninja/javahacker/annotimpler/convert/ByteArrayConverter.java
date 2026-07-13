@@ -1,10 +1,16 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLXML;
+import java.util.Optional;
 import lombok.NonNull;
-
-import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] for `byte[]` values.
 ///

@@ -1,8 +1,37 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.lang.reflect.GenericArrayType;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
+import java.lang.reflect.WildcardType;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.sql.Ref;
+import java.sql.RowId;
+import java.sql.Struct;
+import java.sql.Time;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.time.ZonedDateTime;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.GregorianCalendar;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.OptionalInt;
+import java.util.OptionalLong;
+import java.util.Set;
+import lombok.Generated;
 import lombok.NonNull;
-
-import module ninja.javahacker.annotimpler.convert;
 
 /// An extended [ConverterFactory] with built-in support for all standard Java types.
 ///

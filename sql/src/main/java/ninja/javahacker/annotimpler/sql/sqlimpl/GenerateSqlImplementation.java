@@ -6,7 +6,6 @@ import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -39,6 +38,7 @@ public final class GenerateSqlImplementation implements Implementation {
     @NonNull
     private final ConverterFactory cvt;
 
+    /// The locale used for case-insensitive column name matching.
     @NonNull
     private final Locale localizer;
 
@@ -78,17 +78,17 @@ public final class GenerateSqlImplementation implements Implementation {
 
         var rtb = m.getGenericReturnType();
 
-        if (rtb == long.class) return work -> work.generateLong().getAsLong();
-        if (rtb == Long.class) return work -> getOrNull(work.generateLong());
-        if (rtb == OptionalLong.class) return work -> work.generateLong();
-        if (rtb == int.class) return work -> work.generate().getAsInt();
-        if (rtb == Integer.class) return work -> getOrNull(work.generate());
-        if (rtb == OptionalInt.class) return work -> work.generate();
+        if (rtb == long.class) return SqlWorker::generateLong;
+        if (rtb == Long.class) return SqlWorker::generateLongOrNull;
+        if (rtb == OptionalLong.class) return SqlWorker::generateOptionalLong;
+        if (rtb == int.class) return SqlWorker::generate;
+        if (rtb == Integer.class) return SqlWorker::generateOrNull;
+        if (rtb == OptionalInt.class) return SqlWorker::generateOptional;
 
         if (rtb instanceof ParameterizedType pt && pt.getRawType() == List.class) {
             var p2 = pt.getActualTypeArguments()[0];
-            if (p2 == Integer.class) return work -> work.generateList();
-            if (p2 == Long.class) return work -> work.generateLongList();
+            if (p2 == Integer.class) return SqlWorker::generateList;
+            if (p2 == Long.class) return SqlWorker::generateLongList;
             throw new BadImplementationException("Unsupported return @Generate list type on: " + name(m), m.getDeclaringClass());
         }
 

@@ -1,11 +1,23 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.io.InputStream;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.net.URL;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
+import java.sql.PreparedStatement;
+import java.sql.Ref;
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLType;
+import java.sql.SQLXML;
+import java.sql.Struct;
 import java.sql.Timestamp;
+import java.sql.Types;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,13 +33,13 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import lombok.Generated;
 import lombok.NonNull;
-
-import module ninja.javahacker.annotimpler.sql;
+import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
+import ninja.javahacker.annotimpler.sql.meta.ParsedQuery;
 
 /// A [PreparedStatement] extension that supports named parameters in SQL queries.
 ///
 /// Named parameters are written as `:name` tokens in the SQL string (produced by
-/// [ParsedQuery#parse(String)]).  This interface wraps a standard [PreparedStatement] and
+/// [ParsedQuery#parse(String)]). This interface wraps a standard [PreparedStatement] and
 /// provides named-parameter overloads of all `setXxx` methods.
 ///
 /// When the same parameter name appears more than once in the SQL, all positional occurrences

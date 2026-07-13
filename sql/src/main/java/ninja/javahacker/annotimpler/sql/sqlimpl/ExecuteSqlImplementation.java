@@ -5,7 +5,6 @@ import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -35,6 +34,7 @@ public final class ExecuteSqlImplementation implements Implementation {
     @NonNull
     private final ConverterFactory cvt;
 
+    /// The locale used for case-insensitive column name matching.
     @NonNull
     private final Locale localizer;
 

@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
 
 import module java.base;
-import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
 /// Orchestrates the execution of a single SQL operation against a JDBC [java.sql.Connection].
@@ -227,14 +227,21 @@ public final class SqlWorker {
     /// Executes an `INSERT` statement and returns the first auto-generated key as an
     /// [java.util.OptionalInt].
     ///
-    /// Returns [java.util.OptionalInt#empty()] if no key was generated.  Throws
+    /// Returns [java.util.OptionalInt#empty()] if no key was generated. Throws
     /// [java.sql.SQLException] if more than one row is affected.
     ///
     /// @return An [java.util.OptionalInt] containing the generated key, or
     ///         [java.util.OptionalInt#empty()] if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
     @NonNull
-    public OptionalInt generate() throws SQLException {
+    public OptionalInt generateOptional() throws SQLException {
         try (var ps = openGenerate()) {
             ppq.accept(ps);
             var qtd = ps.executeLargeUpdate();
@@ -246,11 +253,60 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns the first auto-generated key as an `int`.
+    ///
+    /// Throws [java.sql.SQLException] if more than one row is affected or no key was generated.
+    ///
+    /// @return The generated key.
+    /// @throws SQLException If a database access error occurs, more than one row is
+    ///         affected or no key was generated.
+    /// @see #generateOptional()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
+    @NonNull
+    public int generate() throws SQLException {
+        try {
+            return generateOptional().getAsInt();
+        } catch (NoSuchElementException ex) {
+            throw new SQLException(ex);
+        }
+    }
+
+    /// Executes an `INSERT` statement and returns the first auto-generated key as an [Integer].
+    ///
+    /// Returns `null` if no key was generated. Throws
+    /// [java.sql.SQLException] if more than one row is affected.
+    ///
+    /// @return The generated key, or `null` if no key was generated.
+    /// @throws SQLException If a database access error occurs or more than one row is affected.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
+    @Nullable
+    public Integer generateOrNull() throws SQLException {
+        return getOrNull(generateOptional());
+    }
+
     /// Executes an `INSERT` statement and returns all auto-generated keys as a
     /// [java.util.List] of [java.lang.Integer].
     ///
     /// @return A [java.util.List] of all generated keys; empty if none were generated.
     /// @throws SQLException If a database access error occurs.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
     @NonNull
     public List<Integer> generateList() throws SQLException {
         try (var ps = openGenerate()) {
@@ -275,8 +331,15 @@ public final class SqlWorker {
     /// @return An [java.util.OptionalLong] containing the generated key, or
     ///         [java.util.OptionalLong#empty()] if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
     @NonNull
-    public OptionalLong generateLong() throws SQLException {
+    public OptionalLong generateOptionalLong() throws SQLException {
         try (var ps = openGenerate()) {
             ppq.accept(ps);
             var qtd = ps.executeLargeUpdate();
@@ -288,11 +351,59 @@ public final class SqlWorker {
         }
     }
 
+    /// Executes an `INSERT` statement and returns the first auto-generated key as a `long`.
+    ///
+    /// Throws [java.sql.SQLException] if more than one row is affected or no key was generated.
+    ///
+    /// @return The generated key.
+    /// @throws SQLException If a database access error occurs, more than one row is
+    ///         affected or no key was generated.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLongOrNull()
+    /// @see #generateLongList()
+    public long generateLong() throws SQLException {
+        try {
+            return generateOptionalLong().getAsLong();
+        } catch (NoSuchElementException ex) {
+            throw new SQLException(ex);
+        }
+    }
+
+    /// Executes an `INSERT` statement and returns the first auto-generated key as a [Long].
+    ///
+    /// Returns `null` if no key was generated. Throws
+    /// [java.sql.SQLException] if more than one row is affected.
+    ///
+    /// @return The generated key, or `null` if no key was generated.
+    /// @throws SQLException If a database access error occurs or more than one row is affected.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongList()
+    @Nullable
+    public Long generateLongOrNull() throws SQLException {
+        return getOrNull(generateOptionalLong());
+    }
+
     /// Executes an `INSERT` statement and returns all auto-generated keys as a
     /// [java.util.List] of [java.lang.Long].
     ///
     /// @return A [java.util.List] of all generated keys; empty if none were generated.
     /// @throws SQLException If a database access error occurs.
+    /// @see #generateOptional()
+    /// @see #generate()
+    /// @see #generateOrNull()
+    /// @see #generateList()
+    /// @see #generateOptionalLong()
+    /// @see #generateLong()
+    /// @see #generateLongOrNull()
     @NonNull
     public List<Long> generateLongList() throws SQLException {
         try (var ps = openGenerate()) {
@@ -306,6 +417,18 @@ public final class SqlWorker {
                 return r;
             }
         }
+    }
+
+    @Nullable
+    private static Integer getOrNull(@NonNull OptionalInt opt) {
+        if (opt == null) throw new AssertionError();
+        return opt.isEmpty() ? null : opt.getAsInt();
+    }
+
+    @Nullable
+    private static Long getOrNull(@NonNull OptionalLong opt) {
+        if (opt == null) throw new AssertionError();
+        return opt.isEmpty() ? null : opt.getAsLong();
     }
 
     @Generated

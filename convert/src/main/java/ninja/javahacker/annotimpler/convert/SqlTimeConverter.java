@@ -22,12 +22,12 @@ public enum SqlTimeConverter implements Converter<Time> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<Time> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<Time> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<Time> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

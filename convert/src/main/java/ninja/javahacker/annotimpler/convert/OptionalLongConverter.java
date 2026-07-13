@@ -1,10 +1,11 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.math.BigDecimal;
+import java.util.Optional;
+import java.util.OptionalLong;
+import lombok.Generated;
 import lombok.NonNull;
-
-import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] for [OptionalLong] values.
 ///
@@ -21,12 +22,12 @@ public enum OptionalLongConverter implements Converter<OptionalLong> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<OptionalLong> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<OptionalLong> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<OptionalLong> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

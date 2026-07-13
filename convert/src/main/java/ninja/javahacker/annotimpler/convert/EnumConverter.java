@@ -26,12 +26,12 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     private final Class<E> enumClass;
 
     @FunctionalInterface
-    private interface Work<T> {
+    private interface InternalWork<T> {
         public Optional<T> work() throws ConvertionException;
     }
 
     @NonNull
-    private <T> Optional<T> rewrap(@NonNull Work<T> w) throws ConvertionException {
+    private <T> Optional<T> rewrap(@NonNull InternalWork<T> w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

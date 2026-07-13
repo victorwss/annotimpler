@@ -18,13 +18,13 @@ public enum CalendarConverter implements Converter<Calendar> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<Calendar> work() throws ConvertionException;
     }
 
     /// {@inheritDoc}
     @NonNull
-    private Optional<Calendar> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<Calendar> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

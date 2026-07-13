@@ -21,12 +21,12 @@ public enum SqlDateConverter implements Converter<Date> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<Date> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<Date> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<Date> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();

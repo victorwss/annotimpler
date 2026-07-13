@@ -38,7 +38,7 @@ public enum ResourceSqlFactory implements SqlFactory {
         var anno = res.anno();
         var value = anno.value();
         var fromClass = anno.fromClass();
-        var from = fromClass != void.class ? fromClass : res.m().getDeclaringClass();
+        var from = fromClass == void.class ? res.m().getDeclaringClass() : fromClass;
         try (var stream = from.getResourceAsStream(value)) {
             if (stream == null) throw new FileNotFoundException(from.getName() + " - " + value);
             return CharsetSpec.instance(anno.encoding()).decode(stream.readAllBytes());
