@@ -58,8 +58,10 @@ public final class Transactor {
         ///
         /// @param connection The open database connection for the current transaction.
         /// @param id The unique string identifier assigned to this transaction.
-        /// @throws IllegalArgumentException If `connection` or `id` is `null`.
-        public Transaction {}
+        public Transaction {
+            checkNotNull(connection); // Check recognized by lombok.
+            checkNotNull(id); // Check recognized by lombok.
+        }
     }
 
     /// A supplier that may throw any [Throwable].

@@ -4,7 +4,6 @@ import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
-import lombok.SneakyThrows;
 
 import module java.base;
 
@@ -22,25 +21,54 @@ import module java.base;
 /// This class is not instantiable.
 public final class Methods {
 
+    /// Identifies a [Method] by name and signature.
+    /// @param name A method name.
+    /// @param params A method signature. Always an immutable list. Generics are erased.
+    public static record MethodId(@NonNull String name, @NonNull List<Class<?>> params) {
+
+        /// Instantiates a [MethodId] by its components.
+        /// @param name The method name.
+        /// @param params The method signature. An immutable copy is stored instead of the original.
+        /// @throws IllegalArgumentException If `name` or `params` is `null`.
+        public MethodId {
+            params = List.copyOf(params);
+        }
+
+        /// Instantiates a [MethodId] from a method.
+        /// @param m The given [Method] to get an id.
+        /// @throws IllegalArgumentException If `m` is `null`.
+        public MethodId(@NonNull Method m) {
+            this(m.getName(), Stream.of(m.getParameterTypes()).toList());
+        }
+    }
+
     /// The [Object] class methods methods for `wait`, `notify`, `notifyAll`, `getClass`, `clone` and `finalize` (if not removed yet).
     @NonNull
     private static final Set<Method> INTRINSICS;
 
-    /// The [Object#toString()] method.
+    /// The [Object#toString()] method id.
     @NonNull
-    public static final Method TO_STRING = named("toString");
+    public static final MethodId TO_STRING = new MethodId("toString", List.of());
 
-    /// The [Object#hashCode()] method.
+    /// The [Object#hashCode()] method id.
     @NonNull
-    public static final Method HASH_CODE = named("hashCode");
+    public static final MethodId HASH_CODE = new MethodId("hashCode", List.of());
 
-    /// The [Object#equals(Object)] method.
+    /// The [Object#equals(Object)] method id.
     @NonNull
-    public static final Method EQUALS = named("equals", Object.class);
+    public static final MethodId EQUALS = new MethodId("equals", List.of(Object.class));
+
+    /// The [Object#clone()] method id.
+    @NonNull
+    public static final MethodId CLONE = new MethodId("clone", List.of());
+
+    /// The [Object#finalize()] method id.
+    @NonNull
+    public static final MethodId FINALIZE = new MethodId("finalize", List.of());
 
     /// An unmodifiable set containing [#HASH_CODE], [#TO_STRING], and [#EQUALS].
     @NonNull
-    public static final Set<Method> OBJECT_DEFAULT = Set.of(HASH_CODE, TO_STRING, EQUALS);
+    public static final Set<MethodId> OBJECT_DEFAULT = Set.of(HASH_CODE, TO_STRING, EQUALS);
 
     static {
         var names = Set.of("wait", "notify", "notifyAll", "getClass", "clone", "finalize");
@@ -54,13 +82,6 @@ public final class Methods {
     /// This class can't be instantiated.
     private Methods() {
         throw new UnsupportedOperationException();
-    }
-
-    @NonNull
-    @Generated
-    @SneakyThrows
-    private static Method named(String name, Class<?>... params) {
-        return Object.class.getMethod(name, params);
     }
 
     /// Returns `true` if `m` has the `static` modifier.

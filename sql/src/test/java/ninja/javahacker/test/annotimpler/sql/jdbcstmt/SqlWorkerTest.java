@@ -2,6 +2,7 @@ package ninja.javahacker.test.annotimpler.sql.jdbcstmt;
 
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
+import java.lang.reflect.Proxy;
 
 import module java.base;
 import module java.sql;
@@ -69,6 +70,89 @@ public class SqlWorkerTest {
 
     private static SqlWorker worker(Connection con, String sql) {
         return worker(con, pr -> {}, sql);
+    }
+
+    private static ResultSet poisonClose(ResultSet in) {
+        return (ResultSet) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { ResultSet.class }, (p, m, a) -> {
+            try {
+                if (m.getName().equals("close")) {
+                    throw new SQLException("CRASH ResultSet close");
+                }
+                return m.invoke(in, a);
+            } catch (InvocationTargetException x) {
+                throw x.getCause();
+            }
+        });
+    }
+
+    private static PreparedStatement poisonClose(PreparedStatement in) {
+        return (PreparedStatement) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { PreparedStatement.class }, (p, m, a) -> {
+            try {
+                if (m.getName().equals("close")) {
+                    throw new SQLException("CRASH PreparedStatement close");
+                }
+                return m.invoke(in, a);
+            } catch (InvocationTargetException x) {
+                throw x.getCause();
+            }
+        });
+    }
+
+    private static PreparedStatement poisonGetGeneratedKeys(PreparedStatement in) {
+        return (PreparedStatement) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { PreparedStatement.class }, (p, m, a) -> {
+            try {
+                if (m.getName().equals("getGeneratedKeys")) {
+                    var ps = m.invoke(in, a);
+                    return poisonClose((ResultSet) ps);
+                }
+                return m.invoke(in, a);
+            } catch (InvocationTargetException x) {
+                throw x.getCause();
+            }
+        });
+    }
+
+    private static Connection poisonGetGeneratedKeys(Connection in) {
+        return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { Connection.class }, (p, m, a) -> {
+            try {
+                if (m.getName().equals("prepareStatement")) {
+                    var ps = m.invoke(in, a);
+                    return poisonGetGeneratedKeys((PreparedStatement) ps);
+                }
+                return m.invoke(in, a);
+            } catch (InvocationTargetException x) {
+                throw x.getCause();
+            }
+        });
+    }
+
+    private static Connection poisonPrepare(Connection in) {
+        return (Connection) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { Connection.class }, (p, m, a) -> {
+            try {
+                if (m.getName().equals("prepareStatement")) {
+                    var ps = m.invoke(in, a);
+                    return poisonClose((PreparedStatement) ps);
+                }
+                return m.invoke(in, a);
+            } catch (InvocationTargetException x) {
+                throw x.getCause();
+            }
+        });
+    }
+
+    private static SqlWorker workerCrashOnClose(Connection con, ParameterReceiver.Acceptor2 ppq, String sql) {
+        var con2 = poisonPrepare(con);
+        return worker(con2, ppq, sql);
+    }
+
+    private static SqlWorker workerCrashOnClose(Connection con, String sql) {
+        var con2 = poisonPrepare(con);
+        return worker(con2, pr -> {}, sql);
+    }
+
+    private static SqlWorker workerCrashOnCloseKeys(Connection con, String sql) {
+        var con2 = poisonGetGeneratedKeys(con);
+        return worker(con2, pr -> {}, sql);
     }
 
     // ── Tests: execute() ─────────────────────────────────────────────────────
@@ -142,6 +226,7 @@ public class SqlWorkerTest {
     // ── Tests: read() simple types ───────────────────────────────────────────
 
     @TestFactory
+    @SuppressWarnings({"ThrowableResultIgnored", "AssertEqualsBetweenInconvertibleTypes"})
     public Stream<DynamicTest> testReadSimple() {
         var pf = "[testReadSimple] ";
         return Stream.of(
@@ -179,6 +264,7 @@ public class SqlWorkerTest {
     // ── Tests: read() record types ───────────────────────────────────────────
 
     @TestFactory
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testReadRecord() {
         var pf = "[testReadRecord] ";
         return Stream.of(
@@ -206,6 +292,7 @@ public class SqlWorkerTest {
     // ── Tests: list() simple types ───────────────────────────────────────────
 
     @TestFactory
+    @SuppressWarnings({"ThrowableResultIgnored", "AssertEqualsBetweenInconvertibleTypes"})
     public Stream<DynamicTest> testListSimple() {
         var pf = "[testListSimple] ";
         return Stream.of(
@@ -249,6 +336,7 @@ public class SqlWorkerTest {
     // ── Tests: list() record types ───────────────────────────────────────────
 
     @TestFactory
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testListRecord() {
         var pf = "[testListRecord] ";
         return Stream.of(
@@ -390,6 +478,7 @@ public class SqlWorkerTest {
     // ── Tests: generate() edge cases (multiple rows) ──────────────────────────
 
     @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
     public Stream<DynamicTest> testGenerateEdgeCases() {
         var pf = "[testGenerateEdgeCases] ";
         return Stream.of(
@@ -430,6 +519,7 @@ public class SqlWorkerTest {
     // ── Tests: generateList() and generateLongList() edge cases ──────────────
 
     @TestFactory
+    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testGenerateListEdgeCases() {
         var pf = "[testGenerateListEdgeCases] ";
         var sql = "INSERT INTO g (label) VALUES (:label)";
@@ -485,6 +575,7 @@ public class SqlWorkerTest {
     // ── Tests: generate*() returning empty/null when no keys generated ───────
 
     @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
     public Stream<DynamicTest> testGenerateNoKeysCovered() {
         var pf = "[testGenerateNoKeysCovered] ";
         return Stream.of(
@@ -590,6 +681,230 @@ public class SqlWorkerTest {
                 DynamicTest.dynamicTest(pf + "list(class, null) → @NonNull", ((ConnectionContext) con -> {
                     setup(con, T_SCHEMA);
                     ForTests.testNull("fields", () -> worker(con, "SELECT label, amount FROM t").list(Item.class, null));
+                }).wrap())
+        );
+    }
+
+    // ── Tests: SQLException from database errors ────────────────────────────
+
+    @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
+    public Stream<DynamicTest> testSqlExceptions() {
+        var pf = "[testSqlExceptions] ";
+        return Stream.of(
+                // ──── read() with invalid SQL (nonexistent column) ────
+                DynamicTest.dynamicTest(pf + "read() invalid column → SQLException", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    var w = worker(con, "SELECT nonexistent_column FROM t");
+                    Assertions.assertThrows(SQLException.class, () -> w.read(String.class));
+                }).wrap()),
+
+                // ──── read() with invalid SQL (nonexistent table) ────
+                DynamicTest.dynamicTest(pf + "read() nonexistent table → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "SELECT * FROM nonexistent_table");
+                    Assertions.assertThrows(SQLException.class, () -> w.read(String.class));
+                }).wrap()),
+
+                // ──── read() with SQL syntax error ────
+                DynamicTest.dynamicTest(pf + "read() syntax error → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "SELECT * FORM t");  // FORM instead of FROM
+                    Assertions.assertThrows(SQLException.class, () -> w.read(String.class));
+                }).wrap()),
+
+                // ──── read() record with invalid column ────
+                DynamicTest.dynamicTest(pf + "read() record invalid columns → SQLException", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    var w = worker(con, "SELECT nonexistent1, nonexistent2 FROM t");
+                    Assertions.assertThrows(SQLException.class, () -> w.read(Item.class));
+                }).wrap()),
+
+                // ──── list() with invalid SQL (nonexistent column) ────
+                DynamicTest.dynamicTest(pf + "list() invalid column → SQLException", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    var w = worker(con, "SELECT nonexistent_column FROM t");
+                    Assertions.assertThrows(SQLException.class, () -> w.list(String.class));
+                }).wrap()),
+
+                // ──── list() with invalid SQL (nonexistent table) ────
+                DynamicTest.dynamicTest(pf + "list() nonexistent table → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "SELECT * FROM nonexistent_table");
+                    Assertions.assertThrows(SQLException.class, () -> w.list(String.class));
+                }).wrap()),
+
+                // ──── list() with SQL syntax error ────
+                DynamicTest.dynamicTest(pf + "list() syntax error → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "SELECT * FORM t");  // FORM instead of FROM
+                    Assertions.assertThrows(SQLException.class, () -> w.list(String.class));
+                }).wrap()),
+
+                // ──── list() record with invalid column ────
+                DynamicTest.dynamicTest(pf + "list() record invalid columns → SQLException", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA);
+                    var w = worker(con, "SELECT col1, col2 FROM t");  // Invalid columns
+                    Assertions.assertThrows(SQLException.class, () -> w.list(Item.class));
+                }).wrap()),
+
+                // ──── execute() with invalid SQL (nonexistent table) ────
+                DynamicTest.dynamicTest(pf + "execute() nonexistent table → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "UPDATE nonexistent_table SET id = 1");
+                    Assertions.assertThrows(SQLException.class, w::execute);
+                }).wrap()),
+
+                // ──── execute() with SQL syntax error ────
+                DynamicTest.dynamicTest(pf + "execute() syntax error → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "UPDAT t SET id = 1");  // UPDAT instead of UPDATE
+                    Assertions.assertThrows(SQLException.class, w::execute);
+                }).wrap()),
+
+                // ──── generateOptional() with invalid SQL ────
+                DynamicTest.dynamicTest(pf + "generateOptional() syntax error → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "INSRT INTO t (id, label) VALUES (1, 'test')");  // INSRT instead of INSERT
+                    Assertions.assertThrows(SQLException.class, w::generateOptional);
+                }).wrap()),
+
+                // ──── generateList() with invalid SQL ────
+                DynamicTest.dynamicTest(pf + "generateList() nonexistent table → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "INSERT INTO nonexistent_table (id) VALUES (1)");
+                    Assertions.assertThrows(SQLException.class, w::generateList);
+                }).wrap()),
+
+                // ──── generateOptionalLong() with invalid SQL ────
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() syntax error → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "INSERT INOT g (label) VALUES ('test')");  // INOT instead of INTO
+                    Assertions.assertThrows(SQLException.class, w::generateOptionalLong);
+                }).wrap()),
+
+                // ──── generateLongList() with invalid SQL ────
+                DynamicTest.dynamicTest(pf + "generateLongList() nonexistent table → SQLException", ((ConnectionContext) con -> {
+                    var w = worker(con, "INSERT INTO nonexistent_table (id) VALUES (1)");
+                    Assertions.assertThrows(SQLException.class, w::generateLongList);
+                }).wrap())
+        );
+    }
+
+    // ── Tests: SQLException from database errors ────────────────────────────
+
+    @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
+    public Stream<DynamicTest> testSqlExceptionsOnClose() {
+        var pf = "[testSqlExceptionsOnClose] ";
+        var sqlGen = "INSERT INTO g (label) VALUES (:label)";
+        var sqlRec = "SELECT label, amount FROM t WHERE id = :id";
+        var sqlSim = "SELECT label FROM t WHERE id = :id";
+
+        return Stream.of(
+                DynamicTest.dynamicTest(pf + "generate() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generate, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generate() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generate, "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLong() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateLong, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLong() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateLong, "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOrNull() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOrNull, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOrNull() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOrNull, "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLongOrNull() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, () -> work.generateLongOrNull(), "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLongOrNull() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, () -> work.generateLongOrNull(), "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptional() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOptional, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptional() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOptional, "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOptionalLong, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateOptionalLong() crash on close() for keys", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnCloseKeys(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateOptionalLong, "CRASH ResultSet close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateList() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateList, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "generateLongList() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::generateLongList, "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "readSimple() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA, T_SEED);
+                    var work = workerCrashOnClose(con, pr -> pr.receive("id", 1), sqlSim);
+                    Assertions.assertThrows(SQLException.class, () -> work.read(String.class), "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "readRecord() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA, T_SEED);
+                    var work = workerCrashOnClose(con, pr -> pr.receive("id", 1), sqlRec);
+                    Assertions.assertThrows(SQLException.class, () -> work.read(Item.class), "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "listSimple() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA, T_SEED);
+                    var work = workerCrashOnClose(con, pr -> pr.receive("id", 1), sqlSim);
+                    Assertions.assertThrows(SQLException.class, () -> work.list(String.class), "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "listRecord() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, T_SCHEMA, T_SEED);
+                    var work = workerCrashOnClose(con, pr -> pr.receive("id", 1), sqlRec);
+                    Assertions.assertThrows(SQLException.class, () -> work.list(Item.class), "CRASH PreparedStatement close");
+                }).wrap()),
+
+                DynamicTest.dynamicTest(pf + "execute() crash on close()", ((ConnectionContext) con -> {
+                    setup(con, G_SCHEMA);
+                    var work = workerCrashOnClose(con, sqlGen);
+                    Assertions.assertThrows(SQLException.class, work::execute, "CRASH PreparedStatement close");
                 }).wrap())
         );
     }

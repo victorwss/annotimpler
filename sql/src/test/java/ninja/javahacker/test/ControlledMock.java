@@ -7,6 +7,7 @@ import lombok.NonNull;
 import lombok.Setter;
 
 public final class ControlledMock<E> {
+
     @Getter
     private final E mock;
 

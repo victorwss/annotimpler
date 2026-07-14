@@ -76,11 +76,6 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
                     type == DateFormat.YMD ? c : type == DateFormat.MDY ? b : a
             );
         }
-
-        @NonNull
-        public static ThreeNumbers zero() {
-            return new ThreeNumbers(0, 0, 0, false);
-        }
     }
 
     private record FourNumbers(int a, int b, int c, int d) {
@@ -121,14 +116,12 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
 
         @NonNull
         private Pieces defaultZone() {
-            if (zone.isEmpty()) return new Pieces(date, time, Optional.of(ZoneOffset.UTC));
-            return this;
+            return new Pieces(date, time, Optional.of(ZoneOffset.UTC));
         }
 
         @NonNull
         private Pieces defaultTime() {
-            if (time.isEmpty()) return new Pieces(date, Optional.of(LocalTime.MIDNIGHT), zone);
-            return this;
+            return new Pieces(date, Optional.of(LocalTime.MIDNIGHT), zone);
         }
     }
 

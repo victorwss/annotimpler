@@ -637,6 +637,36 @@ public class AnnotimplerTest {
         );
     }
 
+    public static interface TestBadIface17 {
+        @TestVeryBadAnno
+        public TestBadIface17 clone();
+    }
+
+    @Test
+    public void testBadImpl17() {
+        var msg = "Can't use @TestVeryBadAnno annotation on clone() method.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface17.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface17.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static interface TestBadIface18 {
+        @TestVeryBadAnno
+        public void finalize();
+    }
+
+    @Test
+    public void testBadImpl18() {
+        var msg = "Can't use @TestVeryBadAnno annotation on finalize() method.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface18.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface18.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
     public static interface TestSilly1 {
     }
 
@@ -666,6 +696,10 @@ public class AnnotimplerTest {
 
         @Override
         public boolean equals(Object other);
+
+        public TestSilly2 clone();
+
+        public void finalize();
     }
 
     @Test

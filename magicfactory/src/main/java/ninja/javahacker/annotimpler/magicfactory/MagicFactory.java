@@ -309,10 +309,8 @@ public final class MagicFactory<E> {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
-            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
-        })
+        @Generated
+        @SuppressWarnings({"all", "removal"})
         protected final void finalize() {
             // Do nothing.
         }
@@ -370,10 +368,8 @@ public final class MagicFactory<E> {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
-            "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
-        })
+        @Generated
+        @SuppressWarnings({"all", "removal"})
         protected final void finalize() {
             // Do nothing.
         }

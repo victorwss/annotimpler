@@ -17,6 +17,7 @@ import module java.base;
 /// @see AnnotationsImplementor
 @FunctionalInterface
 public interface Implementation {
+
     /// Prepares the [CallContext] for the given interface method.
     ///
     /// This method is called once per annotated method during proxy construction.
@@ -30,5 +31,9 @@ public interface Implementation {
     /// @throws BadImplementationException If the method cannot be prepared for this implementation.
     /// @throws IllegalArgumentException If `k`, `m` or `props` is `null`.
     @NonNull
-    public <E> CallContext<E> prepare(@NonNull Class<E> k, @NonNull Method m, @NonNull PropertyBag props) throws BadImplementationException;
+    public <E> CallContext<E> prepare(
+            @NonNull Class<E> k,
+            @NonNull Method m,
+            @NonNull PropertyBag props)
+            throws BadImplementationException;
 }

@@ -66,14 +66,29 @@ public final class AnnotationsImplementor {
         if (Methods.isToString(m)) {
             throw new BadImplementationException(prefix + "toString() method.", mc);
         }
+        if (Methods.isClone(m)) {
+            throw new BadImplementationException(prefix + "clone() method.", mc);
+        }
+        if (Methods.isFinalize(m)) {
+            throw new BadImplementationException(prefix + "finalize() method.", mc);
+        }
     }
 
     @Nullable
     private static <E> CallContext<E> findSimpleImplementation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
-        if (Methods.isPrivate(m) || Methods.isStatic(m) || Methods.isEquals(m) || Methods.isHashCode(m) || Methods.isToString(m)) {
+
+        if (Methods.isStatic(m)
+                || Methods.isPrivate(m)
+                || Methods.isEquals(m)
+                || Methods.isHashCode(m)
+                || Methods.isToString(m)
+                || Methods.isClone(m)
+                || Methods.isFinalize(m))
+        {
             return null;
         }
+
         if (!m.isDefault()) {
             var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
             throw new BadImplementationException(msg, m.getDeclaringClass());
@@ -171,19 +186,21 @@ public final class AnnotationsImplementor {
         var ifaceDeclaredMeths = Stream.of(iface.getDeclaredMethods());
         var ifaceMeths = Stream.concat(ifacePublicMeths, ifaceDeclaredMeths).distinct().toList();
 
-        Map<Method, CallContext<E>> meths = new HashMap<>(ifaceMeths.size() + 3);
+        Map<Methods.MethodId, CallContext<E>> meths = new HashMap<>(ifaceMeths.size() + 3);
         for (var m : ifaceMeths) {
             var impl = findImplementation(iface, m, props2);
-            if (impl != null) meths.put(m, impl);
+            if (impl != null) meths.put(new Methods.MethodId(m), impl);
         }
         meths.put(Methods.EQUALS, DefaultImplementation.forEquals());
         meths.put(Methods.HASH_CODE, DefaultImplementation.forHashCode());
         meths.put(Methods.TO_STRING, DefaultImplementation.forToString(iface));
+        meths.put(Methods.FINALIZE, DefaultImplementation.forFinalize());
+        meths.put(Methods.CLONE, DefaultImplementation.forClone());
 
         InvocationHandler ih = (@NonNull Object p, @NonNull Method m, @Nullable Object... a) -> {
             checkNotNull(p); // Check recognized by lombok.
             checkNotNull(m); // Check recognized by lombok.
-            var impl = meths.get(m);
+            var impl = meths.get(new Methods.MethodId(m));
             checkNotNull(impl);
             return impl.execute(iface.cast(p), a == null ? new Object[0] : a);
         };

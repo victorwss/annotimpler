@@ -39,10 +39,10 @@ public interface ConnectionFactory {
     /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
     public default <E> E create(@NonNull Class<E> iface) throws BadImplementationException {
-        var m = PropertyBag.root()
+        var bag = PropertyBag.root()
                 .add(ConnectionFactoryKeyProperty.INSTANCE, this)
                 .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.std())
                 .add(LocalizerKeyProperty.INSTANCE, Locale.ROOT);
-        return AnnotationsImplementor.implement(iface, m);
+        return AnnotationsImplementor.implement(iface, bag);
     }
 }

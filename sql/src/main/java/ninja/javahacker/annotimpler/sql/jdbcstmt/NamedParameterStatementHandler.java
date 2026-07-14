@@ -57,7 +57,7 @@ interface NamedParameterStatementHandler<T> {
     public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
         checkNotNull(k); // Check recognized by lombok.
         var h = (NamedParameterStatementHandler<K>) NamedParameterStatementHandler.ENTRIES.get(k);
-        if (h == null) throw new UnsupportedOperationException();
+        if (h == null) throw new UnsupportedOperationException("Unable to handle " + k.getSimpleName() + ".");
         return h;
     }
 

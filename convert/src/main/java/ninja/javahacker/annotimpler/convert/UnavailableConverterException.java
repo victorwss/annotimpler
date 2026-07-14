@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -72,10 +73,8 @@ public class UnavailableConverterException extends Exception {
     ///
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
-    @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
-        "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
-    })
+    @Generated
+    @SuppressWarnings({"all", "removal"})
     protected final void finalize() {
         // Do nothing.
     }

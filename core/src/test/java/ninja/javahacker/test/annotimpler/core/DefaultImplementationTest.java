@@ -63,7 +63,7 @@ public class DefaultImplementationTest {
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testHashCodeBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), Methods.HASH_CODE);
+        var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), Object.class.getMethod("hashCode"));
         var inst = r();
         Runnable s = () -> {};
         var a = mtds.stream().map(m -> n(
@@ -102,7 +102,11 @@ public class DefaultImplementationTest {
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testToStringBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("toString"), Bar.class.getMethod("toString"), Methods.TO_STRING);
+        var mtds = List.of(
+                Foo.class.getMethod("toString"),
+                Bar.class.getMethod("toString"),
+                Object.class.getMethod("toString")
+        );
         var inst = r();
         var a = mtds.stream().map(m -> n(
                 "instance-" + m.getDeclaringClass().getSimpleName(),
@@ -144,7 +148,11 @@ public class DefaultImplementationTest {
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testEqualsBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("equals", Object.class), Bar.class.getMethod("equals", Object.class), Methods.EQUALS);
+        var mtds = List.of(
+                Foo.class.getMethod("equals", Object.class),
+                Bar.class.getMethod("equals", Object.class),
+                Object.class.getMethod("equals", Object.class)
+        );
         var inst = r();
         var a = mtds.stream().map(m -> n(
                 "instance-" + m.getDeclaringClass().getSimpleName(),

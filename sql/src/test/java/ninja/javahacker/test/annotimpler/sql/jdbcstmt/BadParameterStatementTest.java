@@ -242,7 +242,7 @@ public class BadParameterStatementTest {
         Assertions.assertEquals("Feature not supported: \"" + what + "\" [50100-240]", ex.getMessage());
     }
 
-    @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
+    @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "null"})
     private static void testThrows(int t, Executable runIt) {
         var ex = Assertions.assertThrows(SQLException.class, runIt);
         switch (t) {
@@ -317,6 +317,29 @@ public class BadParameterStatementTest {
                 n("setSQLXML"           , () -> ForTests.testNull("name", ex(ps -> ps.setSQLXML        (null, s(ps)                  )))),
                 n("setNull"             , () -> ForTests.testNull("name", ex(ps -> ps.setNull          (null, Types.VARCHAR          )))),
                 n("setNull-2"           , () -> ForTests.testNull("name", ex(ps -> ps.setNull          (null, Types.VARCHAR, str     ))))
+        );
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testReceiveNulls() {
+        return Stream.of(
+                n("receive-name"    , () -> ForTests.testNull("name" , ex(ps -> ps.receive    (null, "foo"       )))),
+                n("receive-value"   , () -> ForTests.testNull("value", ex(ps -> ps.receive    ("fo", null        )))),
+                n("receiveNull-name", () -> ForTests.testNull("name" , ex(ps -> ps.receiveNull(null, String.class)))),
+                n("receiveNull-type", () -> ForTests.testNull("type" , ex(ps -> ps.receiveNull("fo", null        ))))
+        );
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testReceiveBads() {
+        class Banana {}
+        var junk = new Thread();
+        return Stream.of(
+                n("receive-1"    , () -> Assertions.assertThrows(UnsupportedOperationException.class, ex(ps -> ps.receive    ("a", junk        )), "Unable to handle Thread.")),
+                n("receiveNull-1", () -> Assertions.assertThrows(UnsupportedOperationException.class, ex(ps -> ps.receiveNull("a", Thread.class)), "Unable to handle Thread.")),
+                n("receive-2"    , () -> Assertions.assertThrows(UnsupportedOperationException.class, ex(ps -> ps.receive    ("a", new Banana())), "Unable to handle Banana.")),
+                n("receiveNull-2", () -> Assertions.assertThrows(UnsupportedOperationException.class, ex(ps -> ps.receiveNull("a", Banana.class)), "Unable to handle Banana."))
         );
     }
 
