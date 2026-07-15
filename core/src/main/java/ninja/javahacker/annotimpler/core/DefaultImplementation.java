@@ -77,7 +77,7 @@ public final class DefaultImplementation {
     /// @throws IllegalArgumentException If `instance` or `args` is `null`;
     ///         if `instance` is not a proxy; or if `args` is not an empty array.
     @Nullable
-    private static <E> Void finalize(@NonNull E instance, @NonNull Object... args) throws CloneNotSupportedException {
+    private static <E> Void finalize(@NonNull E instance, @NonNull Object... args) {
         if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
         if (!Proxy.isProxyClass(instance.getClass())) throw new IllegalArgumentException(NOT_PROXY);
         return null;

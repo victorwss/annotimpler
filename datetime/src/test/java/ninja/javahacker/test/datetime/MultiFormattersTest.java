@@ -127,64 +127,93 @@ public class MultiFormattersTest {
 
     // ---------- Successful formating and parsing. ----------
 
-    @TestFactory
-    public Stream<DynamicNode> testParseAndFormat() {
-        record Case<E>(E obj, String text, MultiFormatters fmt, Work<E, String> formatter, Work<String, E> parser) {
-            public DynamicNode workIt() {
-                var textOk = ymd2fmt(text, fmt);
-                var format = DynamicTest.dynamicTest(
-                    "format: " + obj.getClass().getSimpleName() + " - " + obj + " (" + fmt.name() + ")",
-                    () -> Assertions.assertEquals(textOk, formatter.work(obj))
-                );
-                var parse = DynamicTest.dynamicTest(
-                    "parse: " + obj.getClass().getSimpleName() + " - " + textOk + " (" + fmt.name() + ")",
-                    () -> Assertions.assertEquals(obj, parser.work(textOk))
-                );
-                return DynamicContainer.dynamicContainer("Parse and format " + textOk + " (" + fmt.name() + ")", Stream.of(format, parse));
-            }
+    private static final OffsetDateTime ODT1 = OffsetDateTime.of(
+            2024, 3, 10,
+            12, 34, 56, 123_000_000,
+            ZoneOffset.UTC
+    );
+
+    private static final OffsetDateTime ODT2 = OffsetDateTime.of(
+            2025, 4, 11,
+            14, 25, 36, 987_654_321,
+            ZoneOffset.ofHoursMinutesSeconds(-5, -32, -12)
+    );
+
+    private static final OffsetDateTime ODT3 = OffsetDateTime.of(
+            2026, 5, 12,
+            13, 57, 28, 0,
+            ZoneOffset.ofHoursMinutes(2, 5)
+    );
+
+    record ParseFormatCase<E>(E obj, String textParse, String textFormat, MultiFormatters fmt, Work<E, String> formatter, Work<String, E> parser) {
+        public DynamicNode workIt() {
+            var textOkFormat = ymd2fmt(textFormat, fmt);
+            var textOkParse = ymd2fmt(textParse, fmt);
+            var k = obj.getClass().getSimpleName();
+            var format = DynamicTest.dynamicTest(
+                "format: " + k + " - " + obj + " (" + fmt.name() + ")",
+                () -> Assertions.assertEquals(textOkFormat, formatter.work(obj))
+            );
+            var parse = DynamicTest.dynamicTest(
+                "parse: " + k + " - " + textOkParse + " (" + fmt.name() + ")",
+                () -> Assertions.assertEquals(obj, parser.work(textOkParse))
+            );
+            return DynamicContainer.dynamicContainer("Parse and format: " + k + " - " + textOkParse + " (" + fmt.name() + ")", Stream.of(format, parse));
         }
 
-        var odt1 = OffsetDateTime.of(
-                2024, 3, 10,
-                12, 34, 56, 123_000_000,
-                ZoneOffset.UTC
-        );
+        public ParseFormatCase(E obj, String text, MultiFormatters fmt, Work<E, String> formatter, Work<String, E> parser) {
+            this(obj, text, text, fmt, formatter, parser);
+        }
+    }
 
-        var odt2 = OffsetDateTime.of(
-                2025, 4, 11,
-                14, 25, 36, 987_654_321,
-                ZoneOffset.ofHoursMinutesSeconds(-5, -32, -12)
-        );
-
-        var odt3 = OffsetDateTime.of(
-                2026, 5, 12,
-                13, 57, 28, 0,
-                ZoneOffset.ofHoursMinutes(2, 5)
-        );
-
+    @TestFactory
+    public Stream<DynamicNode> testParseAndFormat() {
         return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
-                new Case<>(odt1.toInstant()      , "2024_03_10 12:34:56.123"                , fmt, s -> fmt.format(s), fmt::parseInstant),
-                new Case<>(odt1.toLocalDateTime(), "2024_03_10 12:34:56.123"                , fmt, s -> fmt.format(s), fmt::parseLocalDateTime),
-                new Case<>(odt1.toLocalDate()    , "2024_03_10"                             , fmt, s -> fmt.format(s), fmt::parseLocalDate),
-                new Case<>(odt1.toLocalTime()    ,            "12:34:56.123"                , fmt, s -> fmt.format(s), fmt::parseLocalTime),
-                new Case<>(odt1.toZonedDateTime(), "2024_03_10 12:34:56.123 +00:00"         , fmt, s -> fmt.format(s), fmt::parseZonedDateTime),
-                new Case<>(odt1                  , "2024_03_10 12:34:56.123 +00:00"         , fmt, s -> fmt.format(s), fmt::parseOffsetDateTime),
-                new Case<>(odt1.toOffsetTime()   ,            "12:34:56.123 +00:00"         , fmt, s -> fmt.format(s), fmt::parseOffsetTime),
-                new Case<>(odt2.toInstant()      , "2025_04_11 19:57:48.987654321"          , fmt, s -> fmt.format(s), fmt::parseInstant),
-                new Case<>(odt2.toLocalDateTime(), "2025_04_11 14:25:36.987654321"          , fmt, s -> fmt.format(s), fmt::parseLocalDateTime),
-                new Case<>(odt2.toLocalDate()    , "2025_04_11"                             , fmt, s -> fmt.format(s), fmt::parseLocalDate),
-                new Case<>(odt2.toLocalTime()    ,            "14:25:36.987654321"          , fmt, s -> fmt.format(s), fmt::parseLocalTime),
-                new Case<>(odt2.toZonedDateTime(), "2025_04_11 14:25:36.987654321 -05:32:12", fmt, s -> fmt.format(s), fmt::parseZonedDateTime),
-                new Case<>(odt2                  , "2025_04_11 14:25:36.987654321 -05:32:12", fmt, s -> fmt.format(s), fmt::parseOffsetDateTime),
-                new Case<>(odt2.toOffsetTime()   ,            "14:25:36.987654321 -05:32:12", fmt, s -> fmt.format(s), fmt::parseOffsetTime),
-                new Case<>(odt3.toInstant()      , "2026_05_12 11:52:28"                    , fmt, s -> fmt.format(s), fmt::parseInstant),
-                new Case<>(odt3.toLocalDateTime(), "2026_05_12 13:57:28"                    , fmt, s -> fmt.format(s), fmt::parseLocalDateTime),
-                new Case<>(odt3.toLocalDate()    , "2026_05_12"                             , fmt, s -> fmt.format(s), fmt::parseLocalDate),
-                new Case<>(odt3.toLocalTime()    ,            "13:57:28"                    , fmt, s -> fmt.format(s), fmt::parseLocalTime),
-                new Case<>(odt3.toZonedDateTime(), "2026_05_12 13:57:28 +02:05"             , fmt, s -> fmt.format(s), fmt::parseZonedDateTime),
-                new Case<>(odt3                  , "2026_05_12 13:57:28 +02:05"             , fmt, s -> fmt.format(s), fmt::parseOffsetDateTime),
-                new Case<>(odt3.toOffsetTime()   ,            "13:57:28 +02:05"             , fmt, s -> fmt.format(s), fmt::parseOffsetTime)
-        )).map(Case::workIt);
+                new ParseFormatCase<>(ODT1.toLocalDate()    , "2024_03_10"                             , fmt, fmt::format, fmt::parseLocalDate     ),
+                new ParseFormatCase<>(ODT2.toLocalDate()    , "2025_04_11"                             , fmt, fmt::format, fmt::parseLocalDate     ),
+                new ParseFormatCase<>(ODT3.toLocalDate()    , "2026_05_12"                             , fmt, fmt::format, fmt::parseLocalDate     ),
+                new ParseFormatCase<>(ODT1.toLocalDateTime(), "2024_03_10 12:34:56.123"                , fmt, fmt::format, fmt::parseLocalDateTime ),
+                new ParseFormatCase<>(ODT2.toLocalDateTime(), "2025_04_11 14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalDateTime ),
+                new ParseFormatCase<>(ODT3.toLocalDateTime(), "2026_05_12 13:57:28"                    , fmt, fmt::format, fmt::parseLocalDateTime ),
+                new ParseFormatCase<>(ODT1.toInstant()      , "2024_03_10 12:34:56.123"                , fmt, fmt::format, fmt::parseInstant       ),
+                new ParseFormatCase<>(ODT2.toInstant()      , "2025_04_11 19:57:48.987654321"          , fmt, fmt::format, fmt::parseInstant       ),
+                new ParseFormatCase<>(ODT3.toInstant()      , "2026_05_12 11:52:28"                    , fmt, fmt::format, fmt::parseInstant       ),
+                new ParseFormatCase<>(ODT1                  , "2024_03_10 12:34:56.123 +00:00"         , fmt, fmt::format, fmt::parseOffsetDateTime),
+                new ParseFormatCase<>(ODT2                  , "2025_04_11 14:25:36.987654321 -05:32:12", fmt, fmt::format, fmt::parseOffsetDateTime),
+                new ParseFormatCase<>(ODT3                  , "2026_05_12 13:57:28 +02:05"             , fmt, fmt::format, fmt::parseOffsetDateTime),
+                new ParseFormatCase<>(ODT1.toZonedDateTime(), "2024_03_10 12:34:56.123 +00:00"         , fmt, fmt::format, fmt::parseZonedDateTime ),
+                new ParseFormatCase<>(ODT2.toZonedDateTime(), "2025_04_11 14:25:36.987654321 -05:32:12", fmt, fmt::format, fmt::parseZonedDateTime ),
+                new ParseFormatCase<>(ODT3.toZonedDateTime(), "2026_05_12 13:57:28 +02:05"             , fmt, fmt::format, fmt::parseZonedDateTime ),
+                new ParseFormatCase<>(ODT1.toLocalTime()    ,            "12:34:56.123"                , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(ODT2.toLocalTime()    ,            "14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(ODT3.toLocalTime()    ,            "13:57:28"                    , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(ODT1.toOffsetTime()   ,            "12:34:56.123 +00:00"         , fmt, fmt::format, fmt::parseOffsetTime    ),
+                new ParseFormatCase<>(ODT2.toOffsetTime()   ,            "14:25:36.987654321 -05:32:12", fmt, fmt::format, fmt::parseOffsetTime    ),
+                new ParseFormatCase<>(ODT3.toOffsetTime()   ,            "13:57:28 +02:05"             , fmt, fmt::format, fmt::parseOffsetTime    )
+        )).map(ParseFormatCase::workIt);
+    }
+
+    @TestFactory
+    public Stream<DynamicNode> testParseAndFormatDifferent() {
+        var odt4 = ODT2.toLocalDateTime().atOffset(ZoneOffset.UTC);
+        var odt5 = ODT2.toLocalDate().atStartOfDay(ZoneOffset.UTC);
+        return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
+                new ParseFormatCase<>(odt4.toLocalDate()    , "2025_04_11 14:25:36.987654321"          , "2025_04_11"                             , fmt, fmt::format, fmt::parseLocalDate     ),
+                new ParseFormatCase<>(ODT2.toLocalDate()    , "2025_04_11 14:25:36.987654321 -05:32:12", "2025_04_11"                             , fmt, fmt::format, fmt::parseLocalDate     ),
+                new ParseFormatCase<>(ODT2.toLocalDateTime(), "2025_04_11 14:25:36.987654321 -05:32:12", "2025_04_11 14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalDateTime ),
+                new ParseFormatCase<>(ODT2.toInstant()      , "2025_04_11 14:25:36.987654321 -05:32:12", "2025_04_11 19:57:48.987654321"          , fmt, fmt::format, fmt::parseInstant       ),
+                new ParseFormatCase<>(ODT2.toLocalTime()    , "2025_04_11 14:25:36.987654321 -05:32:12",            "14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(odt4.toLocalTime()    , "2025_04_11 14:25:36.987654321"          ,            "14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(ODT2.toLocalTime()    ,            "14:25:36.987654321 -05:32:12",            "14:25:36.987654321"          , fmt, fmt::format, fmt::parseLocalTime     ),
+                new ParseFormatCase<>(ODT2.toOffsetTime()   , "2025_04_11 14:25:36.987654321 -05:32:12",            "14:25:36.987654321 -05:32:12", fmt, fmt::format, fmt::parseOffsetTime    ),
+
+                new ParseFormatCase<>(odt4.toOffsetTime()   , "2025_04_11 14:25:36.987654321"          ,            "14:25:36.987654321 +00:00"   , fmt, fmt::format, fmt::parseOffsetTime    ),
+                new ParseFormatCase<>(odt4.toOffsetTime()   ,            "14:25:36.987654321"          ,            "14:25:36.987654321 +00:00"   , fmt, fmt::format, fmt::parseOffsetTime    ),
+                new ParseFormatCase<>(odt5.toLocalDateTime(), "2025_04_11"                             , "2025_04_11 00:00:00"                    , fmt, fmt::format, fmt::parseLocalDateTime ),
+                new ParseFormatCase<>(odt5.toInstant()      , "2025_04_11"                             , "2025_04_11 00:00:00"                    , fmt, fmt::format, fmt::parseInstant       ),
+                new ParseFormatCase<>(odt4                  , "2025_04_11 14:25:36.987654321"          , "2025_04_11 14:25:36.987654321 +00:00"   , fmt, fmt::format, fmt::parseOffsetDateTime),
+                new ParseFormatCase<>(odt4.toZonedDateTime(), "2025_04_11 14:25:36.987654321"          , "2025_04_11 14:25:36.987654321 +00:00"   , fmt, fmt::format, fmt::parseZonedDateTime )
+        )).map(ParseFormatCase::workIt);
     }
 
     // ---------- Null safety. ----------
@@ -278,27 +307,30 @@ public class MultiFormattersTest {
                 new Case("t dot without fraction"   , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56."                 , fmt))),
                 new Case("dt dot without fraction"  , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56."                 , fmt))),
                 new Case("dtz dot without fraction" , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56. +10:50"          , fmt))),
-                new Case("tz dot without fraction"  , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56. +10:50"          , fmt))),
+                new Case("tz dot without fraction"  , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56. +10:50"          , fmt)))
+        )).map(c -> DynamicTest.dynamicTest(
+                c.name + " (" + c.fmt.name() + ")",
+                () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
+        ));
+    }
 
-                new Case("ld don't want time"       , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_01_10 12:34:56.123456789"        , fmt))),
-                new Case("lt don't want date"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt( "2024_01_10 12:34:56.123456789"        , fmt))),
-                new Case("lt don't want zone"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56.123456789 +10:50" , fmt))),
-                new Case("ot wants zone not date"   , fmt, () -> fmt.parseOffsetTime    (ymd2fmt( "2024_01_10 12:34:56.123456789"        , fmt))),
-                new Case("ot don't want date"       , fmt, () -> fmt.parseOffsetTime    (ymd2fmt( "2024_01_10 12:34:56.123456789 +10:50" , fmt))),
-                new Case("ldt don't want zone"      , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56.123456789 +10:50" , fmt))),
+    @TestFactory
+    public Stream<DynamicTest> testIncompleteInvalidFormats() {
 
-                new Case("ldt missing time"         , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10"                           , fmt))),
-                new Case("ldt missing date"         , fmt, () -> fmt.parseLocalDateTime (ymd2fmt(            "12:34:56.123456789"        , fmt))),
-                new Case("odt missing time+zone"    , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10"                           , fmt))),
-                new Case("odt missing date+zone"    , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(            "12:34:56"                  , fmt))),
-                new Case("odt missing zone"         , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56"                  , fmt))),
-                new Case("odt missing date"         , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(            "12:34:56.123456789"        , fmt))),
+        record Case(String name, MultiFormatters fmt, Executable exec) {}
 
-                new Case("ld missing time"          , fmt, () -> fmt.parseLocalTime     (ymd2fmt( "2024_01_10"                           , fmt))),
-                new Case("ldt missing time"         , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10"                           , fmt))),
-                new Case("odt missing time"         , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10"                           , fmt))),
-                new Case("time but wants date"      , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789"        , fmt))),
-                new Case("ldt missing time+zone"    , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789 +10:50", fmt)))
+        return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
+                new Case("ldt missing date"        , fmt, () -> fmt.parseLocalDateTime (ymd2fmt(            "12:34:56.123456789"       , fmt))),
+                new Case("ldt missing date (+zone)", fmt, () -> fmt.parseLocalDateTime (ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
+                new Case("ins missing date"        , fmt, () -> fmt.parseInstant       (ymd2fmt(            "12:34:56.123456789"       , fmt))),
+                new Case("ins missing date (+zone)", fmt, () -> fmt.parseInstant       (ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
+                new Case("odt missing date+zone"   , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(            "12:34:56.123456789"       , fmt))),
+                new Case("odt missing date"        , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
+                new Case("zdt missing date+zone"   , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(            "12:34:56.123456789"       , fmt))),
+                new Case("zdt missing date"        , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
+                new Case("lt only with date"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt( "2024_01_10"                          , fmt))),
+                new Case("ld only with time"       , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789"       , fmt))),
+                new Case("ld only with time+zone"  , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789 +10:50", fmt)))
         )).map(c -> DynamicTest.dynamicTest(
                 c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
@@ -344,7 +376,11 @@ public class MultiFormattersTest {
                 new Case("2nd d" , "2024_01#10"                   , fmt, () -> fmt.parseLocalDate    (ymd2fmt("2024_01#10"                   , fmt))),
                 new Case("1st t" ,            "12#34:56"          , fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12#34:56"          , fmt))),
                 new Case("2nd t" ,            "12:34#56"          , fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12:34#56"          , fmt))),
-                new Case("3rd t" ,            "12:34:56#123456789", fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12:34:56#123456789", fmt)))
+                new Case("3rd t" ,            "12:34:56#123456789", fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12:34:56#123456789", fmt))),
+
+                new Case("stress 1", "12:34:56 1234567890", fmt, () -> fmt.parseLocalTime("12:34:56 1234567890")),
+                new Case("stress 2", "12:34:56 12345X789" , fmt, () -> fmt.parseLocalTime("12:34:56 12345X789" )),
+                new Case("stress 3", "12:"                , fmt, () -> fmt.parseLocalTime("12:"                ))
         )).map(c -> DynamicTest.dynamicTest(
                 c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
@@ -445,6 +481,7 @@ public class MultiFormattersTest {
     }
 
     @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
     public Stream<DynamicTest> testInvalidLeapYear() {
         var a = Stream.of(MultiFormatters.values()).map(fmt ->
             DynamicTest.dynamicTest("29 feb 2023 invalid (" + fmt.name() + ")", () -> {

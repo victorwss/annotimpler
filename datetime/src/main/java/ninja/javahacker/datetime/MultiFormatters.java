@@ -142,7 +142,14 @@ public enum MultiFormatters {
         checkNotNull(input); // Check recognized by lombok.
 
         var len = input.length();
-        if (len > 18 || len < 10 || input.charAt(2) != ':' || input.charAt(5) != ':' || input.charAt(8) != '.') return false;
+        if (len > 18
+                || len < 10
+                || input.charAt(2) != ':'
+                || input.charAt(5) != ':'
+                || input.charAt(8) != '.')
+        {
+            return false;
+        }
         for (var i = 0; i < len; i++) {
             if (i == 2 || i == 5 || i == 8) continue;
             var c = input.charAt(i);
