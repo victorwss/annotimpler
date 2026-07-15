@@ -129,14 +129,11 @@ public final class AnnotationsImplementor {
         var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
         try {
             var mf = MagicFactory.of(implClass);
-            if (mf.arity() > 1) {
-                throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with no arguments.", mc);
+            if (mf.arity() != 0) {
+                throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with arguments.", mc);
             }
 
-            // If the creator takes a single PropertyBag argument, inject the current bag;
-            // otherwise invoke it with no arguments.
-            var createArgs = mf.arity() == 0 ? new Object[0] : new Object[] { props };
-            var instance = mf.create(createArgs);
+            var instance = mf.create(new Object[0]);
             var context = instance.prepare(iface, m, props);
 
             // Should never happen if implClass is properly implemented, but we shouldn't trust that.

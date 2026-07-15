@@ -31,6 +31,18 @@ public class DefaultImplementationTest {
         public int hashCode() {
             throw new AssertionError();
         }
+
+        @Override
+        @SuppressWarnings("all")
+        public Foo clone() {
+            throw new AssertionError();
+        }
+
+        @Deprecated
+        @SuppressWarnings({"all", "removal"})
+        public void finalize() {
+            throw new AssertionError();
+        }
     }
 
     public static interface Bar {
@@ -42,6 +54,12 @@ public class DefaultImplementationTest {
 
         @Override
         public int hashCode();
+
+        public Bar clone();
+
+        @Deprecated
+        @SuppressWarnings({"all", "removal"})
+        public void finalize();
     }
 
     private static Runnable r() {
@@ -63,146 +81,135 @@ public class DefaultImplementationTest {
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testHashCodeBad() throws Exception {
-        var mtds = List.of(Foo.class.getMethod("hashCode"), Bar.class.getMethod("hashCode"), Object.class.getMethod("hashCode"));
         var inst = r();
         Runnable s = () -> {};
-        var a = mtds.stream().map(m -> n(
-                "instance-" + m.getDeclaringClass().getSimpleName(),
+        var a = n(
+                "instance",
                 () -> ForTests.testNull(
                         "instance",
                         () -> DefaultImplementation.forHashCode().execute(null, new Object[0])
                 )
-        ));
-        var b = mtds.stream().map(m -> n(
-                "args-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var b = n(
+                "args",
                 () -> ForTests.testNull(
                         "args",
                         () -> DefaultImplementation.forHashCode().execute(inst, (Object[]) null)
                 )
-        ));
-        var c = mtds.stream().map(m -> n(
-                "bad-instance" + m.getDeclaringClass().getSimpleName(),
+        );
+        var c = n(
+                "bad-instance",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forHashCode().execute(s),
                         "Should be a proxy."
                 )
-        ));
-        var d = mtds.stream().map(m -> n(
-                "bad-args-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var d = n(
+                "bad-args",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forHashCode().execute(inst, "a"),
                         "Bad arity."
                 )
-        ));
-        return Stream.of(a, b, c, d).flatMap(x -> x);
+        );
+        return Stream.of(a, b, c, d);
     }
 
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testToStringBad() throws Exception {
-        var mtds = List.of(
-                Foo.class.getMethod("toString"),
-                Bar.class.getMethod("toString"),
-                Object.class.getMethod("toString")
-        );
         var inst = r();
-        var a = mtds.stream().map(m -> n(
-                "instance-" + m.getDeclaringClass().getSimpleName(),
+        var a = n(
+                "instance",
                 () -> ForTests.testNull(
                         "instance",
                         () -> DefaultImplementation.forToString(Runnable.class).execute(null, new Object[0])
                 )
-        ));
-        var b = mtds.stream().map(m -> n(
-                "args-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var b = n(
+                "args",
                 () -> ForTests.testNull(
                         "args",
                         () -> DefaultImplementation.forToString(Runnable.class).execute(inst, (Object[]) null)
                 )
-        ));
-        var c = mtds.stream().map(m -> n(
-                "bad-instance-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var c = n(
+                "bad-instance",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forToString(Runnable.class).execute(() -> {}),
                         "Should be a proxy."
                 )
-        ));
-        var d = mtds.stream().map(m -> n(
-                "bad-args-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var d = n(
+                "bad-args",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forToString(Runnable.class).execute(inst, "a"),
                         "Bad arity."
                 )
-        ));
-        var e = mtds.stream().map(m -> n(
-                "toString-args" + m.getDeclaringClass().getSimpleName(),
+        );
+        var e = n(
+                "toString-args",
                 () -> ForTests.testNull("iface", () -> DefaultImplementation.forToString(null))
-        ));
-        return Stream.of(a, b, c, d, e).flatMap(x -> x);
+        );
+        return Stream.of(a, b, c, d, e);
     }
 
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testEqualsBad() throws Exception {
-        var mtds = List.of(
-                Foo.class.getMethod("equals", Object.class),
-                Bar.class.getMethod("equals", Object.class),
-                Object.class.getMethod("equals", Object.class)
-        );
         var inst = r();
-        var a = mtds.stream().map(m -> n(
-                "instance-" + m.getDeclaringClass().getSimpleName(),
+        var a = n(
+                "instance",
                 () -> ForTests.testNull("instance", () -> DefaultImplementation.forEquals().execute(null, 42))
-        ));
-        var b = mtds.stream().map(m -> n(
-                "args-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var b = n(
+                "args",
                 () -> ForTests.testNull("args", () -> DefaultImplementation.forEquals().execute(inst, (Object[]) null))
-        ));
-        var c = mtds.stream().map(m -> n(
-                "bad-instance-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var c = n(
+                "bad-instance",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forEquals().execute("y", "y"),
                         "Should be a proxy."
                 )
-        ));
-        var d = mtds.stream().map(m -> n(
-                "bad-args-0-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var d = n(
+                "bad-args-0",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forEquals().execute(inst),
                         "Bad arity."
                 )
-        ));
-        var e = mtds.stream().map(m -> n(
-                "bad-instance-args-0-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var e = n(
+                "bad-instance-args-0",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forEquals().execute("a"),
                         "Bad arity."
                 )
-        ));
-        var f = mtds.stream().map(m -> n(
-                "bad-instance-args-null-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var f = n(
+                "bad-instance-args-null",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forEquals().execute(null),
                         "Bad arity."
                 )
-        ));
-        var g = mtds.stream().map(m -> n(
-                "bad-args-2-" + m.getDeclaringClass().getSimpleName(),
+        );
+        var g = n(
+                "bad-args-2",
                 () -> Assertions.assertThrows(
                         IllegalArgumentException.class,
                         () -> DefaultImplementation.forEquals().execute(inst, 42, 63),
                         "Bad arity."
                 )
-        ));
-        return Stream.of(a, b, c, d, e, f, g).flatMap(x -> x);
+        );
+        return Stream.of(a, b, c, d, e, f, g);
     }
 
     @Test
@@ -273,5 +280,95 @@ public class DefaultImplementationTest {
                 n("b-x", () -> Assertions.assertEquals(Boolean.FALSE, DefaultImplementation.forEquals().execute(b, "x"))),
                 n("c-x", () -> Assertions.assertEquals(Boolean.FALSE, DefaultImplementation.forEquals().execute(c, "x")))
         );
+    }
+
+    @Test
+    @SuppressWarnings("ThrowableResultIgnored")
+    public void testClone() throws Throwable {
+        var a = r();
+        Assertions.assertThrows(CloneNotSupportedException.class, () -> DefaultImplementation.forClone().execute(a));
+    }
+
+    @Test
+    @SuppressWarnings("ThrowableResultIgnored")
+    public void testFinalize() throws Throwable {
+        var a = r();
+        Assertions.assertNull(DefaultImplementation.forFinalize().execute(a));
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testCloneBad() throws Exception {
+        var inst = r();
+        Runnable s = () -> {};
+        var a = n(
+                "instance",
+                () -> ForTests.testNull(
+                        "instance",
+                        () -> DefaultImplementation.forClone().execute(null, new Object[0])
+                )
+        );
+        var b = n(
+                "args",
+                () -> ForTests.testNull(
+                        "args",
+                        () -> DefaultImplementation.forClone().execute(inst, (Object[]) null)
+                )
+        );
+        var c = n(
+                "bad-instance",
+                () -> Assertions.assertThrows(
+                        IllegalArgumentException.class,
+                        () -> DefaultImplementation.forClone().execute(s),
+                        "Should be a proxy."
+                )
+        );
+        var d = n(
+                "bad-args",
+                () -> Assertions.assertThrows(
+                        IllegalArgumentException.class,
+                        () -> DefaultImplementation.forClone().execute(inst, "a"),
+                        "Bad arity."
+                )
+        );
+        return Stream.of(a, b, c, d);
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testFinalizeBad() throws Exception {
+        var inst = r();
+        Runnable s = () -> {};
+        var a = n(
+                "instance",
+                () -> ForTests.testNull(
+                        "instance",
+                        () -> DefaultImplementation.forFinalize().execute(null, new Object[0])
+                )
+        );
+        var b = n(
+                "args",
+                () -> ForTests.testNull(
+                        "args",
+                        () -> DefaultImplementation.forFinalize().execute(inst, (Object[]) null)
+                )
+        );
+        var c = n(
+                "bad-instance",
+                () -> Assertions.assertThrows(
+                        IllegalArgumentException.class,
+                        () -> DefaultImplementation.forFinalize().execute(s),
+                        "Should be a proxy."
+                )
+        );
+        var d = n(
+                "bad-args",
+                () -> Assertions.assertThrows(
+                        IllegalArgumentException.class,
+                        () -> DefaultImplementation.forFinalize().execute(inst, "a"),
+                        "Bad arity."
+                )
+        );
+        return Stream.of(a, b, c, d);
     }
 }

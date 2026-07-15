@@ -473,8 +473,8 @@ public class AnnotimplerTest {
         );
     }
 
-    public static class TestBadImpl10 implements Implementation {
-        public TestBadImpl10(String foo, int bar) throws FooException {
+    public static class TestBadImpl10A implements Implementation {
+        public TestBadImpl10A(String foo, int bar) throws FooException {
             throw new AssertionError();
         }
 
@@ -485,22 +485,54 @@ public class AnnotimplerTest {
         }
     }
 
-    @ImplementedBy(TestBadImpl10.class)
+    @ImplementedBy(TestBadImpl10A.class)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface TestBadAnno10 {
+    public static @interface TestBadAnno10A {
     }
 
-    public static interface TestBadIface10 {
-        @TestBadAnno10
+    public static interface TestBadIface10A {
+        @TestBadAnno10A
         public String crash();
     }
 
     @Test
-    public void testBadImpl10() {
-        var msg = "Don't know how to build TestBadImpl10 with no arguments.";
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface10.class));
+    public void testBadImpl10A() {
+        var msg = "Don't know how to build TestBadImpl10A with arguments.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface10A.class));
         Assertions.assertAll(
-                () -> Assertions.assertEquals(TestBadIface10.class, ex.getRoot()),
+                () -> Assertions.assertEquals(TestBadIface10A.class, ex.getRoot()),
+                () -> Assertions.assertEquals(msg, ex.getMessage())
+        );
+    }
+
+    public static class TestBadImpl10B implements Implementation {
+        public TestBadImpl10B(String foo) throws FooException {
+            throw new AssertionError();
+        }
+
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Class<E> k, @NonNull Method m, @NonNull PropertyBag props) {
+            throw new AssertionError();
+        }
+    }
+
+    @ImplementedBy(TestBadImpl10B.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestBadAnno10B {
+    }
+
+    public static interface TestBadIface10B {
+        @TestBadAnno10B
+        public String crash();
+    }
+
+    @Test
+    public void testBadImpl10B() {
+        var msg = "Don't know how to build TestBadImpl10B with arguments.";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface10B.class));
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(TestBadIface10B.class, ex.getRoot()),
                 () -> Assertions.assertEquals(msg, ex.getMessage())
         );
     }
