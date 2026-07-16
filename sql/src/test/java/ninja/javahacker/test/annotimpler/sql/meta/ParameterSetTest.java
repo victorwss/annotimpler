@@ -28,8 +28,13 @@ public class ParameterSetTest {
     private void mPrim(int n) { throw new AssertionError(); }
     private void mEnum(Hue color) { throw new AssertionError(); }
     private void mPair(Pair rec) { throw new AssertionError(); }
+    private void mFlatPair(@Flat Pair rec) { throw new AssertionError(); }
+    private void mFlatString(@Flat String s) { throw new AssertionError(); }
     private void mSole(Sole sr) { throw new AssertionError(); }
     private void mOpt(Optional<String> opt) { throw new AssertionError(); }
+    private void mOptList(Optional<List<String>> opt) { throw new AssertionError(); }
+    private void mList(List<String> values) { throw new AssertionError(); }
+    private <T> void mTypeVar(T value) { throw new AssertionError(); }
     private void mMulti(String a, Hue b, Integer c) { throw new AssertionError(); }
     private void mInaccessible(Inaccessible ir) { throw new AssertionError(); }
 
@@ -38,8 +43,13 @@ public class ParameterSetTest {
     private static final Method M_PRIM         = m("mPrim",         int.class);
     private static final Method M_ENUM         = m("mEnum",         Hue.class);
     private static final Method M_PAIR         = m("mPair",         Pair.class);
+    private static final Method M_FLAT_PAIR    = m("mFlatPair",     Pair.class);
+    private static final Method M_FLAT_STRING  = m("mFlatString",   String.class);
     private static final Method M_SOLE         = m("mSole",         Sole.class);
     private static final Method M_OPT          = m("mOpt",          Optional.class);
+    private static final Method M_OPT_LIST     = m("mOptList",      Optional.class);
+    private static final Method M_LIST         = m("mList",         List.class);
+    private static final Method M_TYPE_VAR     = m("mTypeVar",      Object.class);
     private static final Method M_MULTI        = m("mMulti",        String.class, Hue.class, Integer.class);
     private static final Method M_INACCESSIBLE = m("mInaccessible", Inaccessible.class);
 
@@ -293,6 +303,55 @@ public class ParameterSetTest {
                         )
                 ),
 
+                DynamicTest.dynamicTest(pf + "wrong type for String param → IllegalValueException", () ->
+                        Assertions.assertThrows(
+                                ParameterReceiver.IllegalValueException.class,
+                                () -> new ParameterSet(M_STR).withValues(42)
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "wrong wrapper for Optional<String> param → IllegalValueException", () ->
+                        Assertions.assertThrows(
+                                ParameterReceiver.IllegalValueException.class,
+                                () -> new ParameterSet(M_OPT).withValues("not-an-optional")
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "flat annotation on non-record type → UnsupportedOperationException", () ->
+                        Assertions.assertThrows(
+                                UnsupportedOperationException.class,
+                                () -> new ParameterSet(M_FLAT_STRING)
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "flat record with non-record components → UnsupportedOperationException", () ->
+                        Assertions.assertThrows(
+                                UnsupportedOperationException.class,
+                                () -> new ParameterSet(M_FLAT_PAIR)
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "non-Optional generic parameter type → BadImplementationException", () ->
+                        Assertions.assertThrows(
+                                BadImplementationException.class,
+                                () -> new ParameterSet(M_LIST)
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "generic type variable parameter → BadImplementationException", () ->
+                        Assertions.assertThrows(
+                                BadImplementationException.class,
+                                () -> new ParameterSet(M_TYPE_VAR)
+                        )
+                ),
+
+                DynamicTest.dynamicTest(pf + "Optional of non-class generic type argument → BadImplementationException", () ->
+                        Assertions.assertThrows(
+                                BadImplementationException.class,
+                                () -> new ParameterSet(M_OPT_LIST)
+                        )
+                ),
+
                 DynamicTest.dynamicTest(pf + "private (inaccessible) record type → BadImplementationException", () ->
                         Assertions.assertThrows(
                                 BadImplementationException.class,
@@ -360,7 +419,14 @@ public class ParameterSetTest {
                     new ParameterSet(M_PAIR).withValues(new Pair("x", 1)).accept(recPs);
 
                     Assertions.assertEquals(rec.calls, recPs.calls);
-                })
+                }),
+
+                DynamicTest.dynamicTest(pf + "forMethod.handle(non-array) → IllegalValueException", () ->
+                        Assertions.assertThrows(
+                                ParameterReceiver.IllegalValueException.class,
+                                () -> ParameterReceiver.forMethod(M_PAIR).handle("not-an-array")
+                        )
+                )
         );
     }
 

@@ -214,6 +214,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
     }
 
     private static void checkAccessible(@NonNull Class<? extends Record> k) throws BadImplementationException {
+        checkNotNull(k); // Check recognized by lombok.
         if (!Modifier.isPublic(k.getModifiers()) || !k.getModule().isExported(k.getPackageName(), ParameterSetStrategy.class.getModule())) {
             throw new BadImplementationException("Record type must be public and its package must be exported.", k);
         }
