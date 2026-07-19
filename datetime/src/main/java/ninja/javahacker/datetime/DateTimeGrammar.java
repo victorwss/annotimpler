@@ -225,11 +225,14 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             var zc = z.content();
             var e = eof(z.end());
             if (e.isEmpty()) return Optional.empty();
-            if (zc.isPresent() && tc.isEmpty()) return Optional.empty();
+            if (tc.isEmpty()) {
+                if (dc.isEmpty() || zc.isPresent()) return Optional.empty();
+            } else {
+                if (dc.isPresent() && s1.content().isEmpty()) return Optional.empty();
+                if (zc.isPresent() && s2.content().isEmpty()) return Optional.empty();
+            }
             if (dateLike && dc.isEmpty()) return Optional.empty();
             if (!dateLike && tc.isEmpty()) return Optional.empty();
-            if (dc.isPresent() && tc.isPresent() && s1.content().isEmpty()) return Optional.empty();
-            if (zc.isPresent() && tc.isPresent() && s2.content().isEmpty()) return Optional.empty();
             return Optional.of(new Pieces(dc, tc, zc)).flatMap(func);
         }
 

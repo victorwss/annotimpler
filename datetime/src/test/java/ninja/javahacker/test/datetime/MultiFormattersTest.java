@@ -120,7 +120,7 @@ public class MultiFormattersTest {
                 new Case(OffsetDateTime.class, fmt, () -> fmt.parseOffsetDateTime(s)),
                 new Case(OffsetTime.class    , fmt, () -> fmt.parseOffsetTime    (s))
         )).map(c -> DynamicTest.dynamicTest(
-                "parse: " + c.klass().getSimpleName() + " - not-a-date (" + c.fmt().name() + ")",
+                "[testParseInvalidThrowsConvertionException] parse: " + c.klass().getSimpleName() + " - not-a-date (" + c.fmt().name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.parse())
         ));
     }
@@ -232,7 +232,7 @@ public class MultiFormattersTest {
                 new Case(ZonedDateTime .class, fmt, () -> fmt.parseZonedDateTime (null)),
                 new Case(Instant       .class, fmt, () -> fmt.parseInstant       (null))
         )).map(c -> DynamicTest.dynamicTest(
-                "parse: " + c.which().getSimpleName() + " - [null] (" + c.fmt().name() + ")",
+                "[testParseNull] parse: " + c.which().getSimpleName() + " - [null] (" + c.fmt().name() + ")",
                 () -> testNull("input", c.withNull())
         ));
     }
@@ -251,7 +251,7 @@ public class MultiFormattersTest {
                 new Case(ZonedDateTime .class, fmt, () -> fmt.format((ZonedDateTime ) null)),
                 new Case(Instant       .class, fmt, () -> fmt.format((Instant       ) null))
         )).map(c -> DynamicTest.dynamicTest(
-                "format: " + c.which().getSimpleName() + " (" + c.fmt().name() + ")",
+                "[testFormatNull] format: " + c.which().getSimpleName() + " (" + c.fmt().name() + ")",
                 () -> testNull("input", c.withNull())
         ));
     }
@@ -264,52 +264,52 @@ public class MultiFormattersTest {
         record Case(String name, MultiFormatters fmt, Executable exec) {}
 
         return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
-                new Case("d day 0"                  , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_01_00"                           , fmt))),
-                new Case("dt day 0"                 , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_00 12:34:56"                  , fmt))),
-                new Case("dtz day 0"                , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_00 12:34:56 +10:50"           , fmt))),
+                new Case("d day 0"                 , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_01_00"                           , fmt))),
+                new Case("dt day 0"                , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_00 12:34:56"                  , fmt))),
+                new Case("dtz day 0"               , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_00 12:34:56 +10:50"           , fmt))),
 
-                new Case("d day 32"                 , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_01_32"                           , fmt))),
-                new Case("dt day 32"                , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_32 12:34:56"                  , fmt))),
-                new Case("dtz day 32"               , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_32 12:34:56 +10:50"           , fmt))),
+                new Case("d day 32"                , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_01_32"                           , fmt))),
+                new Case("dt day 32"               , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_32 12:34:56"                  , fmt))),
+                new Case("dtz day 32"              , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_32 12:34:56 +10:50"           , fmt))),
 
-                new Case("d month 0"                , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_00_10"                           , fmt))),
-                new Case("dt month 0"               , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_00_10 12:34:56"                  , fmt))),
-                new Case("dtz month 0"              , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_00_10 12:34:56 +10:50"           , fmt))),
+                new Case("d month 0"               , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_00_10"                           , fmt))),
+                new Case("dt month 0"              , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_00_10 12:34:56"                  , fmt))),
+                new Case("dtz month 0"             , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_00_10 12:34:56 +10:50"           , fmt))),
 
-                new Case("d month 13"               , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_13_10"                           , fmt))),
-                new Case("dt month 13"              , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_13_10 12:34:56"                  , fmt))),
-                new Case("dtz month 13"             , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_13_10 12:34:56 +10:50"           , fmt))),
+                new Case("d month 13"              , fmt, () -> fmt.parseLocalDate     (ymd2fmt( "2024_13_10"                           , fmt))),
+                new Case("dt month 13"             , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_13_10 12:34:56"                  , fmt))),
+                new Case("dtz month 13"            , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_13_10 12:34:56 +10:50"           , fmt))),
 
-                new Case("d negative year"          , fmt, () -> fmt.parseLocalDate     (ymd2fmt("-2024_01_10"                           , fmt))),
-                new Case("dt negative year"         , fmt, () -> fmt.parseLocalDateTime (ymd2fmt("-2024_01_10 12:34:56"                  , fmt))),
-                new Case("dtz negative year"        , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt("-2024_01_10 12:34:56 +10:50"           , fmt))),
+                new Case("d negative year"         , fmt, () -> fmt.parseLocalDate     (ymd2fmt("-2024_01_10"                           , fmt))),
+                new Case("dt negative year"        , fmt, () -> fmt.parseLocalDateTime (ymd2fmt("-2024_01_10 12:34:56"                  , fmt))),
+                new Case("dtz negative year"       , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt("-2024_01_10 12:34:56 +10:50"           , fmt))),
 
-                new Case("t hour 24"                , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "24:00:00"                  , fmt))),
-                new Case("dt hour 24"               , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 24:00:00"                  , fmt))),
-                new Case("dtz hour 24"              , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 24:00:00 +10:50"           , fmt))),
-                new Case("tz hour 24"               , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "24:00:00 +10:50"           , fmt))),
+                new Case("t hour 24"               , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "24:00:00"                  , fmt))),
+                new Case("dt hour 24"              , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 24:00:00"                  , fmt))),
+                new Case("dtz hour 24"             , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 24:00:00 +10:50"           , fmt))),
+                new Case("tz hour 24"              , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "24:00:00 +10:50"           , fmt))),
 
-                new Case("t minute 60"              , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:60:00"                  , fmt))),
-                new Case("dt minute 60"             , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:60:00"                  , fmt))),
-                new Case("dtz minute 60"            , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:60:00 +10:50"           , fmt))),
-                new Case("tz minute 60"             , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:60:00 +10:50"           , fmt))),
+                new Case("t minute 60"             , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:60:00"                  , fmt))),
+                new Case("dt minute 60"            , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:60:00"                  , fmt))),
+                new Case("dtz minute 60"           , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:60:00 +10:50"           , fmt))),
+                new Case("tz minute 60"            , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:60:00 +10:50"           , fmt))),
 
-                new Case("t second 60"              , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:60"                  , fmt))),
-                new Case("dt second 60"             , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:60"                  , fmt))),
-                new Case("dtz second 60"            , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:60 +10:50"           , fmt))),
-                new Case("tz second 60"             , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:60 +10:50"           , fmt))),
+                new Case("t second 60"             , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:60"                  , fmt))),
+                new Case("dt second 60"            , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:60"                  , fmt))),
+                new Case("dtz second 60"           , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:60 +10:50"           , fmt))),
+                new Case("tz second 60"            , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:60 +10:50"           , fmt))),
 
-                new Case("t nano > 9 digits"        , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56.1234567890"       , fmt))),
-                new Case("dt nano > 9 digits"       , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56.1234567890"       , fmt))),
-                new Case("dtz nano > 9 digits"      , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56.1234567890 +10:50", fmt))),
-                new Case("tz nano > 9 digits"       , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56.1234567890 +10:50", fmt))),
+                new Case("t nano > 9 digits"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56.1234567890"       , fmt))),
+                new Case("dt nano > 9 digits"      , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56.1234567890"       , fmt))),
+                new Case("dtz nano > 9 digits"     , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56.1234567890 +10:50", fmt))),
+                new Case("tz nano > 9 digits"      , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56.1234567890 +10:50", fmt))),
 
-                new Case("t dot without fraction"   , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56."                 , fmt))),
-                new Case("dt dot without fraction"  , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56."                 , fmt))),
-                new Case("dtz dot without fraction" , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56. +10:50"          , fmt))),
-                new Case("tz dot without fraction"  , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56. +10:50"          , fmt)))
+                new Case("t dot without fraction"  , fmt, () -> fmt.parseLocalTime     (ymd2fmt(            "12:34:56."                 , fmt))),
+                new Case("dt dot without fraction" , fmt, () -> fmt.parseLocalDateTime (ymd2fmt( "2024_01_10 12:34:56."                 , fmt))),
+                new Case("dtz dot without fraction", fmt, () -> fmt.parseOffsetDateTime(ymd2fmt( "2024_01_10 12:34:56. +10:50"          , fmt))),
+                new Case("tz dot without fraction" , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(            "12:34:56. +10:50"          , fmt)))
         )).map(c -> DynamicTest.dynamicTest(
-                c.name + " (" + c.fmt.name() + ")",
+                "[testInvalidRangesDateAndTimeLimits] " + c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
         ));
     }
@@ -329,10 +329,27 @@ public class MultiFormattersTest {
                 new Case("zdt missing date+zone"   , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(            "12:34:56.123456789"       , fmt))),
                 new Case("zdt missing date"        , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
                 new Case("lt only with date"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt( "2024_01_10"                          , fmt))),
+                new Case("ot only with date"       , fmt, () -> fmt.parseOffsetTime    (ymd2fmt( "2024_01_10"                          , fmt))),
                 new Case("ld only with time"       , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789"       , fmt))),
-                new Case("ld only with time+zone"  , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789 +10:50", fmt)))
+                new Case("ld only with time+zone"  , fmt, () -> fmt.parseLocalDate     (ymd2fmt(            "12:34:56.123456789 +10:50", fmt))),
+
+                new Case("ld only with zone"       , fmt, () -> fmt.parseLocalDate     (ymd2fmt(                               "+10:50", fmt))),
+                new Case("lt only with zone"       , fmt, () -> fmt.parseLocalTime     (ymd2fmt(                               "+10:50", fmt))),
+                new Case("ldt only with zone"      , fmt, () -> fmt.parseLocalDateTime (ymd2fmt(                               "+10:50", fmt))),
+                new Case("ins only with zone"      , fmt, () -> fmt.parseInstant       (ymd2fmt(                               "+10:50", fmt))),
+                new Case("odt only with zone"      , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(                               "+10:50", fmt))),
+                new Case("zdt only with zone"      , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(                               "+10:50", fmt))),
+                new Case("ot only with zone"       , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(                               "+10:50", fmt))),
+
+                new Case("ld only with date+zone"  , fmt, () -> fmt.parseLocalDate     (ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("lt only with date+zone"  , fmt, () -> fmt.parseLocalTime     (ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("ldt only with date+zone" , fmt, () -> fmt.parseLocalDateTime (ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("ins only with date+zone" , fmt, () -> fmt.parseInstant       (ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("odt only with date+zone" , fmt, () -> fmt.parseOffsetDateTime(ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("zdt only with date+zone" , fmt, () -> fmt.parseZonedDateTime (ymd2fmt(                    "2024_01_10 +10:50", fmt))),
+                new Case("ot only with date+zone"  , fmt, () -> fmt.parseOffsetTime    (ymd2fmt(                    "2024_01_10 +10:50", fmt)))
         )).map(c -> DynamicTest.dynamicTest(
-                c.name + " (" + c.fmt.name() + ")",
+                "[testIncompleteInvalidFormats] " + c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
         ));
     }
@@ -353,7 +370,7 @@ public class MultiFormattersTest {
                 new Case("29 feb 1900", "1900_02_29", fmt),
                 new Case("29 feb 2100", "2100_02_29", fmt)
         )).map(c -> DynamicTest.dynamicTest(
-                c.name + " (" + c.fmt.name() + ")",
+                "[testInvalidCalendarDates] " + c.name + " (" + c.fmt.name() + ")",
                 () -> Assertions.assertThrows(DateTimeParseException.class, () -> c.fmt.parseLocalDate(ymd2fmt(c.input, c.fmt)))
         ));
     }
@@ -363,28 +380,33 @@ public class MultiFormattersTest {
     @TestFactory
     public Stream<DynamicTest> testInvalidFormats() {
 
-        record Case(String name, String input, MultiFormatters fmt, Executable exec) {}
-
-        return Stream.of(MultiFormatters.values()).flatMap(fmt -> Stream.of(
-                new Case("1st dt", "2024#01_10 12:34:56"          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024#01_10 12:34:56"          , fmt))),
-                new Case("2nd dt", "2024_01#10 12:34:56"          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01#10 12:34:56"          , fmt))),
-                new Case("3rd dt", "2024_01_10#12:34:56"          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10#12:34:56"          , fmt))),
-                new Case("4th dt", "2024_01_10 12#34:56"          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12#34:56"          , fmt))),
-                new Case("5th dt", "2024_01_10 12:34#56"          , fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:34#56"          , fmt))),
-                new Case("6th dt", "2024_01_10 12:34:56#123456789", fmt, () -> fmt.parseLocalDateTime(ymd2fmt("2024_01_10 12:34:56#123456789", fmt))),
-                new Case("1st d" , "2024#01_10"                   , fmt, () -> fmt.parseLocalDate    (ymd2fmt("2024#01_10"                   , fmt))),
-                new Case("2nd d" , "2024_01#10"                   , fmt, () -> fmt.parseLocalDate    (ymd2fmt("2024_01#10"                   , fmt))),
-                new Case("1st t" ,            "12#34:56"          , fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12#34:56"          , fmt))),
-                new Case("2nd t" ,            "12:34#56"          , fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12:34#56"          , fmt))),
-                new Case("3rd t" ,            "12:34:56#123456789", fmt, () -> fmt.parseLocalTime    (ymd2fmt(           "12:34:56#123456789", fmt))),
-
-                new Case("stress 1", "12:34:56 1234567890", fmt, () -> fmt.parseLocalTime("12:34:56 1234567890")),
-                new Case("stress 2", "12:34:56 12345X789" , fmt, () -> fmt.parseLocalTime("12:34:56 12345X789" )),
-                new Case("stress 3", "12:"                , fmt, () -> fmt.parseLocalTime("12:"                ))
-        )).map(c -> DynamicTest.dynamicTest(
-                c.name + " (" + c.fmt.name() + ")",
-                () -> Assertions.assertThrows(DateTimeParseException.class, c.exec)
-        ));
+        var p1 = "2024_01_10";
+        var p2 = "12:34:56.777777777";
+        var p3 = "2024_01_10 12:34:56.777777777";
+        var p4 = "12:34:56.777777777U+10:32:54";
+        var p5 = "2024_01_10 12:34:56.777777777U+10:32:54";
+        return Stream.of(MultiFormatters.values()).flatMap(fmt ->
+            Stream.of(p1, p2, p3, p4, p5).flatMap(pat1 -> {
+                var pat2 = pat1.replace("U", fmt == MultiFormatters.ISO_8601 ? "" : " ");
+                return IntStream.range(0, pat2.length())
+                        .filter(i -> pat2.charAt(i) != '7')
+                        .mapToObj(i -> i)
+                        .flatMap(i -> {
+                            var p = pat2.substring(0, i) + "#" + pat2.substring(i + 1);
+                            var q = ymd2fmt(p, fmt);
+                            var r = q.replace("#", "");
+                            var a = DynamicTest.dynamicTest(
+                                    "[testInvalidFormats] bad symbol: " + q + " (" + fmt.name() + ")",
+                                    () -> Assertions.assertThrows(DateTimeParseException.class, () -> fmt.parseLocalDateTime(q))
+                            );
+                            var b = DynamicTest.dynamicTest(
+                                    "[testInvalidFormats] deleted char: " + r + " (" + fmt.name() + ")",
+                                    () -> Assertions.assertThrows(DateTimeParseException.class, () -> fmt.parseLocalDateTime(r))
+                            );
+                            return Stream.of(a, b);
+                        });
+            })
+        );
     }
 
     private static List<String> mutatePartsIn(String input) {
