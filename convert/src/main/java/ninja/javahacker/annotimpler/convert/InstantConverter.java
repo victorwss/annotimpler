@@ -58,4 +58,13 @@ public enum InstantConverter implements Converter<Instant> {
             throw new ConvertionException(e, String.class, getType());
         }
     }
+
+    /// Returns `[InstantConverter]`.
+    ///
+    /// @return `[InstantConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[InstantConverter]";
+    }
 }

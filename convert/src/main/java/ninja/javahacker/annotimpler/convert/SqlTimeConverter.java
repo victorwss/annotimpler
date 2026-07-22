@@ -80,6 +80,15 @@ public enum SqlTimeConverter implements Converter<Time> {
         return rewrap(() -> LocalTimeConverter.INSTANCE.from(in).map(Time::valueOf));
     }
 
+    /// Returns `[SqlTimeConverter]`.
+    ///
+    /// @return `[SqlTimeConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[SqlTimeConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

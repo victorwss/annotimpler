@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.convert;
 
-import lombok.EqualsAndHashCode;
+import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
-import lombok.ToString;
 
 import module java.base;
 import module java.sql;
@@ -18,8 +18,6 @@ import module java.sql;
 /// The default `fromNull()` is inherited and returns `Optional.empty()`.
 ///
 /// @param <E> The enum type this converter targets.
-@ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true)
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
     @NonNull
@@ -188,6 +186,26 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     public Optional<E> from(@NonNull NClob in) throws ConvertionException {
         var a = rewrap(() -> StringConverter.INSTANCE.from(in));
         return from(assertPresentGet(a), NClob.class);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass(), enumClass);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
+    public boolean equals(@Nullable Object other) {
+        return other instanceof EnumConverter<?> ot && Objects.equals(this.enumClass, ot.enumClass);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return "EnumConverter[" + enumClass.getName() + "]";
     }
 
     @Generated

@@ -268,8 +268,8 @@ public final class Methods {
     /// Returns `true` if `m` is considered *simple* and can be handled generically.
     ///
     /// A method is simple if it is synthetic, static, non-public, is `toString`, `hashCode`,
-    /// `equals`, or is one of the [Object] intrinsics. Simple methods typically do not require
-    /// annotation-driven behaviour in the `core` module.
+    /// `equals`, `clone`, `finalize` or is one of the [Object] intrinsics. Simple methods
+    /// typically do not require annotation-driven behaviour in the `core` module.
     ///
     /// @param m The method to test; must not be `null`.
     /// @return `true` if the method is simple.
@@ -282,6 +282,8 @@ public final class Methods {
                 || isToString(m)
                 || isHashCode(m)
                 || isEquals(m)
+                || isClone(m)
+                || isFinalize(m)
                 || isObjectIntrinsic(m);
     }
 

@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.magicfactory;
 
-import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;

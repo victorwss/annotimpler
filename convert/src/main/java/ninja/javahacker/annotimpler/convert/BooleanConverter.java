@@ -122,4 +122,13 @@ public enum BooleanConverter implements Converter<Boolean> {
         if (in.isEmpty()) return this == PRIMITIVE ? OPT_FALSE : Optional.empty();
         throw new ConvertionException(String.class, getType());
     }
+
+    /// Returns `[BooleanConverter-PRIMITIVE]` or `[BooleanConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[BooleanConverter-PRIMITIVE]` or `[BooleanConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[BooleanConverter-" + name() + "]";
+    }
 }

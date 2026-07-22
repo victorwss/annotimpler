@@ -94,7 +94,7 @@ public final class PropertyBag {
     /// @throws PropertyNotFoundException If this bag contains no value for `key`.
     /// @throws IllegalArgumentException If `key` is `null`.
     @NonNull
-    public <V> V get(@NonNull KeyProperty<V> key) {
+    public <V> V get(@NonNull KeyProperty<V> key) throws PropertyNotFoundException {
         var obj = properties.get(key);
         if (obj == null) throw new PropertyNotFoundException(key);
         var kv = key.valueType();
@@ -130,7 +130,7 @@ public final class PropertyBag {
     }
 
     /// Thrown by [PropertyBag#get] when the requested key has no associated value in the bag.
-    public static class PropertyNotFoundException extends NoSuchElementException {
+    public static class PropertyNotFoundException extends Exception {
 
         @Serial
         private static final long serialVersionUID = 1L;

@@ -58,4 +58,13 @@ public enum LocalDateTimeConverter implements Converter<LocalDateTime> {
             throw new ConvertionException(e, String.class, getType());
         }
     }
+
+    /// Returns `[LocalDateTimeConverter]`.
+    ///
+    /// @return `[LocalDateTimeConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[LocalDateTimeConverter]";
+    }
 }

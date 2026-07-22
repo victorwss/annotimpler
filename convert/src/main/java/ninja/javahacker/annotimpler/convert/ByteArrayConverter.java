@@ -117,4 +117,13 @@ public enum ByteArrayConverter implements Converter<byte[]> {
     public Optional<byte[]> from(@NonNull RowId in) {
         return Optional.of(in.getBytes());
     }
+
+    /// Returns `[ByteArrayConverter]`.
+    ///
+    /// @return `[ByteArrayConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[ByteArrayConverter]";
+    }
 }

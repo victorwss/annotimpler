@@ -118,4 +118,13 @@ public enum ShortConverter implements Converter<Short> {
             throw new ConvertionException(x, String.class, getType());
         }
     }
+
+    /// Returns `[ShortConverter-PRIMITIVE]` or `[ShortConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[ShortConverter-PRIMITIVE]` or `[ShortConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[ShortConverter-" + name() + "]";
+    }
 }

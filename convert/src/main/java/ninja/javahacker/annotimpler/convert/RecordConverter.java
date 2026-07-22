@@ -3,7 +3,6 @@ package ninja.javahacker.annotimpler.convert;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import java.lang.reflect.Array;
 import lombok.NonNull;
-import lombok.ToString;
 
 import module java.base;
 import module java.sql;
@@ -18,7 +17,6 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// and throws [UnavailableConverterException] if recursion is detected.
 ///
 /// @param <R> The record type this converter targets.
-@ToString(doNotUseGetters = true)
 public final class RecordConverter<R extends Record> implements Converter<R> {
 
     @NonNull
@@ -31,13 +29,14 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     private final Type inType;
 
     @NonNull
-    private final Converter<?> inFactory;
+    private final Converter<?> cvt;
 
     private static final ThreadLocal<Set<OngoingCreation>> ongoing = new ThreadLocal<>();
 
     private static record OngoingCreation(ConverterFactory a, Class<?> b) {
     }
 
+    @FunctionalInterface
     private static interface IntermediateProducer {
         @NonNull
         public Optional<?> produce() throws ConvertionException;
@@ -64,9 +63,9 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
         } else if (n.contains(o)) {
             throw new UnavailableConverterException("Recursive record class: " + recordClass.getName(), recordClass);
         }
-        n.add(o);
 
         try {
+            n.add(o);
             try {
                 this.factory = MagicFactory.of(recordClass);
             } catch (MagicFactory.CreatorSelectionException e) {
@@ -77,7 +76,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
                 throw new UnavailableConverterException(msg, recordClass);
             }
             this.inType = factory.getParameterTypes().get(0);
-            this.inFactory = cvtf.get(inType);
+            this.cvt = cvtf.get(inType);
         } finally {
             n.remove(o);
             if (n.isEmpty()) ongoing.remove();
@@ -147,183 +146,190 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     @Override
     public Optional<R> fromObj(@Nullable Object in) throws ConvertionException {
         if (in == null) return Optional.empty();
-        return wrap(unwrap(in.getClass()), () -> inFactory.fromObj(in));
+        return wrap(unwrap(in.getClass()), () -> cvt.fromObj(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(boolean in) throws ConvertionException {
-        return wrap(boolean.class, () -> inFactory.from(in));
+        return wrap(boolean.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(byte in) throws ConvertionException {
-        return wrap(byte.class, () -> inFactory.from(in));
+        return wrap(byte.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(short in) throws ConvertionException {
-        return wrap(short.class, () -> inFactory.from(in));
+        return wrap(short.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(int in) throws ConvertionException {
-        return wrap(int.class, () -> inFactory.from(in));
+        return wrap(int.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(long in) throws ConvertionException {
-        return wrap(long.class, () -> inFactory.from(in));
+        return wrap(long.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(float in) throws ConvertionException {
-        return wrap(float.class, () -> inFactory.from(in));
+        return wrap(float.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(double in) throws ConvertionException {
-        return wrap(double.class, () -> inFactory.from(in));
+        return wrap(double.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull BigDecimal in) throws ConvertionException {
-        return wrap(BigDecimal.class, () -> inFactory.from(in));
+        return wrap(BigDecimal.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull byte[] in) throws ConvertionException {
-        return wrap(byte[].class, () -> inFactory.from(in));
+        return wrap(byte[].class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull String in) throws ConvertionException {
-        return wrap(String.class, () -> inFactory.from(in));
+        return wrap(String.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull LocalDate in) throws ConvertionException {
-        return wrap(LocalDate.class, () -> inFactory.from(in));
+        return wrap(LocalDate.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull LocalTime in) throws ConvertionException {
-        return wrap(LocalTime.class, () -> inFactory.from(in));
+        return wrap(LocalTime.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull LocalDateTime in) throws ConvertionException {
-        return wrap(LocalDateTime.class, () -> inFactory.from(in));
+        return wrap(LocalDateTime.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull OffsetTime in) throws ConvertionException {
-        return wrap(OffsetTime.class, () -> inFactory.from(in));
+        return wrap(OffsetTime.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull OffsetDateTime in) throws ConvertionException {
-        return wrap(OffsetDateTime.class, () -> inFactory.from(in));
+        return wrap(OffsetDateTime.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull Blob in) throws ConvertionException {
-        return wrap(Blob.class, () -> inFactory.from(in));
+        return wrap(Blob.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull Clob in) throws ConvertionException {
-        return wrap(Clob.class, () -> inFactory.from(in));
+        return wrap(Clob.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull NClob in) throws ConvertionException {
-        return wrap(NClob.class, () -> inFactory.from(in));
+        return wrap(NClob.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull SQLXML in) throws ConvertionException {
-        return wrap(SQLXML.class, () -> inFactory.from(in));
+        return wrap(SQLXML.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull RowId in) throws ConvertionException {
-        return wrap(RowId.class, () -> inFactory.from(in));
+        return wrap(RowId.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull Ref in) throws ConvertionException {
-        return wrap(Ref.class, () -> inFactory.from(in));
+        return wrap(Ref.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull Struct in) throws ConvertionException {
-        return wrap(Struct.class, () -> inFactory.from(in));
+        return wrap(Struct.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
     public Optional<R> from(@NonNull java.sql.Array in) throws ConvertionException {
-        return wrap(java.sql.Array.class, () -> inFactory.from(in));
+        return wrap(java.sql.Array.class, () -> cvt.from(in));
     }
 
     /// {@inheritDoc}
     @Override
     public int hashCode() {
-        return Objects.hash(recordClass, inFactory);
+        return Objects.hash(getClass(), recordClass, cvt);
     }
 
     /// {@inheritDoc}
     @Override
     @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     public boolean equals(@Nullable Object other) {
         return other instanceof RecordConverter<?> ot
                 && Objects.equals(this.recordClass, ot.recordClass)
-                && Objects.equals(this.inFactory, ot.inFactory);
+                && Objects.equals(this.cvt, ot.cvt);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return "RecordConverter[recordClass=" + recordClass.getName() + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

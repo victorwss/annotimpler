@@ -141,21 +141,12 @@ public enum MultiFormatters {
     private static boolean hasFractionsOfSeconds(@NonNull String input) {
         checkNotNull(input); // Check recognized by lombok.
 
-        var len = input.length();
-        if (len > 18
-                || len < 10
-                || input.charAt(2) != ':'
-                || input.charAt(5) != ':'
-                || input.charAt(8) != '.')
-        {
-            return false;
-        }
-        for (var i = 0; i < len; i++) {
-            if (i == 2 || i == 5 || i == 8) continue;
-            var c = input.charAt(i);
-            if (c < '0' || c > '9') return false;
-        }
-        return true;
+        // This can only be called in a context where the input is a well-formed date, hour or timezone, since it is called as
+        // part of removeExcessZero from parts formatted with some formatter.
+        // So, we need to choose for a time and return false for the others. Checking minimum length and a dot in position 8
+        // is enough for that because a date or a timezone can't have a dot at position 8 and a time can only have a factional part
+        // when it is long enough.
+        return input.length() >= 10 && input.charAt(8) == '.';
     }
 
     @NonNull

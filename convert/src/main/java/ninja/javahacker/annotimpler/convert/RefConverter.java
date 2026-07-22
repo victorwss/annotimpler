@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
+import module java.sql;
 
 /// A [Converter] for [Ref] values. Only accepts [Ref] inputs (identity conversion).
 @SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
@@ -27,5 +27,14 @@ public enum RefConverter implements Converter<Ref> {
     @Override
     public Optional<Ref> from(@NonNull Ref in) {
         return Optional.of(in);
+    }
+
+    /// Returns `[RefConverter]`.
+    ///
+    /// @return `[RefConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[RefConverter]";
     }
 }

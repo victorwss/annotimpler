@@ -5,6 +5,7 @@ import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
 
@@ -25,37 +26,9 @@ import module ninja.javahacker.annotimpler.sql;
 /// | `int` / `Integer` | Row count capped at [Integer#MAX_VALUE]. |
 ///
 /// Any other return type causes [BadImplementationException] to be thrown at preparation time.
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class ExecuteSqlImplementation implements Implementation {
-
-    @NonNull
-    private final ConnectionFactory connect;
-
-    @NonNull
-    private final ConverterFactory cvt;
-
-    /// The locale used for case-insensitive column name matching.
-    @NonNull
-    private final Locale localizer;
-
-    /// Creates a new instance, extracting the required dependencies from the given
-    /// [PropertyBag].
-    ///
-    /// @param dependencies The property bag from which the [ConnectionFactory],
-    ///        [ConverterFactory] and [Locale] (localizer) are extracted.
-    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
-    /// @throws IllegalArgumentException If `dependencies` is `null`.
-    @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
-    public ExecuteSqlImplementation(@NonNull PropertyBag dependencies) throws PropertyBag.PropertyNotFoundException {
-        this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
-        this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
-        this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);
-    }
-
-    @NonNull
-    private Connection getConnection() throws SQLException {
-        return connect.get();
-    }
+public enum ExecuteSqlImplementation implements Implementation {
+    /// Sole instance.
+    INSTANCE;
 
     @NonNull
     private static String name(@NonNull Method m) {
@@ -80,6 +53,8 @@ public final class ExecuteSqlImplementation implements Implementation {
     /// Compiles the [@ExecuteSql][ExecuteSql]-annotated method `m` into a [CallContext] that
     /// executes the corresponding DML statement on every invocation.
     ///
+    /// The expected properties are [ConnectionFactoryKeyProperty], [ConverterFactoryKeyProperty] and [LocalizerKeyProperty].
+    ///
     /// @param <E> The DAO interface type.
     /// @param k The DAO interface class.
     /// @param m The annotated method to compile.
@@ -87,6 +62,7 @@ public final class ExecuteSqlImplementation implements Implementation {
     /// @return A [CallContext] ready for repeated invocation; never `null`.
     /// @throws BadImplementationException If the method's return type is not one of the
     ///         supported types (`void`, `Void`, `long`, `Long`, `int`, `Integer`).
+    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
     /// @throws IllegalArgumentException If any argument is `null`, or if `m` is not declared
     ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@ExecuteSql][ExecuteSql].
     @NonNull
@@ -96,7 +72,7 @@ public final class ExecuteSqlImplementation implements Implementation {
             @NonNull Class<E> k,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws BadImplementationException
+            throws BadImplementationException, PropertyBag.PropertyNotFoundException
     {
         if (!k.isAssignableFrom(m.getDeclaringClass())) throw new IllegalArgumentException();
         var es = m.getAnnotation(ExecuteSql.class);
@@ -107,12 +83,18 @@ public final class ExecuteSqlImplementation implements Implementation {
         var strict = es.validate();
         var supplier = ParsedSqlSupplier.find(strict, parset);
 
+        var connect = props.get(ConnectionFactoryKeyProperty.INSTANCE);
+        var cvt = props.get(ConverterFactoryKeyProperty.INSTANCE);
+        var localizer = props.get(LocalizerKeyProperty.INSTANCE);
+
         return new CallContext<>() {
+
+            /// {@inheritDoc}
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var params = parset.withValues(a);
                 var query = supplier.get();
-                var work = new SqlWorker(getConnection(), params, query, cvt, localizer);
+                var work = new SqlWorker(connect.get(), params, query, cvt, localizer);
                 var qtd = work.execute();
                 if (qtd == 0L && !es.acceptsZero()) throw new SQLException("No line was affected.");
                 if (qtd > 1L && !es.acceptsMulti()) throw new SQLException("Multipe lines were affected.");

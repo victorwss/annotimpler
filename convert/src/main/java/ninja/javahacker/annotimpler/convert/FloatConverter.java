@@ -124,6 +124,15 @@ public enum FloatConverter implements Converter<Float> {
         }
     }
 
+    /// Returns `[FloatConverter-PRIMITIVE]` or `[FloatConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[FloatConverter-PRIMITIVE]` or `[FloatConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[FloatConverter-" + name() + "]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

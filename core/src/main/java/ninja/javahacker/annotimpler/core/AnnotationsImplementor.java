@@ -110,7 +110,7 @@ public final class AnnotationsImplementor {
             @NonNull Class<E> iface,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws BadImplementationException
+            throws BadImplementationException, PropertyBag.PropertyNotFoundException
     {
         checkNotNull(iface); // Check recognized by lombok.
         checkNotNull(m); // Check recognized by lombok.
@@ -124,19 +124,20 @@ public final class AnnotationsImplementor {
             throw new BadImplementationException("Too many implementations by annotations on: " + name(m), mc);
         }
         if (impls.isEmpty()) return findSimpleImplementation(m);
-        var implAnnon = impls.getFirst().annotationType();
-        validate(m, implAnnon);
-        var implClass = implAnnon.getAnnotation(ImplementedBy.class).value();
+        var annotationValues = impls.getFirst().annotationType();
+        validate(m, annotationValues);
+        var annotationImplementor = annotationValues.getAnnotation(ImplementedBy.class).value();
         try {
-            var mf = MagicFactory.of(implClass);
+            var mf = MagicFactory.of(annotationImplementor);
             if (mf.arity() != 0) {
-                throw new BadImplementationException("Don't know how to build " + implClass.getSimpleName() + " with arguments.", mc);
+                var name = annotationImplementor.getSimpleName();
+                throw new BadImplementationException("Don't know how to build " + name + " with arguments.", mc);
             }
 
-            var instance = mf.create(new Object[0]);
-            var context = instance.prepare(iface, m, props);
+            var annotationInstance = mf.create(new Object[0]);
+            var context = annotationInstance.prepare(iface, m, props);
 
-            // Should never happen if implClass is properly implemented, but we shouldn't trust that.
+            // Should never happen if annotationImplementor is properly implemented, but we shouldn't trust that.
             if (context == null) throw new BadImplementationException("Implementation was null on: " + name(m), mc);
 
             return context;
@@ -153,10 +154,13 @@ public final class AnnotationsImplementor {
     /// @param iface The interface to implement; must not be `null` and must be an interface type.
     /// @return A proxy object implementing `iface`.
     /// @throws BadImplementationException If any method of `iface` cannot be implemented.
+    /// @throws PropertyBag.PropertyNotFoundException If the `props` does not contain the right properties.
+    ///         Can only happen if those properties are required and hence the [#implement(Class, ProipertyBag)] method should
+    ///         be used instead.
     /// @throws UnsupportedOperationException If `iface` is not an interface.
     /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
-    public static <E> E implement(@NonNull Class<E> iface) throws BadImplementationException {
+    public static <E> E implement(@NonNull Class<E> iface) throws BadImplementationException, PropertyBag.PropertyNotFoundException {
         return implement(iface, null);
     }
 
@@ -171,10 +175,14 @@ public final class AnnotationsImplementor {
     ///              if `null`, the root (empty) bag is used.
     /// @return A proxy object implementing `iface`.
     /// @throws BadImplementationException If any method of `iface` cannot be implemented.
+    /// @throws PropertyBag.PropertyNotFoundException If the `props` does not contain the right properties.
     /// @throws UnsupportedOperationException If `iface` is not an interface.
     /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
-    public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props) throws BadImplementationException {
+    public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props)
+            throws BadImplementationException,
+            PropertyBag.PropertyNotFoundException
+    {
         if (!iface.isInterface()) throw new UnsupportedOperationException();
 
         var props2 = props == null ? PropertyBag.root() : props;

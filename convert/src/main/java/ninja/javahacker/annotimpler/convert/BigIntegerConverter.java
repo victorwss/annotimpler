@@ -110,4 +110,13 @@ public enum BigIntegerConverter implements Converter<BigInteger> {
             throw new ConvertionException(x, String.class, BigInteger.class);
         }
     }
+
+    /// Returns `[BigIntegerConverter]`.
+    ///
+    /// @return `[BigIntegerConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[BigIntegerConverter]";
+    }
 }

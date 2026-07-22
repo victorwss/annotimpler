@@ -1,12 +1,12 @@
 package ninja.javahacker.annotimpler.sql.jdbcstmt;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
 import module java.base;
 import module java.sql;
-import module ninja.javahacker.annotimpler.sql;
 
 @PackagePrivate
 @FunctionalInterface

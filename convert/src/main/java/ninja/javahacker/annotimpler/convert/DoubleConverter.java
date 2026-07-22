@@ -129,6 +129,15 @@ public enum DoubleConverter implements Converter<Double> {
         }
     }
 
+    /// Returns `[DoubleConverter-PRIMITIVE]` or `[DoubleConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[DoubleConverter-PRIMITIVE]` or `[DoubleConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[DoubleConverter-" + name() + "]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

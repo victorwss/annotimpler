@@ -265,6 +265,7 @@ subprojects {
         ruleSetFiles = files("${rootDir}/config/pmd-ruleset.xml")
         toolVersion = versionPmd
         ignoreFailures = true
+        rulesMinimumPriority = 5
     }
 
     spotbugs {
@@ -497,21 +498,25 @@ tasks.register("aggregateSpotBugsReport") {
             if (!xmlFile.exists()) return
             try {
                 new groovy.xml.XmlParser().parse(xmlFile).BugInstance.each { bug ->
-                    def sl  = bug.SourceLine ? bug.SourceLine[0] : null
-                    def msg = (bug.LongMessage ?: bug.ShortMessage)
-                    rows << [sp.name, bug.@category, bug.@type, bug.@rank,
-                             bug.Class  ? bug.Class[0].@classname : "",
-                             bug.Method ? bug.Method[0].@name     : "",
-                             sl ? sl.@sourcepath : "", sl ? sl.@start : "",
-                             msg ? msg[0].text().trim() : ""]
+                    def sourceLine = bug.SourceLine ? bug.SourceLine[0] : null
+                    def msg1 = bug.LongMessage ?: bug.ShortMessage
+                    def msg2 = msg1 ? msg1[0].text().trim() : ""
+                    def className = bug.Class ? bug.Class[0].@classname : ""
+                    def methodName = bug.Method ? bug.Method[0].@name : ""
+                    def sourcePath = sourceLine ? sourceLine.@sourcepath : ""
+                    def start = sourceLine ? sourceLine.@start : ""
+                    rows << [sp.name, bug.@category, bug.@type, bug.@rank, className, methodName, sourcePath, start, msg2]
                 }
             } catch (Exception e) { println "SpotBugs parse error for ${sp.name}: ${e.message}" }
         }
         outputFile.parentFile.mkdirs()
         outputFile.text = buildAggregateHtml(
-            "SpotBugs Aggregate Report", "#a74a4a",
-            ["Project", "Category", "Type", "Rank", "Class", "Method", "File", "Line", "Message"], rows,
-            "${rows.size()} bug(s)")
+            "SpotBugs Aggregate Report",
+            "#a74a4a",
+            ["Project", "Category", "Type", "Rank", "Class", "Method", "File", "Line", "Message"],
+            rows,
+            "${rows.size()} bug(s)"
+        )
         println "SpotBugs aggregate report: ${outputFile.toURI()}"
     }
 }
@@ -540,9 +545,12 @@ tasks.register("aggregateCheckstyleReport") {
         }
         outputFile.parentFile.mkdirs()
         outputFile.text = buildAggregateHtml(
-            "Checkstyle Aggregate Report", "#7a6da7",
-            ["Project", "File", "Line", "Severity", "Source", "Message"], rows,
-            "${rows.size()} violation(s)")
+            "Checkstyle Aggregate Report",
+            "#7a6da7",
+            ["Project", "File", "Line", "Severity", "Source", "Message"],
+            rows,
+            "${rows.size()} violation(s)"
+        )
         println "Checkstyle aggregate report: ${outputFile.toURI()}"
     }
 }

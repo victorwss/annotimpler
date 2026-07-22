@@ -97,6 +97,15 @@ public enum CharArrayConverter implements Converter<char[]> {
         return rewrap(() -> StringConverter.INSTANCE.from(in).map(String::toCharArray));
     }
 
+    /// Returns `[CharArrayConverter]`.
+    ///
+    /// @return `[CharArrayConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[CharArrayConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

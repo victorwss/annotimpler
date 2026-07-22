@@ -115,6 +115,15 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
         return rewrap(() -> Optional.of(IntegerConverter.WRAPPER.from(in).map(OptionalInt::of).orElseGet(OptionalInt::empty)));
     }
 
+    /// Returns `[OptionalIntConverter]`.
+    ///
+    /// @return `[OptionalIntConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[OptionalIntConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

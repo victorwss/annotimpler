@@ -118,6 +118,15 @@ public enum LongConverter implements Converter<Long> {
         }
     }
 
+    /// Returns `[LongConverter-PRIMITIVE]` or `[LongConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[LongConverter-PRIMITIVE]` or `[LongConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[LongConverter-" + name() + "]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

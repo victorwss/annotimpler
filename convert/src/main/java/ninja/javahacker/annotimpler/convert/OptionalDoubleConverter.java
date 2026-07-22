@@ -115,6 +115,15 @@ public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
         return rewrap(() -> Optional.of(DoubleConverter.WRAPPER.from(in).map(OptionalDouble::of).orElseGet(OptionalDouble::empty)));
     }
 
+    /// Returns `[OptionalDoubleConverter]`.
+    ///
+    /// @return `[OptionalDoubleConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[OptionalDoubleConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

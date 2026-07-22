@@ -2,7 +2,6 @@ package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
-import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.sql;
 
 /// The [ninja.javahacker.annotimpler.core.KeyProperty] singleton for [ConverterFactory].

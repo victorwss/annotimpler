@@ -65,4 +65,13 @@ public enum LocalTimeConverter implements Converter<LocalTime> {
             throw new ConvertionException(e, String.class, getType());
         }
     }
+
+    /// Returns `[LocalTimeConverter]`.
+    ///
+    /// @return `[LocalTimeConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[LocalTimeConverter]";
+    }
 }

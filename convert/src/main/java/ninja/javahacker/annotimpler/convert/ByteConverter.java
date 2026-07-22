@@ -120,4 +120,13 @@ public enum ByteConverter implements Converter<Byte> {
             throw new ConvertionException(x, String.class, getType());
         }
     }
+
+    /// Returns `[ByteConverter-PRIMITIVE]` or `[ByteConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[ByteConverter-PRIMITIVE]` or `[ByteConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[ByteConverter-" + name() + "]";
+    }
 }

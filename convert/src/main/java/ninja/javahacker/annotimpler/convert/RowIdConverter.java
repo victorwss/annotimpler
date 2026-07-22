@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
+import module java.sql;
 
 /// A [Converter] for [RowId] values. Only accepts [RowId] inputs (identity conversion).
 @SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
@@ -27,5 +27,14 @@ public enum RowIdConverter implements Converter<RowId> {
     @Override
     public Optional<RowId> from(@NonNull RowId in) {
         return Optional.of(in);
+    }
+
+    /// Returns `[RowIdConverter]`.
+    ///
+    /// @return `[RowIdConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[RowIdConverter]";
     }
 }

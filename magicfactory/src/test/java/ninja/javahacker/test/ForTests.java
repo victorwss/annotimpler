@@ -19,12 +19,12 @@ public final class ForTests {
         return () -> Assertions.assertFalse(p.test(m), "For " + m);
     }
 
-    public static <E> Stream<DynamicTest> makeTests(List<E> isTrue, List<E> all, Function<E, String> strz, Predicate<? super E> p) {
+    public static <E> Stream<DynamicTest> makeTests(String prefix, List<E> isTrue, List<E> all, Function<E, String> strz, Predicate<? super E> p) {
         var isFalse = new ArrayList<>(all);
         isFalse.removeAll(isTrue);
         return Stream.concat(
-                isTrue.stream().map(m -> DynamicTest.dynamicTest(strz.apply(m), testTrue(m, p))),
-                isFalse.stream().map(m -> DynamicTest.dynamicTest(strz.apply(m), testFalse(m, p)))
+                isTrue.stream().map(m -> DynamicTest.dynamicTest(prefix + strz.apply(m), testTrue(m, p))),
+                isFalse.stream().map(m -> DynamicTest.dynamicTest(prefix + strz.apply(m), testFalse(m, p)))
         );
     }
 

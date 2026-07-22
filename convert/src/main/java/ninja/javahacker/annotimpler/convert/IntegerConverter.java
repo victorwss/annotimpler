@@ -123,6 +123,15 @@ public enum IntegerConverter implements Converter<Integer> {
         }
     }
 
+    /// Returns `[IntegerConverter-PRIMITIVE]` or `[IntegerConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[IntegerConverter-PRIMITIVE]` or `[IntegerConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[IntegerConverter-" + name() + "]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

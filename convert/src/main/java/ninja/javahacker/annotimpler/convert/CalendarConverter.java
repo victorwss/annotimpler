@@ -66,6 +66,15 @@ public enum CalendarConverter implements Converter<Calendar> {
         return rewrap(() -> ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from));
     }
 
+    /// Returns `[CalendarConverter]`.
+    ///
+    /// @return `[CalendarConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[CalendarConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

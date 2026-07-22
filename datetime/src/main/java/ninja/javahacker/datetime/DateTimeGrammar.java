@@ -90,18 +90,19 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             checkNotNull(date); // Check recognized by lombok.
             checkNotNull(time); // Check recognized by lombok.
             checkNotNull(zone); // Check recognized by lombok.
+            assertOneTrue(date.isPresent(), time.isPresent());
         }
 
         @NonNull
         public Optional<LocalDateTime> dateTime() {
-            if (date.isEmpty()) return Optional.empty();
+            assertTrue(date.isPresent()); // Only called in a context where dateLike was true and then date was not empty.
             if (time.isEmpty()) return defaultTime().dateTime();
             return Optional.of(date.get().atTime(time.get()));
         }
 
         @NonNull
         public Optional<OffsetDateTime> dateTimeZone() {
-            if (date.isEmpty()) return Optional.empty();
+            assertTrue(date.isPresent()); // Only called in a context where dateLike was true and then date was not empty.
             if (time.isEmpty()) return defaultTime().dateTimeZone();
             if (zone.isEmpty()) return defaultZone().dateTimeZone();
             return Optional.of(date.get().atTime(time.get()).atOffset(zone.get()));
@@ -109,7 +110,7 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
 
         @NonNull
         public Optional<OffsetTime> timeZone() {
-            if (time.isEmpty()) return Optional.empty();
+            assertTrue(time.isPresent()); // Only called in a context where dateLike was false and then time was not empty.
             if (zone.isEmpty()) return defaultZone().timeZone();
             return Optional.of(time.get().atOffset(zone.get()));
         }
@@ -413,5 +414,15 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();
+    }
+
+    @Generated
+    private static void assertTrue(boolean what) {
+        if (!what) throw new AssertionError();
+    }
+
+    @Generated
+    private static void assertOneTrue(boolean a, boolean b) {
+        if (!a && !b) throw new AssertionError();
     }
 }

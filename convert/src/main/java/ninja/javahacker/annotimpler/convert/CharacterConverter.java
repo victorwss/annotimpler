@@ -123,4 +123,13 @@ public enum CharacterConverter implements Converter<Character> {
         if (!in.equals(c.toString())) throw new ConvertionException(String.class, getType());
         return Optional.of(c);
     }
+
+    /// Returns `[CharacterConverter-PRIMITIVE]` or `[CharacterConverter-WRAPPER]`, depending on which instance this method is called.
+    ///
+    /// @return `[CharacterConverter-PRIMITIVE]` or `[CharacterConverter-WRAPPER]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[CharacterConverter-" + name() + "]";
+    }
 }

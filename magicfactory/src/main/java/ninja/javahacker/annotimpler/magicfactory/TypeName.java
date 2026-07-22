@@ -71,12 +71,12 @@ public final class TypeName {
                 assertEquals(upperBounds.length, 1);
                 assertLE(lowerBounds.length, 1);
 
-                if (upperBounds[0] != Object.class) {
-                    sb.append(" extends ");
-                    formatType(upperBounds[0], fullNameNeeded, sb);
-                } else if (lowerBounds.length > 0) {
+                if (lowerBounds.length > 0) {
                     sb.append(" super ");
                     formatType(lowerBounds[0], fullNameNeeded, sb);
+                } else if (upperBounds[0] != Object.class) {
+                    sb.append(" extends ");
+                    formatType(upperBounds[0], fullNameNeeded, sb);
                 }
             }
             default -> {

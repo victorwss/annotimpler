@@ -38,7 +38,9 @@ import lombok.NonNull;
 /// Supports primitives, wrappers, date/time types, SQL types, enums, records, arrays,
 /// and parameterized collections ([List], [Set], [Collection], [Optional]).
 /// The singleton instance is [#INSTANCE].
-/// Additional mappings can be registered with [#extend(Class, Converter)].
+///
+/// Additional mappings can be registered with [#extend(Class, Converter)]
+/// or by directly extending this interface.
 public interface StdConverterFactory extends ConverterFactory {
 
     /// The singleton standard converter factory pre-populated with all built-in converters.
@@ -93,10 +95,12 @@ public interface StdConverterFactory extends ConverterFactory {
         );
 
         return new StdConverterFactory() {
+
+            /// {@inheritDoc}
             @NonNull
             @Override
-            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the map returned is immutable.
-            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the map returned is immutable.
+            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the returned map is immutable.
+            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the returned map is immutable.
             public Map<Class<?>, Converter<?>> directMappings() {
                 return map;
             }
@@ -138,8 +142,8 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Returns a typed converter for the given undetermined type.
     ///
-    ///The default implementation does not supports this operation and always throws an
-    ///[UnavailableConverterException], but overriden implementations may do otherwise.
+    /// The default implementation does not supports this operation and always throws an
+    /// [UnavailableConverterException], but overriden implementations may do otherwise.
     ///
     /// @param t The undetermined type.
     /// @return A [Converter] typed to the given type.
@@ -152,9 +156,10 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// Returns a converter for the parameterized type `t`.
     ///
-    /// Tries [#makeList(ParameterizedType)], [#makeSet(ParameterizedType)],
+    /// The default implementation tries [#makeList(ParameterizedType)], [#makeSet(ParameterizedType)],
     /// [#makeCollection(ParameterizedType)], [#makeOptional(ParameterizedType)],
     /// and [#makeMap(ParameterizedType)] in order; throws if none match.
+    /// Overriden implementations might do something different.
     ///
     /// @param t The parameterized type to look up.
     /// @return A [Converter] for the given parameterized type.
@@ -383,7 +388,7 @@ public interface StdConverterFactory extends ConverterFactory {
 
     /// If `p` is `Optional<X>` for some concrete class `X`, creates a converter.
     ///
-    /// The default implementation always returns a [OptionalConverter], but overriden implementations may do otherwise.
+    /// The default implementation always returns an [OptionalConverter], but overriden implementations may do otherwise.
     ///
     /// @param p The parameterized type to inspect.
     /// @return An optional converter for `p`; empty if `p` is not `Optional<X>`.
@@ -405,6 +410,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// If `p` is `Map<X, Y>` for some concrete classes `X` and `Y`, creates a converter.
     ///
     /// However, this operation is not supported in the default implementation, that always returns empty.
+    /// Overriden implementations might do otherwise.
     ///
     /// @param p The parameterized type (ignored).
     /// @return Always [Optional#empty()].
@@ -441,8 +447,8 @@ public interface StdConverterFactory extends ConverterFactory {
         return new StdConverterFactory() {
             @NonNull
             @Override
-            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the map returned is immutable.
-            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the map returned is immutable.
+            @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the returned map is immutable.
+            @SuppressFBWarnings("EI_EXPOSE_REP") // Safe because the returned map is immutable.
             public Map<Class<?>, Converter<?>> directMappings() {
                 return map;
             }

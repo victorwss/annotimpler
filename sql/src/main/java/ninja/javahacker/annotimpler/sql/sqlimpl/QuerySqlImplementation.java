@@ -34,37 +34,9 @@ import module ninja.javahacker.annotimpler.sql;
 /// Wildcard type parameters (`Optional<?>`, `List<?>`) are rejected at preparation time.
 /// When `fields` contains more than one index, `T` must be a record and the number of indices
 /// must exactly match the number of record components.
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class QuerySqlImplementation implements Implementation {
-
-    @NonNull
-    private final ConnectionFactory connect;
-
-    @NonNull
-    private final ConverterFactory cvt;
-
-    /// The locale used for case-insensitive column name matching.
-    @NonNull
-    private final Locale localizer;
-
-    /// Creates a new instance, extracting the required dependencies from the given
-    /// [PropertyBag].
-    ///
-    /// @param dependencies The property bag from which the [ConnectionFactory],
-    ///        [ConverterFactory] and [Locale] (localizer) are extracted.
-    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
-    /// @throws IllegalArgumentException If `dependencies` is `null`.
-    @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
-    public QuerySqlImplementation(@NonNull PropertyBag dependencies) throws PropertyBag.PropertyNotFoundException {
-        this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
-        this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
-        this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);
-    }
-
-    @NonNull
-    private Connection getConnection() throws SQLException {
-        return connect.get();
-    }
+public enum QuerySqlImplementation implements Implementation {
+    /// Sole instance.
+    INSTANCE;
 
     @NonNull
     private static String name(@NonNull Method m) {
@@ -72,9 +44,16 @@ public final class QuerySqlImplementation implements Implementation {
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
+    /// Wraps the implementation of a method annotated with [QuerySql].
     @FunctionalInterface
     private static interface SpecialFunc {
-        public Object operate(SqlWorker work) throws SQLException;
+
+        /// Executes the implementation receiving an object containg the connection, query, converters and locale.
+        /// @param work Speciefies the connection, SQL, converters and locale useful for the work represented by this instance.
+        /// @return Whatever is the result of the query SQL execution in the database.
+        /// @throws SQLException If the database produces some failure.
+        /// @throws IllegalArgumentException If `work` is `null`.
+        public Object operate(@NonNull SqlWorker work) throws SQLException;
     }
 
     @NonNull
@@ -84,7 +63,7 @@ public final class QuerySqlImplementation implements Implementation {
         checkNotNull(q); // Check recognized by lombok.
 
         if (Methods.isSimple(m)) {
-            throw new BadImplementationException("Annotations on " + MethodWrapper.of(m), m.getDeclaringClass());
+            throw new BadImplementationException("Unsupported annotation @Query on " + name(m), m.getDeclaringClass());
         }
 
         var fields = q.fields();
@@ -126,6 +105,8 @@ public final class QuerySqlImplementation implements Implementation {
     /// Compiles the [@QuerySql][QuerySql]-annotated method `m` into a [CallContext] that
     /// executes the corresponding SELECT statement and maps the result rows on every invocation.
     ///
+    /// The expected properties are [ConnectionFactoryKeyProperty], [ConverterFactoryKeyProperty] and [LocalizerKeyProperty].
+    ///
     /// @param <E> The DAO interface type.
     /// @param k The DAO interface class.
     /// @param m The annotated method to compile.
@@ -135,6 +116,7 @@ public final class QuerySqlImplementation implements Implementation {
     ///         parameter; if `fields` specifies more than one index for a non-record element
     ///         type; or if the number of indices in `fields` does not match the number of
     ///         components in the target record type.
+    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
     /// @throws IllegalArgumentException If any argument is `null`, or if `m` is not declared
     ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@QuerySql][QuerySql].
     @NonNull
@@ -144,7 +126,7 @@ public final class QuerySqlImplementation implements Implementation {
             @NonNull Class<E> k,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws BadImplementationException
+            throws BadImplementationException, PropertyBag.PropertyNotFoundException
     {
         if (!k.isAssignableFrom(m.getDeclaringClass())) throw new IllegalArgumentException();
         var q = m.getAnnotation(QuerySql.class);
@@ -155,12 +137,18 @@ public final class QuerySqlImplementation implements Implementation {
         var strict = q.validate();
         var supplier = ParsedSqlSupplier.find(strict, parset);
 
+        var connect = props.get(ConnectionFactoryKeyProperty.INSTANCE);
+        var cvt = props.get(ConverterFactoryKeyProperty.INSTANCE);
+        var localizer = props.get(LocalizerKeyProperty.INSTANCE);
+
         return new CallContext<>() {
+
+            /// {@inheritDoc}
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var query = supplier.get();
                 var params = parset.withValues(a);
-                var work = new SqlWorker(getConnection(), params, query, cvt, localizer);
+                var work = new SqlWorker(connect.get(), params, query, cvt, localizer);
                 return operation.operate(work);
             }
         };

@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -23,10 +24,10 @@ import module java.sql;
 public final class ThreadTracerSqlSupplier implements SqlSupplier {
 
     @NonNull
-    private final Object lockQueue;
+    private final ReentrantLock lockQueue;
 
     @NonNull
-    private final Object lockRes;
+    private final ReentrantLock lockRes;
 
     @NonNull
     private final Downstream downstream;
@@ -45,8 +46,8 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
     /// @throws IllegalArgumentException If `downstream` is `null`.
     @SuppressWarnings("PMD.NullAssignment")
     public ThreadTracerSqlSupplier(@NonNull Downstream downstream) {
-        this.lockQueue = new Object();
-        this.lockRes = new Object();
+        this.lockQueue = new ReentrantLock();
+        this.lockRes = new ReentrantLock();
         this.waiting = new HashSet<>(10);
         this.downstream = downstream;
         this.result = null;
@@ -64,21 +65,22 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
     /// @return The SQL string produced by the cached delegate; never `null`.
     /// @throws java.sql.SQLException If the downstream initialization or the delegate itself
     ///         throws a [java.sql.SQLException].
+    @NonNull
     @Override
     public String get() throws SQLException {
         if (result != null) return result.get();
-        synchronized (lockQueue) {
-            waiting.add(Thread.currentThread());
-        }
+
         try {
-            synchronized (lockRes) {
-                if (result == null) result = downstream.get();
-            }
-            return result.get();
+            doWithLock(lockQueue, () -> waiting.add(Thread.currentThread()));
+            return sqlGetWithLock(lockRes, () -> {
+                @NonNull
+                SqlSupplier intermediate = result == null ? downstream.get() : result;
+
+                result = intermediate;
+                return intermediate.get();
+            });
         } finally {
-            synchronized (lockQueue) {
-                waiting.remove(Thread.currentThread());
-            }
+            doWithLock(lockQueue, () -> waiting.remove(Thread.currentThread()));
         }
     }
 
@@ -88,9 +90,7 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
     /// @return `true` if `t` is currently inside the slow path of [get]; `false` otherwise.
     /// @throws IllegalArgumentException If `t` is `null`.
     public boolean has(@NonNull Thread t) {
-        synchronized (lockQueue) {
-            return waiting.contains(t);
-        }
+        return getWithLock(lockQueue, () -> waiting.contains(t));
     }
 
     /// The downstream supplier that is called at most once to produce the [SqlSupplier] to cache.
@@ -108,6 +108,54 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
         /// @return The [SqlSupplier] to use for all subsequent [ThreadTracerSqlSupplier#get]
         ///         calls; never `null`.
         /// @throws java.sql.SQLException If the supplier cannot be resolved.
+        @NonNull
         public SqlSupplier get() throws SQLException;
+    }
+
+    @FunctionalInterface
+    private static interface InnerContext<E> {
+        @NonNull
+        public E get() throws SQLException;
+    }
+
+    @NonNull
+    private static <E> E sqlGetWithLock(@NonNull ReentrantLock lock, @NonNull InnerContext<E> context) throws SQLException {
+        checkNotNull(lock);
+        checkNotNull(context);
+        try {
+            lock.lock();
+            return context.get();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @NonNull
+    private static <E> E getWithLock(@NonNull ReentrantLock lock, @NonNull Supplier<E> context) {
+        checkNotNull(lock);
+        checkNotNull(context);
+        try {
+            lock.lock();
+            return context.get();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @NonNull
+    private static void doWithLock(@NonNull ReentrantLock lock, @NonNull Runnable context) {
+        checkNotNull(lock);
+        checkNotNull(context);
+        try {
+            lock.lock();
+            context.run();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Generated
+    private static void checkNotNull(Object obj) {
+        if (obj == null) throw new AssertionError();
     }
 }

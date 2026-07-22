@@ -92,4 +92,13 @@ public enum BigDecimalConverter implements Converter<BigDecimal> {
             throw new ConvertionException(x, String.class, BigDecimal.class);
         }
     }
+
+    /// Returns `[BigDecimalConverter]`.
+    ///
+    /// @return `[BigDecimalConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[BigDecimalConverter]";
+    }
 }

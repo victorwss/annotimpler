@@ -29,11 +29,12 @@ public interface Implementation {
     /// @param props The property bag provided to [AnnotationsImplementor#implement]; must not be `null`.
     /// @return The [CallContext] to use when `m` is invoked on the proxy; must not be `null`.
     /// @throws BadImplementationException If the method cannot be prepared for this implementation.
+    /// @throws PropertyBag.PropertyNotFoundException If the `props` does not contain the right properties.
     /// @throws IllegalArgumentException If `k`, `m` or `props` is `null`.
     @NonNull
     public <E> CallContext<E> prepare(
             @NonNull Class<E> k,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws BadImplementationException;
+            throws BadImplementationException, PropertyBag.PropertyNotFoundException;
 }

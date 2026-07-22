@@ -21,12 +21,12 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
     INSTANCE;
 
     @FunctionalInterface
-    private interface Work {
+    private interface InternalWork {
         public Optional<GregorianCalendar> work() throws ConvertionException;
     }
 
     @NonNull
-    private Optional<GregorianCalendar> rewrap(@NonNull Work w) throws ConvertionException {
+    private Optional<GregorianCalendar> rewrap(@NonNull InternalWork w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.
         try {
             return w.work();
@@ -66,6 +66,15 @@ public enum GregorianCalendarConverter implements Converter<GregorianCalendar> {
     @Override
     public Optional<GregorianCalendar> from(@NonNull String in) throws ConvertionException {
         return rewrap(() -> ZonedDateTimeConverter.INSTANCE.from(in).map(GregorianCalendar::from));
+    }
+
+    /// Returns `[GregorianCalendarConverter]`.
+    ///
+    /// @return `[GregorianCalendarConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[GregorianCalendarConverter]";
     }
 
     @Generated

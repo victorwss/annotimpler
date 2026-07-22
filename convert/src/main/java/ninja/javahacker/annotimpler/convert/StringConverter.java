@@ -1,10 +1,24 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.sql.Blob;
+import java.sql.Clob;
+import java.sql.NClob;
+import java.sql.RowId;
+import java.sql.SQLException;
+import java.sql.SQLXML;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.OffsetTime;
+import java.util.Optional;
 import lombok.NonNull;
 
-import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.datetime;
 
 /// A [Converter] for [String] values.
@@ -190,5 +204,14 @@ public enum StringConverter implements Converter<String> {
     @Override
     public Optional<String> from(@NonNull RowId in) {
         return Optional.of(new BigInteger(in.getBytes()).toString());
+    }
+
+    /// Returns `[StringConverter]`.
+    ///
+    /// @return `[StringConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[StringConverter]";
     }
 }

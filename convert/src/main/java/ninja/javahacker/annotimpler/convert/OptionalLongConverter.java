@@ -115,6 +115,15 @@ public enum OptionalLongConverter implements Converter<OptionalLong> {
         return rewrap(() -> Optional.of(LongConverter.WRAPPER.from(in).map(OptionalLong::of).orElseGet(OptionalLong::empty)));
     }
 
+    /// Returns `[OptionalLongConverter]`.
+    ///
+    /// @return `[OptionalLongConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[OptionalLongConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

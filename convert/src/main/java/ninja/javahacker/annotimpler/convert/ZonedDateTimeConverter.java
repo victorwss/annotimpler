@@ -55,4 +55,13 @@ public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
             throw new ConvertionException(e, String.class, getType());
         }
     }
+
+    /// Returns `[ZonedDateTimeConverter]`.
+    ///
+    /// @return `[ZonedDateTimeConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[ZonedDateTimeConverter]";
+    }
 }

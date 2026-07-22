@@ -72,6 +72,15 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
         return rewrap(() -> LocalDateTimeConverter.INSTANCE.from(in).map(Timestamp::valueOf));
     }
 
+    /// Returns `[SqlTimestampConverter]`.
+    ///
+    /// @return `[SqlTimestampConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[SqlTimestampConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

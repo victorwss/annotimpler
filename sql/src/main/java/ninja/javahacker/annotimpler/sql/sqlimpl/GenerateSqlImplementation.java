@@ -1,7 +1,5 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -29,37 +27,9 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// Any other return type (including raw `List`, `List<String>`, or arbitrary types) causes
 /// [BadImplementationException] to be thrown at preparation time.
-@SuppressFBWarnings("FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY")
-public final class GenerateSqlImplementation implements Implementation {
-
-    @NonNull
-    private final ConnectionFactory connect;
-
-    @NonNull
-    private final ConverterFactory cvt;
-
-    /// The locale used for case-insensitive column name matching.
-    @NonNull
-    private final Locale localizer;
-
-    /// Creates a new instance, extracting the required dependencies from the given
-    /// [PropertyBag].
-    ///
-    /// @param dependencies The property bag from which the [ConnectionFactory],
-    ///        [ConverterFactory] and [Locale] (localizer) are extracted.
-    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
-    /// @throws IllegalArgumentException If `dependencies` is `null`.
-    @SuppressFBWarnings("DRE_DECLARED_RUNTIME_EXCEPTION")
-    public GenerateSqlImplementation(@NonNull PropertyBag dependencies) throws PropertyBag.PropertyNotFoundException {
-        this.connect = dependencies.get(ConnectionFactoryKeyProperty.INSTANCE);
-        this.cvt = dependencies.get(ConverterFactoryKeyProperty.INSTANCE);
-        this.localizer = dependencies.get(LocalizerKeyProperty.INSTANCE);
-    }
-
-    @NonNull
-    private Connection getConnection() throws SQLException {
-        return connect.get();
-    }
+public enum GenerateSqlImplementation implements Implementation {
+    /// Sole instance.
+    INSTANCE;
 
     @NonNull
     private static String name(@NonNull Method m) {
@@ -67,14 +37,25 @@ public final class GenerateSqlImplementation implements Implementation {
         return NameDictionary.global().getSimplifiedGenericString(m, true);
     }
 
+    /// Wraps the implementation of a method annotated with [QuerySql].
     @FunctionalInterface
     private static interface SpecialFunc {
-        public Object operate(SqlWorker work) throws SQLException;
+
+        /// Executes the implementation receiving an object containg the connection, query, converters and locale.
+        /// @param work Speciefies the connection, SQL, converters and locale useful for the work represented by this instance.
+        /// @return Whatever is the result of the query SQL execution in the database.
+        /// @throws SQLException If the database produces some failure.
+        /// @throws IllegalArgumentException If `work` is `null`.
+        public Object operate(@NonNull SqlWorker work) throws SQLException;
     }
 
     @NonNull
     private static SpecialFunc selectOperation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
+
+        if (Methods.isSimple(m)) {
+            throw new BadImplementationException("Unsupported annotation @Generate on " + name(m), m.getDeclaringClass());
+        }
 
         var rtb = m.getGenericReturnType();
 
@@ -104,6 +85,8 @@ public final class GenerateSqlImplementation implements Implementation {
     /// that executes the corresponding INSERT statement and returns the auto-generated key(s)
     /// on every invocation.
     ///
+    /// The expected properties are [ConnectionFactoryKeyProperty], [ConverterFactoryKeyProperty] and [LocalizerKeyProperty].
+    ///
     /// @param <E> The DAO interface type.
     /// @param k The DAO interface class.
     /// @param m The annotated method to compile.
@@ -112,6 +95,7 @@ public final class GenerateSqlImplementation implements Implementation {
     /// @throws BadImplementationException If the method's return type is not one of the
     ///         supported types (`int`, `Integer`, `OptionalInt`, `long`, `Long`, `OptionalLong`,
     ///         `List<Integer>`, `List<Long>`).
+    /// @throws PropertyBag.PropertyNotFoundException If the `dependencies` does not contain the right properties.
     /// @throws IllegalArgumentException If any argument is `null`, or if `m` is not declared
     ///         on `k` or a supertype of `k`, or if `m` is not annotated with [@GenerateSql][GenerateSql].
     @NonNull
@@ -121,7 +105,7 @@ public final class GenerateSqlImplementation implements Implementation {
             @NonNull Class<E> k,
             @NonNull Method m,
             @NonNull PropertyBag props)
-            throws BadImplementationException
+            throws BadImplementationException, PropertyBag.PropertyNotFoundException
     {
         if (!k.isAssignableFrom(m.getDeclaringClass())) throw new IllegalArgumentException();
         var g = m.getAnnotation(GenerateSql.class);
@@ -132,27 +116,21 @@ public final class GenerateSqlImplementation implements Implementation {
         var strict = g.validate();
         var supplier = ParsedSqlSupplier.find(strict, parset);
 
+        var connect = props.get(ConnectionFactoryKeyProperty.INSTANCE);
+        var cvt = props.get(ConverterFactoryKeyProperty.INSTANCE);
+        var localizer = props.get(LocalizerKeyProperty.INSTANCE);
+
         return new CallContext<>() {
+
+            /// {@inheritDoc}
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var query = supplier.get();
                 var params = parset.withValues(a);
-                var work = new SqlWorker(getConnection(), params, query, cvt, localizer);
+                var work = new SqlWorker(connect.get(), params, query, cvt, localizer);
                 return operation.operate(work);
             }
         };
-    }
-
-    @Nullable
-    private static Integer getOrNull(@NonNull OptionalInt opt) {
-        if (opt == null) throw new AssertionError();
-        return opt.isEmpty() ? null : opt.getAsInt();
-    }
-
-    @Nullable
-    private static Long getOrNull(@NonNull OptionalLong opt) {
-        if (opt == null) throw new AssertionError();
-        return opt.isEmpty() ? null : opt.getAsLong();
     }
 
     @Generated

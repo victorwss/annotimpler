@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
@@ -15,12 +17,12 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import lombok.EqualsAndHashCode;
 import lombok.Generated;
 import lombok.NonNull;
-import lombok.ToString;
+import ninja.javahacker.annotimpler.magicfactory.TypeName;
 
 /// A [Converter] that wraps an element [Converter] and produces `Set<E>`.
 ///
@@ -28,8 +30,6 @@ import lombok.ToString;
 /// For any other non-null input, converts the element and returns `Set.of(element)`.
 ///
 /// @param <E> The element type of the set.
-@ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true)
 public final class SetConverter<E> implements Converter<Set<E>> {
 
     @NonNull
@@ -262,6 +262,28 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     @Override
     public Optional<Set<E>> from(@NonNull Ref in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass(), baseType, cvt);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
+    public boolean equals(@Nullable Object other) {
+        return other instanceof SetConverter<?> ot
+                && Objects.equals(this.baseType, ot.baseType)
+                && Objects.equals(this.cvt, ot.cvt);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return "SetConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

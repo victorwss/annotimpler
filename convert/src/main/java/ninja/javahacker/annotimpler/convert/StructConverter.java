@@ -4,7 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
+import module java.sql;
 
 /// A [Converter] for [Struct] values. Only accepts [Struct] inputs (identity conversion).
 @SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
@@ -27,5 +27,14 @@ public enum StructConverter implements Converter<Struct> {
     @Override
     public Optional<Struct> from(@NonNull Struct in) {
         return Optional.of(in);
+    }
+
+    /// Returns `[StructConverter]`.
+    ///
+    /// @return `[StructConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[StructConverter]";
     }
 }

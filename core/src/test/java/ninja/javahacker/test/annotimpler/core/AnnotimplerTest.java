@@ -84,6 +84,11 @@ public class AnnotimplerTest {
     public static @interface TestAnno5 {
     }
 
+    @ImplementedBy(TestImpl6.class)
+    @Retention(RetentionPolicy.RUNTIME)
+    public static @interface TestAnno6 {
+    }
+
     public static class FooException extends Exception {
         private static final long serialVersionUID = 1L;
     }
@@ -107,6 +112,9 @@ public class AnnotimplerTest {
 
         @TestAnno5
         public void wtf() throws FooException;
+
+        @TestAnno6
+        public TestIface2 mirror();
     }
 
     public static class TestImpl2 implements Implementation {
@@ -210,6 +218,27 @@ public class AnnotimplerTest {
         }
     }
 
+    public static class TestImpl6 implements Implementation {
+        @NonNull
+        @Override
+        public <E> CallContext<E> prepare(@NonNull Class<E> k, @NonNull Method m, @NonNull PropertyBag props) {
+            var iface = m.getDeclaringClass();
+            Assertions.assertAll(
+                    () -> Assertions.assertEquals(TestIface2.class, k),
+                    () -> Assertions.assertEquals(TestIface2.class, iface),
+                    () -> Assertions.assertEquals(TestIface2.class.getMethod("mirror"), m),
+                    () -> Assertions.assertEquals(PropertyBag.root(), props)
+            );
+            return (e, a) -> {
+                Assertions.assertAll(
+                        () -> Assertions.assertTrue(iface.isInstance(e)),
+                        () -> Assertions.assertEquals(0, a.length)
+                );
+                return e;
+            };
+        }
+    }
+
     @Test
     public void testParamImpl() throws Exception {
         TestImpl3.CALLED = false;
@@ -229,6 +258,17 @@ public class AnnotimplerTest {
         var impl = AnnotationsImplementor.implement(TestIface2.class);
         var ex = Assertions.assertThrows(UndeclaredThrowableException.class, impl::wtf);
         Assertions.assertEquals(WtfException.class, ex.getCause().getClass());
+    }
+
+    @Test
+    public void testInstances() throws Exception {
+        var impl1 = AnnotationsImplementor.implement(TestIface2.class);
+        var impl2 = AnnotationsImplementor.implement(TestIface2.class);
+        Assertions.assertAll(
+                () -> Assertions.assertNotSame(impl1, impl2),
+                () -> Assertions.assertSame(impl1, impl1.mirror()),
+                () -> Assertions.assertSame(impl2, impl2.mirror())
+        );
     }
 
     @ImplementedBy(TestBadImpl1.class)
@@ -348,32 +388,32 @@ public class AnnotimplerTest {
         Assertions.assertEquals(null, ex.getMessage());
     }
 
-    @ImplementedBy(TestImpl6.class)
+    @ImplementedBy(TestImpl7.class)
     @Retention(RetentionPolicy.RUNTIME)
-    public static @interface TestAnno6 {
+    public static @interface TestAnno7 {
     }
 
-    public static interface TestStdIface6 {
+    public static interface TestStdIface7 {
         public default int foo(int x) {
             Assertions.assertEquals(55, x);
             return 92;
         }
 
-        @TestAnno6
+        @TestAnno7
         public default String wtf() {
             throw new AssertionError();
         }
     }
 
-    public static class TestImpl6 implements Implementation {
+    public static class TestImpl7 implements Implementation {
         @NonNull
         @Override
         public <E> CallContext<E> prepare(@NonNull Class<E> k, @NonNull Method m, @NonNull PropertyBag props) {
             var iface = m.getDeclaringClass();
             Assertions.assertAll(
-                    () -> Assertions.assertEquals(TestStdIface6.class, k),
-                    () -> Assertions.assertEquals(TestStdIface6.class, iface),
-                    () -> Assertions.assertEquals(TestStdIface6.class.getMethod("wtf"), m),
+                    () -> Assertions.assertEquals(TestStdIface7.class, k),
+                    () -> Assertions.assertEquals(TestStdIface7.class, iface),
+                    () -> Assertions.assertEquals(TestStdIface7.class.getMethod("wtf"), m),
                     () -> Assertions.assertEquals(PropertyBag.root(), props)
             );
             return (e, a) -> {
@@ -387,13 +427,13 @@ public class AnnotimplerTest {
     }
 
     @Test
-    public void testStdImpl6() throws Exception {
-        Assertions.assertEquals(92, AnnotationsImplementor.implement(TestStdIface6.class).foo(55));
+    public void testStdImpl7() throws Exception {
+        Assertions.assertEquals(92, AnnotationsImplementor.implement(TestStdIface7.class).foo(55));
     }
 
     @Test
-    public void testStdImpl6Override() throws Exception {
-        Assertions.assertEquals("whoot", AnnotationsImplementor.implement(TestStdIface6.class).wtf());
+    public void testStdImpl7Override() throws Exception {
+        Assertions.assertEquals("whoot", AnnotationsImplementor.implement(TestStdIface7.class).wtf());
     }
 
     @ImplementedBy(TestVeryBadImpl.class)
@@ -422,18 +462,18 @@ public class AnnotimplerTest {
         }
     }
 
-    public static interface TestBadIface7 {
+    public static interface TestBadIface8 {
         @TestVeryBadAnno
         @TestReallyBadAnno
         public String crash();
     }
 
     @Test
-    public void testBadImpl7() {
-        var msg = "Too many implementations by annotations on: TestBadIface7/String TestBadIface7.crash()";
-        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface7.class));
+    public void testBadImpl8() {
+        var msg = "Too many implementations by annotations on: TestBadIface8/String TestBadIface8.crash()";
+        var ex = Assertions.assertThrows(BadImplementationException.class, () -> AnnotationsImplementor.implement(TestBadIface8.class));
         Assertions.assertAll(
-                () -> Assertions.assertEquals(TestBadIface7.class, ex.getRoot()),
+                () -> Assertions.assertEquals(TestBadIface8.class, ex.getRoot()),
                 () -> Assertions.assertEquals(msg, ex.getMessage())
         );
     }

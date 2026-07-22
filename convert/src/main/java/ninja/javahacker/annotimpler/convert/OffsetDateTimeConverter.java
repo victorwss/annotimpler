@@ -58,4 +58,13 @@ public enum OffsetDateTimeConverter implements Converter<OffsetDateTime> {
             throw new ConvertionException(e, String.class, getType());
         }
     }
+
+    /// Returns `[OffsetDateTimeConverter]`.
+    ///
+    /// @return `[OffsetDateTimeConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[OffsetDateTimeConverter]";
+    }
 }

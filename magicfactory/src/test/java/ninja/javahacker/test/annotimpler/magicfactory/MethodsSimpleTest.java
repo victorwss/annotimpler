@@ -124,8 +124,16 @@ public class MethodsSimpleTest {
             throw new AssertionError();
         }
 
+        public int compare(Integer a) {
+            throw new AssertionError();
+        }
+
         @Override
         public int compare(Integer a, Integer b) {
+            throw new AssertionError();
+        }
+
+        public int compare(Integer a, Integer b, Integer c) {
             throw new AssertionError();
         }
 
@@ -185,6 +193,7 @@ public class MethodsSimpleTest {
                 CharacterIterator.class.getMethod("clone"),
                 StringCharacterIterator.class.getMethod("clone"),
                 Object.class.getDeclaredMethod("clone"),
+                Object.class.getDeclaredMethod("finalize"),
                 Object.class.getMethod("notify"),
                 Object.class.getMethod("notifyAll"),
                 Object.class.getMethod("getClass"),
@@ -203,7 +212,7 @@ public class MethodsSimpleTest {
             Integer.class.getMethod("equals", Object.class),
             Sample.class.getMethod("equals", Object.class)
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isEquals);
+        return ForTests.makeTests("[testEquals] ", isTrue, all(), MethodsSimpleTest::name, Methods::isEquals);
     }
 
     @TestFactory
@@ -214,7 +223,7 @@ public class MethodsSimpleTest {
             Integer.class.getMethod("hashCode"),
             Sample.class.getMethod("hashCode")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isHashCode);
+        return ForTests.makeTests("[testHashCode] ", isTrue, all(), MethodsSimpleTest::name, Methods::isHashCode);
     }
 
     @TestFactory
@@ -225,7 +234,7 @@ public class MethodsSimpleTest {
             Integer.class.getMethod("toString"),
             Sample.class.getMethod("toString")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isToString);
+        return ForTests.makeTests("[testToString] ", isTrue, all(), MethodsSimpleTest::name, Methods::isToString);
     }
 
     @TestFactory
@@ -237,21 +246,23 @@ public class MethodsSimpleTest {
             CharacterIterator.class.getMethod("clone"),
             StringCharacterIterator.class.getMethod("clone")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isClone);
+        return ForTests.makeTests("[testClone] ", isTrue, all(), MethodsSimpleTest::name, Methods::isClone);
     }
 
     @TestFactory
     public Stream<DynamicTest> testFinalize() throws NoSuchMethodException {
         var isTrue = List.of(
+            Object.class.getDeclaredMethod("finalize"),
             Sample.class.getMethod("finalize")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isFinalize);
+        return ForTests.makeTests("[testFinalize] ", isTrue, all(), MethodsSimpleTest::name, Methods::isFinalize);
     }
 
     @TestFactory
     public Stream<DynamicTest> testIntrinsic() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
+            Object.class.getDeclaredMethod("finalize"),
             Object.class.getMethod("notify"),
             Object.class.getMethod("notifyAll"),
             Object.class.getMethod("getClass"),
@@ -259,13 +270,14 @@ public class MethodsSimpleTest {
             Object.class.getMethod("wait", long.class),
             Object.class.getMethod("wait", long.class, int.class)
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isObjectIntrinsic);
+        return ForTests.makeTests("[testIntrinsic] ", isTrue, all(), MethodsSimpleTest::name, Methods::isObjectIntrinsic);
     }
 
     @TestFactory
     public Stream<DynamicTest> testSimple() throws NoSuchMethodException {
         var isTrue = List.of(
             Object.class.getDeclaredMethod("clone"),
+            Object.class.getDeclaredMethod("finalize"),
             Object.class.getMethod("notify"),
             Object.class.getMethod("notifyAll"),
             Object.class.getMethod("getClass"),
@@ -280,12 +292,15 @@ public class MethodsSimpleTest {
             Sample.class.getDeclaredMethod("internal5"),
             Sample.class.getDeclaredMethod("internal6"),
             Sample.class.getDeclaredMethod("internal7"),
-            Sample.class.getMethod("internal4"),
             Sample.class.getMethod("hashCode"),
             Sample.class.getMethod("toString"),
             Sample.class.getMethod("equals", Object.class),
-            Stream.of(Sample.class.getMethods()).filter(m -> "clone".equals(m.getName()) && m.getReturnType() == Object.class).findFirst().get(),
-            Stream.of(Sample.class.getMethods()).filter(m -> "compare".equals(m.getName()) && m.getParameterTypes()[0] == Object.class).findFirst().get(),
+            Sample.class.getMethod("finalize"),
+            Stream.of(Sample.class.getDeclaredMethods()).filter(m -> "clone".equals(m.getName()) && m.getReturnType() == Object.class && m.getParameterCount() == 0).findFirst().get(),
+            Stream.of(Sample.class.getDeclaredMethods()).filter(m -> "clone".equals(m.getName()) && m.getReturnType() == Sample.class && m.getParameterCount() == 0).findFirst().get(),
+            Stream.of(Sample.class.getDeclaredMethods()).filter(m -> "compare".equals(m.getName()) && m.getParameterTypes()[0] == Object.class && m.getParameterCount() == 2).findFirst().get(),
+            CharacterIterator.class.getMethod("clone"),
+            StringCharacterIterator.class.getMethod("clone"),
             Object.class.getMethod("equals", Object.class),
             Integer.class.getMethod("equals", Object.class),
             String.class.getMethod("equals", Object.class),
@@ -296,7 +311,7 @@ public class MethodsSimpleTest {
             Integer.class.getMethod("hashCode"),
             String.class.getMethod("hashCode")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isSimple);
+        return ForTests.makeTests("[testSimple] ", isTrue, all(), MethodsSimpleTest::name, Methods::isSimple);
     }
 
     @TestFactory
@@ -305,7 +320,7 @@ public class MethodsSimpleTest {
             Stream.of(Sample.class.getMethods()).filter(m -> "clone".equals(m.getName()) && m.getReturnType() == Object.class).findFirst().get(),
             Stream.of(Sample.class.getMethods()).filter(m -> "compare".equals(m.getName()) && m.getParameterTypes()[0] == Object.class).findFirst().get()
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isSynthetic);
+        return ForTests.makeTests("[testSynthetic] ", isTrue, all(), MethodsSimpleTest::name, Methods::isSynthetic);
     }
 
     @TestFactory
@@ -316,7 +331,7 @@ public class MethodsSimpleTest {
             Sample.class.getDeclaredMethod("internal6"),
             Sample.class.getDeclaredMethod("internal7")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isStatic);
+        return ForTests.makeTests("[testStatic] ", isTrue, all(), MethodsSimpleTest::name, Methods::isStatic);
     }
 
     @TestFactory
@@ -329,13 +344,14 @@ public class MethodsSimpleTest {
         );
         var isTrue = new ArrayList<>(all());
         isTrue.removeAll(isNot);
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isVirtual);
+        return ForTests.makeTests("[testVirtual] ", isTrue, all(), MethodsSimpleTest::name, Methods::isVirtual);
     }
 
     @TestFactory
     public Stream<DynamicTest> testPublic() throws NoSuchMethodException {
         var isNot = List.of(
             Object.class.getDeclaredMethod("clone"),
+            Object.class.getDeclaredMethod("finalize"),
             Sample.class.getDeclaredMethod("internal1"),
             Sample.class.getDeclaredMethod("internal2"),
             Sample.class.getDeclaredMethod("internal3"),
@@ -345,17 +361,18 @@ public class MethodsSimpleTest {
         );
         var isTrue = new ArrayList<>(all());
         isTrue.removeAll(isNot);
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPublic);
+        return ForTests.makeTests("[testPublic] ", isTrue, all(), MethodsSimpleTest::name, Methods::isPublic);
     }
 
     @TestFactory
     public Stream<DynamicTest> testProtected() throws NoSuchMethodException {
         var isTrue = List.of(
+            Object.class.getDeclaredMethod("finalize"),
             Object.class.getDeclaredMethod("clone"),
             Sample.class.getDeclaredMethod("internal2"),
             Sample.class.getDeclaredMethod("internal6")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isProtected);
+        return ForTests.makeTests("[testProtected] ", isTrue, all(), MethodsSimpleTest::name, Methods::isProtected);
     }
 
 
@@ -365,7 +382,7 @@ public class MethodsSimpleTest {
                 Sample.class.getDeclaredMethod("internal1"),
                 Sample.class.getDeclaredMethod("internal5")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPrivate);
+        return ForTests.makeTests("[testPrivate] ", isTrue, all(), MethodsSimpleTest::name, Methods::isPrivate);
     }
 
     @TestFactory
@@ -374,7 +391,7 @@ public class MethodsSimpleTest {
             Sample.class.getDeclaredMethod("internal7"),
             Sample.class.getDeclaredMethod("internal3")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isPackageProtected);
+        return ForTests.makeTests("[testPackageProtected] ", isTrue, all(), MethodsSimpleTest::name, Methods::isPackageProtected);
     }
 
     @TestFactory
@@ -385,7 +402,7 @@ public class MethodsSimpleTest {
         );
         var isTrue = new ArrayList<>(all());
         isTrue.removeAll(isNot);
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isConcrete);
+        return ForTests.makeTests("[testConcrete] ", isTrue, all(), MethodsSimpleTest::name, Methods::isConcrete);
     }
 
     @TestFactory
@@ -394,7 +411,7 @@ public class MethodsSimpleTest {
             SampleAbstract.class.getDeclaredMethod("foo1"),
             CharacterIterator.class.getDeclaredMethod("clone")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isAbstract);
+        return ForTests.makeTests("[testAbstract] ", isTrue, all(), MethodsSimpleTest::name, Methods::isAbstract);
     }
 
     @TestFactory
@@ -425,7 +442,7 @@ public class MethodsSimpleTest {
         );
         var isTrue = new ArrayList<>(all());
         isTrue.removeAll(isNot);
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isOverridable);
+        return ForTests.makeTests("[testOverridable] ", isTrue, all(), MethodsSimpleTest::name, Methods::isOverridable);
     }
 
     @TestFactory
@@ -454,7 +471,7 @@ public class MethodsSimpleTest {
             Integer.class.getMethod("hashCode"),
             StringCharacterIterator.class.getDeclaredMethod("clone")
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isFinal);
+        return ForTests.makeTests("[testFinal] ", isTrue, all(), MethodsSimpleTest::name, Methods::isFinal);
     }
 
     @TestFactory
@@ -462,7 +479,7 @@ public class MethodsSimpleTest {
         var isTrue = List.of(
             Sample.class.getDeclaredMethod("internal8", String.class, int[].class)
         );
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isVarArgs);
+        return ForTests.makeTests("[testVarargs] ", isTrue, all(), MethodsSimpleTest::name, Methods::isVarArgs);
     }
 
     @TestFactory
@@ -484,40 +501,41 @@ public class MethodsSimpleTest {
         } catch (NoSuchMethodException e) {
             // Ignore. Maybe Java 25-...
         }
-        return ForTests.makeTests(isTrue, all(), MethodsSimpleTest::name, Methods::isDefault);
+        return ForTests.makeTests("[testDefault] ", isTrue, all(), MethodsSimpleTest::name, Methods::isDefault);
     }
 
     @TestFactory
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
+        var pf = "[testNulls] ";
         var cloneCrazy = Sample.class.getMethod("clone", int.class);
         return Stream.of(
-            n("isClone", () -> ForTests.testNull("m", () -> Methods.isClone(null))),
-            n("isToString", () -> ForTests.testNull("m", () -> Methods.isToString(null))),
-            n("isEquals", () -> ForTests.testNull("m", () -> Methods.isEquals(null))),
-            n("isHashCode", () -> ForTests.testNull("m", () -> Methods.isHashCode(null))),
-            n("isSimple", () -> ForTests.testNull("m", () -> Methods.isSimple(null))),
-            n("isObjectIntrinsic", () -> ForTests.testNull("m", () -> Methods.isObjectIntrinsic(null))),
-            n("isFinalize", () -> ForTests.testNull("m", () -> Methods.isFinalize(null))),
-            n("isPublic", () -> ForTests.testNull("m", () -> Methods.isPublic(null))),
-            n("isPrivate", () -> ForTests.testNull("m", () -> Methods.isPrivate(null))),
-            n("isProtected", () -> ForTests.testNull("m", () -> Methods.isProtected(null))),
-            n("isPackageProtected", () -> ForTests.testNull("m", () -> Methods.isPackageProtected(null))),
-            n("isStatic", () -> ForTests.testNull("m", () -> Methods.isStatic(null))),
-            n("isVirtual", () -> ForTests.testNull("m", () -> Methods.isVirtual(null))),
-            n("isDefault", () -> ForTests.testNull("m", () -> Methods.isDefault(null))),
-            n("isFinal", () -> ForTests.testNull("m", () -> Methods.isFinal(null))),
-            n("isOverridable", () -> ForTests.testNull("m", () -> Methods.isOverridable(null))),
-            n("isAbstract", () -> ForTests.testNull("m", () -> Methods.isAbstract(null))),
-            n("isConcrete", () -> ForTests.testNull("m", () -> Methods.isConcrete(null))),
-            n("isSynthetic", () -> ForTests.testNull("m", () -> Methods.isSynthetic(null))),
-            n("isVarargs", () -> ForTests.testNull("m", () -> Methods.isVarArgs(null))),
-            n("getReturnType-Method", () -> ForTests.testNull("what", () -> Methods.getReturnType((Method) null))),
-            n("getReturnType-Constructor", () -> ForTests.testNull("what", () -> Methods.getReturnType((Constructor<?>) null))),
-            n("getReturnType-Executable", () -> ForTests.testNull("what", () -> Methods.getReturnType((java.lang.reflect.Executable) null))),
-            n("getReturnType-Field", () -> ForTests.testNull("field", () -> Methods.getReturnType((Field) null))),
-            n("paramMap-Exectuable", () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12))),
-            n("paramMap-NPE", () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null)))
+            n(pf + "isClone", () -> ForTests.testNull("m", () -> Methods.isClone(null))),
+            n(pf + "isToString", () -> ForTests.testNull("m", () -> Methods.isToString(null))),
+            n(pf + "isEquals", () -> ForTests.testNull("m", () -> Methods.isEquals(null))),
+            n(pf + "isHashCode", () -> ForTests.testNull("m", () -> Methods.isHashCode(null))),
+            n(pf + "isSimple", () -> ForTests.testNull("m", () -> Methods.isSimple(null))),
+            n(pf + "isObjectIntrinsic", () -> ForTests.testNull("m", () -> Methods.isObjectIntrinsic(null))),
+            n(pf + "isFinalize", () -> ForTests.testNull("m", () -> Methods.isFinalize(null))),
+            n(pf + "isPublic", () -> ForTests.testNull("m", () -> Methods.isPublic(null))),
+            n(pf + "isPrivate", () -> ForTests.testNull("m", () -> Methods.isPrivate(null))),
+            n(pf + "isProtected", () -> ForTests.testNull("m", () -> Methods.isProtected(null))),
+            n(pf + "isPackageProtected", () -> ForTests.testNull("m", () -> Methods.isPackageProtected(null))),
+            n(pf + "isStatic", () -> ForTests.testNull("m", () -> Methods.isStatic(null))),
+            n(pf + "isVirtual", () -> ForTests.testNull("m", () -> Methods.isVirtual(null))),
+            n(pf + "isDefault", () -> ForTests.testNull("m", () -> Methods.isDefault(null))),
+            n(pf + "isFinal", () -> ForTests.testNull("m", () -> Methods.isFinal(null))),
+            n(pf + "isOverridable", () -> ForTests.testNull("m", () -> Methods.isOverridable(null))),
+            n(pf + "isAbstract", () -> ForTests.testNull("m", () -> Methods.isAbstract(null))),
+            n(pf + "isConcrete", () -> ForTests.testNull("m", () -> Methods.isConcrete(null))),
+            n(pf + "isSynthetic", () -> ForTests.testNull("m", () -> Methods.isSynthetic(null))),
+            n(pf + "isVarargs", () -> ForTests.testNull("m", () -> Methods.isVarArgs(null))),
+            n(pf + "getReturnType-Method", () -> ForTests.testNull("what", () -> Methods.getReturnType((Method) null))),
+            n(pf + "getReturnType-Constructor", () -> ForTests.testNull("what", () -> Methods.getReturnType((Constructor<?>) null))),
+            n(pf + "getReturnType-Executable", () -> ForTests.testNull("what", () -> Methods.getReturnType((java.lang.reflect.Executable) null))),
+            n(pf + "getReturnType-Field", () -> ForTests.testNull("field", () -> Methods.getReturnType((Field) null))),
+            n(pf + "paramMap-Exectuable", () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12))),
+            n(pf + "paramMap-NPE", () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null)))
         );
     }
 

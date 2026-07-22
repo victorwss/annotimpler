@@ -72,6 +72,15 @@ public enum SqlDateConverter implements Converter<Date> {
         return rewrap(() -> LocalDateConverter.INSTANCE.from(in).map(Date::valueOf));
     }
 
+    /// Returns `[SqlDateConverter]`.
+    ///
+    /// @return `[SqlDateConverter]`.
+    @NonNull
+    @Override
+    public String toString() {
+        return "[SqlDateConverter]";
+    }
+
     @Generated
     private static void checkNotNull(Object obj) {
         if (obj == null) throw new AssertionError();

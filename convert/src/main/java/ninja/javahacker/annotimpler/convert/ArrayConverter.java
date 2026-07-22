@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.convert;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.math.BigDecimal;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -13,11 +15,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.OffsetTime;
+import java.util.Objects;
 import java.util.Optional;
-import lombok.EqualsAndHashCode;
 import lombok.Generated;
 import lombok.NonNull;
-import lombok.ToString;
 
 /// A [Converter] that wraps an element [Converter] and produces arrays of type `E[]`.
 ///
@@ -25,8 +26,6 @@ import lombok.ToString;
 /// For any other non-null input, converts it using the element converter and returns a single-element `E[1]`.
 ///
 /// @param <E> The element type of the array.
-@ToString(doNotUseGetters = true)
-@EqualsAndHashCode(doNotUseGetters = true)
 public final class ArrayConverter<E> implements Converter<E[]> {
 
     @NonNull
@@ -269,6 +268,28 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     @Override
     public Optional<E[]> from(@NonNull Ref in) throws ConvertionException {
         return wrap(() -> cvt.from(in));
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public int hashCode() {
+        return Objects.hash(getClass(), baseClass, cvt);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
+    public boolean equals(@Nullable Object other) {
+        return other instanceof ArrayConverter<?> ot
+                && Objects.equals(this.baseClass, ot.baseClass)
+                && Objects.equals(this.cvt, ot.cvt);
+    }
+
+    /// {@inheritDoc}
+    @Override
+    public String toString() {
+        return "ArrayConverter[baseType=" + baseClass.getName() + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated
