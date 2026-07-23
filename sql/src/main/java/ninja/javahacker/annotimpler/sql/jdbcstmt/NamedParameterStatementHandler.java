@@ -8,11 +8,18 @@ import lombok.experimental.PackagePrivate;
 import module java.base;
 import module java.sql;
 
+/// Binds a single Java value of type `T` onto a named parameter of a [NamedParameterStatement].
+///
+/// Instances are looked up by target Java type via [#forClass(Class)], which resolves the
+/// concrete handler from the [#ENTRIES] table built for all supported wrapper/primitive types.
+///
+/// @param <T> The Java type of the value this handler knows how to bind.
 @PackagePrivate
 @FunctionalInterface
 @SuppressWarnings({"checkstyle:ParenPad"})
 interface NamedParameterStatementHandler<T> {
 
+    /// Maps each supported Java type to the [NamedParameterStatementHandler] able to bind values of that type.
     public static final Map<Class<?>, NamedParameterStatementHandler<?>> ENTRIES = Map.ofEntries(
             entry(boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
             entry(Boolean       .class, NamedParameterStatement::setBoolean   , Types.BOOLEAN ),
@@ -45,18 +52,33 @@ interface NamedParameterStatementHandler<T> {
             nully(true)
     );
 
+    /// Maps each `Optional`-like type to its empty instance, used as the value substituted when binding an empty optional.
     public static final Map<Class<?>, Object> EMPTY = Map.ofEntries(
             Map.entry(OptionalInt   .class, OptionalInt   .empty()),
             Map.entry(OptionalLong  .class, OptionalLong  .empty()),
             Map.entry(OptionalDouble.class, OptionalDouble.empty())
     );
 
+    /// Binds `value` onto the named parameter `name` of `ps`.
+    ///
+    /// @param ps The statement to bind the parameter on; must not be `null`.
+    /// @param name The parameter name; must not be `null`.
+    /// @param value The value to bind; may be `null` to bind SQL `NULL`.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `ps` or `name` is `null`.
     public void handle(@NonNull NamedParameterStatement ps, @NonNull String name, @Nullable T value) throws SQLException;
 
+    /// Returns the [NamedParameterStatementHandler] registered for the Java type `k`.
+    ///
+    /// @param <K> The Java type to look up a handler for.
+    /// @param k The class of the target type; must not be `null`.
+    /// @return The handler able to bind values of type `k`; never `null`.
+    /// @throws UnsupportedOperationException If no handler is registered for `k`.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @SuppressWarnings("unchecked")
     public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
         checkNotNull(k); // Check recognized by lombok.
-        var h = (NamedParameterStatementHandler<K>) NamedParameterStatementHandler.ENTRIES.get(k);
+        var h = (NamedParameterStatementHandler<K>) ENTRIES.get(k);
         if (h == null) throw new UnsupportedOperationException("Unable to handle " + k.getSimpleName() + ".");
         return h;
     }

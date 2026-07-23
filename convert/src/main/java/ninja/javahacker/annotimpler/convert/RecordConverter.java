@@ -19,25 +19,42 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// @param <R> The record type this converter targets.
 public final class RecordConverter<R extends Record> implements Converter<R> {
 
+    /// The record class `R` that this converter produces.
     @NonNull
     private final Class<R> recordClass;
 
+    /// The factory used to build instances of `recordClass` from the single converted field value.
     @NonNull
     private final MagicFactory<R> factory;
 
+    /// The generic type of the record's single canonical-constructor parameter.
     @NonNull
     private final Type inType;
 
+    /// The converter used to convert input values to the record's single field type.
     @NonNull
     private final Converter<?> cvt;
 
+    /// Tracks, per-thread, the `(factory, class)` pairs whose [RecordConverter] construction is currently
+    /// in progress, so that recursive record definitions can be detected and rejected.
     private static final ThreadLocal<Set<OngoingCreation>> ongoing = new ThreadLocal<>();
 
+    /// A key identifying an in-progress [RecordConverter] construction for a given factory/class pair,
+    /// used to detect recursive record definitions.
+    ///
+    /// @param a The converter factory being used.
+    /// @param b The record class being constructed.
     private static record OngoingCreation(ConverterFactory a, Class<?> b) {
     }
 
+    /// A single conversion operation that produces the intermediate value later passed to `factory.create(...)`.
     @FunctionalInterface
     private static interface IntermediateProducer {
+
+        /// Performs the conversion of the intermediate value.
+        ///
+        /// @return The converted intermediate value, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
         @NonNull
         public Optional<?> produce() throws ConvertionException;
     }

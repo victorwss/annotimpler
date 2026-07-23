@@ -53,11 +53,11 @@ import ninja.javahacker.annotimpler.sql.meta.ParsedQuery;
 @SuppressWarnings({"PMD.ReplaceJavaUtilCalendar", "PMD.ReplaceJavaUtilDate"})
 public interface NamedParameterStatement extends PreparedStatement, ParameterReceiver {
 
-    /// Error message used when a non-null [java.io.InputStream] is passed to a named parameter
+    /// Error message used when a non-null [InputStream] is passed to a named parameter
     /// that appears more than once in the SQL statement.
     public static final String INPUT_STREAM_MESSAGE = "Can't reliably or safely use the same InputStream more than once.";
 
-    /// Error message used when a non-null [java.io.Reader] is passed to a named parameter
+    /// Error message used when a non-null [Reader] is passed to a named parameter
     /// that appears more than once in the SQL statement.
     public static final String READER_MESSAGE = "Can't reliably or safely use the same Reader more than once.";
 
@@ -104,7 +104,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given ASCII [java.io.InputStream].
+    /// Sets the named parameter `name` to the given ASCII [InputStream].
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -118,7 +118,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given ASCII [java.io.InputStream] with the specified byte length.
+    /// Sets the named parameter `name` to the given ASCII [InputStream] with the specified byte length.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -133,7 +133,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given ASCII [java.io.InputStream] with the specified long byte length.
+    /// Sets the named parameter `name` to the given ASCII [InputStream] with the specified long byte length.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -148,7 +148,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.math.BigDecimal] value.
+    /// Sets the named parameter `name` to the given [BigDecimal] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -159,7 +159,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given binary [java.io.InputStream].
+    /// Sets the named parameter `name` to the given binary [InputStream].
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -173,7 +173,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given binary [java.io.InputStream] with the specified byte length.
+    /// Sets the named parameter `name` to the given binary [InputStream] with the specified byte length.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -188,7 +188,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given binary [java.io.InputStream] with the specified long byte length.
+    /// Sets the named parameter `name` to the given binary [InputStream] with the specified long byte length.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -203,7 +203,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.Blob] value.
+    /// Sets the named parameter `name` to the given [Blob] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -214,7 +214,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream].
+    /// Sets the named parameter `name` to a [Blob] whose content is read from the given [InputStream].
     /// @param name The name of the SQL parameter to set.
     /// @param inputStream The stream whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -228,7 +228,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Blob] whose content is read from the given [java.io.InputStream]
+    /// Sets the named parameter `name` to a [Blob] whose content is read from the given [InputStream]
     /// up to `length` bytes.
     /// @param name The name of the SQL parameter to set.
     /// @param inputStream The stream whose content will be used as the parameter value, or `null` to set SQL `NULL`.
@@ -277,7 +277,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given character [java.io.Reader].
+    /// Sets the named parameter `name` to the given character [Reader].
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -291,7 +291,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given character [java.io.Reader] with the specified character length.
+    /// Sets the named parameter `name` to the given character [Reader] with the specified character length.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -306,7 +306,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given character [java.io.Reader] with the specified long character length.
+    /// Sets the named parameter `name` to the given character [Reader] with the specified long character length.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -321,7 +321,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.Clob] value.
+    /// Sets the named parameter `name` to the given [Clob] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -332,7 +332,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader].
+    /// Sets the named parameter `name` to a [Clob] whose content is read from the given [Reader].
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -346,7 +346,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.Clob] whose content is read from the given [java.io.Reader]
+    /// Sets the named parameter `name` to a [Clob] whose content is read from the given [Reader]
     /// up to `length` characters.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
@@ -409,7 +409,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     @Deprecated
     public void setDate(int parameterIndex, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException;
 
-    /// Sets the named parameter `name` to the given deprecated [java.sql.Date] value using the given [java.util.Calendar].
+    /// Sets the named parameter `name` to the given deprecated [java.sql.Date] value using the given [Calendar].
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
@@ -503,7 +503,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.LocalDate] value.
+    /// Sets the positional parameter at `index` to the given [LocalDate] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -511,7 +511,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.LocalDate] value.
+    /// Sets the named parameter `name` to the given [LocalDate] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -522,7 +522,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.LocalDateTime] value.
+    /// Sets the positional parameter at `index` to the given [LocalDateTime] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -530,7 +530,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.LocalDateTime] value.
+    /// Sets the named parameter `name` to the given [LocalDateTime] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -541,7 +541,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.LocalTime] value.
+    /// Sets the positional parameter at `index` to the given [LocalTime] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -549,7 +549,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.LocalTime] value.
+    /// Sets the named parameter `name` to the given [LocalTime] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -560,7 +560,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.OffsetTime] value.
+    /// Sets the positional parameter at `index` to the given [OffsetTime] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -568,7 +568,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.OffsetTime] value.
+    /// Sets the named parameter `name` to the given [OffsetTime] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -579,7 +579,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.OffsetDateTime] value.
+    /// Sets the positional parameter at `index` to the given [OffsetDateTime] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -587,7 +587,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.OffsetDateTime] value.
+    /// Sets the named parameter `name` to the given [OffsetDateTime] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -598,7 +598,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.ZonedDateTime] value.
+    /// Sets the positional parameter at `index` to the given [ZonedDateTime] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -606,7 +606,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.ZonedDateTime] value.
+    /// Sets the named parameter `name` to the given [ZonedDateTime] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -617,7 +617,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.time.Instant] value.
+    /// Sets the positional parameter at `index` to the given [Instant] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -625,7 +625,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x);
     }
 
-    /// Sets the named parameter `name` to the given [java.time.Instant] value.
+    /// Sets the named parameter `name` to the given [Instant] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -671,7 +671,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given national character [java.io.Reader].
+    /// Sets the named parameter `name` to the given national character [Reader].
     /// @param name The name of the SQL parameter to set.
     /// @param value The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -685,7 +685,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given national character [java.io.Reader] with the specified character length.
+    /// Sets the named parameter `name` to the given national character [Reader] with the specified character length.
     /// @param name The name of the SQL parameter to set.
     /// @param value The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -700,7 +700,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.NClob] value.
+    /// Sets the named parameter `name` to the given [NClob] value.
     /// @param name The name of the SQL parameter to set.
     /// @param value The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -711,7 +711,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader].
+    /// Sets the named parameter `name` to a [NClob] whose content is read from the given [Reader].
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -725,7 +725,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to a [java.sql.NClob] whose content is read from the given [java.io.Reader]
+    /// Sets the named parameter `name` to a [NClob] whose content is read from the given [Reader]
     /// up to `length` characters.
     /// @param name The name of the SQL parameter to set.
     /// @param reader The reader whose content will be used as the parameter value, or `null` to set SQL `NULL`.
@@ -741,7 +741,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given national [java.lang.String] value.
+    /// Sets the named parameter `name` to the given national [String] value.
     /// @param name The name of the SQL parameter to set.
     /// @param value The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -780,7 +780,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs, if this method is called on a closed statement,
-    ///         or if `x` is a [java.io.Reader] or a [java.io.InputStream] and `name` maps to more than one positional index.
+    ///         or if `x` is a [Reader] or a [InputStream] and `name` maps to more than one positional index.
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
     public default void setObject(@NonNull String name, @Nullable Object x) throws SQLException {
         var all = getIndexes(name);
@@ -865,7 +865,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.Ref] value.
+    /// Sets the named parameter `name` to the given [Ref] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -876,7 +876,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.RowId] value.
+    /// Sets the named parameter `name` to the given [RowId] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -887,7 +887,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.SQLXML] value.
+    /// Sets the named parameter `name` to the given [SQLXML] value.
     /// @param name The name of the SQL parameter to set.
     /// @param xmlObject The SQLXML value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -899,7 +899,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the positional parameter at `index` to the given [java.sql.Struct] value.
+    /// Sets the positional parameter at `index` to the given [Struct] value.
     /// @param index The 1-based positional index of the parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
@@ -912,7 +912,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         this.setObject(index, x == null ? null : x2);
     }
 
-    /// Sets the named parameter `name` to the given [java.sql.Struct] value.
+    /// Sets the named parameter `name` to the given [Struct] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -934,7 +934,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.lang.String] value.
+    /// Sets the named parameter `name` to the given [String] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -987,7 +987,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     @Deprecated
     public void setTime(int parameterIndex, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException;
 
-    /// Sets the named parameter `name` to the given deprecated [java.sql.Time] value using the given [java.util.Calendar].
+    /// Sets the named parameter `name` to the given deprecated [java.sql.Time] value using the given [Calendar].
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
@@ -1046,7 +1046,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     @Deprecated
     public void setTimestamp(int parameterIndex, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException;
 
-    /// Sets the named parameter `name` to the given deprecated [java.sql.Timestamp] value using the given [java.util.Calendar].
+    /// Sets the named parameter `name` to the given deprecated [java.sql.Timestamp] value using the given [Calendar].
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
@@ -1059,7 +1059,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given [java.net.URL] value.
+    /// Sets the named parameter `name` to the given [URL] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
@@ -1071,7 +1071,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
         }
     }
 
-    /// Sets the named parameter `name` to the given deprecated unicode [java.io.InputStream] with the specified byte length.
+    /// Sets the named parameter `name` to the given deprecated unicode [InputStream] with the specified byte length.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @param length The maximum number of bytes or characters to read from the stream or reader.
@@ -1103,7 +1103,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     private <K> void receiveIn(@NonNull String name, @NonNull Class<K> k, @Nullable Object value) throws SQLException {
         checkNotNull(name); // Check recognized by lombok.
         checkNotNull(k); // Check recognized by lombok.
-        NamedParameterStatementHandler.forClass(k).handle(NamedParameterStatement.this, name, k.cast(value));
+        NamedParameterStatementHandler.forClass(k).handle(this, name, k.cast(value));
     }
 
     @Generated

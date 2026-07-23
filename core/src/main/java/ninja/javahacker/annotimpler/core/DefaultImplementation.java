@@ -11,7 +11,7 @@ import lombok.NonNull;
 /// - **`hashCode`** delegates to [System#identityHashCode].
 /// - **`toString`** produces a string of the form `impl[fully.qualified.InterfaceName]-hashCode`.
 ///
-/// All returned contexts require the `instance` argument to be a [java.lang.reflect.Proxy].
+/// All returned contexts require the `instance` argument to be a [Proxy].
 /// This class is not instantiable.
 public final class DefaultImplementation {
 

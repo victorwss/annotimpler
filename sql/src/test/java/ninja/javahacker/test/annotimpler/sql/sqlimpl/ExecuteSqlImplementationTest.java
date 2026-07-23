@@ -328,7 +328,7 @@ public class ExecuteSqlImplementationTest {
                     Assertions.assertEquals(1, countRows(con));
                 }).wrap()),
 
-                DynamicTest.dynamicTest(pf + "Void - row is inserted", ((ConnectionContext) con -> {
+                DynamicTest.dynamicTest(pf + "Void (boxed) - row is inserted", ((ConnectionContext) con -> {
                     setup(con, T_SCHEMA);
                     var bag = bagFor(con);
                     var m = ExecuteDao.class.getMethod("insertVoidBoxed", int.class, String.class, int.class);

@@ -33,9 +33,11 @@ import ninja.javahacker.annotimpler.magicfactory.TypeName;
 /// @param <E> The element type of the inner optional.
 public final class OptionalConverter<E> implements Converter<Optional<E>> {
 
+    /// The element converter used to convert values before wrapping them into an inner [Optional].
     @NonNull
     private final Converter<E> cvt;
 
+    /// The parameterized type `Optional<E>` that this converter produces.
     @NonNull
     private final ParameterizedType baseType;
 
@@ -68,12 +70,28 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
         return baseType;
     }
 
+    /// A single conversion operation for the inner optional's element, used to derive per-element conversion
+    /// errors that reference the target `Optional<E>` type instead of the element type.
+    ///
+    /// @param <E> The element type of the inner optional.
     @FunctionalInterface
     private interface InternalWork<E> {
 
+        /// Performs the conversion of the single element.
+        ///
+        /// @return The converted element, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
         @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        /// Performs [#work()] and wraps the resulting element into a present or empty inner [Optional], rewriting
+        /// any resulting [ConvertionException] so it references `baseType` instead of the element type.
+        ///
+        /// @param baseType The parameterized type `Optional<E>` to report as the target type in case of failure.
+        /// @return `Optional.of(Optional.of(element))` if [#work()] returns a present value,
+        ///         or `Optional.of(Optional.empty())` otherwise.
+        /// @throws ConvertionException If the conversion fails.
+        /// @throws IllegalArgumentException If `baseType` is `null`.
         @NonNull
         public default Optional<Optional<E>> rework(@NonNull Type baseType) throws ConvertionException {
             checkNotNull(baseType); // Check recognized by lombok.

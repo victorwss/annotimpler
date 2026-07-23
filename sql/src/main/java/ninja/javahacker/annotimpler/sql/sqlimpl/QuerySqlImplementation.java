@@ -72,10 +72,7 @@ public enum QuerySqlImplementation implements Implementation {
         Class<?> rt;
         if (rtb instanceof ParameterizedType pt) {
             var base = pt.getRawType();
-            if (base != List.class && base != Optional.class) {
-                throw new UnsupportedOperationException(name(m) + " - " + base);
-            }
-            if (!(pt.getActualTypeArguments()[0] instanceof Class<?> rtb2)) {
+            if ((base != List.class && base != Optional.class) || !(pt.getActualTypeArguments()[0] instanceof Class<?> rtb2)) {
                 throw new BadImplementationException("Usage of @Query doesn't support return type on: " + name(m), m.getDeclaringClass());
             }
             rt = rtb2;

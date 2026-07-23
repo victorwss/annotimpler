@@ -6,10 +6,16 @@ import lombok.experimental.PackagePrivate;
 
 import module java.base;
 
+/// Utility methods for converting `float` and `double` primitive values to [BigDecimal], choosing between
+/// the string-based constructor (to preserve human-intended decimal values) and the binary-exact constructor
+/// (for magnitudes where every representable value is an integer anyway).
 @PackagePrivate
 final class FloatAndDouble {
 
+    /// The magnitude threshold (2^24) above which every representable `float` is an integer.
     private static final float MAX_FLOAT_WITH_INT_PRECISION = 16777216F; // 2^24
+
+    /// The magnitude threshold (2^53) above which every representable `double` is an integer.
     private static final double MAX_DOUBLE_WITH_INT_PRECISION = 9007199254740992D; // 2^53
 
     @Generated

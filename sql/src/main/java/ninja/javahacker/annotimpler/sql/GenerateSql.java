@@ -10,8 +10,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// [SqlFromResource], [SqlFromUrl], or [SqlFromClass]).
 ///
 /// Supported return types: `int`, `Integer`, `long`, `Long`,
-/// [java.util.OptionalInt], [java.util.OptionalLong],
-/// [java.util.List]`<Integer>`, or [java.util.List]`<Long>`
+/// [OptionalInt], [OptionalLong], [List]`<Integer>`, or [List]`<Long>`
 /// (representing the generated key or keys).
 ///
 /// Example:

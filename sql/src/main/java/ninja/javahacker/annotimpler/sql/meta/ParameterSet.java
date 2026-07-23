@@ -7,7 +7,7 @@ import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-/// Wraps a [java.lang.reflect.Method] together with its compiled parameter-binding strategy.
+/// Wraps a [Method] together with its compiled parameter-binding strategy.
 ///
 /// An instance of `ParameterSet` is created once per annotated interface method during
 /// setup.  It holds the [Method] itself and an internal [ParameterReceiver.NamedAcceptor1]
@@ -22,9 +22,11 @@ import module ninja.javahacker.annotimpler.magicfactory;
 @SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"}) // Wraps a Method intentionally, but SpotBugs don't like that.
 public final class ParameterSet {
 
+    /// The wrapped method being executed.
     @NonNull
     private final Method method;
 
+    /// The compiled parameter-binding strategy that maps an argument array to named SQL parameters.
     @NonNull
     private final ParameterReceiver.NamedAcceptor1 strategy;
 
@@ -42,7 +44,7 @@ public final class ParameterSet {
         this.strategy = ParameterSetStrategy.makeStrategy(method);
     }
 
-    /// Returns the [java.lang.reflect.Method] wrapped by this [ParameterSet].
+    /// Returns the [Method] wrapped by this [ParameterSet].
     ///
     /// @return wrapped method. Never `null`.
     @NonNull
@@ -64,7 +66,7 @@ public final class ParameterSet {
         return List.of(method);
     }
 
-    /// Returns a hash code derived from the underlying [java.lang.reflect.Method].
+    /// Returns a hash code derived from the underlying [Method].
     ///
     /// @return A hash code consistent with [equals].
     @Override
@@ -72,7 +74,7 @@ public final class ParameterSet {
         return state().hashCode();
     }
 
-    /// Returns `true` if `other` is a [ParameterSet] wrapping the same [java.lang.reflect.Method].
+    /// Returns `true` if `other` is a [ParameterSet] wrapping the same [Method].
     ///
     /// @param other The object to compare against this instance.
     /// @return `true` if `other` is a [ParameterSet] with the same underlying method.
@@ -84,8 +86,7 @@ public final class ParameterSet {
 
     /// Returns the simplified generic name of the wrapped method.
     ///
-    /// The name is produced by [ninja.javahacker.annotimpler.magicfactory.NameDictionary] and is
-    /// suitable for use in diagnostic messages.
+    /// The name is produced by [NameDictionary] and is suitable for use in diagnostic messages.
     ///
     /// @return The simplified generic method name; never `null`.
     @NonNull

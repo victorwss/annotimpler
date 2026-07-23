@@ -20,15 +20,19 @@ public enum BooleanConverter implements Converter<Boolean> {
     /// Targets `Boolean.class`.
     WRAPPER;
 
+    /// The set of [String] representations recognized as `false`.
     @NonNull
     private static final Set<String> FALSES = Set.of("false", "FALSE", "0", "-0");
 
+    /// The set of [String] representations recognized as `true`.
     @NonNull
     private static final Set<String> TRUES  = Set.of("true" , "TRUE" , "1");
 
+    /// A cached `Optional.of(Boolean.TRUE)` instance.
     @NonNull
     private static final Optional<Boolean> OPT_TRUE = Optional.of(Boolean.TRUE);
 
+    /// A cached `Optional.of(Boolean.FALSE)` instance.
     @NonNull
     private static final Optional<Boolean> OPT_FALSE = Optional.of(Boolean.FALSE);
 

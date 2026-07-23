@@ -316,42 +316,42 @@ public class QuerySqlImplementationTest {
                 ).getRoot())),
 
                 // Annotated method declares Optional<?> (wildcard type parameter).
-                DynamicTest.dynamicTest(pf + "bad-wildcard-optional", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-wildcard-optional", () -> Assertions.assertEquals(BadWildcardOptionalDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadWildcardOptionalDao.class, badm2, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm2
                 ).getRoot())),
 
                 // Annotated method declares List<?> (wildcard type parameter).
-                DynamicTest.dynamicTest(pf + "bad-wildcard-list", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-wildcard-list", () -> Assertions.assertEquals(BadWildcardListDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadWildcardListDao.class, badm3, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm3
                 ).getRoot())),
 
                 // @QuerySql.fields specifies multiple column indices but the element type is not a record.
-                DynamicTest.dynamicTest(pf + "bad-multiple-indices-not-record", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-multiple-indices-not-record", () -> Assertions.assertEquals(BadMultiFieldNonRecordDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadMultiFieldNonRecordDao.class, badm4, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm4
                 ).getRoot())),
 
                 // The number of indices in @QuerySql.fields does not match the number of components in the target record type.
-                DynamicTest.dynamicTest(pf + "bad-number-of-components-mismatch", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-number-of-components-mismatch", () -> Assertions.assertEquals(BadRecordFieldMismatchDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadRecordFieldMismatchDao.class, badm5, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm5
                 ).getRoot())),
 
                 // The return type is a type variable, can't handle that.
-                DynamicTest.dynamicTest(pf + "bad-type-variable", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-type-variable", () -> Assertions.assertEquals(BadTypeVariableDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadTypeVariableDao.class, badm6, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm6
                 ).getRoot())),
 
                 // The return type is a map, can't handle that.
-                DynamicTest.dynamicTest(pf + "bad-parameterized-types", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-parameterized-types", () -> Assertions.assertEquals(BadGenericReturnDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> QuerySqlImplementation.INSTANCE.prepare(BadGenericReturnDao.class, badm7, NO_DB_BAG),
                         "Unsupported annotation @Query on " + badm7

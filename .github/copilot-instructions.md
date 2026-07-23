@@ -110,10 +110,18 @@ Those conventions apply only to production code, not test code.
 However, it is a good idea if test code also follow them when possible and convenient, but that is no requirement and sometimes might even be undesired.
 Remember that test code, contrarily to production code, sometimes do weird, dangerous, tricky or smelly stuff on purpose in order to properly exercise the production code.
 
+- Use `var` to declare local variables whenever possible.
+- Omit type declarations on lambdas whenever possible.
+- The `finalize` method is hateful and the production code should be protected from the possibility of having them injected by client/user code.
 - Avoid package-default visibility, which should be used only occasionally when using neither `public` nor `private` is a good idea.
 - When a package-default visibility is indeed needed or intended, use Lombok's `@PackagePrivate` annotation.
-- Never use `protected` visibility nor class inheritance (other than `java.lang.Object`).
-  The exceptions are the rare cases where this would be forced by the usage of 3rd-party package (including those in the JDK), but it never happened so far and we like this.
+- Never use `protected` visibility.
+  The only exception for this rule so far is to block the usage of the `finalize` method.
+  Some rare cases where this would be forced by the usage of 3rd-party package (including those in the JDK) are conceivable, but never happened yet and we like this.
+- Never use class inheritance (other than `java.lang.Object` and `Throwable` subclasses).
+  The exceptions are the cases where this would be forced by the usage of 3rd-party package (including those in the JDK).
+- In order to disallow and discourage inheritance usage (except for `Throwable`s), make the classes unoverridable when possible.
+  This includes making them explicitly `final`, but also includes them being `enum`s, `record`s, lambdas, anonymous, method-local or non-public.
 - Every field, parameter or method return that is not `void` nor a primitive type **must** be annotated with either `@NonNull` or `@Nullable`.
 - We hate `null`s, so everything should be `@NonNull` when possible.
   The exceptions are for those cases where the usage of `null` is required, needed or expected by a 3rd-party package (including those in the JDK).
@@ -123,7 +131,7 @@ Remember that test code, contrarily to production code, sometimes do weird, dang
 - The `if` blocks do not need to use `{` and `}` when they are one-liner and have no `else`. Otherwise, they also need to use `{` and `}`.
 - We don't like to suppress warnings coming from Javac, Javadoc, Checkstyle, PMD or SpotBugs, but sometimes, we need to.
   When this happens, a comment explaining the reason for the suppression might be worth.
-  The `"unchecked"` however, is unfortunately far too common and sometimes unavoidable, so most of times it doesn't even need that comment.
+  The `"unchecked"` however, is unfortunately far too common and frequently unavoidable, so most of times it doesn't even need that comment.
 - Remove useless warnings suppressions. Those are likely leftovers from past refactorings that don't need to be there anymore.
 
 ### Code assertions

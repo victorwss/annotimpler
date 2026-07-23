@@ -23,18 +23,23 @@ import module java.sql;
 /// @see Downstream
 public final class ThreadTracerSqlSupplier implements SqlSupplier {
 
+    /// Guards access to [#waiting], the set of threads currently blocked inside [#get].
     @NonNull
     private final ReentrantLock lockQueue;
 
+    /// Guards the initialization critical section that resolves and caches [#result].
     @NonNull
     private final ReentrantLock lockRes;
 
+    /// The downstream supplier called at most once to resolve the [SqlSupplier] to cache.
     @NonNull
     private final Downstream downstream;
 
+    /// The set of threads currently blocked inside [#get] waiting for initialization to complete.
     @NonNull
     private final Set<Thread> waiting;
 
+    /// The cached delegate [SqlSupplier], or `null` before the first successful resolution.
     @Nullable
     private volatile SqlSupplier result;
 
@@ -63,8 +68,8 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
     /// caches it, and then removes the current thread from the waiting set.
     ///
     /// @return The SQL string produced by the cached delegate; never `null`.
-    /// @throws java.sql.SQLException If the downstream initialization or the delegate itself
-    ///         throws a [java.sql.SQLException].
+    /// @throws SQLException If the downstream initialization or the delegate itself
+    ///         throws a [SQLException].
     @NonNull
     @Override
     public String get() throws SQLException {
@@ -107,13 +112,21 @@ public final class ThreadTracerSqlSupplier implements SqlSupplier {
         ///
         /// @return The [SqlSupplier] to use for all subsequent [ThreadTracerSqlSupplier#get]
         ///         calls; never `null`.
-        /// @throws java.sql.SQLException If the supplier cannot be resolved.
+        /// @throws SQLException If the supplier cannot be resolved.
         @NonNull
         public SqlSupplier get() throws SQLException;
     }
 
+    /// A checked-exception-throwing supplier used internally to run a lock-guarded block of
+    /// code that produces a value of type `E` while possibly throwing [SQLException].
+    ///
+    /// @param <E> The type of value produced.
     @FunctionalInterface
     private static interface InnerContext<E> {
+        /// Produces the value, possibly throwing a [SQLException].
+        ///
+        /// @return The produced value; never `null`.
+        /// @throws SQLException If the underlying operation fails.
         @NonNull
         public E get() throws SQLException;
     }

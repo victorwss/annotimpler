@@ -8,8 +8,7 @@ import lombok.NonNull;
 import module java.base;
 
 /// Utility class providing predicate methods and invocation helpers for
-/// [java.lang.reflect.Method], [java.lang.reflect.Constructor], and
-/// [java.lang.reflect.Field].
+/// [Method], [Constructor], and [Field].
 ///
 /// Predicate methods follow the naming convention `isXxx(Method)`, operating on modifier
 /// bits or method identity. Invocation helpers provide a unified calling convention for both

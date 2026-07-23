@@ -13,6 +13,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         implements ParameterReceiver.NamedAcceptor1
 {
 
+    /// {@inheritDoc}
     @Override
     public ParameterReceiver.Acceptor2 handle(@Nullable Object value) throws ParameterReceiver.IllegalValueException {
         return h.handle(value);
@@ -178,6 +179,14 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         return makeStrategy(p.getParameterizedType(), p.getName(), p.isAnnotationPresent(Flat.class));
     }
 
+    /// Builds the parameter-binding strategy for an annotated interface method, one sub-strategy
+    /// per method parameter, merged into a single [ParameterSetStrategy].
+    ///
+    /// @param m The method to build a strategy for; must not be `null`.
+    /// @return A [ParameterSetStrategy] able to bind an argument array matching `m`'s parameters.
+    /// @throws BadImplementationException If any parameter of `m` cannot be mapped to a valid
+    ///         SQL parameter-binding strategy.
+    /// @throws IllegalArgumentException If `m` is `null`.
     @NonNull
     @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static ParameterReceiver.NamedAcceptor1 makeStrategy(@NonNull Method m) throws BadImplementationException {
@@ -200,6 +209,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
                 i++;
             }
             return new ParameterReceiver.Acceptor2() {
+                /// {@inheritDoc}
                 @Override
                 public void accept(@NonNull ParameterReceiver ps) throws SQLException {
                     for (var each : acceptors) {

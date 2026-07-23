@@ -7,7 +7,7 @@ import module java.sql;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-/// A supplier of [ParsedQuery] objects that may throw [java.sql.SQLException].
+/// A supplier of [ParsedQuery] objects that may throw [SQLException].
 ///
 /// This functional interface is the primary abstraction for obtaining a fully-parsed SQL
 /// query at call time. Each invocation of [get] retrieves the raw SQL string, parses it
@@ -26,7 +26,7 @@ public interface ParsedSqlSupplier {
     /// Returns the [ParsedQuery] for the current invocation.
     ///
     /// @return The parsed SQL query; never `null`.
-    /// @throws java.sql.SQLException If the SQL string cannot be obtained or is malformed
+    /// @throws SQLException If the SQL string cannot be obtained or is malformed
     ///         (in strict mode).
     public ParsedQuery get() throws SQLException;
 

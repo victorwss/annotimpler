@@ -13,10 +13,9 @@ import module ninja.javahacker.annotimpler.sql;
 /// Supported return types:
 /// - Bare scalar type (e.g., `String`, `int`) — returns the first result or
 ///   `null`/zero if no rows.
-/// - [java.util.Optional]`<T>` — returns the first result wrapped, or empty.
-/// - [java.util.OptionalInt], [java.util.OptionalLong],
-///   [java.util.OptionalDouble] — primitive optional variants.
-/// - [java.util.List]`<T>` — returns all result rows.
+/// - [Optional]`<T>` — returns the first result wrapped, or empty.
+/// - [OptionalInt], [OptionalLong], [OptionalDouble] — primitive optional variants.
+/// - [List]`<T>` — returns all result rows.
 /// - A `record` type — each row is mapped to the record's components.
 ///
 /// Example:

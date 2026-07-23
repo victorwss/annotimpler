@@ -27,7 +27,7 @@ public interface ParameterReceiver {
     /// Delegates to [receiveNull(String, Class)] with `void.class` as the type.
     ///
     /// @param name The parameter name; must not be `null`.
-    /// @throws java.sql.SQLException If the null value cannot be set on the prepared statement.
+    /// @throws SQLException If the null value cannot be set on the prepared statement.
     /// @throws IllegalArgumentException If `name` is `null`.
     public default void receiveNull(@NonNull String name) throws SQLException {
         receiveNull(name, void.class);
@@ -41,7 +41,7 @@ public interface ParameterReceiver {
     ///
     /// @param name The parameter name; must not be `null`.
     /// @param type A Java type used as a SQL-type hint; must not be `null`.
-    /// @throws java.sql.SQLException If the null value cannot be set on the prepared statement.
+    /// @throws SQLException If the null value cannot be set on the prepared statement.
     /// @throws IllegalArgumentException If `name` or `type` is `null`.
     public void receiveNull(@NonNull String name, @NonNull Class<?> type) throws SQLException;
 
@@ -49,7 +49,7 @@ public interface ParameterReceiver {
     ///
     /// @param name The parameter name; must not be `null`.
     /// @param value The parameter value; must not be `null`.
-    /// @throws java.sql.SQLException If the value cannot be set on the prepared statement.
+    /// @throws SQLException If the value cannot be set on the prepared statement.
     /// @throws IllegalArgumentException If `name` or `value` is `null`.
     public void receive(@NonNull String name, @NonNull Object value) throws SQLException;
 
@@ -63,7 +63,7 @@ public interface ParameterReceiver {
         /// Streams all bound parameter values to the given [ParameterReceiver].
         ///
         /// @param pr The receiver to which parameter values will be sent; must not be `null`.
-        /// @throws java.sql.SQLException If any parameter value cannot be set on the prepared statement.
+        /// @throws SQLException If any parameter value cannot be set on the prepared statement.
         /// @throws IllegalArgumentException If `pr` is `null`.
         public void accept(@NonNull ParameterReceiver pr) throws SQLException;
     }

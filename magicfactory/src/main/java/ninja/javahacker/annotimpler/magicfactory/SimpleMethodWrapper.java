@@ -30,6 +30,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @NonNull
     @SuppressWarnings("Convert2Lambda") // Can't use a lambda because the return type is generic.
     public static final Annotator NULL_ANNOTATOR = new Annotator() {
+        /// Always returns `null`, regardless of `annoClass`.
         @Nullable
         @Override
         public <A extends Annotation> A getAnnotation(@NonNull Class<A> annoClass) {

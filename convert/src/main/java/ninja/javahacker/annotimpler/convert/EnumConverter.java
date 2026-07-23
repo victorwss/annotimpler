@@ -20,14 +20,31 @@ import module java.sql;
 /// @param <E> The enum type this converter targets.
 public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
 
+    /// The enum class that this converter targets.
     @NonNull
     private final Class<E> enumClass;
 
+    /// A single conversion operation whose [ConvertionException] is rewrapped by [#rewrap(InternalWork)]
+    /// so that it references the enum class as the failure's target type.
+    ///
+    /// @param <T> The result type of the operation.
     @FunctionalInterface
     private interface InternalWork<T> {
+
+        /// Performs the conversion.
+        ///
+        /// @return The converted value, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
         public Optional<T> work() throws ConvertionException;
     }
 
+    /// Runs `w` and rewrites any thrown [ConvertionException] so it references the enum class.
+    ///
+    /// @param <T> The result type of `w`.
+    /// @param w The conversion operation to run.
+    /// @return The result of `w`.
+    /// @throws ConvertionException If `w` throws it.
+    /// @throws IllegalArgumentException If `w` is `null`.
     @NonNull
     private <T> Optional<T> rewrap(@NonNull InternalWork<T> w) throws ConvertionException {
         checkNotNull(w); // Check recognized by lombok.

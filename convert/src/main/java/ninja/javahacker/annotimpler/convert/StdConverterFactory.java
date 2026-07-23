@@ -445,6 +445,7 @@ public interface StdConverterFactory extends ConverterFactory {
         temp.put(klass, cvt);
         var map = Map.copyOf(temp);
         return new StdConverterFactory() {
+            /// {@inheritDoc}
             @NonNull
             @Override
             @SuppressWarnings("ReturnOfCollectionOrArrayField") // Safe because the returned map is immutable.

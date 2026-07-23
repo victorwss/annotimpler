@@ -8,10 +8,10 @@ import lombok.experimental.Delegate;
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
 
-/// A [java.sql.ResultSet] wrapper that adds type-aware value retrieval, case-insensitive
+/// A [ResultSet] wrapper that adds type-aware value retrieval, case-insensitive
 /// column name lookup, and automatic mapping of result rows to Java `record` types.
 ///
-/// All [java.sql.ResultSet] methods are delegated to the underlying result set via Lombok
+/// All [ResultSet] methods are delegated to the underlying result set via Lombok
 /// `@Delegate`. The additional methods provided by this class are:
 ///
 /// - [#getTypedValue(int)] / [#getTypedValue(String)] — return the value at a column as the
@@ -21,7 +21,7 @@ import module ninja.javahacker.annotimpler.convert;
 /// - [#getMap()] and variants — collect all (or a subset of) columns into an unmodifiable map.
 /// - [#getRecord(Class)] and variants — map one or more columns directly into a Java `record`.
 ///
-/// Column name comparisons are always case-insensitive and locale-aware; the [java.util.Locale]
+/// Column name comparisons are always case-insensitive and locale-aware; the [Locale]
 /// passed to the constructor governs locale-specific uppercasing (e.g. Turkish dotted-I).
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public final class SmartResultSet implements ResultSet {
@@ -30,7 +30,7 @@ public final class SmartResultSet implements ResultSet {
     @NonNull
     private final ConverterFactory factory;
 
-    /// The wrapped [java.sql.ResultSet] to decorate.
+    /// The wrapped [ResultSet] to decorate.
     @NonNull
     @Delegate(types = ResultSet.class)
     private final ResultSet rs;
@@ -47,10 +47,10 @@ public final class SmartResultSet implements ResultSet {
     @NonNull
     private final Locale localizer;
 
-    /// Creates a [SmartResultSet] wrapping the given [java.sql.ResultSet] using the standard
+    /// Creates a [SmartResultSet] wrapping the given [ResultSet] using the standard
     /// converter factory and the root locale.
     ///
-    /// @param rs The [java.sql.ResultSet] to wrap.
+    /// @param rs The [ResultSet] to wrap.
     /// @throws SQLException If a database access error occurs while reading metadata.
     /// @throws IllegalArgumentException If `rs` is `null`.
     public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
@@ -58,10 +58,10 @@ public final class SmartResultSet implements ResultSet {
         this(rs, ConverterFactory.std(), Locale.ROOT);
     }
 
-    /// Creates a [SmartResultSet] wrapping the given [java.sql.ResultSet] with the specified
+    /// Creates a [SmartResultSet] wrapping the given [ResultSet] with the specified
     /// converter factory and locale.
     ///
-    /// @param rs The [java.sql.ResultSet] to wrap.
+    /// @param rs The [ResultSet] to wrap.
     /// @param factory The converter factory used to convert column values to target Java types.
     /// @param localizer The locale used for case-insensitive column name matching.
     /// @throws SQLException If a database access error occurs while reading metadata.
@@ -88,16 +88,28 @@ public final class SmartResultSet implements ResultSet {
         return IntStream.rangeClosed(1, metaData.getColumnCount()).toArray();
     }
 
+    /// Builds and caches, from a [ResultSetMetaData], the mapping between (case-insensitive,
+    /// locale-uppercased) column labels and their 1-based column indices.
     private static final class ColumnMapping {
+        /// The upper-cased column label for each 1-based column index (0-based here), or
+        /// [Optional#empty()] if the column was null-named, empty-named or duplicated.
         @NonNull
         private final List<Optional<String>> columnNames;
 
+        /// Maps each distinct upper-cased column label to its 1-based column index.
         @NonNull
         private final Map<String, Integer> columnIndexes;
 
+        /// The locale used to upper-case column labels for case-insensitive comparisons.
         @NonNull
         private final Locale localizer;
 
+        /// Creates a [ColumnMapping] by reading all column labels from `rsmd`.
+        ///
+        /// @param rsmd The result set metadata to read column labels from; must not be `null`.
+        /// @param localizer The locale used to upper-case column labels; must not be `null`.
+        /// @throws SQLException If a database access error occurs while reading metadata.
+        /// @throws IllegalArgumentException If `rsmd` or `localizer` is `null`.
         public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizer) throws SQLException {
             checkNotNull(rsmd); // Check recognized by lombok.
             checkNotNull(localizer); // Check recognized by lombok.
@@ -137,10 +149,18 @@ public final class SmartResultSet implements ResultSet {
             this.localizer = localizer;
         }
 
+        /// Returns the total number of columns known by this mapping.
+        ///
+        /// @return The column count.
         public int getColumnCount() {
             return columnNames.size();
         }
 
+        /// Returns the 1-based column index for the column named `columnName` (case-insensitive).
+        ///
+        /// @param columnName The column label to look up; must not be `null`.
+        /// @return The 1-based column index.
+        /// @throws IllegalArgumentException If `columnName` is `null` or there is no such column.
         public int indexOf(@NonNull String columnName) {
             checkNotNull(columnName); // Check recognized by lombok.
             var name = columnName.toUpperCase(localizer);
@@ -151,6 +171,12 @@ public final class SmartResultSet implements ResultSet {
             return v;
         }
 
+        /// Returns the upper-cased label of the column at `columnIndex`, if it has a usable one.
+        ///
+        /// @param columnIndex The 1-based column index to look up.
+        /// @return The upper-cased column label, or [Optional#empty()] if the column was
+        ///         null-named, empty-named or a duplicate of another column's label.
+        /// @throws IllegalArgumentException If `columnIndex` is out of range.
         @NonNull
         public Optional<String> valueOf(int columnIndex) {
             if (columnIndex < 1 || columnIndex > getColumnCount()) {
@@ -255,11 +281,11 @@ public final class SmartResultSet implements ResultSet {
     /// column's JDBC type code.
     ///
     /// May return `null` for SQL `NULL`. The possible non-null return types are: [Long],
-    /// [Integer], [Byte], [Short], [Float], [Double], [Boolean], [String], [java.math.BigDecimal],
-    /// `byte[]`, [java.time.LocalDate], [java.time.LocalTime], [java.time.LocalDateTime],
-    /// [java.time.OffsetDateTime], [java.time.OffsetTime], [java.sql.Clob], [java.sql.NClob],
-    /// [java.sql.Blob], [java.sql.Array], [java.sql.Ref], [java.sql.SQLXML], [java.sql.RowId] or
-    /// [java.sql.Struct].
+    /// [Integer], [Byte], [Short], [Float], [Double], [Boolean], [String], [BigDecimal],
+    /// `byte[]`, [LocalDate], [LocalTime], [LocalDateTime],
+    /// [OffsetDateTime], [OffsetTime], [Clob], [NClob],
+    /// [Blob], [java.sql.Array], [Ref], [SQLXML], [RowId] or
+    /// [Struct].
     ///
     /// @param columnIndex The 1-based column index to read.
     /// @return The column value mapped to the most appropriate Java type, or `null` for SQL `NULL`.
@@ -318,14 +344,14 @@ public final class SmartResultSet implements ResultSet {
         return getTypedValue(idx);
     }
 
-    /// Reads the value at `columnIndex`, converts it to type `E`, and wraps the result in an [java.util.Optional].
+    /// Reads the value at `columnIndex`, converts it to type `E`, and wraps the result in an [Optional].
     ///
-    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
+    /// Returns [Optional#empty()] if the SQL value is `NULL`.
     ///
     /// @param <E> The target Java type.
     /// @param columnIndex The 1-based column index to read.
     /// @param target The class of the target type.
-    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
+    /// @return An [Optional] containing the converted value, or empty for SQL `NULL`.
     /// @throws SQLException If a database access error occurs or conversion fails.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
@@ -339,14 +365,14 @@ public final class SmartResultSet implements ResultSet {
     }
 
     /// Reads the value at the column identified by `columnLabel` (case-insensitive), converts it
-    /// to type `E`, and wraps the result in an [java.util.Optional].
+    /// to type `E`, and wraps the result in an [Optional].
     ///
-    /// Returns [java.util.Optional#empty()] if the SQL value is `NULL`.
+    /// Returns [Optional#empty()] if the SQL value is `NULL`.
     ///
     /// @param <E> The target Java type.
     /// @param columnLabel The case-insensitive column label to read.
     /// @param target The class of the target type.
-    /// @return An [java.util.Optional] containing the converted value, or empty for SQL `NULL`.
+    /// @return An [Optional] containing the converted value, or empty for SQL `NULL`.
     /// @throws SQLException If a database access error occurs or conversion fails.
     /// @throws IllegalArgumentException If `columnLabel` or `target` is `null`, or the label is not found.
     @NonNull

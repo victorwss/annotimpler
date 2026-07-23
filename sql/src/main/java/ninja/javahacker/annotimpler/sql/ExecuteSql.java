@@ -27,7 +27,7 @@ public @interface ExecuteSql {
     /// Whether the operation is allowed to affect zero rows.
     ///
     /// When `false` (the default), executing the SQL and affecting zero rows throws a
-    /// [java.sql.SQLException].
+    /// [SQLException].
     ///
     /// @return `true` if affecting zero rows is permitted, `false` otherwise.
     public boolean acceptsZero() default false;
@@ -35,7 +35,7 @@ public @interface ExecuteSql {
     /// Whether the operation is allowed to affect more than one row.
     ///
     /// When `false` (the default), executing the SQL and affecting more than one row
-    /// throws a [java.sql.SQLException].
+    /// throws a [SQLException].
     ///
     /// @return `true` if affecting multiple rows is permitted, `false` otherwise.
     public boolean acceptsMulti() default false;

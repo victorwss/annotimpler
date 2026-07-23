@@ -39,23 +39,40 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             checkNotNull(content); // Check recognized by lombok.
         }
 
+        /// Returns a copy of this [Match] with the same [#position] and [#end], but with different content.
+        ///
+        /// @param <U> The type of the new content.
+        /// @param newContent The new content to use.
+        /// @return A copy of this [Match] with `newContent` in place of [#content].
+        /// @throws IllegalArgumentException If `newContent` is `null`.
         @NonNull
         public <U> Match<U> withContent(@NonNull U newContent) {
             checkNotNull(newContent); // Check recognized by lombok.
             return new Match<>(newContent, position, end);
         }
 
+        /// The length, in characters, of the matched span.
+        ///
+        /// @return `[#end] - [#position]`.
         public int size() {
             return end - position;
         }
     }
 
     private record TwoNumbers(int a, int b) {
+
+        /// Widens this pair into a [ThreeNumbers] with [ThreeNumbers#c] set to `0` and [ThreeNumbers#reallyThree] set to `false`.
+        ///
+        /// @return A [ThreeNumbers] equivalent to this pair, flagged as not really having a third number.
         @NonNull
         public ThreeNumbers asThree() {
             return new ThreeNumbers(a, b, 0, false);
         }
 
+        /// Widens this pair into a [ThreeNumbers] with an actual third number.
+        ///
+        /// @param c The third number.
+        /// @return A [ThreeNumbers] equivalent to this pair plus `c`, flagged as really having a third number.
         @NonNull
         public ThreeNumbers withC(int c) {
             return new ThreeNumbers(a, b, c, true);
@@ -63,11 +80,21 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     }
 
     private record ThreeNumbers(int a, int b, int c, boolean reallyThree) {
+
+        /// Widens this triple into a [FourNumbers] with a fourth number.
+        ///
+        /// @param d The fourth number.
+        /// @return A [FourNumbers] equivalent to this triple plus `d`.
         @NonNull
         public FourNumbers withD(int d) {
             return new FourNumbers(a, b, c, d);
         }
 
+        /// Builds the [LocalDate] represented by [#a], [#b] and [#c], interpreting their meaning according to `type`.
+        ///
+        /// @param type Which of [#a], [#b] and [#c] is the day, the month and the year.
+        /// @return The resulting [LocalDate].
+        /// @throws IllegalArgumentException If `type` is `null`.
         @NonNull
         public LocalDate date(@NonNull DateFormat type) {
             checkNotNull(type); // Check recognized by lombok.
@@ -79,6 +106,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
     }
 
     private record FourNumbers(int a, int b, int c, int d) {
+
+        /// Builds the [LocalTime] represented by [#a] (hour), [#b] (minute), [#c] (second) and [#d] (nanosecond).
+        ///
+        /// @return The resulting [LocalTime].
         @NonNull
         public LocalTime time() {
             return LocalTime.of(a, b, c, d);
@@ -93,6 +124,9 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             assertOneTrue(date.isPresent(), time.isPresent());
         }
 
+        /// Combines [#date] and [#time] (defaulting the time to midnight when absent) into a [LocalDateTime].
+        ///
+        /// @return The resulting [LocalDateTime], wrapped in an [Optional].
         @NonNull
         public Optional<LocalDateTime> dateTime() {
             assertTrue(date.isPresent()); // Only called in a context where dateLike was true and then date was not empty.
@@ -100,6 +134,10 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             return Optional.of(date.get().atTime(time.get()));
         }
 
+        /// Combines [#date], [#time] and [#zone] (defaulting the time to midnight and the zone to UTC when absent)
+        /// into an [OffsetDateTime].
+        ///
+        /// @return The resulting [OffsetDateTime], wrapped in an [Optional].
         @NonNull
         public Optional<OffsetDateTime> dateTimeZone() {
             assertTrue(date.isPresent()); // Only called in a context where dateLike was true and then date was not empty.
@@ -108,6 +146,9 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             return Optional.of(date.get().atTime(time.get()).atOffset(zone.get()));
         }
 
+        /// Combines [#time] and [#zone] (defaulting the zone to UTC when absent) into an [OffsetTime].
+        ///
+        /// @return The resulting [OffsetTime], wrapped in an [Optional].
         @NonNull
         public Optional<OffsetTime> timeZone() {
             assertTrue(time.isPresent()); // Only called in a context where dateLike was false and then time was not empty.
@@ -213,6 +254,15 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             };
         }
 
+        /// Parses the whole [#input] as a date, a time, or both (depending on `dateLike` and on what is present),
+        /// with an optional timezone, and hands the parsed [Pieces] to `func` to build the final result.
+        ///
+        /// @param <E> The type of the parsed result.
+        /// @param dateLike If `true`, a date component is mandatory and a time component is optional;
+        ///        if `false`, a time component is mandatory and a date component is not allowed.
+        /// @param func Builds the final result from the parsed [Pieces].
+        /// @return The result produced by `func`, or [Optional#empty()] if [#input] does not match the expected grammar.
+        /// @throws IllegalArgumentException If `func` is `null`.
         @NonNull
         public <E> Optional<E> parseAll(boolean dateLike, @NonNull Function<Pieces, Optional<E>> func) {
             checkNotNull(func); // Check recognized by lombok.

@@ -33,9 +33,11 @@ import ninja.javahacker.annotimpler.magicfactory.TypeName;
 /// @param <E> The element type of the collection.
 public final class CollectionConverter<E> implements Converter<Collection<E>> {
 
+    /// The element converter used to convert values before wrapping them into a collection.
     @NonNull
     private final Converter<E> cvt;
 
+    /// The parameterized type `Collection<E>` that this converter produces.
     @NonNull
     private final ParameterizedType baseType;
 
@@ -71,12 +73,27 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
         return baseType;
     }
 
+    /// A single conversion operation for the collection's element, used to derive per-element conversion
+    /// errors that reference the target `Collection<E>` type instead of the element type.
+    ///
+    /// @param <E> The element type of the collection.
     @FunctionalInterface
     private interface InternalWork<E> {
 
+        /// Performs the conversion of the single element.
+        ///
+        /// @return The converted element, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
         @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        /// Performs [#work()] and wraps the resulting element into a single-element or empty list, rewriting
+        /// any resulting [ConvertionException] so it references `baseType` instead of the element type.
+        ///
+        /// @param baseType The parameterized type `Collection<E>` to report as the target type in case of failure.
+        /// @return `Optional.of(List.of(element))` if [#work()] returns a present value, or `Optional.of(List.of())` otherwise.
+        /// @throws ConvertionException If the conversion fails.
+        /// @throws IllegalArgumentException If `baseType` is `null`.
         @NonNull
         public default Optional<Collection<E>> rework(@NonNull Type baseType) throws ConvertionException {
             checkNotNull(baseType); // Check recognized by lombok.

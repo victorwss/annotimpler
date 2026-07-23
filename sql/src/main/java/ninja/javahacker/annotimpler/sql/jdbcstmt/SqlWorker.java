@@ -6,7 +6,7 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
 
-/// Orchestrates the execution of a single SQL operation against a JDBC [java.sql.Connection].
+/// Orchestrates the execution of a single SQL operation against a JDBC [Connection].
 ///
 /// A [SqlWorker] prepares a [NamedParameterStatement] from a [ParsedQuery], binds the
 /// parameters supplied by a [ParameterReceiver.Acceptor2], and returns the results mapped to
@@ -16,18 +16,23 @@ import module ninja.javahacker.annotimpler.sql;
 /// it is much easier to just create a fresh [SqlWorker] for each SQL operation instead.
 public final class SqlWorker {
 
+    /// The JDBC connection to prepare the statement on.
     @NonNull
     private final Connection con;
 
+    /// The already-bound parameter acceptor used to bind parameter values onto the prepared statement.
     @NonNull
     private final ParameterReceiver.Acceptor2 ppq;
 
+    /// The parsed SQL query to execute.
     @NonNull
     private final ParsedQuery pq;
 
+    /// The converter factory used to map result column values to Java types.
     @NonNull
     private final ConverterFactory factory;
 
+    /// The locale used for case-insensitive column name matching.
     @NonNull
     private final Locale localizer;
 
@@ -108,7 +113,7 @@ public final class SqlWorker {
     }
 
     /// Executes a `SELECT` statement and returns the first row mapped to `R`, or
-    /// [java.util.Optional#empty()] if the result set is empty.
+    /// [Optional#empty()] if the result set is empty.
     ///
     /// When `fields` is empty the method defaults to columns `1..N` for record types, or
     /// column `1` for scalar types.  When `R` is a `record`, `fields[i]` is the column index
@@ -117,8 +122,8 @@ public final class SqlWorker {
     /// @param <R> The target Java type.
     /// @param k The class of the target type.
     /// @param fields The 1-based column indices to map; may be empty to use the default range.
-    /// @return An [java.util.Optional] containing the first row mapped to `R`, or
-    ///         [java.util.Optional#empty()] if the result set is empty.
+    /// @return An [Optional] containing the first row mapped to `R`, or
+    ///         [Optional#empty()] if the result set is empty.
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
@@ -136,8 +141,8 @@ public final class SqlWorker {
     ///
     /// @param <R> The target Java type.
     /// @param k The class of the target type.
-    /// @return An [java.util.Optional] containing the first row mapped to `R`, or
-    ///         [java.util.Optional#empty()] if the result set is empty.
+    /// @return An [Optional] containing the first row mapped to `R`, or
+    ///         [Optional#empty()] if the result set is empty.
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
@@ -185,7 +190,7 @@ public final class SqlWorker {
     /// @param <R> The target Java type.
     /// @param k The class of the target type.
     /// @param fields The 1-based column indices to map; may be empty to use the default range.
-    /// @return A [java.util.List] of all rows mapped to `R`; empty if the result set is empty.
+    /// @return A [List] of all rows mapped to `R`; empty if the result set is empty.
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
@@ -204,7 +209,7 @@ public final class SqlWorker {
     ///
     /// @param <R> The target Java type.
     /// @param k The class of the target type.
-    /// @return A [java.util.List] of all rows mapped to `R`; empty if the result set is empty.
+    /// @return A [List] of all rows mapped to `R`; empty if the result set is empty.
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
@@ -225,13 +230,13 @@ public final class SqlWorker {
     }
 
     /// Executes an `INSERT` statement and returns the first auto-generated key as an
-    /// [java.util.OptionalInt].
+    /// [OptionalInt].
     ///
-    /// Returns [java.util.OptionalInt#empty()] if no key was generated. Throws
-    /// [java.sql.SQLException] if more than one row is affected.
+    /// Returns [OptionalInt#empty()] if no key was generated. Throws
+    /// [SQLException] if more than one row is affected.
     ///
-    /// @return An [java.util.OptionalInt] containing the generated key, or
-    ///         [java.util.OptionalInt#empty()] if no key was generated.
+    /// @return An [OptionalInt] containing the generated key, or
+    ///         [OptionalInt#empty()] if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
     /// @see #generate()
     /// @see #generateOrNull()
@@ -255,7 +260,7 @@ public final class SqlWorker {
 
     /// Executes an `INSERT` statement and returns the first auto-generated key as an `int`.
     ///
-    /// Throws [java.sql.SQLException] if more than one row is affected or no key was generated.
+    /// Throws [SQLException] if more than one row is affected or no key was generated.
     ///
     /// @return The generated key.
     /// @throws SQLException If a database access error occurs, more than one row is
@@ -279,7 +284,7 @@ public final class SqlWorker {
     /// Executes an `INSERT` statement and returns the first auto-generated key as an [Integer].
     ///
     /// Returns `null` if no key was generated. Throws
-    /// [java.sql.SQLException] if more than one row is affected.
+    /// [SQLException] if more than one row is affected.
     ///
     /// @return The generated key, or `null` if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
@@ -296,9 +301,9 @@ public final class SqlWorker {
     }
 
     /// Executes an `INSERT` statement and returns all auto-generated keys as a
-    /// [java.util.List] of [java.lang.Integer].
+    /// [List] of [Integer].
     ///
-    /// @return A [java.util.List] of all generated keys; empty if none were generated.
+    /// @return A [List] of all generated keys; empty if none were generated.
     /// @throws SQLException If a database access error occurs.
     /// @see #generateOptional()
     /// @see #generate()
@@ -323,13 +328,13 @@ public final class SqlWorker {
     }
 
     /// Executes an `INSERT` statement and returns the first auto-generated key as an
-    /// [java.util.OptionalLong].
+    /// [OptionalLong].
     ///
-    /// Returns [java.util.OptionalLong#empty()] if no key was generated.  Throws
-    /// [java.sql.SQLException] if more than one row is affected.
+    /// Returns [OptionalLong#empty()] if no key was generated. Throws
+    /// [SQLException] if more than one row is affected.
     ///
-    /// @return An [java.util.OptionalLong] containing the generated key, or
-    ///         [java.util.OptionalLong#empty()] if no key was generated.
+    /// @return An [OptionalLong] containing the generated key, or
+    ///         [OptionalLong#empty()] if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
     /// @see #generateOptional()
     /// @see #generate()
@@ -353,7 +358,7 @@ public final class SqlWorker {
 
     /// Executes an `INSERT` statement and returns the first auto-generated key as a `long`.
     ///
-    /// Throws [java.sql.SQLException] if more than one row is affected or no key was generated.
+    /// Throws [SQLException] if more than one row is affected or no key was generated.
     ///
     /// @return The generated key.
     /// @throws SQLException If a database access error occurs, more than one row is
@@ -376,7 +381,7 @@ public final class SqlWorker {
     /// Executes an `INSERT` statement and returns the first auto-generated key as a [Long].
     ///
     /// Returns `null` if no key was generated. Throws
-    /// [java.sql.SQLException] if more than one row is affected.
+    /// [SQLException] if more than one row is affected.
     ///
     /// @return The generated key, or `null` if no key was generated.
     /// @throws SQLException If a database access error occurs or more than one row is affected.
@@ -393,9 +398,9 @@ public final class SqlWorker {
     }
 
     /// Executes an `INSERT` statement and returns all auto-generated keys as a
-    /// [java.util.List] of [java.lang.Long].
+    /// [List] of [Long].
     ///
-    /// @return A [java.util.List] of all generated keys; empty if none were generated.
+    /// @return A [List] of all generated keys; empty if none were generated.
     /// @throws SQLException If a database access error occurs.
     /// @see #generateOptional()
     /// @see #generate()

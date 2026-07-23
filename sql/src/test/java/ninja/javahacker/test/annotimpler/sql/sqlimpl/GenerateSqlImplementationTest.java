@@ -284,31 +284,31 @@ public class GenerateSqlImplementationTest {
                 ).getRoot())),
 
                 // Annotated method declares a raw List return type (no type parameter).
-                DynamicTest.dynamicTest(pf + "bad-return-raw", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-return-raw", () -> Assertions.assertEquals(BadRawListDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> GenerateSqlImplementation.INSTANCE.prepare(BadRawListDao.class, badm2, NO_DB_BAG),
-                        "Unsupported annotation @Generate on " + bado6
+                        "Unsupported annotation @Generate on " + badm2
                 ).getRoot())),
 
                 // Annotated method declares List<String> as the return type, which is not a supported numeric key type.
-                DynamicTest.dynamicTest(pf + "bad-return-bad-list", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-return-bad-list", () -> Assertions.assertEquals(BadStringListDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> GenerateSqlImplementation.INSTANCE.prepare(BadStringListDao.class, badm3, NO_DB_BAG),
-                        "Unsupported annotation @Generate on " + bado6
+                        "Unsupported annotation @Generate on " + badm3
                 ).getRoot())),
 
                 // Annotated method declares a String return type, which is not supported for generated-key retrieval.
-                DynamicTest.dynamicTest(pf + "bad-return-type", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-return-type", () -> Assertions.assertEquals(BadStringReturnDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> GenerateSqlImplementation.INSTANCE.prepare(BadStringReturnDao.class, badm4, NO_DB_BAG),
-                        "Unsupported annotation @Generate on " + bado6
+                        "Unsupported annotation @Generate on " + badm4
                 ).getRoot())),
 
                 // Annotated method declares Optional<Integer> return type, which is not supported parameterized type.
-                DynamicTest.dynamicTest(pf + "bad-parameterized-return-type", () -> Assertions.assertEquals(BadBasicDao.class, Assertions.assertThrows(
+                DynamicTest.dynamicTest(pf + "bad-parameterized-return-type", () -> Assertions.assertEquals(BadNonListDao.class, Assertions.assertThrows(
                         BadImplementationException.class,
                         () -> GenerateSqlImplementation.INSTANCE.prepare(BadNonListDao.class, badm5, NO_DB_BAG),
-                        "Unsupported annotation @Generate on " + bado6
+                        "Unsupported annotation @Generate on " + badm5
                 ).getRoot()))
         );
     }

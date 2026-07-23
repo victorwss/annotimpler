@@ -11,12 +11,16 @@
 /// | Package | Purpose |
 /// |---|---|
 /// | [ninja.javahacker.annotimpler.sql] | Public API: annotations, policies, DAO creation. |
-/// | [ninja.javahacker.annotimpler.sql.conn] | JDBC [java.sql.Connection] factories for common databases. |
-/// | [ninja.javahacker.annotimpler.sql.sqlfactories] | Implementations of [ninja.javahacker.annotimpler.sql.meta.SqlFactory] for file, URL, and string sources. |
+/// | [ninja.javahacker.annotimpler.sql.conn] | JDBC [Connection] factories for common databases. |
+/// | [ninja.javahacker.annotimpler.sql.sqlfactories] | Implementations of [SqlFactory] for file, URL, and string sources. |
 /// | [ninja.javahacker.annotimpler.sql.sqlimpl] | Runtime handlers for `@ExecuteSql`, `@GenerateSql`, and `@QuerySql`. |
 /// | [ninja.javahacker.annotimpler.sql.meta] | SQL loading, parameter binding, and factory-resolution infrastructure. |
 /// | [ninja.javahacker.annotimpler.sql.jdbcstmt] | Named-parameter statements, type-aware result sets, and operation executors. |
 /// | [ninja.javahacker.annotimpler.limited] | Stream wrappers that enforce a maximum byte/character read limit. |
+
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
+
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })

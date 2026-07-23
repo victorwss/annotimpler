@@ -28,12 +28,15 @@ import lombok.NonNull;
 /// @param <E> The element type of the array.
 public final class ArrayConverter<E> implements Converter<E[]> {
 
+    /// The element class of the array.
     @NonNull
     private final Class<E> baseClass;
 
+    /// The array class `E[]` that this converter produces.
     @NonNull
     private final Class<E[]> arrayClass;
 
+    /// The element converter used to convert values before wrapping them into an array.
     @NonNull
     private final Converter<E> cvt;
 
@@ -61,12 +64,27 @@ public final class ArrayConverter<E> implements Converter<E[]> {
         return arrayClass;
     }
 
+    /// A single conversion operation for one array element, used to derive per-element conversion errors
+    /// that reference the target array type instead of the element type.
+    ///
+    /// @param <E> The element type of the array.
     @FunctionalInterface
     private interface InternalWork<E> {
 
+        /// Performs the conversion of the single element.
+        ///
+        /// @return The converted element, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
         @NonNull
         public Optional<E> work() throws ConvertionException;
 
+        /// Performs [#work()], rewriting any resulting [ConvertionException] so it references `arrayClass`
+        /// instead of the element type.
+        ///
+        /// @param arrayClass The array class `E[]` to report as the target type in case of failure.
+        /// @return The converted element, wrapped in [Optional], or empty if there is no value to convert.
+        /// @throws ConvertionException If the conversion fails.
+        /// @throws IllegalArgumentException If `arrayClass` is `null`.
         @NonNull
         public default Optional<E> rework(@NonNull Class<E[]> arrayClass) throws ConvertionException {
             checkNotNull(arrayClass); // Check recognized by lombok.

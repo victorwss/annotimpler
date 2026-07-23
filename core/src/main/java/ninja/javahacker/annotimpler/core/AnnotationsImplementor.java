@@ -22,7 +22,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// - Private, static, [Object#equals], [Object#hashCode], and [Object#toString] methods are
 ///   handled specially and are not subject to annotation-driven dispatch.
 ///
-/// The resulting object is a [java.lang.reflect.Proxy] instance. Its [Object#equals] uses
+/// The resulting object is a [Proxy] instance. Its [Object#equals] uses
 /// identity comparison (`==`), [Object#hashCode] uses [System#identityHashCode], and
 /// [Object#toString] returns a string of the form `impl[fully.qualified.InterfaceName]-hashCode`.
 ///

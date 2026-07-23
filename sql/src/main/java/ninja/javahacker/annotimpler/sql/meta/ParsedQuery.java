@@ -41,10 +41,19 @@ public record ParsedQuery(
         boolean loneColons)
 {
 
+    /// Character marking the start/end of a single-quoted string literal.
     private static final char SINGLE_QUOTE = '\'';
+
+    /// Character marking the start/end of a double-quoted string literal.
     private static final char DOUBLE_QUOTE = '\"';
+
+    /// Character introducing a named parameter (`:name`).
     private static final char COLON = ':';
+
+    /// Character representing an unnamed positional parameter placeholder.
     private static final char QMARK = '?';
+
+    /// String form of [#COLON], used for `equals` comparisons against parsed names.
     private static final String COLON_STRING = ":";
 
     /// Creates a [ParsedQuery], defensively copying `params` to make it unmodifiable.
