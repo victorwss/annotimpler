@@ -381,6 +381,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [java.sql.Date] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalDate(String, LocalDate)] method or the [#setObject(String, Object)] method passing a
+    /// [LocalDate] as the second parameter.
     @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -415,6 +418,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [java.sql.Date] is very badly designed and should never be used anymore.
+    /// Having a companion [Calendar] as a timezone makes things still more confusing and fragile.
+    /// Further, having a date without time but with a timezone in non-sense.
+    /// Prefer the [#setLocalDate(String, LocalDate)] method or the [#setObject(String, Object)] method passing a
+    /// [LocalDate] as the second parameter.
     @Deprecated
     public default void setDate(@NonNull String name, @Nullable java.sql.Date x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -889,7 +897,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
 
     /// Sets the named parameter `name` to the given [SQLXML] value.
     /// @param name The name of the SQL parameter to set.
-    /// @param xmlObject The SQLXML value to assign, or `null` to set SQL `NULL`.
+    /// @param xmlObject The [SQLXML] value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
     @SuppressWarnings("checkstyle:AbbreviationAsWordInName")
@@ -959,11 +967,14 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     @Deprecated
     public void setTime(int parameterIndex, @Nullable java.sql.Time x) throws SQLException;
 
-    /// Sets the named parameter `name` to the given deprecated [java.sql.Time] value.
+    /// Sets the named parameter `name` to the given [java.sql.Time] value.
     /// @param name The name of the SQL parameter to set.
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [java.sql.Time] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalTime(String, LocalTime)] method or the [#setObject(String, Object)] method passing a
+    /// [LocalTime] as the second parameter.
     @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -993,6 +1004,10 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [java.sql.Time] is very badly designed and should never be used anymore.
+    /// Having a companion [Calendar] as a timezone makes things still more confusing and fragile.
+    /// Prefer the [#setOffsetTime(String, OffsetTime)] method or the [#setObject(String, Object)] method passing a
+    /// [OffsetTime] as the second parameter.
     @Deprecated
     public default void setTime(@NonNull String name, @Nullable java.sql.Time x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -1019,6 +1034,9 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param x The value to assign, or `null` to set SQL `NULL`.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [Timestamp] is very badly designed and should never be used anymore.
+    /// Prefer the [#setLocalDateTime(String, LocalDateTime)] method or the [#setObject(String, Object)] method passing a
+    /// [LocalDateTime] as the second parameter.
     @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -1052,6 +1070,11 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @param cal The calendar to use when computing the JDBC value; ignored in modern usage.
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs or if this method is called on a closed statement.
+    /// @deprecated The class [Timestamp] is very badly designed and should never be used anymore. Having a companion [Calendar]
+    /// as a timezone makes things still more confusing and fragile.
+    /// Prefer one of the [#setOffsetDateTime(String, OffsetDateTime)], [#setZonedDateTime(String, ZonedDateTime)],
+    /// [#setInstant(String, Instant)] methods or perhaps the [#setObject(String, Object)] method passing a
+    /// [OffsetDateTime], [ZonedDateTime] or [Instant] as the second parameter.
     @Deprecated
     public default void setTimestamp(@NonNull String name, @Nullable Timestamp x, @Nullable Calendar cal) throws SQLException {
         for (var index : getIndexes(name)) {
@@ -1078,6 +1101,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs, if this method is called on a closed statement,
     ///         or if `x` is non-null and `name` maps to more than one positional index.
+    /// @deprecated Use [#setCharacterStream(String, InputStream, int)]
     @Deprecated
     public default void setUnicodeStream(@NonNull String name, @Nullable InputStream x, int length) throws SQLException {
         var all = getIndexes(name);

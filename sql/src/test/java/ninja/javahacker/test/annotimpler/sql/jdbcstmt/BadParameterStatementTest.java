@@ -327,7 +327,8 @@ public class BadParameterStatementTest {
                 n("receive-name"    , () -> ForTests.testNull("name" , ex(ps -> ps.receive    (null, "foo"       )))),
                 n("receive-value"   , () -> ForTests.testNull("value", ex(ps -> ps.receive    ("fo", null        )))),
                 n("receiveNull-name", () -> ForTests.testNull("name" , ex(ps -> ps.receiveNull(null, String.class)))),
-                n("receiveNull-type", () -> ForTests.testNull("type" , ex(ps -> ps.receiveNull("fo", null        ))))
+                n("receiveNull-type", () -> ForTests.testNull("type" , ex(ps -> ps.receiveNull("fo", null        )))),
+                n("receiveNull-sing", () -> ForTests.testNull("name" , ex(ps -> ps.receiveNull(null              ))))
         );
     }
 

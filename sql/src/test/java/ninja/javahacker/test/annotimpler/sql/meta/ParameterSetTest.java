@@ -210,13 +210,12 @@ public class ParameterSetTest {
             Assertions.assertEquals(List.of(new RecCall(true, "color", null, Hue.YELLOW.ordinal())), rec.calls);
         }));
 
-        // Enum null → IllegalValueException (enum strategy always rejects null)
-        tests.add(DynamicTest.dynamicTest(pf + "enum null → IllegalValueException", () ->
-                Assertions.assertThrows(
-                        ParameterReceiver.IllegalValueException.class,
-                        () -> new ParameterSet(M_ENUM).withValues((Object) null)
-                )
-        ));
+        // Enum null → receiveNull
+        tests.add(DynamicTest.dynamicTest(pf + "enum null → receiveNull", () -> {
+            var rec = new RecordingReceiver();
+            new ParameterSet(M_ENUM).withValues((Object) null).accept(rec);
+            Assertions.assertEquals(List.of(new RecCall(false, "color", int.class, null)), rec.calls);
+        }));
 
         // Multi-component record non-null → receives each component under name::field
         tests.add(DynamicTest.dynamicTest(pf + "record non-null → receive each component with rec::field name", () -> {
@@ -370,13 +369,16 @@ public class ParameterSetTest {
         var pf = "[testIdentity] ";
         return Stream.of(
                 DynamicTest.dynamicTest(pf + "getMethod() returns the original Method", () ->
-                        Assertions.assertEquals(M_STR, ps.getMethod())),
+                        Assertions.assertEquals(M_STR, ps.getMethod())
+                ),
 
                 DynamicTest.dynamicTest(pf + "methodName() contains the Java method name", () ->
-                        Assertions.assertTrue(ps.methodName().contains("mStr"), ps.methodName())),
+                        Assertions.assertTrue(ps.methodName().contains("mStr"), ps.methodName())
+                ),
 
                 DynamicTest.dynamicTest(pf + "toString() = \"ParameterSet - \" + methodName()", () ->
-                        Assertions.assertEquals("ParameterSet - " + ps.methodName(), ps.toString())),
+                        Assertions.assertEquals("ParameterSet - " + ps.methodName(), ps.toString())
+                ),
 
                 DynamicTest.dynamicTest(pf + "equals same method → true", () -> {
                     var copy = new ParameterSet(M_STR);
@@ -384,7 +386,8 @@ public class ParameterSetTest {
                 }),
 
                 DynamicTest.dynamicTest(pf + "equals different method → false", () ->
-                        Assertions.assertNotEquals(ps, ps2)),
+                        Assertions.assertNotEquals(ps, ps2)
+                ),
 
                 DynamicTest.dynamicTest(pf + "hashCode same method → equal", () -> {
                     var copy = new ParameterSet(M_STR);
@@ -392,10 +395,12 @@ public class ParameterSetTest {
                 }),
 
                 DynamicTest.dynamicTest(pf + "equals null → false", () ->
-                        Assertions.assertFalse(ps.equals(null))),
+                        Assertions.assertFalse(ps.equals(null))
+                ),
 
                 DynamicTest.dynamicTest(pf + "equals unrelated type → false", () ->
-                        Assertions.assertFalse(ps.equals("x")))
+                        Assertions.assertFalse(ps.equals("x"))
+                )
         );
     }
 
@@ -522,16 +527,36 @@ public class ParameterSetTest {
         var pf = "[testNulls] ";
         return Stream.of(
                 DynamicTest.dynamicTest(pf + "new ParameterSet(null) → @NonNull violation", () ->
-                        ForTests.testNull("method", () -> new ParameterSet(null))),
+                        ForTests.testNull("method", () -> new ParameterSet(null))
+                ),
 
                 DynamicTest.dynamicTest(pf + "withValues(null array) → @NonNull violation", () ->
-                        ForTests.testNull("args", () -> new ParameterSet(M_STR).withValues((Object[]) null))),
+                        ForTests.testNull("args", () -> new ParameterSet(M_STR).withValues((Object[]) null))
+                ),
 
                 DynamicTest.dynamicTest(pf + "accept(null receiver) → @NonNull violation", () ->
-                        ForTests.testNull("ps", () -> new ParameterSet(M_STR).withValues("hi").accept(null))),
+                        ForTests.testNull("ps", () -> new ParameterSet(M_STR).withValues("hi").accept(null))
+                ),
 
                 DynamicTest.dynamicTest(pf + "ParameterReceiver.forMethod(null) → @NonNull violation", () ->
-                        ForTests.testNull("method", () -> ParameterReceiver.forMethod(null)))
+                        ForTests.testNull("method", () -> ParameterReceiver.forMethod(null))
+                ),
+
+                DynamicTest.dynamicTest(pf + "ParameterReceiver.receiveNull(null) → @NonNull violation [1]", () ->
+                        ForTests.testNull("name", () -> new RecordingReceiver().receiveNull(null))
+                ),
+
+                DynamicTest.dynamicTest(pf + "ParameterReceiver.receiveNull(null) → @NonNull violation [2]", () ->
+                        ForTests.testNull("name", () -> new MockNps("x").receiver().receiveNull(null))
+                ),
+
+                DynamicTest.dynamicTest(pf + "ParameterReceiver.receiveNull(null, Class) → @NonNull violation", () ->
+                        ForTests.testNull("name", () -> new MockNps("x").receiver().receiveNull(null, String.class))
+                ),
+
+                DynamicTest.dynamicTest(pf + "ParameterReceiver.receiveNull(String, null) → @NonNull violation", () ->
+                        ForTests.testNull("type", () -> new MockNps("x").receiver().receiveNull("x", null))
+                )
         );
     }
 }

@@ -1,3 +1,6 @@
+import module java.sql;
+import module ninja.javahacker.annotimpler.sql;
+
 /// The Annotimpler SQL module — annotation-driven DAO generation over JDBC.
 ///
 /// This module provides the infrastructure to turn annotated Java interfaces into fully
@@ -17,10 +20,6 @@
 /// | [ninja.javahacker.annotimpler.sql.meta] | SQL loading, parameter binding, and factory-resolution infrastructure. |
 /// | [ninja.javahacker.annotimpler.sql.jdbcstmt] | Named-parameter statements, type-aware result sets, and operation executors. |
 /// | [ninja.javahacker.annotimpler.limited] | Stream wrappers that enforce a maximum byte/character read limit. |
-
-import module java.sql;
-import module ninja.javahacker.annotimpler.sql;
-
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })

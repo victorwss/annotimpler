@@ -42,7 +42,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
                 acceptors.add(each.handle(value));
             }
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps); // Check recognized by lombok.
+                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
                 for (var each : acceptors) {
                     each.accept(ps);
                 }
@@ -93,16 +93,17 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         checkNotNull(name); // Check recognized by lombok.
 
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
-            if (value != null && !k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
+            if (value == null) {
+                return (@NonNull ParameterReceiver ps) -> {
+                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
+                    ps.receiveNull(name, int.class);
+                };
+            }
             if (!k.isInstance(value)) throw new ParameterReceiver.IllegalValueException();
             var value2 = (Enum<?>) value;
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps); // Check recognized by lombok.
-                if (value2 == null) {
-                    ps.receiveNull(name, int.class);
-                } else {
-                    ps.receive(name, value2.ordinal());
-                }
+                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
+                ps.receive(name, value2.ordinal());
             };
         };
         return new ParameterSetStrategy(h, List.of(name));
@@ -143,7 +144,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
             if (!pred.test(value)) throw new ParameterReceiver.IllegalValueException();
             var value2 = WrapperClass.wrap(k).cast(value);
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps); // Check recognized by lombok.
+                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
                 if (value2 == null) {
                     ps.receiveNull(name, k);
                 } else {
