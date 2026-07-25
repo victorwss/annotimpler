@@ -1101,7 +1101,7 @@ public interface NamedParameterStatement extends PreparedStatement, ParameterRec
     /// @throws IllegalArgumentException If `name` is `null` or is not found in this statement.
     /// @throws SQLException If a database access error occurs, if this method is called on a closed statement,
     ///         or if `x` is non-null and `name` maps to more than one positional index.
-    /// @deprecated Use [#setCharacterStream(String, InputStream, int)]
+    /// @deprecated Use [#setCharacterStream(String, Reader, int)]
     @Deprecated
     public default void setUnicodeStream(@NonNull String name, @Nullable InputStream x, int length) throws SQLException {
         var all = getIndexes(name);
