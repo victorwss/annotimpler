@@ -6,12 +6,15 @@ import lombok.experimental.PackagePrivate;
 
 import module java.base;
 
+/// Internal serializable surrogate for supported `Type` implementations.
 @PackagePrivate
 sealed interface SerializableType extends Serializable permits ClassSer, ParameterizedTypeSer, WildcardTypeSer, GenericArrayTypeSer {
 
+    /// Reconstructs the original `Type`.
     @NonNull
     public Type toType();
 
+    /// Converts a supported `Type` into its serializable surrogate form.
     @NonNull
     public static SerializableType from(@NonNull Type type) {
         return switch (type) {
@@ -43,7 +46,7 @@ sealed interface SerializableType extends Serializable permits ClassSer, Paramet
                     new GenericArrayTypeSer(from(g.getGenericComponentType()));
 
             default ->
-                    throw new AssertionError("Unsupported Type: " + type.getClass());
+                    throw new UnsupportedOperationException("Unsupported Type: " + type.getClass());
         };
     }
 }
@@ -57,7 +60,7 @@ record ClassSer(@NonNull Class<?> clazz) implements SerializableType {
 }
 
 @PackagePrivate
-record ParameterizedTypeSer(@NonNull SerializableType raw, @NonNull SerializableType[] args, @NonNull SerializableType owner)
+record ParameterizedTypeSer(@NonNull SerializableType raw, @NonNull SerializableType[] args, @Nullable SerializableType owner)
         implements SerializableType
 {
 

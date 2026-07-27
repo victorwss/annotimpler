@@ -1,3 +1,5 @@
+/// Serializes supported `java.lang.reflect.Type` implementations by converting them
+/// into immutable, serializable surrogates and reconstructing them on demand.
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })

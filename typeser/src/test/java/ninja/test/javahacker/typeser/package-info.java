@@ -1,0 +1,1 @@
+package ninja.test.javahacker.typeser;
