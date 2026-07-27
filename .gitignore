@@ -1,6 +1,7 @@
 /build
 /magicfactory/build
 /datetime/build
+/typeser/build
 /convert/build
 /core/build
 /sql/build

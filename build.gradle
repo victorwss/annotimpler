@@ -612,9 +612,26 @@ ${rows.isEmpty() ? "<p>No issues found. ✓</p>" : "<table><tr>${thead}</tr>\n${
 </body></html>"""
 }
 
+project(":typeser") {
+    def moduleName = "ninja.javahacker.typeser"
+    description = "Type Serialization"
+
+    jar {
+        archiveBaseName = "annotimpler.typeser"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+    }
+
+    compileJava {
+        dependsOn(":typeser:delombok")
+    }
+}
+
 project(":datetime") {
-    def moduleName = "ninja.javahacker.annotimpler.datetime"
-    description = "Annotimpler Dates and Times"
+    def moduleName = "ninja.javahacker.datetime"
+    description = "Dates and Times"
 
     jar {
         archiveBaseName = "annotimpler.datetime"

@@ -9,7 +9,7 @@ No Gradle wrapper is checked in — use a system `gradle` install. Java 25 or ne
 - Full build (compile + test + delombok + javadoc + all quality tools + publish to `.maven-repo`):
   `gradle clean fullBuild --continue` (this is what `build.bat` runs, with `--warning-mode all --stacktrace` and Windows UTF-8 codepage).
 - Compile only: `gradle compileJava` (or `gradle :sql:compileJava` for one module).
-- Run all tests for one module: `gradle :sql:test` (module names: `magicfactory`, `datetime`, `convert`, `core`, `sql`).
+- Run all tests for one module: `gradle :sql:test` (module names: `magicfactory`, `datetime`, `typeser`, `convert`, `core`, `sql`).
 - Run a single test class: `gradle :sql:test --tests "ninja.javahacker.test.annotimpler.sql.jdbcstmt.SqlWorkerTest"`.
 - Run a single test method: `gradle :sql:test --tests "ninja.javahacker.test.annotimpler.sql.jdbcstmt.SqlWorkerTest.methodName"`.
 - `test.ignoreFailures = true` is set project-wide, so `gradle test` always exits 0 — check the printed test summary / XML reports under `<module>/build/test-results`, not the exit code.
@@ -27,6 +27,7 @@ However, this Gradle mechanism is not a hard requirement and you (or the user) a
 Dependency graph (each module is also a JPMS module, their names are below):
 
 ```
+typeser      - ninja.javahacker.typeser                   (no deps) – handles serialization of the Type interface.
 datetime     - ninja.javahacker.datetime                  (no deps) – flexible java.time parsing/formatting (MultiFormatters).
 magicfactory - ninja.javahacker.annotimpler.magicfactory  (no deps) – reflective instance creation ("MagicFactory").
 core         - ninja.javahacker.annotimpler.core          -> magicfactory – annotation-driven interface proxy framework.
@@ -41,7 +42,7 @@ in the corresponding `project(":...")` block, or builds may use stale jars.
 Modules are named `ninja.javahacker.annotimpler.<name>` when they are part of the same tool that implements Java interfaces based on annotations
 (the "Annotimpler" itself) and its specialization that binds that to JDBC (the `sql` module). Although they might be eventually useful independently.
 
-However, the `datetime` package is outside of `annotimpler` because it is also clearly useful as an independent tool.
+However, the `datetime` and `typeser` packages are outside of `annotimpler` because they are also clearly useful as independent tools.
 Other modules like `magicfactory` or `convert` are being considered to live as independent tools in the future, but not for now, not yet.
 
 ### `core` module — the annotation-implementation pattern
@@ -81,8 +82,9 @@ This is the central architectural idea, spread across several files in `core`:
   e.g. `sql`'s tests are `ninja.javahacker.test.annotimpler.sql.*` plus shared test helpers directly in `ninja.javahacker.test` (`ForTests`, `ControlledMock`, `Sneaky`).
   This is done on purpose because we want to draw a bold line telling apart test code and production code,
   we really hate splitting packages among different modules,
-  we hate module-patching hacks and
-  we want to be strictly compliant and heavily resilient under the severe restrictions imposed by JPMS modules.
+  we hate module-patching hacks,
+  we strongly reject the common practice of putting tests in the same packages as production code labeling this as a bad practice
+  and we want to be strictly compliant and heavily resilient under the severe restrictions imposed by JPMS modules.
 - Lombok is used pervasively (`@NonNull` generates `IllegalArgumentException`, not `NPE` — see `lombok.config`).
   `lombok.val`/`@Cleanup`/`@Helper` are disabled (`flagUsage = error`).
   Fields default to non-final, non-private unless annotated.
@@ -170,7 +172,7 @@ Remember that test code, contrarily to production code, sometimes do weird, dang
 - Module imports are preferred over traditional-style imports.
 - Don't ever use static imports.
 - Don't ever use star imports.
-- The main exceptions for module imports are when there is an ambiguity in imported classes or when PMD's bug #6867 is triggered.
+- The main exceptions for module imports are when there is an ambiguity in imported classes or when PMD's bug #6867 is triggered or when Lombok's bug #3969 is triggered.
 
 ### Dependencies
 
@@ -192,3 +194,6 @@ Remember that test code, contrarily to production code, sometimes do weird, dang
   The only modification is including the code on Lombok's Pull Request #3392, recompiling it manually and adding the newly-generated JAR (version 1.18.47) into the `libs` source.
   This hack is needed because delombok goes nuts when seeing multirelease modular JARs on modulepath, but Lombok's developers still did not integrate the already long-time available fix for some reason.
   We would love to see the fix integrated into an official Lombok version.
+- Lombok's bug #3969 makes `import module lombok;` not working, because Lombok has to look into the source code to detect its own insertion and this part is not done yet for module imports.
+  This becomes even worse if Lombok is imported only via transitive module dependencies lacking any explicit import in the source-code at all.
+  Hence, always use traditional-style imports for Lombok (e.g. `import lombok.NonNull;`).
