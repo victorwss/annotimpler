@@ -385,7 +385,20 @@ tasks.register("allJavadoc") {
             moduleNames << moduleName
             // Place each module's source under <mergedSrcDir>/<moduleName>/ so that
             // javadoc --module-source-path <mergedSrcDir> can find them by module name.
-            project.copy { from srcDir; into new File(mergedSrcDir, moduleName) }
+            // A plain java.nio.file copy is used here (instead of project.copy) because this
+            // block runs at task execution time, where Task.project is deprecated since Gradle 9.
+            def moduleDestDir = new File(mergedSrcDir, moduleName)
+            def srcPath  = srcDir.toPath()
+            def destPath = moduleDestDir.toPath()
+            java.nio.file.Files.walk(srcPath).forEach { path ->
+                def targetPath = destPath.resolve(srcPath.relativize(path))
+                if (java.nio.file.Files.isDirectory(path)) {
+                    java.nio.file.Files.createDirectories(targetPath)
+                } else {
+                    java.nio.file.Files.createDirectories(targetPath.getParent())
+                    java.nio.file.Files.copy(path, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
             try {
                 allModulePaths.addAll(sp.configurations.compileClasspath.files)
             } catch (Exception ignored) {
