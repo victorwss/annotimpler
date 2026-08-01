@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
+import module ninja.javahacker.typeser;
 import module java.base;
 
 /// Thrown when no [Converter] is available for a requested [Type].
@@ -17,7 +18,7 @@ public class UnavailableConverterException extends Exception {
 
     /// The type for which no converter is available.
     @NonNull
-    private final Type root;
+    private final TypeRef root;
 
     /// Constructs an [UnavailableConverterException] with the given message and root type.
     ///
@@ -27,7 +28,7 @@ public class UnavailableConverterException extends Exception {
     public UnavailableConverterException(@NonNull String message, @NonNull Type root) {
         List.of(message, root); // Force lombok to put the null-checks before the constructor call.
         super(message);
-        this.root = root;
+        this.root = TypeRef.wrap(root);
     }
 
     /// Constructs an [UnavailableConverterException] with the given message, cause, and root type.
@@ -39,7 +40,7 @@ public class UnavailableConverterException extends Exception {
     public UnavailableConverterException(@NonNull String message, @NonNull Throwable cause, @NonNull Type root) {
         List.of(message, cause, root); // Force lombok to put the null-checks before the constructor call.
         super(message, cause);
-        this.root = root;
+        this.root = TypeRef.wrap(root);
     }
 
     /// Creates an [UnavailableConverterException] with an appropriate message for the given type.
@@ -63,7 +64,7 @@ public class UnavailableConverterException extends Exception {
     /// @return The root [Type] that could not be mapped to a converter.
     @NonNull
     public Type getRoot() {
-        return root;
+        return root.type();
     }
 
     /// Disabled. Should not be used. Does nothing.

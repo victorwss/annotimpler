@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 
@@ -27,6 +28,7 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// Any other return type (including raw `List`, `List<String>`, or arbitrary types) causes
 /// [BadImplementationException] to be thrown at preparation time.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum GenerateSqlImplementation implements Implementation {
     /// Sole instance.
     INSTANCE;
@@ -50,6 +52,7 @@ public enum GenerateSqlImplementation implements Implementation {
     }
 
     @NonNull
+    @SuppressWarnings("PMD.CyclomaticComplexity") // It is ok and simple enough. No need to complain.
     private static SpecialFunc selectOperation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
 

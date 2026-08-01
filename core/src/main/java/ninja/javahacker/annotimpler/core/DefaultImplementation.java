@@ -33,7 +33,7 @@ public final class DefaultImplementation {
     /// @return The proxy hash code.
     /// @throws IllegalArgumentException If `instance` or `args` is `null`;
     ///         if `instance` is not a proxy; or if `args` is not an empty array.
-    private static <E> int hashCode(@NonNull E instance, @NonNull Object... args) {
+    private static <E> int hashCodeImpl(@NonNull E instance, @NonNull Object... args) {
         if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
         if (!Proxy.isProxyClass(instance.getClass())) throw new IllegalArgumentException(NOT_PROXY);
         return System.identityHashCode(instance);
@@ -48,7 +48,11 @@ public final class DefaultImplementation {
     /// @return If the first element in `args` is the same as the `instance`.
     /// @throws IllegalArgumentException If `instance` or `args` is `null`;
     ///         if `instance` is not a proxy; or if `args` is not an array of length 1.
-    private static <E> boolean equals(@NonNull E instance, @NonNull Object... args) {
+    @SuppressWarnings(
+            // Using equals in the implementation of equals itself would not make sense and would lead to StackOverflowError.
+            "PMD.CompareObjectsWithEquals"
+    )
+    private static <E> boolean equalsImpl(@NonNull E instance, @NonNull Object... args) {
         if (args.length != 1) throw new IllegalArgumentException(BAD_ARITY);
         if (!Proxy.isProxyClass(instance.getClass())) throw new IllegalArgumentException(NOT_PROXY);
         return args[0] == instance;
@@ -63,7 +67,7 @@ public final class DefaultImplementation {
     ///         if `instance` is not a proxy; or if `args` is not an empty array.
     /// @throws CloneNotSupportedException Always.
     @NonNull
-    private static <E> Object clone(@NonNull E instance, @NonNull Object... args) throws CloneNotSupportedException {
+    private static <E> Object cloneImpl(@NonNull E instance, @NonNull Object... args) throws CloneNotSupportedException {
         if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
         if (!Proxy.isProxyClass(instance.getClass())) throw new IllegalArgumentException(NOT_PROXY);
         throw new CloneNotSupportedException();
@@ -77,7 +81,7 @@ public final class DefaultImplementation {
     /// @throws IllegalArgumentException If `instance` or `args` is `null`;
     ///         if `instance` is not a proxy; or if `args` is not an empty array.
     @Nullable
-    private static <E> Void finalize(@NonNull E instance, @NonNull Object... args) {
+    private static <E> Void finalizeImpl(@NonNull E instance, @NonNull Object... args) {
         if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
         if (!Proxy.isProxyClass(instance.getClass())) throw new IllegalArgumentException(NOT_PROXY);
         return null;
@@ -112,7 +116,7 @@ public final class DefaultImplementation {
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#equals].
     public static <E> CallContext<E> forEquals() {
-        return DefaultImplementation::equals;
+        return DefaultImplementation::equalsImpl;
     }
 
     /// Returns a [CallContext] that implements [Object#hashCode] using [System#identityHashCode].
@@ -120,7 +124,7 @@ public final class DefaultImplementation {
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#hashCode].
     public static <E> CallContext<E> forHashCode() {
-        return DefaultImplementation::hashCode;
+        return DefaultImplementation::hashCodeImpl;
     }
 
     /// Returns a [CallContext] that implements [Object#clone] by throwing [CloneNotSupportedException].
@@ -128,7 +132,7 @@ public final class DefaultImplementation {
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#clone].
     public static <E> CallContext<E> forClone() {
-        return DefaultImplementation::clone;
+        return DefaultImplementation::cloneImpl;
     }
 
     /// Returns a [CallContext] that implements [Object#finalize] by doing nothing.
@@ -136,6 +140,6 @@ public final class DefaultImplementation {
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#finalize].
     public static <E> CallContext<E> forFinalize() {
-        return DefaultImplementation::finalize;
+        return DefaultImplementation::finalizeImpl;
     }
 }

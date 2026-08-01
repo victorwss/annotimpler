@@ -191,22 +191,7 @@ public interface MethodWrapper<E, U> {
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, Method> of(@NonNull Method what) {
-        var params = List.of(what.getParameters());
-        var types = List.of(what.getGenericParameterTypes());
-        var rt = what.getGenericReturnType();
-        var str = "method " + NameDictionary.global().getSimplifiedGenericString(what, false);
-        var stt = Modifier.isStatic(what.getModifiers());
-        var abs = Modifier.isAbstract(what.getModifiers());
-        var pub = Modifier.isPublic(what.getModifiers());
-        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
-        SimpleMethodWrapper.Invoker<E> icall = args -> {
-            var inst = args[0];
-            var nargs = new Object[args.length - 1];
-            System.arraycopy(args, 1, nargs, 0, nargs.length);
-            return (E) what.invoke(inst, nargs);
-        };
-        SimpleMethodWrapper.Invoker<E> scall = args -> (E) what.invoke(null, args);
-        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
+        return SimpleMethodWrapper.of(what);
     }
 
     /// Creates a wrapper for the given [Constructor].
@@ -217,14 +202,7 @@ public interface MethodWrapper<E, U> {
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> MethodWrapper<E, Constructor<E>> of(@NonNull Constructor<E> what) {
-        var params = List.of(what.getParameters());
-        var types = List.of(what.getGenericParameterTypes());
-        var rt = what.getDeclaringClass();
-        var str = "constructor " + NameDictionary.global().getSimplifiedGenericString(what, false);
-        var pub = Modifier.isPublic(what.getModifiers());
-        var abs = Modifier.isAbstract(what.getDeclaringClass().getModifiers());
-        SimpleMethodWrapper.Invoker<E> call = what::newInstance;
-        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, true, abs, pub, call, what::getAnnotation);
+        return SimpleMethodWrapper.of(what);
     }
 
     /// Creates a wrapper for the given [Executable], dispatching to [#of(Method)] or
@@ -256,18 +234,7 @@ public interface MethodWrapper<E, U> {
     @NonNull
     @SuppressWarnings("unchecked")
     public static <E> MethodWrapper<E, Field> getter(@NonNull Field what) {
-        var params = SimpleMethodWrapper.EMPTY1;
-        var types = SimpleMethodWrapper.EMPTY2;
-        var rt = what.getGenericType();
-        var str = "field " + NameDictionary.global().getSimplifiedGenericString(what, false);
-        var stt = Modifier.isStatic(what.getModifiers());
-        var pub = Modifier.isPublic(what.getModifiers());
-        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
-        SimpleMethodWrapper.Invoker<E> call = args -> {
-            assertEquals(args.length, stt ? 0 : 1);
-            return (E) what.get(stt ? null : args[0]);
-        };
-        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, false, pub, call, what::getAnnotation);
+        return SimpleMethodWrapper.getter(what);
     }
 
     /// Creates a no-argument constant wrapper that always returns `what`.
@@ -281,20 +248,6 @@ public interface MethodWrapper<E, U> {
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> MethodWrapper<E, E> value(@NonNull E what) {
-        var params = SimpleMethodWrapper.EMPTY1;
-        var types = SimpleMethodWrapper.EMPTY2;
-        var ann = SimpleMethodWrapper.NULL_ANNOTATOR;
-        var rt = what.getClass();
-        var str = String.valueOf(what);
-        SimpleMethodWrapper.Invoker<E> call = args -> {
-            assertEquals(args.length, 0);
-            return what;
-        };
-        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, false, true, false, true, call, ann);
-    }
-
-    @Generated
-    private static void assertEquals(int a, int b) {
-        if (a != b) throw new AssertionError();
+        return SimpleMethodWrapper.value(what);
     }
 }

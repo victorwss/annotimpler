@@ -5,13 +5,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.sql;
 
-/// The [ninja.javahacker.annotimpler.core.KeyProperty] singleton for [ConnectionFactory].
+/// The [KeyProperty] singleton for [ConnectionFactory].
 ///
 /// Use this enum constant as a key when storing or retrieving the [ConnectionFactory]
-/// instance in a [ninja.javahacker.annotimpler.core.PropertyBag].
+/// instance in a [PropertyBag].
 ///
-/// @see ninja.javahacker.annotimpler.core.PropertyBag
-/// @see ninja.javahacker.annotimpler.core.KeyProperty
+/// @see PropertyBag
+/// @see KeyProperty
 @SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum ConnectionFactoryKeyProperty implements KeyProperty<ConnectionFactory> {
 

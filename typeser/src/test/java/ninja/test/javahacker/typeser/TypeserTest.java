@@ -1,6 +1,8 @@
 package ninja.test.javahacker.typeser;
 
 import ninja.javahacker.typeser.TypeRef;
+import ninja.test.ForTests;
+
 import module java.base;
 import module org.junit.jupiter.api;
 
@@ -65,27 +67,47 @@ public class TypeserTest {
                 }));
     }
 
-    // ── Tests: unsupported TypeVariable → AssertionError ─────────────────────
+    // ── Tests: TypeVariable support ───────────────────────────────────────────
 
-    @Test
-    public void testTypeVariableThrows() {
-        // List<E>'s type parameter E is a TypeVariable — must not be serialised.
-        var typeVar = List.class.getTypeParameters()[0];
-        Assertions.assertThrows(UnsupportedOperationException.class, () -> TypeRef.wrap(typeVar));
+    private static <T> T genericMethod(T arg) {
+        return arg;
+    }
+
+    private static final class GenericConstructor {
+        private <C> GenericConstructor(C arg) {
+        }
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testTypeVariable() throws Exception {
+        var pf = "[testTypeVariable] ";
+        var classVar = List.class.getTypeParameters()[0];
+        var methodVar = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        var constructorVar = GenericConstructor.class.getDeclaredConstructors()[0].getTypeParameters()[0];
+        return Stream.of(classVar, methodVar, constructorVar)
+                .map(typeVar -> DynamicTest.dynamicTest(pf + typeVar.getGenericDeclaration(), () -> {
+                    Assertions.assertEquals(typeVar, TypeRef.wrap(typeVar).type());
+                    Assertions.assertEquals(typeVar, roundTrip(typeVar));
+                }));
     }
 
     // ── Tests: @NonNull violations → IllegalArgumentException ───────────────
 
-    @Test
-    @SuppressWarnings("null")
-    public void testNulls() throws Exception {
-        // new TypeRef(null) calls SerializableType.from(null) which carries @NonNull.
-        Assertions.assertThrows(IllegalArgumentException.class, () -> new TypeRef(null));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(null));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.read(null));
-        Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.write(null, String.class));
+    @TestFactory
+    public Stream<DynamicTest> testNulls() throws Exception {
+        var pf = "[testNulls] ";
         var out = new ObjectOutputStream(new ByteArrayOutputStream());
-        Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.write(out, null));
+        return Stream.of(
+            DynamicTest.dynamicTest(pf + "a", () -> ForTests.testNull("type", () -> new TypeRef(null))),
+            DynamicTest.dynamicTest(pf + "b", () -> ForTests.testNull("type", () -> TypeRef.wrap(null))),
+            DynamicTest.dynamicTest(pf + "c", () -> ForTests.testNull("in", () -> TypeRef.read(null))),
+            DynamicTest.dynamicTest(pf + "d", () -> ForTests.testNull("out", () -> TypeRef.write(null, String.class))),
+            DynamicTest.dynamicTest(pf + "e", () -> ForTests.testNull("type", () -> TypeRef.write(out, null)))
+        );
     }
 }
 

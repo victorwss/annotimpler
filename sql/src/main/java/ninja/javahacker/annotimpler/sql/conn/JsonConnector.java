@@ -143,6 +143,7 @@ public final class JsonConnector implements Connector {
 
         /// Sole constructor.
         public Deserializer() {
+            super();
         }
 
         /// {@inheritDoc}
@@ -169,6 +170,7 @@ public final class JsonConnector implements Connector {
 
         /// Sole constructor.
         public Serializer() {
+            super();
         }
 
         /// {@inheritDoc}

@@ -266,7 +266,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws UnavailableConverterException If no converter is available for the element type.
     /// @throws IllegalArgumentException If `klass` is `null`.
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UseDiamondOperator"})
     public default <E> Optional<? extends Converter<E>> makeArray(@NonNull Class<E> klass) throws UnavailableConverterException {
         if (!klass.isArray()) return Optional.empty();
         var arg = klass.getComponentType();
@@ -333,7 +333,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws UnavailableConverterException If converter creation fails.
     /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UseDiamondOperator"})
     public default Optional<? extends Converter<? extends Collection<?>>> makeCollection(@NonNull ParameterizedType p)
             throws UnavailableConverterException
     {
@@ -354,7 +354,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws UnavailableConverterException If converter creation fails.
     /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UseDiamondOperator"})
     public default Optional<? extends Converter<? extends Set<?>>> makeSet(@NonNull ParameterizedType p)
             throws UnavailableConverterException
     {
@@ -375,7 +375,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws UnavailableConverterException If converter creation fails.
     /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UseDiamondOperator"})
     public default Optional<? extends Converter<? extends List<?>>> makeList(@NonNull ParameterizedType p)
             throws UnavailableConverterException
     {
@@ -396,7 +396,7 @@ public interface StdConverterFactory extends ConverterFactory {
     /// @throws UnavailableConverterException If converter creation fails.
     /// @throws IllegalArgumentException If `p` is `null`.
     @NonNull
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked", "rawtypes", "PMD.UseDiamondOperator"})
     public default Optional<? extends Converter<? extends Optional<?>>> makeOptional(@NonNull ParameterizedType p)
             throws UnavailableConverterException
     {

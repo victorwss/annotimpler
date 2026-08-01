@@ -34,6 +34,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Wildcard type parameters (`Optional<?>`, `List<?>`) are rejected at preparation time.
 /// When `fields` contains more than one index, `T` must be a record and the number of indices
 /// must exactly match the number of record components.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum QuerySqlImplementation implements Implementation {
     /// Sole instance.
     INSTANCE;
@@ -58,6 +59,7 @@ public enum QuerySqlImplementation implements Implementation {
 
     @NonNull
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
+    @SuppressWarnings("PMD.CyclomaticComplexity") // Although this is not simple enough, it is still ok and there is no need to complain.
     private static SpecialFunc selectOperation(@NonNull Method m, @NonNull QuerySql q) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
         checkNotNull(q); // Check recognized by lombok.

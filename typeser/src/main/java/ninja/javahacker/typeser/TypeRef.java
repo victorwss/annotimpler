@@ -13,13 +13,15 @@ public final class TypeRef implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /// A surrogate wrapper for the real type implementation.
     @NonNull
     private final SerializableType proxy;
 
     /// Creates a new wrapper for `type`.
     ///
     /// @param type the type to wrap; must not be `null`.
-    public TypeRef(Type type) {
+    /// @throws IllegalArgumentException If `type` is `null`.
+    public TypeRef(@NonNull Type type) {
         this.proxy = SerializableType.from(type);
     }
 
@@ -35,6 +37,7 @@ public final class TypeRef implements Serializable {
     ///
     /// @param type the type to wrap; must not be `null`.
     /// @return a wrapper that can later reconstruct the same type.
+    /// @throws IllegalArgumentException If `type` is `null`.
     @NonNull
     public static TypeRef wrap(@NonNull Type type) {
         return new TypeRef(type);
@@ -45,6 +48,7 @@ public final class TypeRef implements Serializable {
     /// @param out the destination stream; must not be `null`.
     /// @param type the type to serialize; must not be `null`.
     /// @throws IOException if the stream cannot be written.
+    /// @throws IllegalArgumentException If any of `out` or `type` are `null`.
     public static void write(@NonNull ObjectOutput out, @NonNull Type type) throws IOException {
         out.writeObject(new TypeRef(type));
     }
@@ -55,6 +59,7 @@ public final class TypeRef implements Serializable {
     /// @return the reconstructed type; never `null`.
     /// @throws IOException if the stream cannot be read.
     /// @throws ClassNotFoundException if the stream does not contain a `TypeRef`.
+    /// @throws IllegalArgumentException If `in` is `null`.
     @NonNull
     public static Type read(@NonNull ObjectInput in) throws IOException, ClassNotFoundException {
         return ((TypeRef) in.readObject()).type();

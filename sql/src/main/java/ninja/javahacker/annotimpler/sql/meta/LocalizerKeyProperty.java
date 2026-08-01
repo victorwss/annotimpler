@@ -5,10 +5,10 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 
-/// The [ninja.javahacker.annotimpler.core.KeyProperty] singleton for [Locale].
+/// The [KeyProperty] singleton for [Locale].
 ///
 /// Use this enum constant as a key when storing or retrieving the [Locale]
-/// (localizer) instance in a [ninja.javahacker.annotimpler.core.PropertyBag].
+/// (localizer) instance in a [PropertyBag].
 ///
 /// @see PropertyBag
 /// @see KeyProperty

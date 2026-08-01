@@ -33,8 +33,7 @@ import java.util.OptionalInt;
 import java.util.OptionalLong;
 import lombok.Generated;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.sql.meta.ParameterReceiver;
-import ninja.javahacker.annotimpler.sql.meta.ParsedQuery;
+import module ninja.javahacker.annotimpler.sql;
 
 /// A [PreparedStatement] extension that supports named parameters in SQL queries.
 ///

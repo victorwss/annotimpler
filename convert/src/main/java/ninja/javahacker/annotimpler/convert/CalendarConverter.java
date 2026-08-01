@@ -1,10 +1,10 @@
 package ninja.javahacker.annotimpler.convert;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.convert;
 
 /// A [Converter] for `java.util.Calendar` values.
 ///

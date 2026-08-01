@@ -125,7 +125,7 @@ public enum MultiFormatters {
             var dateSeparatorPlain = dot ? '.' : slash ? '/' : '-';
             var format1 = (ymd ? "yyyy'-'MM'-'dd" : dmy ? "dd'-'MM'-'yyyy" : "MM'-'dd'-'yyyy").replace('-', dateSeparatorPlain);
             var format2 = format1 + "' 'HH':'mm':'ss'.'SSSSSSSSS";
-            var format3 = format1 + "' 'HH':'mm':'ss'.'SSSSSSSSS' 'xxxxx";
+            var format3 = format2 + "' 'xxxxx";
             this.formatterDate = DateTimeFormatter.ofPattern(format1).withResolverStyle(ResolverStyle.STRICT);
             this.formatterDateTime = DateTimeFormatter.ofPattern(format2).withResolverStyle(ResolverStyle.STRICT);
             this.formatterDateTimeZone = DateTimeFormatter.ofPattern(format3).withResolverStyle(ResolverStyle.STRICT);
@@ -235,7 +235,6 @@ public enum MultiFormatters {
     /// @throws DateTimeParseException If the input cannot be parsed according to this format.
     /// @throws IllegalArgumentException If `input` is `null`.
     @NonNull
-    @SuppressWarnings("PMD.EmptyCatchBlock")
     public OffsetTime parseOffsetTime(@NonNull String input) throws DateTimeParseException {
         return parser.timeZone(input);
     }

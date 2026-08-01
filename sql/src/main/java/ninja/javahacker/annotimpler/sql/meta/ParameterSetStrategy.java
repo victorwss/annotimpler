@@ -8,10 +8,45 @@ import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.sql;
 
+/// A [ParameterReceiver.NamedAcceptor1] that delegates binding to a wrapped [ParameterReceiver.Acceptor1]
+/// while also exposing the ordered list of SQL parameter names that it manages.
+///
+/// Instances are not constructed directly. Instead, the various private static `for*` and `make*`
+/// factory methods introspect a method parameter, record component or supported type and build up
+/// a [ParameterSetStrategy] (possibly composed from other, nested strategies), culminating in the
+/// public entry point [#makeStrategy(Method)], which builds the complete parameter-binding strategy
+/// for an annotated interface method.
+///
+/// @see ParameterReceiver#forMethod
 @PackagePrivate
-record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull List<String> paramNames)
-        implements ParameterReceiver.NamedAcceptor1
-{
+final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
+
+    /// The object that handles the actual implementation.
+    @NonNull
+    private final ParameterReceiver.Acceptor1 h;
+
+    /// The ordered list of SQL parameter names managed by this acceptor.
+    @NonNull
+    private final List<String> paramNames;
+
+    /// Creates a new instance wrapping the given delegate and parameter names.
+    ///
+    /// @param h The object that handles the actual implementation; must not be `null`.
+    /// @param paramNames The ordered list of SQL parameter names managed by this acceptor; must not be `null`.
+    /// @throws IllegalArgumentException If `h` or `paramNames` is `null`.
+    private ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull List<String> paramNames) {
+        checkNotNull(h); // Check recognized by lombok.
+        checkNotNull(paramNames); // Check recognized by lombok.
+        this.h = h;
+        this.paramNames = paramNames;
+    }
+
+    /// {@inheritDoc}
+    @Override
+    @SuppressWarnings("ReturnOfCollectionOrArrayField") // Known to always be immutable.
+    public List<String> paramNames() {
+        return paramNames;
+    }
 
     /// {@inheritDoc}
     @Override
@@ -95,7 +130,7 @@ record ParameterSetStrategy(@NonNull ParameterReceiver.Acceptor1 h, @NonNull Lis
         ParameterReceiver.Acceptor1 h = (@Nullable Object value) -> {
             if (value == null) {
                 return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
+                    checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
                     ps.receiveNull(name, int.class);
                 };
             }

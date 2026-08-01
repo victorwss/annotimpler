@@ -121,9 +121,7 @@ public interface CharsetSpec {
         ///
         /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
         @Deprecated
-        @SuppressWarnings({
-            "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration", "PMD.EmptyFinalizer", "checkstyle:NoFinalizer"
-        })
+        @SuppressWarnings({"all", "removal"})
         protected final void finalize() {
         }
     }
@@ -141,7 +139,7 @@ public interface CharsetSpec {
         try {
             var cb = cs.newDecoder().onUnmappableCharacter(CodingErrorAction.REPORT).decode(buf);
             return new String(cb.array(), 0, cb.length());
-        } catch (IOException e) {
+        } catch (CharacterCodingException e) {
             throw new IOException("String can't be coded as " + cs.displayName(Locale.ROOT) + ".", e);
         }
     }
@@ -157,7 +155,7 @@ public interface CharsetSpec {
     public static CharsetSpec instance(@NonNull Class<? extends CharsetSpec> k) throws BadCharsetSpecException {
         try {
             return MagicFactory.of(k).create();
-        } catch (Throwable e) {
+        } catch (MagicFactory.CreationException | MagicFactory.CreatorSelectionException e) {
             throw new BadCharsetSpecException(e);
         }
     }

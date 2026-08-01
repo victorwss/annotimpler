@@ -136,11 +136,11 @@ public final class SmartResultSet implements ResultSet {
                    e) Varying in name only due to the use of Turkish/Azerbaijani dotted vs dotless I.
                    When it fails due to any of those things happening, the field is simply ommited.
                 */
-                if (!columnName.isEmpty() && !idx.containsKey(columnName)) {
+                if (columnName.isEmpty() || idx.containsKey(columnName)) {
+                    keys.add(Optional.empty());
+                } else {
                     idx.put(columnName, i);
                     keys.add(Optional.of(columnName));
-                } else {
-                    keys.add(Optional.empty());
                 }
             }
 
@@ -292,7 +292,9 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs.
     @Nullable
     @SuppressFBWarnings("CC_CYCLOMATIC_COMPLEXITY")
-    @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad", "PMD.LawOfDemeter"})
+    @SuppressWarnings({
+        "checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad", "PMD.LawOfDemeter", "PMD.CyclomaticComplexity"
+    })
     public Object getTypedValue(int columnIndex) throws SQLException {
         var columnType = metaData.getColumnType(columnIndex);
         return switch (columnType) {

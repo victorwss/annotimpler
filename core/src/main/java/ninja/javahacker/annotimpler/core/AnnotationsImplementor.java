@@ -179,6 +179,12 @@ public final class AnnotationsImplementor {
     /// @throws UnsupportedOperationException If `iface` is not an interface.
     /// @throws IllegalArgumentException If `iface` is `null`.
     @NonNull
+    @SuppressWarnings(
+            // The purpose is to populate a map containing MethodIds from the given iface, which is ok.
+            // This would be a problem only if used to stress out the garbage collector or to create thousands of objects
+            // with no state or with a state that could be represented by primitive types.
+            "PMD.AvoidInstantiatingObjectsInLoops"
+    )
     public static <E> E implement(@NonNull Class<E> iface, @Nullable PropertyBag props)
             throws BadImplementationException,
             PropertyBag.PropertyNotFoundException

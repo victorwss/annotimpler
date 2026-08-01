@@ -10,14 +10,17 @@ import module java.base;
 /// the string-based constructor (to preserve human-intended decimal values) and the binary-exact constructor
 /// (for magnitudes where every representable value is an integer anyway).
 @PackagePrivate
+@SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we always test for safe cases and use this carefully.
 final class FloatAndDouble {
 
     /// The magnitude threshold (2^24) above which every representable `float` is an integer.
-    private static final float MAX_FLOAT_WITH_INT_PRECISION = 16777216F; // 2^24
+    private static final float MAX_FLOAT_WITH_INT_PRECISION = 16_777_216F; // 2^24
 
     /// The magnitude threshold (2^53) above which every representable `double` is an integer.
-    private static final double MAX_DOUBLE_WITH_INT_PRECISION = 9007199254740992D; // 2^53
+    private static final double MAX_DOUBLE_WITH_INT_PRECISION = 9_007_199_254_740_992D; // 2^53
 
+    /// This class is not instantiable.
+    /// @throws AssertionError Always.
     @Generated
     private FloatAndDouble() {
         throw new AssertionError();
@@ -41,7 +44,6 @@ final class FloatAndDouble {
     /// @param in A finite `float` value (infinities and NaN are not accepted).
     /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
-    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(float in) {
         assertFloatOk(in);
         return normalize(Math.abs(in) >= MAX_FLOAT_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Float.toString(in)));
@@ -57,7 +59,6 @@ final class FloatAndDouble {
     /// @param in A finite `double` value (infinities and NaN are not accepted).
     /// @return The [BigDecimal] equivalent, with trailing zeros stripped.
     @NonNull
-    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(double in) {
         assertDoubleOk(in);
         return normalize(Math.abs(in) >= MAX_DOUBLE_WITH_INT_PRECISION ? new BigDecimal(in) : new BigDecimal(Double.toString(in)));
@@ -72,7 +73,6 @@ final class FloatAndDouble {
     /// @throws ConvertionException If `in` is infinite or NaN.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
-    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(float in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target); // Check recognized by lombok.
         if (in == Float.POSITIVE_INFINITY || in == Float.NEGATIVE_INFINITY || Float.isNaN(in)) {
@@ -90,7 +90,6 @@ final class FloatAndDouble {
     /// @throws ConvertionException If `in` is infinite or NaN.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
-    @SuppressWarnings("PMD.AvoidDecimalLiteralsInBigDecimalConstructor") // Because we test for safe cases.
     public static BigDecimal makeBig(double in, @NonNull Class<?> target) throws ConvertionException {
         checkNotNull(target); // Check recognized by lombok.
         if (in == Double.POSITIVE_INFINITY || in == Double.NEGATIVE_INFINITY || Double.isNaN(in)) {

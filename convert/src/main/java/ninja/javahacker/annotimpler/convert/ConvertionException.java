@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.typeser;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 /// Thrown when a value cannot be converted from its source type to the desired target type.
@@ -21,7 +22,7 @@ public class ConvertionException extends Exception {
 
     /// The target type of the failed conversion.
     @NonNull
-    private final Type out;
+    private final TypeRef out;
 
     /// Constructs a [ConvertionException] with a default message derived from the target type name.
     ///
@@ -43,7 +44,7 @@ public class ConvertionException extends Exception {
         List.of(message, in, out); // Force lombok to put the null-checks before the constructor call.
         super(message);
         this.in = in;
-        this.out = out;
+        this.out = TypeRef.wrap(out);
     }
 
     /// Constructs a [ConvertionException] with a default message, wrapping the given cause.
@@ -68,7 +69,7 @@ public class ConvertionException extends Exception {
         List.of(message, cause, in, out); // Force lombok to put the null-checks before the constructor call.
         super(message, cause);
         this.in = in;
-        this.out = out;
+        this.out = TypeRef.wrap(out);
     }
 
     /// Returns the source type that could not be converted.
@@ -84,7 +85,7 @@ public class ConvertionException extends Exception {
     /// @return The [Type] that the converter was attempting to produce.
     @NonNull
     public Type getOut() {
-        return out;
+        return out.type();
     }
 
     /// Disabled. Should not be used. Does nothing.

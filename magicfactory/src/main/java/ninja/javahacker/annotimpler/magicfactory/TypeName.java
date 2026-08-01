@@ -34,55 +34,110 @@ public final class TypeName {
     /// @throws IllegalArgumentException If any parameter is `null`.
     public static void formatType(@NonNull Type type, @NonNull Set<? extends Class<?>> fullNameNeeded, @NonNull StringBuilder sb) {
         switch (type) {
-            case Class<?> clazz -> {
-                if (clazz.isArray()) {
-                    formatType(clazz.getComponentType(), fullNameNeeded, sb);
-                    sb.append("[]");
-                } else {
-                    var c = fullNameNeeded.contains(clazz) || clazz.isAnonymousClass() || clazz.isHidden()
-                            ? clazz.getName()
-                            : clazz.getSimpleName();
-                    checkNotNull(c);
-                    sb.append(c);
-                }
-            }
-            case ParameterizedType paramType -> {
-                formatType(paramType.getRawType(), fullNameNeeded, sb);
-                sb.append('<');
-                var typeArgs = paramType.getActualTypeArguments();
-                for (var i = 0; i < typeArgs.length; i++) {
-                    if (i > 0) sb.append(", ");
-                    formatType(typeArgs[i], fullNameNeeded, sb);
-                }
-                sb.append('>');
-            }
-            case TypeVariable<?> tv -> {
-                sb.append(tv.getName());
-            }
-            case GenericArrayType arrayType -> {
-                formatType(arrayType.getGenericComponentType(), fullNameNeeded, sb);
-                sb.append("[]");
-            }
-            case WildcardType wildcardType -> {
-                sb.append('?');
-
-                var upperBounds = wildcardType.getUpperBounds();
-                var lowerBounds = wildcardType.getLowerBounds();
-                assertEquals(upperBounds.length, 1);
-                assertLE(lowerBounds.length, 1);
-
-                if (lowerBounds.length > 0) {
-                    sb.append(" super ");
-                    formatType(lowerBounds[0], fullNameNeeded, sb);
-                } else if (upperBounds[0] != Object.class) {
-                    sb.append(" extends ");
-                    formatType(upperBounds[0], fullNameNeeded, sb);
-                }
-            }
-            default -> {
-                sb.append(type.getTypeName());
-            }
+            case Class<?> clazz -> innerFormat(clazz, fullNameNeeded, sb);
+            case ParameterizedType paramType -> innerFormat(paramType, fullNameNeeded, sb);
+            case TypeVariable<?> tv -> innerFormat(tv, fullNameNeeded, sb);
+            case GenericArrayType arrayType -> innerFormat(arrayType, fullNameNeeded, sb);
+            case WildcardType wildcardType -> innerFormat(wildcardType, fullNameNeeded, sb);
+            default -> innerFormatUnknown(type, fullNameNeeded, sb);
         }
+    }
+
+    private static void innerFormat(
+            @NonNull Class<?> clazz,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(clazz);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+        if (clazz.isArray()) {
+            formatType(clazz.getComponentType(), fullNameNeeded, sb);
+            sb.append("[]");
+        } else {
+            var c = fullNameNeeded.contains(clazz) || clazz.isAnonymousClass() || clazz.isHidden()
+                    ? clazz.getName()
+                    : clazz.getSimpleName();
+            checkNotNull(c);
+            sb.append(c);
+        }
+    }
+
+    private static void innerFormat(
+            @NonNull ParameterizedType paramType,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(paramType);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+        formatType(paramType.getRawType(), fullNameNeeded, sb);
+        sb.append('<');
+        var typeArgs = paramType.getActualTypeArguments();
+        for (var i = 0; i < typeArgs.length; i++) {
+            if (i > 0) sb.append(", ");
+            formatType(typeArgs[i], fullNameNeeded, sb);
+        }
+        sb.append('>');
+    }
+
+    private static void innerFormat(
+            @NonNull TypeVariable<?> tv,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(tv);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+        sb.append(tv.getName());
+    }
+
+    private static void innerFormat(
+            @NonNull GenericArrayType arrayType,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(arrayType);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+        formatType(arrayType.getGenericComponentType(), fullNameNeeded, sb);
+        sb.append("[]");
+    }
+
+    private static void innerFormat(
+            @NonNull WildcardType wildcardType,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(wildcardType);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+
+        sb.append('?');
+
+        var upperBounds = wildcardType.getUpperBounds();
+        var lowerBounds = wildcardType.getLowerBounds();
+        assertEquals(upperBounds.length, 1);
+        assertLE(lowerBounds.length, 1);
+
+        if (lowerBounds.length > 0) {
+            sb.append(" super ");
+            formatType(lowerBounds[0], fullNameNeeded, sb);
+        } else if (upperBounds[0] != Object.class) {
+            sb.append(" extends ");
+            formatType(upperBounds[0], fullNameNeeded, sb);
+        }
+    }
+
+    private static void innerFormatUnknown(
+            @NonNull Type unknownType,
+            @NonNull Set<? extends Class<?>> fullNameNeeded,
+            @NonNull StringBuilder sb)
+    {
+        checkNotNull(unknownType);
+        checkNotNull(fullNameNeeded);
+        checkNotNull(sb);
+        sb.append(unknownType.getTypeName());
     }
 
     /// Returns a human-readable string representation of `what`, using simple names for

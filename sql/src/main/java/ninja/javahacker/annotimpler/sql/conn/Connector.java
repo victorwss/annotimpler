@@ -95,6 +95,7 @@ public interface Connector extends ConnectionFactory {
     /// and a port number.
     ///
     /// @param <THIS> The concrete connector type returned by the fluent `withXxx` methods.
+    @SuppressWarnings("PMD.TypeParameterNamingConventions") // Because we like THIS instead of T.
     public static interface HostConnector<THIS extends HostConnector<THIS>> extends Connector {
 
         /// Returns the database server hostname or IP address.
@@ -129,6 +130,7 @@ public interface Connector extends ConnectionFactory {
     /// and password.
     ///
     /// @param <THIS> The concrete connector type returned by the fluent `withXxx` methods.
+    @SuppressWarnings("PMD.TypeParameterNamingConventions") // Because we like THIS instead of T.
     public static interface MandatoryAuthConnector<THIS extends MandatoryAuthConnector<THIS>> extends Connector {
 
         /// Returns the database username.

@@ -23,7 +23,8 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.Generated;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.TypeName;
+
+import module ninja.javahacker.annotimpler.magicfactory;
 
 /// A [Converter] that wraps an element [Converter] and produces `Collection<E>` (implemented as a list).
 ///

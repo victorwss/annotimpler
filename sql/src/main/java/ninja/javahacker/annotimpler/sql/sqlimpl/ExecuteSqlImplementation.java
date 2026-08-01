@@ -26,6 +26,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// | `int` / `Integer` | Row count capped at [Integer#MAX_VALUE]. |
 ///
 /// Any other return type causes [BadImplementationException] to be thrown at preparation time.
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
 public enum ExecuteSqlImplementation implements Implementation {
     /// Sole instance.
     INSTANCE;
@@ -37,6 +38,7 @@ public enum ExecuteSqlImplementation implements Implementation {
     }
 
     @NonNull
+    @SuppressWarnings("PMD.CyclomaticComplexity") // It is ok and simple enough. No need to complain.
     private static LongFunction<Object> selectOperation(@NonNull Method m) throws BadImplementationException {
         checkNotNull(m); // Check recognized by lombok.
         var rtb = m.getReturnType();

@@ -8,7 +8,7 @@ import module java.base;
 
 /// An immutable value type that holds a SQL string after its named parameters have been parsed.
 ///
-/// Use [parse] to create an instance from a raw SQL string.  The resulting object holds both
+/// Use [parse] to create an instance from a raw SQL string. The resulting object holds both
 /// the original and the transformed SQL (with named parameters replaced by `?`), along with a
 /// map from each parameter name to the list of 1-based positional indices at which it appears.
 ///

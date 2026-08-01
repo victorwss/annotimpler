@@ -19,6 +19,10 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// @param <R> The record type this converter targets.
 public final class RecordConverter<R extends Record> implements Converter<R> {
 
+    /// Tracks, per-thread, the `(factory, class)` pairs whose [RecordConverter] construction is currently
+    /// in progress, so that recursive record definitions can be detected and rejected.
+    private static final ThreadLocal<Set<OngoingCreation>> ONGOING = new ThreadLocal<>();
+
     /// The record class `R` that this converter produces.
     @NonNull
     private final Class<R> recordClass;
@@ -34,10 +38,6 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     /// The converter used to convert input values to the record's single field type.
     @NonNull
     private final Converter<?> cvt;
-
-    /// Tracks, per-thread, the `(factory, class)` pairs whose [RecordConverter] construction is currently
-    /// in progress, so that recursive record definitions can be detected and rejected.
-    private static final ThreadLocal<Set<OngoingCreation>> ongoing = new ThreadLocal<>();
 
     /// A key identifying an in-progress [RecordConverter] construction for a given factory/class pair,
     /// used to detect recursive record definitions.
@@ -73,10 +73,10 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     public RecordConverter(@NonNull ConverterFactory cvtf, @NonNull Class<R> recordClass) throws UnavailableConverterException {
         this.recordClass = recordClass;
         var o = new OngoingCreation(cvtf, recordClass);
-        var n = ongoing.get();
+        var n = ONGOING.get();
         if (n == null) {
             n = new HashSet<>(5);
-            ongoing.set(n);
+            ONGOING.set(n);
         } else if (n.contains(o)) {
             throw new UnavailableConverterException("Recursive record class: " + recordClass.getName(), recordClass);
         }
@@ -96,7 +96,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
             this.cvt = cvtf.get(inType);
         } finally {
             n.remove(o);
-            if (n.isEmpty()) ongoing.remove();
+            if (n.isEmpty()) ONGOING.remove();
         }
     }
 

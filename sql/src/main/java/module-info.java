@@ -36,7 +36,8 @@ open module ninja.javahacker.annotimpler.sql {
     requires transitive ninja.javahacker.annotimpler.magicfactory;
     requires transitive ninja.javahacker.annotimpler.convert;
     requires transitive ninja.javahacker.annotimpler.core;
-    requires transitive ninja.javahacker.datetime;
+    requires ninja.javahacker.datetime;
+    requires ninja.javahacker.typeser;
 
     exports ninja.javahacker.annotimpler.limited;
     exports ninja.javahacker.annotimpler.sql;

@@ -20,16 +20,16 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     /// An empty list of parameters.
     @NonNull
-    public static final List<Parameter> EMPTY1 = List.of();
+    private static final List<Parameter> EMPTY1 = List.of();
 
     /// An empty list of types.
     @NonNull
-    public static final List<Type> EMPTY2 = List.of();
+    private static final List<Type> EMPTY2 = List.of();
 
     /// An annotator that does nothing and returns `null`.
     @NonNull
     @SuppressWarnings("Convert2Lambda") // Can't use a lambda because the return type is generic.
-    public static final Annotator NULL_ANNOTATOR = new Annotator() {
+    private static final Annotator NULL_ANNOTATOR = new Annotator() {
         /// Always returns `null`, regardless of `annoClass`.
         @Nullable
         @Override
@@ -86,7 +86,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     /// Encapsulates an invocation to a method, constructor or getter-like lambda.
     @FunctionalInterface
-    public static interface Invoker<E> {
+    private static interface Invoker<E> {
 
         /// Makes a reflective the call to the represented method, constructor or getter-like lambda.
         ///
@@ -104,7 +104,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     /// Encapsulates the retrieval operation of annotations of a method, constructor or getter-like lambda.
     @FunctionalInterface
-    public static interface Annotator {
+    private static interface Annotator {
 
         /// Retrieve an annotation instance from the wrapped method or constructor from a given annotation class.
         ///
@@ -131,7 +131,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     /// @param caller An object responsible for invoking the wrapped object.
     /// @param annotator An object responsible for retrieving the annotations of the wrapped object.
     /// @throws IllegalArgumentException If any parameter is `null`.
-    public SimpleMethodWrapper(
+    private SimpleMethodWrapper(
             @NonNull U what,
             @NonNull List<Parameter> params,
             @NonNull List<Type> types,
@@ -263,6 +263,103 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     @Override
     public String toStringUp() {
         return upStr;
+    }
+
+    /// Creates a wrapper for the given [Method].
+    ///
+    /// If the method is **static**, `call` expects `args` matching the declared parameters.
+    /// If it is an **instance** method, `args[0]` must be the receiver.
+    ///
+    /// @param <E> The return type of the method.
+    /// @param what The method to wrap; must not be `null`.
+    /// @return A new `SimpleMethodWrapper`; never `null`.
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <E> SimpleMethodWrapper<E, Method> of(@NonNull Method what) {
+        checkNotNull(what);
+        var params = List.of(what.getParameters());
+        var types = List.of(what.getGenericParameterTypes());
+        var rt = what.getGenericReturnType();
+        var str = "method " + NameDictionary.global().getSimplifiedGenericString(what, false);
+        var stt = Modifier.isStatic(what.getModifiers());
+        var abs = Modifier.isAbstract(what.getModifiers());
+        var pub = Modifier.isPublic(what.getModifiers());
+        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
+        Invoker<E> icall = args -> {
+            var inst = args[0];
+            var nargs = new Object[args.length - 1];
+            System.arraycopy(args, 1, nargs, 0, nargs.length);
+            return (E) what.invoke(inst, nargs);
+        };
+        Invoker<E> scall = args -> (E) what.invoke(null, args);
+        return new SimpleMethodWrapper<>(what, params, types, rt, it, str, true, stt, abs, pub, stt ? scall : icall, what::getAnnotation);
+    }
+
+    /// Creates a wrapper for the given [Constructor].
+    ///
+    /// @param <E> The type constructed.
+    /// @param what The constructor to wrap; must not be `null`.
+    /// @return A new `SimpleMethodWrapper`; never `null`.
+    @NonNull
+    public static <E> SimpleMethodWrapper<E, Constructor<E>> of(@NonNull Constructor<E> what) {
+        checkNotNull(what);
+        var params = List.of(what.getParameters());
+        var types = List.of(what.getGenericParameterTypes());
+        var rt = what.getDeclaringClass();
+        var str = "constructor " + NameDictionary.global().getSimplifiedGenericString(what, false);
+        var pub = Modifier.isPublic(what.getModifiers());
+        var abs = Modifier.isAbstract(what.getDeclaringClass().getModifiers());
+        Invoker<E> call = what::newInstance;
+        return new SimpleMethodWrapper<>(what, params, types, rt, Optional.empty(), str, true, true, abs, pub, call, what::getAnnotation);
+    }
+
+    /// Creates a getter wrapper for the given [Field].
+    ///
+    /// For a **static** field, `call` expects an empty `args` array.
+    /// For an **instance** field, `args[0]` must be the field's declaring class instance.
+    ///
+    /// @param <E> The field type.
+    /// @param what The field to wrap as a getter; must not be `null`.
+    /// @return A new `SimpleMethodWrapper`; never `null`.
+    @NonNull
+    @SuppressWarnings("unchecked")
+    public static <E> SimpleMethodWrapper<E, Field> getter(@NonNull Field what) {
+        checkNotNull(what);
+        var rt = what.getGenericType();
+        var str = "field " + NameDictionary.global().getSimplifiedGenericString(what, false);
+        var stt = Modifier.isStatic(what.getModifiers());
+        var pub = Modifier.isPublic(what.getModifiers());
+        Optional<Class<?>> it = stt ? Optional.empty() : Optional.of(what.getDeclaringClass());
+        Invoker<E> call = args -> {
+            assertEquals(args.length, stt ? 0 : 1);
+            return (E) what.get(stt ? null : args[0]);
+        };
+        return new SimpleMethodWrapper<>(what, EMPTY1, EMPTY2, rt, it, str, true, stt, false, pub, call, what::getAnnotation);
+    }
+
+    /// Creates a no-argument constant wrapper that always returns `what`.
+    ///
+    /// Typically used for enum singletons. The wrapper reports itself as public and static,
+    /// with zero parameters and the runtime class of `what` as its return type.
+    ///
+    /// @param <E> The value type.
+    /// @param what The constant value to wrap; must not be `null`.
+    /// @return A new `SimpleMethodWrapper`; never `null`.
+    @NonNull
+    public static <E> SimpleMethodWrapper<E, E> value(@NonNull E what) {
+        checkNotNull(what);
+        var rt = what.getClass();
+        var str = String.valueOf(what);
+        SimpleMethodWrapper.Invoker<E> call = args -> {
+            assertEquals(args.length, 0);
+            return what;
+        };
+        return new SimpleMethodWrapper<>(what, EMPTY1, EMPTY2, rt, Optional.empty(), str, false, true, false, true, call, NULL_ANNOTATOR);
+    }
+
+    @Generated
+    private static void assertEquals(int a, int b) {
+        if (a != b) throw new AssertionError();
     }
 
     @Generated

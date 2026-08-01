@@ -72,6 +72,7 @@ public interface ParameterReceiver {
     ///
     /// Implementations bind the supplied value to one or more named SQL parameters and return
     /// an [Acceptor2] that can stream those bindings to a [ParameterReceiver].
+    @FunctionalInterface
     public static interface Acceptor1 {
 
         /// Binds `value` to the parameter(s) managed by this acceptor and returns an [Acceptor2].
@@ -104,6 +105,7 @@ public interface ParameterReceiver {
 
         /// Creates a new [IllegalValueException] with no detail message.
         public IllegalValueException() {
+            super();
         }
     }
 

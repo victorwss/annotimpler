@@ -104,8 +104,16 @@ public interface Converter<E> {
     /// Returns the target type `E` that this converter produces.
     ///
     /// The default implementation discovers the type by inspecting the generic superinterface
-    /// declarations using reflection. Throws [IllegalStateException] if the type cannot be determined;
-    /// in that case, the method should be overridden.
+    /// declarations using reflection and throws [IllegalStateException] if the type cannot be determined.
+    ///
+    /// Since this default implementation can be slow and inneficient, and might fail sometimes, so it is strongly
+    /// advised that this method should be overridden if possible, although overriden versions might still rely on
+    /// this implementation (via `Converter.super.getType()`) and cache the returned value.
+    ///
+    /// The default implementation works on cases where the generic interface gives a clear type definition that is
+    /// a class or an invariant parameterized type or generic array type (like `Converter<String>`,
+    /// `Converter<List<Integer>>`, `Converter<LocalDate[]>`), but fails when it finds a type variable
+    /// (like `Converter<E>`, `Converter<List<E>>` or `Converter<E[]>`).
     ///
     /// @return The [Type] representing `E`.
     /// @throws IllegalStateException If the type argument cannot be determined via reflection.

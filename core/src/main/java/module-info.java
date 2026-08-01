@@ -15,6 +15,7 @@ open module ninja.javahacker.annotimpler.core {
     requires transitive static lombok;
 
     requires transitive ninja.javahacker.annotimpler.magicfactory;
+    requires ninja.javahacker.typeser;
 
     exports ninja.javahacker.annotimpler.core;
 }

@@ -4,6 +4,7 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
+import module ninja.javahacker.typeser;
 
 /// Signals that an interface method could not be implemented by [AnnotationsImplementor].
 ///
@@ -20,7 +21,7 @@ public class BadImplementationException extends Exception {
 
     /// The type where the failure originated.
     @NonNull
-    private final Type root;
+    private final TypeRef root;
 
     /// Creates a new exception with the given detail message and root type.
     ///
@@ -31,7 +32,7 @@ public class BadImplementationException extends Exception {
     public BadImplementationException(@NonNull String message, @NonNull Type root) {
         List.of(message, root); // Force lombok to put the null-checks before the constructor call.
         super(message);
-        this.root = root;
+        this.root = TypeRef.wrap(root);
     }
 
     /// Creates a new exception with the given detail message, cause, and root type.
@@ -44,7 +45,7 @@ public class BadImplementationException extends Exception {
     public BadImplementationException(@NonNull String message, @NonNull Throwable cause, @NonNull Type root) {
         List.of(message, cause, root); // Force lombok to put the null-checks before the constructor call.
         super(message, cause);
-        this.root = root;
+        this.root = TypeRef.wrap(root);
     }
 
     /// Returns the type where the implementation failure originated.
@@ -54,7 +55,7 @@ public class BadImplementationException extends Exception {
     /// @return The root type; never `null`.
     @NonNull
     public Type getRoot() {
-        return root;
+        return root.type();
     }
 
     /// Disabled. Should not be used. Does nothing.
@@ -64,11 +65,7 @@ public class BadImplementationException extends Exception {
     ///
     /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
     @Deprecated
-    @SuppressWarnings({
-        "override", "removal", "FinalizeDoesntCallSuperFinalize", "FinalizeDeclaration",
-        "PMD.EmptyFinalizer", "PMD.MissingOverride", "checkstyle:NoFinalizer"
-    })
+    @SuppressWarnings({"all", "removal"})
     protected final void finalize() {
-        // Do nothing.
     }
 }

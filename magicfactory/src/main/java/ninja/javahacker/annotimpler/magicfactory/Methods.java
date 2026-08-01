@@ -20,27 +20,6 @@ import module java.base;
 /// This class is not instantiable.
 public final class Methods {
 
-    /// Identifies a [Method] by name and signature.
-    /// @param name A method name.
-    /// @param params A method signature. Always an immutable list. Generics are erased.
-    public static record MethodId(@NonNull String name, @NonNull List<Class<?>> params) {
-
-        /// Instantiates a [MethodId] by its components.
-        /// @param name The method name.
-        /// @param params The method signature. An immutable copy is stored instead of the original.
-        /// @throws IllegalArgumentException If `name` or `params` is `null`.
-        public MethodId {
-            params = List.copyOf(params);
-        }
-
-        /// Instantiates a [MethodId] from a method.
-        /// @param m The given [Method] to get an id.
-        /// @throws IllegalArgumentException If `m` is `null`.
-        public MethodId(@NonNull Method m) {
-            this(m.getName(), Stream.of(m.getParameterTypes()).toList());
-        }
-    }
-
     /// The [Object] class methods methods for `wait`, `notify`, `notifyAll`, `getClass`, `clone` and `finalize` (if not removed yet).
     @NonNull
     private static final Set<Method> INTRINSICS;
@@ -81,6 +60,27 @@ public final class Methods {
     /// This class can't be instantiated.
     private Methods() {
         throw new UnsupportedOperationException();
+    }
+
+    /// Identifies a [Method] by name and signature.
+    /// @param name A method name.
+    /// @param params A method signature. Always an immutable list. Generics are erased.
+    public static record MethodId(@NonNull String name, @NonNull List<Class<?>> params) {
+
+        /// Instantiates a [MethodId] by its components.
+        /// @param name The method name.
+        /// @param params The method signature. An immutable copy is stored instead of the original.
+        /// @throws IllegalArgumentException If `name` or `params` is `null`.
+        public MethodId {
+            params = List.copyOf(params);
+        }
+
+        /// Instantiates a [MethodId] from a method.
+        /// @param m The given [Method] to get an id.
+        /// @throws IllegalArgumentException If `m` is `null`.
+        public MethodId(@NonNull Method m) {
+            this(m.getName(), Stream.of(m.getParameterTypes()).toList());
+        }
     }
 
     /// Returns `true` if `m` has the `static` modifier.

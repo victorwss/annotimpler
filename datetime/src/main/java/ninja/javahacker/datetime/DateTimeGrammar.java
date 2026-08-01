@@ -329,12 +329,12 @@ final record DateTimeGrammar(char dateSeparator, char dateTimeSeparator, @NonNul
             if (ob.isEmpty()) return Optional.empty();
             var b = ob.get();
 
+            var nanos = b.content();
             for (var i = b.size(); i < 9; i++) {
-                b = new Match<>(b.content() * 10, b.position(), b.end());
+                nanos *= 10;
             }
-            var d = b.content();
 
-            var t = a.content().withD(d).time();
+            var t = a.content().withD(nanos).time();
             return Optional.of(new Match<>(t, position, b.end()));
         }
 

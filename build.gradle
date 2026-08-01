@@ -673,11 +673,14 @@ project(":convert") {
     }
 
     dependencies {
+        api(project(":typeser"))
         api(project(":magicfactory"))
         api(project(":datetime"))
     }
 
     compileJava {
+        dependsOn(":typeser:delombok")
+        dependsOn(":typeser:compileJava")
         dependsOn(":magicfactory:delombok")
         dependsOn(":magicfactory:compileJava")
         dependsOn(":datetime:delombok")
@@ -686,6 +689,7 @@ project(":convert") {
     }
 
     delombok {
+        dependsOn(":typeser:jar")
         dependsOn(":magicfactory:jar")
         dependsOn(":datetime:jar")
     }
@@ -701,16 +705,20 @@ project(":core") {
     }
 
     dependencies {
+        api(project(":typeser"))
         api(project(":magicfactory"))
     }
 
     compileJava {
+        dependsOn(":typeser:delombok")
+        dependsOn(":typeser:compileJava")
         dependsOn(":magicfactory:delombok")
         dependsOn(":magicfactory:compileJava")
         dependsOn(":core:delombok")
     }
 
     delombok {
+        dependsOn(":typeser:jar")
         dependsOn(":magicfactory:jar")
     }
 }
@@ -725,6 +733,7 @@ project(":sql") {
     }
 
     dependencies {
+        api(project(":typeser"))
         api(project(":magicfactory"))
         api(project(":datetime"))
         api(project(":convert"))

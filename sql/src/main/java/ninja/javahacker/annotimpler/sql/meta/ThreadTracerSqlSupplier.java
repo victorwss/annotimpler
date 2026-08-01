@@ -7,7 +7,7 @@ import lombok.NonNull;
 import module java.base;
 import module java.sql;
 
-/// A thread-safe, lazily initialised [SqlSupplier] that caches its result globally after the
+/// A thread-safe, lazily initialized [SqlSupplier] that caches its result globally after the
 /// first successful resolution, and tracks which threads are currently waiting for that result.
 ///
 /// On the first call to [get], the [Downstream] supplier is invoked (at most once, under
@@ -21,6 +21,9 @@ import module java.sql;
 ///
 /// @see SqlSupplier
 /// @see Downstream
+@SuppressWarnings({
+    "PMD.DoNotUseThreads", "PMD.AvoidUsingVolatile" // Not reasonable warnings for something meant to control thread-local access.
+})
 public final class ThreadTracerSqlSupplier implements SqlSupplier {
 
     /// Guards access to [#waiting], the set of threads currently blocked inside [#get].
