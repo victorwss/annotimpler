@@ -30,6 +30,13 @@ def versionFindSecBugs = "1.14.0"
 def versionJackson     = "3.2.0"
 def versionJacksonAnn  = "2.22"
 def versionJaCoCo      = "0.8.15"
+def versionJakartaAnno = "3.0.0"
+def versionJakartaCdi  = "4.1.0"
+def versionJakartaEl   = "6.0.1"
+def versionJakartaInj  = "2.0.1"
+def versionJakartaInt  = "2.2.0"
+def versionJakartaJpa  = "3.2.0"
+def versionJakartaJta  = "2.0.1"
 def versionJcip        = "1.0-1"
 def versionJunit       = "6.1.1"
 def versionLombok      = "1.18.47"
@@ -772,5 +779,72 @@ project(":sql") {
         dependsOn(":datetime:jar")
         dependsOn(":convert:jar")
         dependsOn(":core:jar")
+    }
+}
+
+project(":jpa") {
+    def moduleName = "ninja.javahacker.annotimpler.jpa"
+    description = "Annotimpler JPA"
+
+    jar {
+        archiveBaseName = "annotimpler.jpa"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":typeser"))
+        api(project(":magicfactory"))
+        api(project(":datetime"))
+        api(project(":convert"))
+        api(project(":core"))
+        api(project(":sql"))
+
+
+        // Jakarta, JPA and friends.
+        api("jakarta.annotation:jakarta.annotation-api:"        + versionJakartaAnno)
+        api("jakarta.enterprise:jakarta.enterprise.cdi-api:"    + versionJakartaCdi )
+        api("jakarta.enterprise:jakarta.enterprise.lang-model:" + versionJakartaCdi )
+        api("jakarta.persistence:jakarta.persistence-api:"      + versionJakartaJpa )
+        api("jakarta.transaction:jakarta.transaction-api:"      + versionJakartaJta )
+        api("jakarta.inject:jakarta.inject-api:"                + versionJakartaInj )
+        api("jakarta.interceptor:jakarta.interceptor-api:"      + versionJakartaInt )
+        api("jakarta.el:jakarta.el-api:"                        + versionJakartaEl  )
+
+        // Jackson.
+        implementation("tools.jackson.core:jackson-core:"     + versionJackson)
+        implementation("tools.jackson.core:jackson-databind:" + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:" + versionJacksonAnn)
+
+        // H2.
+        testImplementation("com.h2database:h2:" + versionH2)
+
+        // SQLite.
+        testImplementation("org.xerial:sqlite-jdbc:" + versionSqlite)
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
+        dependsOn(":sql:delombok")
+        dependsOn(":sql:compileJava")
+        dependsOn(":jpa:delombok")
+    }
+
+    test {
+        jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
+        dependsOn(":convert:jar")
+        dependsOn(":core:jar")
+        dependsOn(":sql:jar")
     }
 }

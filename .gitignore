@@ -5,5 +5,6 @@
 /convert/build
 /core/build
 /sql/build
+/jpa/build
 .gradle
 .maven-repo
