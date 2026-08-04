@@ -20,7 +20,7 @@ import module ninja.javahacker.annotimpler.sql;
 /// Connections produced by [ninja.javahacker.annotimpler.sql.conn.UrlConnector#get()]
 /// have [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled.
 @FunctionalInterface
-public interface ConnectionFactory {
+public interface ConnectionFactory extends Transactor.TransactionFactory<Connection> {
 
     /// Opens a new [Connection].
     ///
@@ -52,5 +52,16 @@ public interface ConnectionFactory {
         } catch (PropertyBag.PropertyNotFoundException e) {
             throw new BadImplementationException("The implementation refused the default properties.", e, iface);
         }
+    }
+
+    /// Begins a new [JdbcTransaction] wrapping a freshly-opened [Connection] from [#get()].
+    ///
+    /// @param id The unique string identifier assigned to the new transaction.
+    /// @return The newly-begun transaction; never `null`.
+    /// @throws SQLException If a database access error occurs while opening the connection.
+    /// @throws IllegalArgumentException If `id` is `null`.
+    @Override
+    public default Transactor.Transaction<Connection> begin(@NonNull String id) throws SQLException {
+        return new JdbcTransaction(get(), id);
     }
 }

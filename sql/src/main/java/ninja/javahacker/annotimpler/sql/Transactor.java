@@ -8,15 +8,20 @@ import module java.base;
 import module java.sql;
 import module ninja.javahacker.annotimpler.magicfactory;
 
-/// Wraps an object's method calls in database transactions, ensuring that each top-level call
-/// either commits on success or rolls back on failure.
+/// Wraps an object's method calls in transactions, ensuring that each top-level call either
+/// commits on success or rolls back on failure.
 ///
-/// A `Transactor` holds a [ConnectionFactory] used to open connections, and a
+/// A `Transactor` holds a [TransactionFactory] used to begin new [Transaction]s, and a
 /// [Supplier]`<String>` used to generate unique transaction IDs.  Each distinct
-/// top-level transactional invocation opens one connection, runs the operation, and then
+/// top-level transactional invocation begins one transaction, runs the operation, and then
 /// commits or rolls back.  Nested calls (i.e., calls that occur while a transaction is already
-/// active on the current thread) reuse the existing connection and do not commit/rollback —
+/// active on the current thread) reuse the existing transaction and do not commit/rollback —
 /// that responsibility remains with the outermost call.
+///
+/// The type parameter `E` is the type of the underlying resource wrapped by each [Transaction]
+/// (e.g. a JDBC [Connection] or a JPA `EntityManager`), so the same `Transactor` implementation
+/// can be reused regardless of the underlying persistence technology; only the
+/// [TransactionFactory] and [Transaction] implementations need to be specific to it.
 ///
 /// Use [#transact(Object)] to obtain a transactional proxy for any object:
 ///
@@ -25,43 +30,27 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// MyDao txDao = transactor.transact(dao);
 /// txDao.insertFoo(...); // runs inside a transaction
 /// ```
-public final class Transactor {
+public final class Transactor<E> {
 
-    /// The object (possibly a lambda or method reference) that produces new [Connection]s.
-    private final ConnectionFactory factory;
+    /// The object (possibly a lambda or method reference) that begins new [Transaction]s.
+    private final TransactionFactory<E> factory;
 
     /// Stores the current transaction, if open.
     /// This is thread-local, since different thread can't and shouldn't share a transaction.
     @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL") // We really intentionally want a ThreadLocal per instance.
-    private final ThreadLocal<Transaction> local = new ThreadLocal<>();
+    private final ThreadLocal<Transaction<E>> local = new ThreadLocal<>();
 
     /// The object (likely a lambda or method reference) that produces new transaction IDs.
     private final Supplier<String> generateIds;
 
-    /// Creates a new `Transactor` backed by the given connection factory and ID generator.
+    /// Creates a new `Transactor` backed by the given transaction factory and ID generator.
     ///
-    /// @param factory The factory used to open database connections for each top-level transaction.
+    /// @param factory The factory used to begin a new [Transaction] for each top-level transactional call.
     /// @param generateIds A supplier that produces a unique string ID for each new transaction.
     /// @throws IllegalArgumentException If `factory` or `generateIds` is `null`.
-    public Transactor(@NonNull ConnectionFactory factory, @NonNull Supplier<String> generateIds) {
+    public Transactor(@NonNull TransactionFactory<E> factory, @NonNull Supplier<String> generateIds) {
         this.factory = factory;
         this.generateIds = generateIds;
-    }
-
-    /// Holds the active database connection and its unique identifier for one transaction.
-    ///
-    /// @param connection The open database connection for the current transaction.
-    /// @param id The unique string identifier assigned to this transaction.
-    private static record Transaction(@NonNull Connection connection, @NonNull String id) {
-
-        /// Creates a `Transaction` with the given connection and identifier.
-        ///
-        /// @param connection The open database connection for the current transaction.
-        /// @param id The unique string identifier assigned to this transaction.
-        public Transaction {
-            checkNotNull(connection); // Check recognized by lombok.
-            checkNotNull(id); // Check recognized by lombok.
-        }
     }
 
     /// A supplier that may throw any [Throwable].
@@ -78,14 +67,69 @@ public final class Transactor {
         public E get() throws Throwable;
     }
 
+    /// Represents one active top-level transaction, wrapping the underlying resource of type
+    /// `E` (e.g. a JDBC [Connection] or a JPA `EntityManager`) together with its unique
+    /// transaction ID.
+    ///
+    /// Implementations are produced by a [TransactionFactory] and are `AutoCloseable`; closing a
+    /// `Transaction` should release the underlying resource, regardless of whether [#commit()]
+    /// or [#rollback()] was called beforehand.
+    ///
+    /// @param <E> The type of the underlying resource wrapped by this transaction.
+    public static interface Transaction<E> extends AutoCloseable {
+
+        /// Returns the unique identifier assigned to this transaction.
+        ///
+        /// @return The transaction id; never `null`.
+        @NonNull
+        public String id();
+
+        /// Commits this transaction, making its changes permanent.
+        ///
+        /// @throws Exception If a failure occurs while committing.
+        public void commit() throws Exception;
+
+        /// Rolls back this transaction, discarding its changes.
+        ///
+        /// @throws Exception If a failure occurs while rolling back.
+        public void rollback() throws Exception;
+
+        /// Releases the underlying resource held by this transaction.
+        ///
+        /// @throws Exception If a failure occurs while closing the underlying resource.
+        @Override
+        public void close() throws Exception;
+
+        /// Returns the underlying resource wrapped by this transaction.
+        ///
+        /// @return The wrapped resource (e.g. a JDBC [Connection] or a JPA `EntityManager`); never `null`.
+        @NonNull
+        public E unwrap();
+    }
+
+    /// Begins new [Transaction]s identified by a caller-supplied unique ID.
+    ///
+    /// @param <E> The type of the underlying resource wrapped by the transactions this factory begins.
+    @FunctionalInterface
+    public interface TransactionFactory<E> {
+
+        /// Begins a new transaction identified by the given ID.
+        ///
+        /// @param id The unique string identifier assigned to the new transaction.
+        /// @return The newly-begun [Transaction]; never `null`.
+        /// @throws Exception If a failure occurs while beginning the transaction.
+        /// @throws IllegalArgumentException If `id` is `null`.
+        public Transaction<E> begin(@NonNull String id) throws Exception;
+    }
+
     private <T> XSupplier<T> operate(@NonNull XSupplier<T> operation) {
         checkNotNull(operation); // Check recognized by lombok.
         return () -> {
             var alreadyHas = local.get() != null;
             if (alreadyHas) return operation.get();
 
-            try (var con = factory.get()) {
-                local.set(new Transaction(con, generateIds.get()));
+            try (var trans = factory.begin(generateIds.get())) {
+                local.set(trans);
                 var ok = false;
                 try {
                     var ret = operation.get();
@@ -93,9 +137,9 @@ public final class Transactor {
                     return ret;
                 } finally {
                     if (ok) {
-                        con.commit();
+                        trans.commit();
                     } else {
-                        con.rollback();
+                        trans.rollback();
                     }
                 }
             } finally {
@@ -158,12 +202,12 @@ public final class Transactor {
     /// object is already wrapped in a transactional proxy.
     public static interface Marker {}
 
-    /// Returns the database connection of the transaction currently active on this thread.
+    /// Returns the transaction currently active on this thread.
     ///
-    /// @return The active [Connection]; never `null`.
+    /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
-    public Connection connection() {
-        return currentTransaction().connection();
+    public Transaction<E> transaction() {
+        return currentTransaction();
     }
 
     /// Returns the transaction id of the transaction currently active on this thread.
@@ -178,7 +222,7 @@ public final class Transactor {
     ///
     /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
-    private Transaction currentTransaction() {
+    private Transaction<E> currentTransaction() {
         var ret = local.get();
         if (ret == null) throw new IllegalStateException("No active transaction.");
         return ret;

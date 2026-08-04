@@ -1,5 +1,6 @@
 package ninja.javahacker.test.annotimpler.sql;
 
+import ninja.javahacker.annotimpler.sql.Transactor;
 import lombok.experimental.Delegate;
 import org.junit.jupiter.api.function.ThrowingSupplier;
 import ninja.javahacker.test.ControlledMock;
@@ -128,12 +129,13 @@ public class TransactorTest {
             return "" + idx[0];
         };
 
-        var t = new Transactor(tc::connect, gen);
+        ConnectionFactory cf = tc::connect;
+        var t = new Transactor<Connection>(cf, gen);
 
         Foo2 f2 = a -> {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             Assertions.assertEquals("1", t.transactionId());
             return "foo";
         };
@@ -159,12 +161,13 @@ public class TransactorTest {
             return "" + idx[0];
         };
 
-        var t = new Transactor(tc::connect, gen);
+        ConnectionFactory cf = tc::connect;
+        var t = new Transactor<Connection>(cf, gen);
 
         Foo2 f2 = a -> {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             Assertions.assertEquals("1", t.transactionId());
             throw new IllegalArgumentException("blabla");
         };
@@ -221,7 +224,7 @@ public class TransactorTest {
 
         var cb1 = new CyclicBarrier(6);
         var cb2 = new CyclicBarrier(6);
-        var t = new Transactor(f, gen);
+        var t = new Transactor<Connection>(f, gen);
 
         Foo2 f2 = a -> {
             var n = sf.get();
@@ -231,9 +234,9 @@ public class TransactorTest {
             cb1.await(5, TimeUnit.SECONDS);
             System.out.println("Starting waited for thread " + n + ".");
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
-            var tx = t.connection();
-            var tx2 = t.connection();
+            tc.assertSameConnection(t.transaction().unwrap());
+            var tx = t.transaction().unwrap();
+            var tx2 = t.transaction().unwrap();
             var tid = t.transactionId();
             var tid2 = t.transactionId();
             Assertions.assertSame(tx, tx2);
@@ -241,7 +244,7 @@ public class TransactorTest {
             var tidx = idByThread.get(Thread.currentThread());
             Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID.");
             Assertions.assertEquals(tidx, tid);
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             System.out.println("Transaction data ok for thread " + n + ". ID is " + tid + ".");
             cb2.await(5, TimeUnit.SECONDS);
             System.out.println("Finished waited for thread " + n + ".");
@@ -259,9 +262,9 @@ public class TransactorTest {
             cb1.await(5, TimeUnit.SECONDS);
             System.out.println("Starting waited for thread " + n + ".");
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
-            var tx = t.connection();
-            var tx2 = t.connection();
+            tc.assertSameConnection(t.transaction().unwrap());
+            var tx = t.transaction().unwrap();
+            var tx2 = t.transaction().unwrap();
             var tid = t.transactionId();
             var tid2 = t.transactionId();
             Assertions.assertSame(tx, tx2);
@@ -269,7 +272,7 @@ public class TransactorTest {
             var tidx = idByThread.get(Thread.currentThread());
             Assertions.assertNotNull(tidx, "Thread " + n + " must have an assigned transaction ID.");
             Assertions.assertEquals(tidx, tid);
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             System.out.println("Transaction data ok for thread " + n + ". ID is " + tid + ".");
             cb2.await(5, TimeUnit.SECONDS);
             System.out.println("Finished waited for thread " + n + ".");
@@ -332,10 +335,10 @@ public class TransactorTest {
 
     @Test
     public void testNoTransactionDataOutsideTransaction() {
-        var t = new Transactor(BAD_FACTORY, BAD_GEN);
+        var t = new Transactor<Connection>(BAD_FACTORY, BAD_GEN);
 
         Assertions.assertAll(
-                () -> Assertions.assertThrows(IllegalStateException.class, () -> t.connection(), "No active transaction."),
+                () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transaction(), "No active transaction."),
                 () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
         );
     }
@@ -351,12 +354,12 @@ public class TransactorTest {
     @TestFactory
     @SuppressWarnings("FinalizeCalledExplicitly")
     public Stream<DynamicTest> testNoTransactionForToStringEqualsHashCodeFinalizeClone() {
-        var t = new Transactor(BAD_FACTORY, BAD_GEN);
+        var t = new Transactor<Connection>(BAD_FACTORY, BAD_GEN);
 
         var called = new int[1];
         Runnable check = () -> {
             Assertions.assertAll(
-                    () -> Assertions.assertThrows(IllegalStateException.class, () -> t.connection(), "No active transaction."),
+                    () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transaction(), "No active transaction."),
                     () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
             );
             called[0]++;
@@ -419,19 +422,20 @@ public class TransactorTest {
             return "" + idx[0];
         };
 
-        var t = new Transactor(tc::connect, gen);
+        ConnectionFactory cf = tc::connect;
+        var t = new Transactor<Connection>(cf, gen);
         var foos = new Foo1[1];
 
         Foo2 f2 = a -> {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             Assertions.assertEquals("1", t.transactionId());
             var z = foos[0].yyy("blue", "red");
             Assertions.assertFalse(tc.finishing());
             Assertions.assertFalse(tc.finished());
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             return "foo" + z;
         };
 
@@ -439,7 +443,7 @@ public class TransactorTest {
             Assertions.assertEquals("blue", a);
             Assertions.assertEquals("red", b);
             tc.assertConnected();
-            tc.assertSameConnection(t.connection());
+            tc.assertSameConnection(t.transaction().unwrap());
             Assertions.assertEquals("1", t.transactionId());
             return 37;
         };
@@ -456,7 +460,7 @@ public class TransactorTest {
         Runnable x1 = () -> {
             throw new AssertionError();
         };
-        var t = new Transactor(BAD_FACTORY, BAD_GEN);
+        var t = new Transactor<Connection>(BAD_FACTORY, BAD_GEN);
         var x2 = t.transact(x1);
         Assertions.assertThrows(IllegalArgumentException.class, () -> t.transact(x2), "Can't doubly transact an object.");
     }
@@ -465,9 +469,18 @@ public class TransactorTest {
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() {
         return Stream.of(
-                DynamicTest.dynamicTest("[testNulls] ctor(1)" , () -> ForTests.testNull("factory", () -> new Transactor(null, BAD_GEN))),
-                DynamicTest.dynamicTest("[testNulls] ctor(2)" , () -> ForTests.testNull("generateIds", () -> new Transactor(BAD_FACTORY, null))),
-                DynamicTest.dynamicTest("[testNulls] transact", () -> ForTests.testNull("impl", () -> new Transactor(BAD_FACTORY, BAD_GEN).transact(null)))
+                DynamicTest.dynamicTest(
+                        "[testNulls] ctor(1)",
+                        () -> ForTests.testNull("factory", () -> new Transactor<Object>(null, BAD_GEN))
+                ),
+                DynamicTest.dynamicTest(
+                        "[testNulls] ctor(2)",
+                        () -> ForTests.testNull("generateIds", () -> new Transactor<Connection>(BAD_FACTORY, null))
+                ),
+                DynamicTest.dynamicTest(
+                        "[testNulls] transact",
+                        () -> ForTests.testNull("impl", () -> new Transactor<Connection>(BAD_FACTORY, BAD_GEN).transact(null))
+                )
         );
     }
 }
