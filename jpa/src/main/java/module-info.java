@@ -1,3 +1,7 @@
+/// The Annotimpler JPA module — JPA-oriented infrastructure and adapters.
+///
+/// This module builds on top of the generic SQL abstractions and provides JPA-facing
+/// helpers, wrappers and provider-specific integration points.
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })

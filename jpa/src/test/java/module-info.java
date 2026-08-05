@@ -10,6 +10,8 @@ open module ninja.javahacker.test.annotimpler.jpa {
     requires tools.jackson.core;
     requires tools.jackson.databind;
 
+    requires transitive org.junit.jupiter.api;
+    requires transitive org.junit.jupiter.params;
     requires transitive static com.github.spotbugs.annotations;
     requires transitive static lombok;
 

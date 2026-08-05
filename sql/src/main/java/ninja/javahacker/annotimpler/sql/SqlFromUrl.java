@@ -7,8 +7,8 @@ import module ninja.javahacker.annotimpler.sql;
 
 /// Specifies the SQL string for an annotated method by downloading it from an HTTP/HTTPS URL.
 ///
-/// The method must also carry a SQL-operation annotation ([ExecuteSql], [GenerateSql],
-/// or [QuerySql]). The download strategy is controlled by [#policy()]. Character
+/// The method must also carry a SQL-operation annotation provided by the concrete execution module in use.
+/// The download strategy is controlled by [#policy()]. Character
 /// encoding is auto-detected from the HTTP `Content-Type` response header when
 /// [#readEncodingFromHeaders()] is `true`; the [#fallbackEncoding()] is used
 /// when the header is absent or detection is disabled.

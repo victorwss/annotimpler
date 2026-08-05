@@ -782,6 +782,62 @@ project(":sql") {
     }
 }
 
+project(":jdbc") {
+    def moduleName = "ninja.javahacker.annotimpler.jdbc"
+    description = "Annotimpler JDBC"
+
+    jar {
+        archiveBaseName = "annotimpler.jdbc"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":typeser"))
+        api(project(":magicfactory"))
+        api(project(":datetime"))
+        api(project(":convert"))
+        api(project(":core"))
+        api(project(":sql"))
+
+        // Jackson.
+        implementation("tools.jackson.core:jackson-core:"     + versionJackson)
+        implementation("tools.jackson.core:jackson-databind:" + versionJackson)
+        implementation("com.fasterxml.jackson.core:jackson-annotations:" + versionJacksonAnn)
+
+        // H2.
+        testImplementation("com.h2database:h2:" + versionH2)
+
+        // SQLite.
+        testImplementation("org.xerial:sqlite-jdbc:" + versionSqlite)
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
+        dependsOn(":sql:delombok")
+        dependsOn(":sql:compileJava")
+        dependsOn(":jpa:delombok")
+    }
+
+    test {
+        jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
+        dependsOn(":convert:jar")
+        dependsOn(":core:jar")
+        dependsOn(":sql:jar")
+    }
+}
+
 project(":jpa") {
     def moduleName = "ninja.javahacker.annotimpler.jpa"
     description = "Annotimpler JPA"
@@ -798,7 +854,6 @@ project(":jpa") {
         api(project(":convert"))
         api(project(":core"))
         api(project(":sql"))
-
 
         // Jakarta, JPA and friends.
         api("jakarta.annotation:jakarta.annotation-api:"        + versionJakartaAnno)

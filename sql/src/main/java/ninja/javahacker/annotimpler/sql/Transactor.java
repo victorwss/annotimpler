@@ -18,7 +18,7 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// that responsibility remains with the outermost call.
 ///
 /// The type parameter `E` is the type of the underlying resource wrapped by each [Transaction]
-/// (e.g. a JDBC [Connection] or a JPA `EntityManager`), so the same `Transactor` implementation
+/// (e.g. a JDBC `Connection` or a JPA `EntityManager`), so the same `Transactor` implementation
 /// can be reused regardless of the underlying persistence technology; only the
 /// [TransactionFactory] and [Transaction] implementations need to be specific to it.
 ///
@@ -31,14 +31,14 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// ```
 ///
 /// @param <E> The type of the underlying resource wrapped by each [Transaction].
-/// Typically a JDBC [Connection] or a JPA `EntityManager`.
+/// Typically a JDBC `Connection` or a JPA `EntityManager`.
 public final class Transactor<E> {
 
     /// The object (possibly a lambda or method reference) that begins new [Transaction]s.
     private final TransactionFactory<E> factory;
 
     /// Stores the current transaction, if open.
-    /// This is thread-local, since different thread can't and shouldn't share a transaction.
+    /// This is thread-local, since different threads can't and shouldn't share a transaction.
     @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL") // We really intentionally want a ThreadLocal per instance.
     private final ThreadLocal<Transaction<E>> local = new ThreadLocal<>();
 
@@ -70,7 +70,7 @@ public final class Transactor<E> {
     }
 
     /// Represents one active top-level transaction, wrapping the underlying resource of type
-    /// `E` (e.g. a JDBC [Connection] or a JPA `EntityManager`) together with its unique
+    /// `E` (e.g. a JDBC `Connection` or a JPA `EntityManager`) together with its unique
     /// transaction ID.
     ///
     /// Implementations are produced by a [TransactionFactory] and are `AutoCloseable`; closing a
@@ -104,7 +104,7 @@ public final class Transactor<E> {
 
         /// Returns the underlying resource wrapped by this transaction.
         ///
-        /// @return The wrapped resource (e.g. a JDBC [Connection] or a JPA `EntityManager`); never `null`.
+        /// @return The wrapped resource (e.g. a JDBC `Connection` or a JPA `EntityManager`); never `null`.
         @NonNull
         public E unwrap();
     }

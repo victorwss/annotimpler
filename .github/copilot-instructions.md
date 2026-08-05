@@ -9,9 +9,9 @@ No Gradle wrapper is checked in — use a system `gradle` install. Java 25 or ne
 - Full build (compile + test + delombok + javadoc + all quality tools + publish to `.maven-repo`):
   `gradle clean fullBuild --continue` (this is what `build.bat` runs, with `--warning-mode all --stacktrace` and Windows UTF-8 codepage).
 - Compile only: `gradle compileJava` (or `gradle :sql:compileJava` for one module).
-- Run all tests for one module: `gradle :sql:test` (module names: `magicfactory`, `datetime`, `typeser`, `convert`, `core`, `sql`).
-- Run a single test class: `gradle :sql:test --tests "ninja.javahacker.test.annotimpler.sql.jdbcstmt.SqlWorkerTest"`.
-- Run a single test method: `gradle :sql:test --tests "ninja.javahacker.test.annotimpler.sql.jdbcstmt.SqlWorkerTest.methodName"`.
+- Run all tests for one module: `gradle :sql:test` (module names: `magicfactory`, `datetime`, `typeser`, `convert`, `core`, `sql`, `jdbc`, `jpa`).
+- Run a single test class: `gradle :jdbc:test --tests "ninja.javahacker.test.annotimpler.jdbc.stmt.SqlWorkerTest"`.
+- Run a single test method: `gradle :jdbc:test --tests "ninja.javahacker.test.annotimpler.jdbc.stmt.SqlWorkerTest.methodName"`.
 - `test.ignoreFailures = true` is set project-wide, so `gradle test` always exits 0 — check the printed test summary / XML reports under `<module>/build/test-results`, not the exit code.
 - Checkstyle, PMD and SpotBugs also run with `ignoreFailures = true`; inspect reports under `<module>/build/reports/` rather than relying on the gradle exit code.
   Configs live in `config/checkstyle/{main,test}.xml`, `config/pmd-ruleset.xml`, `config/spotbugs-exclude.xml`.
@@ -32,7 +32,9 @@ datetime     - ninja.javahacker.datetime                  (no deps) – flexible
 magicfactory - ninja.javahacker.annotimpler.magicfactory  (no deps) – reflective instance creation ("MagicFactory").
 core         - ninja.javahacker.annotimpler.core          -> magicfactory – annotation-driven interface proxy framework.
 convert      - ninja.javahacker.annotimpler.convert       -> magicfactory, datetime – typed value converters.
-sql          - ninja.javahacker.annotimpler.sql           -> magicfactory, datetime, convert, core – annotation-driven JDBC DAO generation.
+sql          - ninja.javahacker.annotimpler.sql           -> magicfactory, datetime, convert, core – backend-agnostic SQL metadata, sources and transaction abstractions.
+jdbc         - ninja.javahacker.annotimpler.jdbc          -> sql, magicfactory, datetime, convert, core – JDBC-specific DAO generation/execution.
+jpa          - ninja.javahacker.annotimpler.jpa           -> sql, magicfactory, datetime, convert, core – JPA-specific adapters/integration (prototype).
 ```
 
 Because compile task ordering between modules is wired manually (`compileJava.dependsOn(":other:compileJava")`, `delombok.dependsOn(":other:jar")`),
@@ -40,7 +42,7 @@ when adding a new inter-module dependency you must add both the `api(project(":x
 in the corresponding `project(":...")` block, or builds may use stale jars.
 
 Modules are named `ninja.javahacker.annotimpler.<name>` when they are part of the same tool that implements Java interfaces based on annotations
-(the "Annotimpler" itself) and its specialization that binds that to JDBC (the `sql` module). Although they might be eventually useful independently.
+(the "Annotimpler" itself). Some modules are backend-specific specializations (such as `jdbc` and `jpa`), while `sql` now holds backend-agnostic SQL abstractions.
 
 However, the `datetime` and `typeser` packages are outside of `annotimpler` because they are also clearly useful as independent tools.
 Other modules like `magicfactory` or `convert` are being considered to live as independent tools in the future, but not for now, not yet.
@@ -61,16 +63,18 @@ This is the central architectural idea, spread across several files in `core`:
     since letting it participate would be risky, buggy, dangerous or simply non-working.
   - **Otherwise** (no `@ImplementedBy`-annotated annotation, no `default` body, not one of the special methods above): the method is inherently underspecified,
     so the whole process aborts with an exception.
-- `sql` builds its DAO-generation feature (`@ExecuteSql`, `@GenerateSql`, `@QuerySql` in `ninja.javahacker.annotimpler.sql.sqlimpl`) on top of this same mechanism.
+- `jdbc` builds its DAO-generation feature (`@ExecuteSql`, `@GenerateSql`, `@QuerySql` in `ninja.javahacker.annotimpler.jdbc.sqlimpl`) on top of this same mechanism.
 
-### `sql` module packages
-- `ninja.javahacker.annotimpler.sql` (public API/annotations).
-- `ninja.javahacker.annotimpler.sql.conn` (JDBC `Connection` factories).
+### `sql` / `jdbc` / `jpa` module packages
+- `ninja.javahacker.annotimpler.sql` (backend-agnostic SQL-source annotations and transaction abstractions).
 - `ninja.javahacker.annotimpler.sql.sqlfactories` (`SqlFactory` impls for file/URL/string SQL sources).
-- `ninja.javahacker.annotimpler.sql.sqlimpl` (runtime handlers for the SQL annotations).
 - `ninja.javahacker.annotimpler.sql.meta` (SQL loading, parameter binding, factory resolution).
-- `ninja.javahacker.annotimpler.sql.jdbcstmt` (named-parameter statements, type-aware result sets, executors).
+- `ninja.javahacker.annotimpler.jdbc` (JDBC public API/annotations).
+- `ninja.javahacker.annotimpler.jdbc.conn` (JDBC `Connection` factories).
+- `ninja.javahacker.annotimpler.jdbc.sqlimpl` (runtime handlers for JDBC SQL annotations).
+- `ninja.javahacker.annotimpler.jdbc.stmt` (named-parameter statements, type-aware result sets, executors).
 - `ninja.javahacker.annotimpler.limited` (byte/char-limited stream wrappers).
+- `ninja.javahacker.annotimpler.jpa` (JPA-facing wrappers and provider adapters).
 
 ## Conventions
 

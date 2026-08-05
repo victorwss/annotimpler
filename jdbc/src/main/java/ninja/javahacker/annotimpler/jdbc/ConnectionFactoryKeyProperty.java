@@ -1,0 +1,27 @@
+package ninja.javahacker.annotimpler.jdbc;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+
+import module ninja.javahacker.annotimpler.core;
+
+/// The [KeyProperty] singleton for [ConnectionFactory].
+///
+/// Use this enum constant as a key when storing or retrieving the [ConnectionFactory]
+/// instance in a [PropertyBag].
+///
+/// @see PropertyBag
+/// @see KeyProperty
+@SuppressFBWarnings("ENMI_ONE_ENUM_VALUE")
+public enum ConnectionFactoryKeyProperty implements KeyProperty<ConnectionFactory> {
+
+    /// The single instance of this key.
+    INSTANCE;
+
+    /// Returns `ConnectionFactory.class`, the value type associated with this key.
+    ///
+    /// @return `ConnectionFactory.class`; never `null`.
+    @Override
+    public Class<ConnectionFactory> valueType() {
+        return ConnectionFactory.class;
+    }
+}

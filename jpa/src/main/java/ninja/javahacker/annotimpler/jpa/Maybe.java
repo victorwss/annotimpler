@@ -96,7 +96,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /**
      * Implementation of {@link Maybe} in case of success.
      * @param <T> The type of the object representing a success.
-     * @param enyry The object representing a success.
+     * @param entry The object representing a success.
      * @author Victor Williams Stafusa da Silva
      */
     @PackagePrivate

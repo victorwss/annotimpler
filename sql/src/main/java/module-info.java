@@ -1,25 +1,19 @@
 import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
-/// The Annotimpler SQL module — annotation-driven DAO generation over JDBC.
+/// The Annotimpler SQL core module — reusable SQL-source and transaction abstractions.
 ///
-/// This module provides the infrastructure to turn annotated Java interfaces into fully
-/// functional database access objects (DAOs) without writing boilerplate JDBC code.
-/// Annotations on interface methods describe the SQL to execute and the expected return type;
-/// the framework takes care of parameter binding, result-set mapping, type conversion, and
-/// connection management.
+/// This module provides backend-agnostic infrastructure used by concrete execution layers
+/// (such as JDBC and JPA-oriented modules). It focuses on SQL-source resolution, parameter
+/// binding metadata, and generic transaction orchestration.
 ///
 /// **Key packages**
 ///
 /// | Package | Purpose |
 /// |---|---|
-/// | [ninja.javahacker.annotimpler.sql] | Public API: annotations, policies, DAO creation. |
-/// | [ninja.javahacker.annotimpler.sql.conn] | JDBC [Connection] factories for common databases. |
+/// | [ninja.javahacker.annotimpler.sql] | Public API: SQL-source annotations, read policies, and transaction wrapper abstractions. |
 /// | [ninja.javahacker.annotimpler.sql.sqlfactories] | Implementations of [SqlFactory] for file, URL, and string sources. |
-/// | [ninja.javahacker.annotimpler.sql.sqlimpl] | Runtime handlers for `@ExecuteSql`, `@GenerateSql`, and `@QuerySql`. |
 /// | [ninja.javahacker.annotimpler.sql.meta] | SQL loading, parameter binding, and factory-resolution infrastructure. |
-/// | [ninja.javahacker.annotimpler.sql.jdbcstmt] | Named-parameter statements, type-aware result sets, and operation executors. |
-/// | [ninja.javahacker.annotimpler.limited] | Stream wrappers that enforce a maximum byte/character read limit. |
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
@@ -39,11 +33,7 @@ open module ninja.javahacker.annotimpler.sql {
     requires ninja.javahacker.datetime;
     requires ninja.javahacker.typeser;
 
-    exports ninja.javahacker.annotimpler.limited;
     exports ninja.javahacker.annotimpler.sql;
-    exports ninja.javahacker.annotimpler.sql.conn;
     exports ninja.javahacker.annotimpler.sql.meta;
     exports ninja.javahacker.annotimpler.sql.sqlfactories;
-    exports ninja.javahacker.annotimpler.sql.sqlimpl;
-    exports ninja.javahacker.annotimpler.sql.jdbcstmt;
 }

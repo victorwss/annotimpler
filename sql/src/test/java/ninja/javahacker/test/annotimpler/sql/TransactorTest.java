@@ -1,6 +1,5 @@
 package ninja.javahacker.test.annotimpler.sql;
 
-import ninja.javahacker.annotimpler.sql.Transactor;
 import lombok.experimental.Delegate;
 import org.junit.jupiter.api.function.ThrowingSupplier;
 import ninja.javahacker.test.ControlledMock;
@@ -19,6 +18,39 @@ public class TransactorTest {
     private static final ConnectionFactory BAD_FACTORY = () -> {
         throw new AssertionError();
     };
+
+    @FunctionalInterface
+    private static interface ConnectionFactory extends Transactor.TransactionFactory<Connection> {
+        public Connection get();
+
+        @Override
+        public default Transactor.Transaction<Connection> begin(String id) throws SQLException {
+            return new JdbcTransaction(get(), id);
+        }
+    }
+
+    record JdbcTransaction(Connection connection, String id) implements Transactor.Transaction<Connection> {
+
+        @Override
+        public void commit() throws SQLException {
+            connection.commit();
+        }
+
+        @Override
+        public void rollback() throws SQLException {
+            connection.rollback();
+        }
+
+        @Override
+        public void close() throws SQLException {
+            connection.close();
+        }
+
+        @Override
+        public Connection unwrap() {
+            return connection;
+        }
+    }
 
     public TransactorTest() {
     }

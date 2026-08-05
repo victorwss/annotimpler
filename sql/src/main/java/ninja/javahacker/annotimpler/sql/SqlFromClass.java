@@ -8,8 +8,8 @@ import module ninja.javahacker.annotimpler.sql;
 /// Specifies the SQL string for an annotated method by delegating to a custom
 /// [ninja.javahacker.annotimpler.sql.meta.SqlSupplier] implementation.
 ///
-/// The method must also carry a SQL-operation annotation ([ExecuteSql], [GenerateSql],
-/// or [QuerySql]). The supplier class is instantiated reflectively at prepare time via
+/// The method must also carry a SQL-operation annotation provided by the concrete execution module in use.
+/// The supplier class is instantiated reflectively at prepare time via
 /// [ninja.javahacker.annotimpler.magicfactory.MagicFactory]. If the supplier's constructor
 /// accepts a single `String`, the value of [#key()] is passed to it; otherwise the
 /// no-arg constructor is used.

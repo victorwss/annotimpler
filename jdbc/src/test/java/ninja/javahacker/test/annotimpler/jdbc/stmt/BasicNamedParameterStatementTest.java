@@ -1,0 +1,631 @@
+package ninja.javahacker.test.annotimpler.jdbc.stmt;
+
+import ninja.javahacker.test.Sneaky;
+import ninja.javahacker.test.limited.AssertionInputStream;
+import ninja.javahacker.test.limited.AssertionReader;
+import org.junit.jupiter.api.function.Executable;
+
+import module java.base;
+import module ninja.javahacker.annotimpler.jdbc;
+import module org.junit.jupiter.api;
+
+public class BasicNamedParameterStatementTest {
+
+    public static final List<String> PREPARE_MAIN = List.of(
+            "CREATE TABLE foo(pk INT PRIMARY KEY, blah VARCHAR(4), color VARCHAR(4), onceuponatime TIMESTAMP, axml VARCHAR(100));",
+            "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (1, 'whoa', NULL  , '2024-03-04 13:14:15.456', NULL);",
+            "INSERT INTO foo(pk, blah, color, onceuponatime, axml) VALUES (2, 'lol' , 'blue', '2026-01-02 16:11:12.123', '<foo>bar</foo>');"
+    );
+
+    @FunctionalInterface
+    private interface ConnectionContext {
+        public void doIt(Connection con) throws Exception;
+
+        public default void onConnection() throws Exception {
+            try (var con = H2Connector.std().withMemory(true).withTimezone("UTC").get()) {
+                this.doIt(con);
+            }
+        }
+
+        public default Executable wrap() {
+            return this::onConnection;
+        }
+    }
+
+    @FunctionalInterface
+    private interface StatementContext {
+        public void doIt(NamedParameterStatement con) throws Exception;
+    }
+
+    @FunctionalInterface
+    private interface ResultSetContext {
+        public void doIt(ResultSet con) throws Exception;
+    }
+
+    public BasicNamedParameterStatementTest() {
+    }
+
+    private static Executable singleLineApply(
+            List<String> prepare,
+            String sql,
+            StatementContext recv,
+            ResultSetContext rscv,
+            Map<String, List<Integer>> idx)
+    {
+        ConnectionContext ctx = con -> {
+            for (var sqlp : prepare) {
+                try (var ps = con.prepareStatement(sqlp)) {
+                    ps.executeUpdate();
+                }
+            }
+            try (var ps = NamedParameterStatement.wrap(con.prepareStatement(sql), idx)) {
+                recv.doIt(ps);
+                try (var rs = ps.executeQuery()) {
+                    Assertions.assertTrue(rs.next(), "Assert has 1st line");
+                    rscv.doIt(rs);
+                    Assertions.assertFalse(rs.next(), "Assert had only one line");
+                }
+            }
+        };
+        return ctx.wrap();
+    }
+
+    private static DynamicNode applyBasicValues(
+            String name,
+            List<String> prepare,
+            String sqla,
+            String sqlb,
+            NamedStatementContext... recvs)
+    {
+        var idx = Map.of("bar", List.of(1));
+        var idxm = Map.of("bar", List.of(1, 3, 5), "foo", List.of(2, 4));
+        ResultSetContext run = rs -> Assertions.assertAll(
+                () -> Assertions.assertEquals(2, rs.getInt("pk")),
+                () -> Assertions.assertEquals(2, rs.getInt(1)),
+                () -> Assertions.assertEquals("lol", rs.getString("blah")),
+                () -> Assertions.assertEquals("lol", rs.getString(2))
+        );
+
+        var a = Stream.of(recvs)
+                .filter(recv -> recv.name().startsWith("INT-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name(), singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var ac = DynamicContainer.dynamicContainer("(int, ...)", a);
+
+        var b = Stream.of(recvs)
+                .filter(recv -> recv.name().startsWith("SNG-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name(), singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var bc = DynamicContainer.dynamicContainer("(String, ...) - once and only once", b);
+
+        var c = Stream.of(recvs)
+                .filter(recv -> recv.name().startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name() + "-SINGLE", singleLineApply(prepare, sqla, recv.ctx(), run, idx)));
+        var cc = DynamicContainer.dynamicContainer("(String, ...) - single", c);
+
+        var d = Stream.of(recvs)
+                .filter(recv -> recv.name().startsWith("STR-"))
+                .map(recv -> DynamicTest.dynamicTest(recv.name() + "-MULTI", singleLineApply(prepare, sqlb, recv.ctx2(), run, idxm)));
+        var dc = DynamicContainer.dynamicContainer("(String, ...) - multiple", d);
+
+        return DynamicContainer.dynamicContainer(name, List.of(ac, bc, cc, dc));
+    }
+
+    private static record NamedStatementContext(String name, StatementContext ctx) {
+        private StatementContext ctx2() {
+            return ps -> {
+                ps.setInt("foo", 42);
+                ctx.doIt(ps);
+            };
+        }
+    }
+
+    private static NamedStatementContext n(String name, StatementContext ctx) {
+        return new NamedStatementContext(name, ctx);
+    }
+
+    private static InputStream i() {
+        return new ByteArrayInputStream("blue".getBytes());
+    }
+
+    private static InputStream i4() {
+        return new AssertionInputStream("bluegreen".getBytes(), 4, false);
+    }
+
+    private static Reader r() {
+        return new CharArrayReader("blue".toCharArray());
+    }
+
+    private static Reader r4() {
+        return new AssertionReader("bluegreen", 4, false);
+    }
+
+    @SneakyThrows
+    private static Blob b(PreparedStatement ps) throws SQLException {
+        var blob = ps.getConnection().createBlob();
+        blob.setBytes(1, "blue".getBytes());
+        return blob;
+    }
+
+    @SneakyThrows
+    private static Clob c(PreparedStatement ps) throws SQLException {
+        var clob = ps.getConnection().createClob();
+        clob.setString(1, "blue");
+        return clob;
+    }
+
+    @SneakyThrows
+    private static NClob n(PreparedStatement ps) throws SQLException {
+        var nclob = ps.getConnection().createNClob();
+        nclob.setString(1, "blue");
+        return nclob;
+    }
+
+    private static java.sql.Array a(PreparedStatement ps) throws SQLException {
+        return ps.getConnection().createArrayOf("VARCHAR(10)", List.of("yellow", "blue", "green").toArray());
+    }
+
+    private static SQLXML sx(PreparedStatement ps) throws SQLException {
+        var x = ps.getConnection().createSQLXML();
+        x.setString("<foo>bar</foo>");
+        return x;
+    }
+
+    private static String cn(Object obj) {
+        if (obj instanceof Class<?> k) return k.getSimpleName();
+        if (obj instanceof NClob) return "NCLOB";
+        if (obj instanceof Clob) return "CLOB";
+        if (obj instanceof Blob) return "BLOB";
+        if (obj instanceof Reader) return "READER";
+        if (obj instanceof InputStream) return "STREAM";
+        if (obj instanceof ZonedDateTime) return "ZONED-DATE-TIME";
+        if (obj instanceof OffsetDateTime) return "OFFSET-DATE-TIME";
+        if (obj instanceof Instant) return "INSTANT";
+        if (obj instanceof LocalDateTime) return "LOCAL-DATE-TIME";
+        if (obj instanceof LocalDate) return "LOCAL-DATE";
+        if (obj instanceof LocalTime) return "LOCAL-TIME";
+        if (obj instanceof OffsetTime) return "OFFSET-TIME";
+        if (obj instanceof java.sql.Date) return "SQL-DATE";
+        if (obj instanceof java.sql.Time) return "SQL-TIME";
+        if (obj instanceof java.sql.Timestamp) return "SQL-TIMESTAMP";
+        if (obj instanceof java.util.Date) return "DATE";
+        if (obj instanceof GregorianCalendar) return "GREGORIAN-CALENDAR";
+        if (obj instanceof Calendar) return "CALENDAR";
+        throw new AssertionError(obj);
+    }
+
+    @TestFactory
+    public DynamicNode testSetters() {
+        TimeZone.setDefault(TimeZone.getTimeZone("UTC"));
+        var v1_5 = BigDecimal.valueOf(1.5);
+        var blue = "blue";
+        var bytes = blue.getBytes();
+        var opti = OptionalInt.of(2);
+        var optl = OptionalLong.of(2);
+        var optd = OptionalDouble.of(1.5);
+        byte b2 = 2;
+        short s2 = 2;
+        var d1 = LocalDate.of(2025, 10, 10);
+        var d2 = LocalDateTime.of(2025, 10, 10, 15, 30, 0);
+        var d3 = LocalTime.of(15, 30, 0);
+        var d4 = java.sql.Date.valueOf(d1);
+        var d5 = java.sql.Timestamp.valueOf(d2);
+        var d6 = java.sql.Time.valueOf(d3);
+        var d7 = ZonedDateTime.of(d2, ZoneOffset.UTC);
+        var d8 = OffsetDateTime.of(d2, ZoneOffset.UTC);
+        var d9 = d8.toInstant();
+        var d10 = OffsetTime.of(d3, ZoneOffset.UTC);
+        var gc = new GregorianCalendar();
+
+        var t1 = applyBasicValues(
+                "set boolean true",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END)",
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 2 ELSE 1 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 2 ELSE 1 END)",
+                n("STR-TRUE" , ps -> ps.setBoolean("bar", true )),
+                n("INT-TRUE" , ps -> ps.setBoolean(1    , true ))
+        );
+
+        var t2 = applyBasicValues(
+                "set boolean false",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END)",
+                "SELECT pk, blah FROM foo WHERE pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND pk = (CASE WHEN ? THEN 1 ELSE 2 END) AND ? = 42 AND 2 = (CASE WHEN ? THEN 1 ELSE 2 END)",
+                n("STR-FALSE", ps -> ps.setBoolean("bar", false)),
+                n("INT-FALSE", ps -> ps.setBoolean(1    , false))
+        );
+
+        var t3a = applyBasicValues(
+                "set integers",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk = ?",
+                "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
+                n("STR-BYTE"           , ps -> ps.setByte  ("bar", b2                   )),
+                n("INT-BYTE"           , ps -> ps.setByte  (1    , b2                   )),
+                n("RECV-BYTE"          , ps -> ps.receive  ("bar", b2                   )),
+                n("STR-SHORT"          , ps -> ps.setShort ("bar", s2                   )),
+                n("INT-SHORT"          , ps -> ps.setShort (1    , s2                   )),
+                n("RECV-SHORT"         , ps -> ps.receive  ("bar", s2                   )),
+                n("STR-INT"            , ps -> ps.setInt   ("bar", 2                    )),
+                n("INT-INT"            , ps -> ps.setInt   (1    , 2                    )),
+                n("RECV-INT"           , ps -> ps.receive  ("bar", 2                    )),
+                n("STR-LONG"           , ps -> ps.setLong  ("bar", 2L                   )),
+                n("INT-LONG"           , ps -> ps.setLong  (1    , 2L                   )),
+                n("RECV-LONG"          , ps -> ps.receive  ("bar", 2L                   )),
+                n("STR-OBJ-BYTE"       , ps -> ps.setObject("bar", b2                   )),
+                n("INT-OBJ-BYTE"       , ps -> ps.setObject(1    , b2                   )),
+                n("STR-OBJ-SHORT"      , ps -> ps.setObject("bar", s2                   )),
+                n("INT-OBJ-SHORT"      , ps -> ps.setObject(1    , s2                   )),
+                n("STR-OBJ-INT"        , ps -> ps.setObject("bar", 2                    )),
+                n("INT-OBJ-INT"        , ps -> ps.setObject(1    , 2                    )),
+                n("STR-OBJ-LONG"       , ps -> ps.setObject("bar", 2L                   )),
+                n("INT-OBJ-LONG"       , ps -> ps.setObject(1    , 2L                   )),
+                n("STR-OBJ-BYTE-NUM"   , ps -> ps.setObject("bar", b2, Types .NUMERIC   )),
+                n("INT-OBJ-BYTE-NUM"   , ps -> ps.setObject(1    , b2, Types .NUMERIC   )),
+                n("STR-OBJ-SHORT-NUM"  , ps -> ps.setObject("bar", s2, Types .NUMERIC   )),
+                n("INT-OBJ-SHORT-NUM"  , ps -> ps.setObject(1    , s2, Types .NUMERIC   )),
+                n("STR-OBJ-INT-NUM"    , ps -> ps.setObject("bar", 2 , Types .NUMERIC   )),
+                n("INT-OBJ-INT-NUM"    , ps -> ps.setObject(1    , 2 , Types .NUMERIC   )),
+                n("STR-OBJ-LONG-NUM"   , ps -> ps.setObject("bar", 2L, Types .NUMERIC   )),
+                n("INT-OBJ-LONG-NUM"   , ps -> ps.setObject(1    , 2L, Types .NUMERIC   )),
+                n("STR-OBJ-BYTE-H2"    , ps -> ps.setObject("bar", b2, H2Type.NUMERIC   )),
+                n("INT-OBJ-BYTE-H2"    , ps -> ps.setObject(1    , b2, H2Type.NUMERIC   )),
+                n("STR-OBJ-SHORT-H2"   , ps -> ps.setObject("bar", s2, H2Type.NUMERIC   )),
+                n("INT-OBJ-SHORT-H2"   , ps -> ps.setObject(1    , s2, H2Type.NUMERIC   )),
+                n("STR-OBJ-INT-H2"     , ps -> ps.setObject("bar", 2 , H2Type.NUMERIC   )),
+                n("INT-OBJ-INT-H2"     , ps -> ps.setObject(1    , 2 , H2Type.NUMERIC   )),
+                n("STR-OBJ-LONG-H2"    , ps -> ps.setObject("bar", 2L, H2Type.NUMERIC   )),
+                n("INT-OBJ-LONG-H2"    , ps -> ps.setObject(1    , 2L, H2Type.NUMERIC   )),
+                n("STR-OBJ-BYTE-NUM-Z" , ps -> ps.setObject("bar", b2, Types .NUMERIC, 0)),
+                n("INT-OBJ-BYTE-NUM-Z" , ps -> ps.setObject(1    , b2, Types .NUMERIC, 0)),
+                n("STR-OBJ-SHORT-NUM-Z", ps -> ps.setObject("bar", s2, Types .NUMERIC, 0)),
+                n("INT-OBJ-SHORT-NUM-Z", ps -> ps.setObject(1    , s2, Types .NUMERIC, 0)),
+                n("STR-OBJ-INT-NUM-Z"  , ps -> ps.setObject("bar", 2 , Types .NUMERIC, 0)),
+                n("INT-OBJ-INT-NUM-Z"  , ps -> ps.setObject(1    , 2 , Types .NUMERIC, 0)),
+                n("STR-OBJ-LONG-NUM-Z" , ps -> ps.setObject("bar", 2L, Types .NUMERIC, 0)),
+                n("INT-OBJ-LONG-NUM-Z" , ps -> ps.setObject(1    , 2L, Types .NUMERIC, 0)),
+                n("STR-OBJ-BYTE-H2-Z"  , ps -> ps.setObject("bar", b2, H2Type.NUMERIC, 0)),
+                n("INT-OBJ-BYTE-H2-Z"  , ps -> ps.setObject(1    , b2, H2Type.NUMERIC, 0)),
+                n("STR-OBJ-SHORT-H2-Z" , ps -> ps.setObject("bar", s2, H2Type.NUMERIC, 0)),
+                n("INT-OBJ-SHORT-H2-Z" , ps -> ps.setObject(1    , s2, H2Type.NUMERIC, 0)),
+                n("STR-OBJ-INT-H2-Z"   , ps -> ps.setObject("bar", 2 , H2Type.NUMERIC, 0)),
+                n("INT-OBJ-INT-H2-Z"   , ps -> ps.setObject(1    , 2 , H2Type.NUMERIC, 0)),
+                n("STR-OBJ-LONG-H2-Z"  , ps -> ps.setObject("bar", 2L, H2Type.NUMERIC, 0)),
+                n("INT-OBJ-LONG-H2-Z"  , ps -> ps.setObject(1    , 2L, H2Type.NUMERIC, 0))
+        );
+
+        var t3b = applyBasicValues(
+                "set optional integers",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk = ?",
+                "SELECT pk, blah FROM foo WHERE pk = ? AND ? = 42 AND pk = ? AND ? = 42 AND 2 = ?",
+                n("STR-OPTINT"         , ps -> ps.setInt ("bar", opti)),
+                n("INT-OPTINT"         , ps -> ps.setInt (1    , opti)),
+                n("RECV-OPTINT"        , ps -> ps.receive("bar", opti)),
+                n("STR-OPTLONG"        , ps -> ps.setLong("bar", optl)),
+                n("INT-OPTLONG"        , ps -> ps.setLong(1    , optl)),
+                n("RECV-OPTLONG"       , ps -> ps.receive("bar", optl))
+        );
+
+        var t4a = applyBasicValues(
+                "set reals",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk > ?",
+                "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
+                n("STR-FLOAT"           , ps -> ps.setFloat     ("bar", 1.5f                   )),
+                n("INT-FLOAT"           , ps -> ps.setFloat     (1    , 1.5f                   )),
+                n("RECV-FLOAT"          , ps -> ps.receive      ("bar", 1.5f                   )),
+                n("STR-DOUBLE"          , ps -> ps.setDouble    ("bar", 1.5                    )),
+                n("INT-DOUBLE"          , ps -> ps.setDouble    (1    , 1.5                    )),
+                n("RECV-DOUBLE"         , ps -> ps.receive      ("bar", 1.5                    )),
+                n("STR-BIGD"            , ps -> ps.setBigDecimal("bar", v1_5                   )),
+                n("INT-BIGD"            , ps -> ps.setBigDecimal(1    , v1_5                   )),
+                n("RECV-BIGD"           , ps -> ps.receive      ("bar", v1_5                   )),
+                n("STR-OBJ-FLOAT"       , ps -> ps.setObject    ("bar", 1.5f                   )),
+                n("INT-OBJ-FLOAT"       , ps -> ps.setObject    (1    , 1.5f                   )),
+                n("STR-OBJ-DOUBLE"      , ps -> ps.setObject    ("bar", 1.5                    )),
+                n("INT-OBJ-DOUBLE"      , ps -> ps.setObject    (1    , 1.5                    )),
+                n("STR-OBJ-BIGD"        , ps -> ps.setObject    ("bar", v1_5                   )),
+                n("INT-OBJ-BIGD"        , ps -> ps.setObject    (1    , v1_5                   )),
+                n("STR-OBJ-FLOAT-NUM"   , ps -> ps.setObject    ("bar", 1.5f, Types .NUMERIC   )),
+                n("INT-OBJ-FLOAT-NUM"   , ps -> ps.setObject    (1    , 1.5f, Types .NUMERIC   )),
+                n("STR-OBJ-DOUBLE-NUM"  , ps -> ps.setObject    ("bar", 1.5 , Types .NUMERIC   )),
+                n("INT-OBJ-DOUBLE-NUM"  , ps -> ps.setObject    (1    , 1.5 , Types .NUMERIC   )),
+                n("STR-OBJ-BIGD-NUM"    , ps -> ps.setObject    ("bar", v1_5, Types .NUMERIC   )),
+                n("INT-OBJ-BIGD-NUM"    , ps -> ps.setObject    (1    , v1_5, Types .NUMERIC   )),
+                n("STR-OBJ-FLOAT-H2"    , ps -> ps.setObject    ("bar", 1.5f, H2Type.NUMERIC   )),
+                n("INT-OBJ-FLOAT-H2"    , ps -> ps.setObject    (1    , 1.5f, H2Type.NUMERIC   )),
+                n("STR-OBJ-DOUBLE-H2"   , ps -> ps.setObject    ("bar", 1.5 , H2Type.NUMERIC   )),
+                n("INT-OBJ-DOUBLE-H2"   , ps -> ps.setObject    (1    , 1.5 , H2Type.NUMERIC   )),
+                n("STR-OBJ-BIGD-H2"     , ps -> ps.setObject    ("bar", v1_5, H2Type.NUMERIC   )),
+                n("INT-OBJ-BIGD-H2"     , ps -> ps.setObject    (1    , v1_5, H2Type.NUMERIC   )),
+                n("STR-OBJ-FLOAT-NUM-Z" , ps -> ps.setObject    ("bar", 1.5f, Types .NUMERIC, 1)),
+                n("INT-OBJ-FLOAT-NUM-Z" , ps -> ps.setObject    (1    , 1.5f, Types .NUMERIC, 1)),
+                n("STR-OBJ-DOUBLE-NUM-Z", ps -> ps.setObject    ("bar", 1.5 , Types .NUMERIC, 1)),
+                n("INT-OBJ-DOUBLE-NUM-Z", ps -> ps.setObject    (1    , 1.5 , Types .NUMERIC, 1)),
+                n("STR-OBJ-BIGD-NUM-Z"  , ps -> ps.setObject    ("bar", v1_5, Types .NUMERIC, 1)),
+                n("INT-OBJ-BIGD-NUM-Z"  , ps -> ps.setObject    (1    , v1_5, Types .NUMERIC, 1)),
+                n("STR-OBJ-FLOAT-H2-Z"  , ps -> ps.setObject    ("bar", 1.5f, H2Type.NUMERIC, 1)),
+                n("INT-OBJ-FLOAT-H2-Z"  , ps -> ps.setObject    (1    , 1.5f, H2Type.NUMERIC, 1)),
+                n("STR-OBJ-DOUBLE-H2-Z" , ps -> ps.setObject    ("bar", 1.5 , H2Type.NUMERIC, 1)),
+                n("INT-OBJ-DOUBLE-H2-Z" , ps -> ps.setObject    (1    , 1.5 , H2Type.NUMERIC, 1)),
+                n("STR-OBJ-BIGD-H2-Z"   , ps -> ps.setObject    ("bar", v1_5, H2Type.NUMERIC, 1)),
+                n("INT-OBJ-BIGD-H2-Z"   , ps -> ps.setObject    (1    , v1_5, H2Type.NUMERIC, 1))
+        );
+
+        var t4b = applyBasicValues(
+                "set optional reals",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE pk > ?",
+                "SELECT pk, blah FROM foo WHERE pk > ? AND ? = 42 AND pk > ? AND ? = 42 AND 2 > ?",
+                n("STR-OPTDOUBLE"       , ps -> ps.setDouble("bar", optd)),
+                n("INT-OPTDOUBLE"       , ps -> ps.setDouble(1    , optd)),
+                n("RECV-OPTDOUBLE"      , ps -> ps.receive  ("bar", v1_5))
+        );
+
+        var t5 = applyBasicValues(
+                "set strings",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE color = ?",
+                "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
+                n("STR-STRING"           , ps -> ps.setString          ("bar", blue                     )),
+                n("INT-STRING"           , ps -> ps.setString          (1    , blue                     )),
+                n("RECV-STRING"          , ps -> ps.receive            ("bar", blue                     )),
+                n("STR-NSTRING"          , ps -> ps.setNString         ("bar", blue                     )),
+                n("INT-NSTRING"          , ps -> ps.setNString         (1    , blue                     )),
+                n("STR-BYTES"            , ps -> ps.setBytes           ("bar", bytes                    )),
+                n("INT-BYTES"            , ps -> ps.setBytes           (1    , bytes                    )),
+                n("RECV-BYTES"           , ps -> ps.receive            ("bar", bytes                    )),
+                n("STR-OBJ-STR"          , ps -> ps.setObject          ("bar", blue                     )),
+                n("INT-OBJ-STR"          , ps -> ps.setObject          (1    , blue                     )),
+                n("STR-OBJ-STR-VARCHAR"  , ps -> ps.setObject          ("bar", blue , Types .VARCHAR    )),
+                n("INT-OBJ-STR-VARCHAR"  , ps -> ps.setObject          (1    , blue , Types .VARCHAR    )),
+                n("STR-OBJ-STR-VARCHAR-Q", ps -> ps.setObject          ("bar", blue , Types .VARCHAR, 4 )),
+                n("INT-OBJ-STR-VARCHAR-Q", ps -> ps.setObject          (1    , blue , Types .VARCHAR, 4 )),
+                n("STR-OBJ-STR-H2"       , ps -> ps.setObject          ("bar", blue , H2Type.VARCHAR    )),
+                n("INT-OBJ-STR-H2"       , ps -> ps.setObject          (1    , blue , H2Type.VARCHAR    )),
+                n("STR-OBJ-STR-H2-Q"     , ps -> ps.setObject          ("bar", blue , H2Type.VARCHAR, 4 )),
+                n("INT-OBJ-STR-H2-Q"     , ps -> ps.setObject          (1    , blue , H2Type.VARCHAR, 4 )),
+                n("STR-OBJ-BYT"          , ps -> ps.setObject          ("bar", bytes                    )),
+                n("INT-OBJ-BYT"          , ps -> ps.setObject          (1    , bytes                    )),
+                n("STR-OBJ-BYT-VARCHAR"  , ps -> ps.setObject          ("bar", bytes, Types .VARCHAR    )),
+                n("INT-OBJ-BYT-VARCHAR"  , ps -> ps.setObject          (1    , bytes, Types .VARCHAR    )),
+                n("STR-OBJ-BYT-VARCHAR-Q", ps -> ps.setObject          ("bar", bytes, Types .VARCHAR, 4 )),
+                n("INT-OBJ-BYT-VARCHAR-Q", ps -> ps.setObject          (1    , bytes, Types .VARCHAR, 4 )),
+                n("STR-OBJ-BYT-H2"       , ps -> ps.setObject          ("bar", bytes, H2Type.VARCHAR    )),
+                n("INT-OBJ-BYT-H2"       , ps -> ps.setObject          (1    , bytes, H2Type.VARCHAR    )),
+                n("STR-OBJ-BYT-H2-Q"     , ps -> ps.setObject          ("bar", bytes, H2Type.VARCHAR, 4 )),
+                n("INT-OBJ-BYT-H2-Q"     , ps -> ps.setObject          (1    , bytes, H2Type.VARCHAR, 4 )),
+                n("SNG-ASCII"            , ps -> ps.setAsciiStream     ("bar", i()                      )),
+                n("INT-ASCII"            , ps -> ps.setAsciiStream     (1    , i()                      )),
+                n("SNG-ASCII-INT"        , ps -> ps.setAsciiStream     ("bar", i4()                 , 4 )),
+                n("INT-ASCII-INT"        , ps -> ps.setAsciiStream     (1    , i4()                 , 4 )),
+                n("SNG-ASCII-LONG"       , ps -> ps.setAsciiStream     ("bar", i4()                 , 4L)),
+                n("INT-ASCII-LONG"       , ps -> ps.setAsciiStream     (1    , i4()                 , 4L)),
+                n("SNG-BINARY"           , ps -> ps.setBinaryStream    ("bar", i()                      )),
+                n("INT-BINARY"           , ps -> ps.setBinaryStream    (1    , i()                      )),
+                n("SNG-BINARY-INT"       , ps -> ps.setBinaryStream    ("bar", i4()                 , 4 )),
+                n("INT-BINARY-INT"       , ps -> ps.setBinaryStream    (1    , i4()                 , 4 )),
+                n("SNG-BINARY-LONG"      , ps -> ps.setBinaryStream    ("bar", i4()                 , 4L)),
+                n("INT-BINARY-LONG"      , ps -> ps.setBinaryStream    (1    , i4()                 , 4L)),
+                n("SNG-CHAR"             , ps -> ps.setCharacterStream ("bar", r()                      )),
+                n("INT-CHAR"             , ps -> ps.setCharacterStream (1    , r()                      )),
+                n("SNG-CHAR-INT"         , ps -> ps.setCharacterStream ("bar", r4()                 , 4 )),
+                n("INT-CHAR-INT"         , ps -> ps.setCharacterStream (1    , r4()                 , 4 )),
+                n("SNG-CHAR-LONG"        , ps -> ps.setCharacterStream ("bar", r4()                 , 4L)),
+                n("INT-CHAR-LONG"        , ps -> ps.setCharacterStream (1    , r4()                 , 4L)),
+                n("SNG-NCHAR"            , ps -> ps.setNCharacterStream("bar", r()                      )),
+                n("INT-NCHAR"            , ps -> ps.setNCharacterStream(1    , r()                      )),
+                n("SNG-NCHAR-INT"        , ps -> ps.setNCharacterStream("bar", r4()                 , 4 )),
+                n("INT-NCHAR-INT"        , ps -> ps.setNCharacterStream(1    , r4()                 , 4 )),
+                n("SNG-NCHAR-LONG"       , ps -> ps.setNCharacterStream("bar", r4()                 , 4L)),
+                n("INT-NCHAR-LONG"       , ps -> ps.setNCharacterStream(1    , r4()                 , 4L)),
+                n("STR-CLOB"             , ps -> ps.setClob            ("bar", c(ps)                    )),
+                n("INT-CLOB"             , ps -> ps.setClob            (1    , c(ps)                    )),
+                n("SNG-CLOB-READER"      , ps -> ps.setClob            ("bar", r()                      )),
+                n("INT-CLOB-READER"      , ps -> ps.setClob            (1    , r()                      )),
+                n("SNG-CLOB-READER-LONG" , ps -> ps.setClob            ("bar", r4()                 , 4L)),
+                n("INT-CLOB-READER-LONG" , ps -> ps.setClob            (1    , r4()                 , 4L)),
+                n("STR-NCLOB"            , ps -> ps.setNClob           ("bar", n(ps)                    )),
+                n("INT-NCLOB"            , ps -> ps.setNClob           (1    , n(ps)                    )),
+                n("SNG-NCLOB-READER"     , ps -> ps.setNClob           ("bar", r()                      )),
+                n("INT-NCLOB-READER"     , ps -> ps.setNClob           (1    , r()                      )),
+                n("SNG-NCLOB-READER-LONG", ps -> ps.setNClob           ("bar", r4()                 , 4L)),
+                n("INT-NCHAR-READER-LONG", ps -> ps.setNClob           (1    , r4()                 , 4L)),
+                n("STR-BLOB"             , ps -> ps.setBlob            ("bar", b(ps)                    )),
+                n("INT-BLOB"             , ps -> ps.setBlob            (1    , b(ps)                    )),
+                n("SNG-BLOB-STREAM"      , ps -> ps.setBlob            ("bar", i()                      )),
+                n("INT-BLOB-STREAM"      , ps -> ps.setBlob            (1    , i()                      )),
+                n("SNG-BLOB-STREAM-LONG" , ps -> ps.setBlob            ("bar", i4()                 , 4L)),
+                n("INT-BLOB-STREAM-LONG" , ps -> ps.setBlob            (1    , i4()                 , 4L))
+        );
+
+        @SuppressWarnings("deprecation")
+        var t6a = applyBasicValues(
+                "set legacy dates",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
+                n("STR-DATE"             , ps -> ps.setDate     ("bar", d4      )),
+                n("INT-DATE"             , ps -> ps.setDate     (1    , d4      )),
+                n("STR-DATE-CAL-NUL"     , ps -> ps.setDate     ("bar", d4, null)),
+                n("INT-DATE-CAL-NUL"     , ps -> ps.setDate     (1    , d4, null)),
+                n("STR-DATE-CAL-NEW"     , ps -> ps.setDate     ("bar", d4, gc  )),
+                n("INT-DATE-CAL-NEW"     , ps -> ps.setDate     (1    , d4, gc  )),
+                n("STR-TIMESTAMP"        , ps -> ps.setTimestamp("bar", d5      )),
+                n("INT-TIMESTAMP"        , ps -> ps.setTimestamp(1    , d5      )),
+                n("STR-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp("bar", d5, null)),
+                n("INT-TIMESTAMP-CAL-NUL", ps -> ps.setTimestamp(1    , d5, null)),
+                n("STR-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp("bar", d5, gc  )),
+                n("INT-TIMESTAMP-CAL-NEW", ps -> ps.setTimestamp(1    , d5, gc  ))
+        );
+
+        var t6b = applyBasicValues(
+                "set dates",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
+                n("STR-LOCALDATE"        , ps -> ps.setLocalDate     ("bar", d1)),
+                n("INT-LOCALDATE"        , ps -> ps.setLocalDate     (1    , d1)),
+                n("RECV-LOCALDATE"       , ps -> ps.receive          ("bar", d1)),
+                n("STR-LOCALDATETIME"    , ps -> ps.setLocalDateTime ("bar", d2)),
+                n("INT-LOCALDATETIME"    , ps -> ps.setLocalDateTime (1    , d2)),
+                n("RECV-LOCALDATETIME"   , ps -> ps.receive          ("bar", d2)),
+                n("STR-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime("bar", d8)),
+                n("INT-OFFSETDATETIME"   , ps -> ps.setOffsetDateTime(1    , d8)),
+                n("RECV-OFFSETDATETIME"  , ps -> ps.receive          ("bar", d8)),
+                n("STR-ZONEDDATETIME"    , ps -> ps.setZonedDateTime ("bar", d7)),
+                n("INT-ZONEDDATETIME"    , ps -> ps.setZonedDateTime (1    , d7)),
+                n("RECV-ZONEDDATETIME"   , ps -> ps.receive          ("bar", d7)),
+                n("STR-INSTANT"          , ps -> ps.setInstant       ("bar", d9)),
+                n("INT-INSTANT"          , ps -> ps.setInstant       (1    , d9)),
+                n("RECV-INSTANT"         , ps -> ps.receive          ("bar", d9))
+        );
+
+        Function<Object, DynamicNode> t7p = obj -> applyBasicValues(
+                "set " + cn(obj) + " as objects",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ?",
+                "SELECT pk, blah FROM foo WHERE onceuponatime > ? AND ? = 42 AND onceuponatime > ? AND ? = 42 AND onceuponatime > ?",
+                n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                                    )),
+                n("INT-" + cn(obj)           , ps -> ps.setObject(1    , obj                                    )),
+                n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIMESTAMP                  )),
+                n("INT-" + cn(obj) + "-TT"   , ps -> ps.setObject(1    , obj, Types .TIMESTAMP                  )),
+                n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIMESTAMP               , 0)),
+                n("INT-" + cn(obj) + "-TT"   , ps -> ps.setObject(1    , obj, Types .TIMESTAMP               , 0)),
+                n("STR-" + cn(obj) + "-H2"   , ps -> ps.setObject("bar", obj, H2Type.TIMESTAMP                  )),
+                n("INT-" + cn(obj) + "-H2"   , ps -> ps.setObject(1    , obj, H2Type.TIMESTAMP                  )),
+                n("STR-" + cn(obj) + "-H2"   , ps -> ps.setObject("bar", obj, H2Type.TIMESTAMP               , 0)),
+                n("INT-" + cn(obj) + "-H2"   , ps -> ps.setObject(1    , obj, H2Type.TIMESTAMP               , 0)),
+                n("STR-" + cn(obj) + "-TT-TZ", ps -> ps.setObject("bar", obj, Types .TIMESTAMP_WITH_TIMEZONE    )),
+                n("INT-" + cn(obj) + "-TT-TZ", ps -> ps.setObject(1    , obj, Types .TIMESTAMP_WITH_TIMEZONE    )),
+                n("STR-" + cn(obj) + "-TT-TZ", ps -> ps.setObject("bar", obj, Types .TIMESTAMP_WITH_TIMEZONE , 0)),
+                n("INT-" + cn(obj) + "-TT-TZ", ps -> ps.setObject(1    , obj, Types .TIMESTAMP_WITH_TIMEZONE , 0)),
+                n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIMESTAMP_WITH_TIME_ZONE   )),
+                n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(1    , obj, H2Type.TIMESTAMP_WITH_TIME_ZONE   )),
+                n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIMESTAMP_WITH_TIME_ZONE, 0)),
+                n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(1    , obj, H2Type.TIMESTAMP_WITH_TIME_ZONE, 0))
+        );
+        var t7 = DynamicContainer.dynamicContainer("set dates as objects", Stream.of(d1, d2, d4, d5, d7, d8, d9).map(t7p));
+
+        @SuppressWarnings("deprecation")
+        var t8a = applyBasicValues(
+                "set legacy times",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
+                n("STR-TIME"        , ps -> ps.setTime("bar", d6      )),
+                n("INT-TIME"        , ps -> ps.setTime(1    , d6      )),
+                n("STR-TIME-CAL-NUL", ps -> ps.setTime("bar", d6, null)),
+                n("INT-TIME-CAL-NUL", ps -> ps.setTime(1    , d6, null)),
+                n("STR-TIME-CAL-NEW", ps -> ps.setTime("bar", d6, gc  )),
+                n("INT-TIME-CAL-NEW", ps -> ps.setTime(1    , d6, gc  ))
+        );
+
+        @SuppressWarnings("deprecation")
+        var t8b = applyBasicValues(
+                "set times",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
+                n("STR-LOCALTIME"  , ps -> ps.setLocalTime ("bar", d3 )),
+                n("INT-LOCALTIME"  , ps -> ps.setLocalTime (1    , d3 )),
+                n("RECV-LOCALTIME" , ps -> ps.receive      ("bar", d3 )),
+                n("STR-OFFSETTIME" , ps -> ps.setOffsetTime("bar", d10)),
+                n("INT-OFFSETTIME" , ps -> ps.setOffsetTime(1    , d10)),
+                n("RECV-OFFSETTIME", ps -> ps.receive      ("bar", d10))
+        );
+
+        Function<Object, DynamicNode> t9p = obj -> applyBasicValues(
+                "set " + cn(obj) + " as objects",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?)",
+                "SELECT pk, blah FROM foo WHERE EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND EXTRACT(HOUR FROM onceuponatime) > EXTRACT(HOUR FROM ?) AND ? = 42 AND 14 < EXTRACT(HOUR FROM ?)",
+                n("STR-" + cn(obj)           , ps -> ps.setObject("bar", obj                               )),
+                n("INT-" + cn(obj)           , ps -> ps.setObject(    1, obj                               )),
+                n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIME                  )),
+                n("INT-" + cn(obj) + "-TT"   , ps -> ps.setObject(    1, obj, Types .TIME                  )),
+                n("STR-" + cn(obj) + "-TT"   , ps -> ps.setObject("bar", obj, Types .TIME               , 0)),
+                n("INT-" + cn(obj) + "-TT"   , ps -> ps.setObject(    1, obj, Types .TIME               , 0)),
+                n("STR-" + cn(obj) + "-H2"   , ps -> ps.setObject("bar", obj, H2Type.TIME                  )),
+                n("INT-" + cn(obj) + "-H2"   , ps -> ps.setObject(    1, obj, H2Type.TIME                  )),
+                n("STR-" + cn(obj) + "-H2"   , ps -> ps.setObject("bar", obj, H2Type.TIME               , 0)),
+                n("INT-" + cn(obj) + "-H2"   , ps -> ps.setObject(    1, obj, H2Type.TIME               , 0)),
+                n("STR-" + cn(obj) + "-TT-TZ", ps -> ps.setObject("bar", obj, Types .TIME_WITH_TIMEZONE    )),
+                n("INT-" + cn(obj) + "-TT-TZ", ps -> ps.setObject(    1, obj, Types .TIME_WITH_TIMEZONE    )),
+                n("STR-" + cn(obj) + "-TT-TZ", ps -> ps.setObject("bar", obj, Types .TIME_WITH_TIMEZONE , 0)),
+                n("INT-" + cn(obj) + "-TT-TZ", ps -> ps.setObject(    1, obj, Types .TIME_WITH_TIMEZONE , 0)),
+                n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIME_WITH_TIME_ZONE   )),
+                n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(    1, obj, H2Type.TIME_WITH_TIME_ZONE   )),
+                n("STR-" + cn(obj) + "-H2-TZ", ps -> ps.setObject("bar", obj, H2Type.TIME_WITH_TIME_ZONE, 0)),
+                n("INT-" + cn(obj) + "-H2-TZ", ps -> ps.setObject(    1, obj, H2Type.TIME_WITH_TIME_ZONE, 0))
+        );
+        var t9 = DynamicContainer.dynamicContainer("set times as objects", Stream.of(d3, d6, d10).map(t9p));
+
+        Function<PreparedStatement, Object> o1 = ps -> i();
+        Function<PreparedStatement, Object> o2 = ps -> r();
+        Function<PreparedStatement, Object> o3 = ps -> ((Sneaky) () -> c(ps)).sneakyGet();
+        Function<PreparedStatement, Object> o4 = ps -> ((Sneaky) () -> b(ps)).sneakyGet();
+        Function<PreparedStatement, Object> o5 = ps -> ((Sneaky) () -> n(ps)).sneakyGet();
+        var cmap = Map.of(InputStream.class, o1, Reader.class, o2, Clob.class, o3, Blob.class, o4, NClob.class, o5);
+        var pmap = Map.of(InputStream.class, "SNG-C-", Reader.class, "SNG-C-", Clob.class, "STR-C-", Blob.class, "STR-C-", NClob.class, "STR-C-");
+        var tmap = Map.of(InputStream.class, Types.BLOB, Reader.class, Types.CLOB, Clob.class, Types.CLOB, Blob.class, Types.BLOB, NClob.class, Types.NCLOB);
+        var hmap = Map.of(InputStream.class, H2Type.BLOB, Reader.class, H2Type.CLOB, Clob.class, H2Type.CLOB, Blob.class, H2Type.BLOB, NClob.class, H2Type.CLOB);
+
+        Function<Class<?>, DynamicNode> t10p = k -> applyBasicValues(
+                "set " + cn(k) + " as objects",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE color = ?",
+                "SELECT pk, blah FROM foo WHERE color = ? AND ? = 42 AND color = ? AND ? = 42 AND color = ?",
+                n(pmap.get(k) + cn(k)          , ps -> ps.setObject("bar", cmap.get(k).apply(ps)                )),
+                n("INT-C-"    + cn(k)          , ps -> ps.setObject(    1, cmap.get(k).apply(ps)                )),
+                n(pmap.get(k) + cn(k) + "-TT"  , ps -> ps.setObject("bar", cmap.get(k).apply(ps), tmap.get(k)   )),
+                n("INT-C-"    + cn(k) + "-TT"  , ps -> ps.setObject(    1, cmap.get(k).apply(ps), tmap.get(k)   )),
+                n(pmap.get(k) + cn(k) + "-TT-Q", ps -> ps.setObject("bar", cmap.get(k).apply(ps), tmap.get(k), 9)),
+                n("INT-C-"    + cn(k) + "-TT-Q", ps -> ps.setObject(    1, cmap.get(k).apply(ps), tmap.get(k), 9)),
+                n(pmap.get(k) + cn(k) + "-H2"  , ps -> ps.setObject("bar", cmap.get(k).apply(ps), hmap.get(k)   )),
+                n("INT-C-"    + cn(k) + "-H2"  , ps -> ps.setObject(    1, cmap.get(k).apply(ps), hmap.get(k)   )),
+                n(pmap.get(k) + cn(k) + "-H2-Q", ps -> ps.setObject("bar", cmap.get(k).apply(ps), hmap.get(k), 9)),
+                n("INT-C-"    + cn(k) + "-H2-Q", ps -> ps.setObject(    1, cmap.get(k).apply(ps), hmap.get(k), 9))
+        );
+        var t10 = DynamicContainer.dynamicContainer("set lobs as objects", cmap.keySet().stream().map(t10p));
+
+        var t11 = applyBasicValues(
+                "set arrays",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE color = ANY(?)",
+                "SELECT pk, blah FROM foo WHERE color = ANY(?) AND ? = 42 AND color = ANY(?) AND ? = 42 AND 'blue' = ANY(?)",
+                n("STR-ARRAY"         , ps -> ps.setArray ("bar", a(ps)                                 )),
+                n("INT-ARRAY"         , ps -> ps.setArray (1    , a(ps)                                 )),
+                n("STR-OBJ-ARRAY"     , ps -> ps.setObject("bar", a(ps)                                 )),
+                n("INT-OBJ-ARRAY"     , ps -> ps.setObject(1    , a(ps)                                 )),
+                n("STR-OBJ-ARRAY-TT"  , ps -> ps.setObject("bar", a(ps), Types.ARRAY                    )),
+                n("INT-OBJ-ARRAY-TT"  , ps -> ps.setObject(1    , a(ps), Types.ARRAY                    )),
+                n("STR-OBJ-ARRAY-TT-Q", ps -> ps.setObject("bar", a(ps), Types.ARRAY                 , 3)),
+                n("INT-OBJ-ARRAY-TT-Q", ps -> ps.setObject(1    , a(ps), Types.ARRAY                 , 3)),
+                n("STR-OBJ-ARRAY-H2"  , ps -> ps.setObject("bar", a(ps), H2Type.array(H2Type.VARCHAR)   )),
+                n("INT-OBJ-ARRAY-H2"  , ps -> ps.setObject(1    , a(ps), H2Type.array(H2Type.VARCHAR)   )),
+                n("STR-OBJ-ARRAY-H2-Q", ps -> ps.setObject("bar", a(ps), H2Type.array(H2Type.VARCHAR), 3)),
+                n("INT-OBJ-ARRAY-H2-Q", ps -> ps.setObject(1    , a(ps), H2Type.array(H2Type.VARCHAR), 3))
+        );
+
+        var t12 = applyBasicValues(
+                "set XML",
+                PREPARE_MAIN,
+                "SELECT pk, blah FROM foo WHERE axml = ?",
+                "SELECT pk, blah FROM foo WHERE axml = ? AND ? = 42 AND axml = ? AND ? = 42 AND ? = '<foo>bar</foo>'",
+                n("STR-SQLXML"         , ps -> ps.setSQLXML("bar", sx(ps)                    )),
+                n("INT-SQLXML"         , ps -> ps.setSQLXML(1    , sx(ps)                    )),
+                n("STR-OBJ-SQLXML"     , ps -> ps.setObject("bar", sx(ps)                    )),
+                n("INT-OBJ-SQLXML"     , ps -> ps.setObject(1    , sx(ps)                    )),
+                n("STR-OBJ-SQLXML-TT"  , ps -> ps.setObject("bar", sx(ps), Types .VARCHAR    )),
+                n("INT-OBJ-SQLXML-TT"  , ps -> ps.setObject(1    , sx(ps), Types .VARCHAR    )),
+                n("STR-OBJ-SQLXML-TT-Q", ps -> ps.setObject("bar", sx(ps), Types .VARCHAR, 14)),
+                n("INT-OBJ-SQLXML-TT-Q", ps -> ps.setObject(1    , sx(ps), Types .VARCHAR, 14)),
+                n("STR-OBJ-SQLXML-H2"  , ps -> ps.setObject("bar", sx(ps), H2Type.VARCHAR    )),
+                n("INT-OBJ-SQLXML-H2"  , ps -> ps.setObject(1    , sx(ps), H2Type.VARCHAR    )),
+                n("STR-OBJ-SQLXML-H2-Q", ps -> ps.setObject("bar", sx(ps), H2Type.VARCHAR, 14)),
+                n("INT-OBJ-SQLXML-H2-Q", ps -> ps.setObject(1    , sx(ps), H2Type.VARCHAR, 14))
+        );
+
+        return DynamicContainer.dynamicContainer("setter tests", List.of(t1, t2, t3a, t3b, t4a, t4b, t5, t6a, t6b, t7, t8a, t8b, t9, t10, t11, t12));
+    }
+}

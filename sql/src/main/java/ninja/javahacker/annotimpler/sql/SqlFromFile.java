@@ -7,8 +7,8 @@ import module ninja.javahacker.annotimpler.sql;
 
 /// Specifies the SQL string for an annotated method by loading it from a file on the filesystem.
 ///
-/// The method must also carry a SQL-operation annotation ([ExecuteSql], [GenerateSql],
-/// or [QuerySql]). The file is read using the configured [#encoding()] and the
+/// The method must also carry a SQL-operation annotation provided by the concrete execution module in use.
+/// The file is read using the configured [#encoding()] and the
 /// reading strategy is controlled by [#policy()].
 ///
 /// Example:

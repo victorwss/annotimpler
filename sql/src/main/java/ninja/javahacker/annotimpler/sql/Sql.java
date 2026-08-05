@@ -7,7 +7,7 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// The SQL text is embedded directly in the annotation value and is used as-is at runtime.
 /// This annotation must appear together with exactly one SQL-operation annotation
-/// ([ExecuteSql], [GenerateSql], or [QuerySql]).
+/// provided by the concrete execution module in use.
 ///
 /// Example:
 /// ```java

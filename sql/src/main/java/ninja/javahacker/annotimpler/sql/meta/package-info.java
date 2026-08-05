@@ -13,7 +13,4 @@
 /// - [ParameterSet] and [ParameterReceiver] — the parameter-binding strategy abstraction
 ///   that maps method arguments to named SQL parameters.
 /// - [ThreadTracerSqlSupplier] — a thread-safe, lazily initialised [SqlSupplier] wrapper.
-/// - [ConnectionFactoryKeyProperty], [ConverterFactoryKeyProperty], and
-///   [LocalizerKeyProperty] — typed [ninja.javahacker.annotimpler.core.KeyProperty] singletons
-///   used to store configuration values in a [ninja.javahacker.annotimpler.core.PropertyBag].
 package ninja.javahacker.annotimpler.sql.meta;
