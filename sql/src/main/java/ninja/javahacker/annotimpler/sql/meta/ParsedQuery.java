@@ -104,12 +104,12 @@ public record ParsedQuery(
     ///
     /// Each named parameter of the form `:identifier` (where `identifier` is a valid Java
     /// identifier, optionally qualified with `::` for type-qualified names) is replaced by a
-    /// `?` placeholder in the returned [ParsedQuery#parsed] string.  The positional index (1-based)
+    /// `?` placeholder in the returned [ParsedQuery#parsed] string. The positional index (1-based)
     /// at which each named parameter appears is recorded in [ParsedQuery#params].
     ///
     /// Bare `?` characters outside of quoted strings are counted as unnamed parameters and set
-    /// [ParsedQuery#unnamedParameters] to `true`.  Unclosed single- or double-quote literals set
-    /// [ParsedQuery#unclosedQuotes] to `true`.  A lone `:` not followed by a valid identifier
+    /// [ParsedQuery#unnamedParameters] to `true`. Unclosed single- or double-quote literals set
+    /// [ParsedQuery#unclosedQuotes] to `true`. A lone `:` not followed by a valid identifier
     /// start character sets [ParsedQuery#loneColons] to `true`.
     ///
     /// @param original The raw SQL string to parse; must not be `null`.

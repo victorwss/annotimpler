@@ -5,7 +5,6 @@ import java.lang.reflect.Proxy;
 import lombok.NonNull;
 
 import module java.base;
-import module java.sql;
 import module ninja.javahacker.annotimpler.magicfactory;
 
 /// Wraps an object's method calls in transactions, ensuring that each top-level call either
@@ -30,6 +29,9 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// MyDao txDao = transactor.transact(dao);
 /// txDao.insertFoo(...); // runs inside a transaction
 /// ```
+///
+/// @param <E> The type of the underlying resource wrapped by each [Transaction].
+/// Typically a JDBC [Connection] or a JPA `EntityManager`.
 public final class Transactor<E> {
 
     /// The object (possibly a lambda or method reference) that begins new [Transaction]s.
@@ -207,7 +209,9 @@ public final class Transactor<E> {
     /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
     public Transaction<E> transaction() {
-        return currentTransaction();
+        var ret = local.get();
+        if (ret == null) throw new IllegalStateException("No active transaction.");
+        return ret;
     }
 
     /// Returns the transaction id of the transaction currently active on this thread.
@@ -215,17 +219,7 @@ public final class Transactor<E> {
     /// @return The active transaction id; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
     public String transactionId() {
-        return currentTransaction().id();
-    }
-
-    /// Returns the transaction currently active on this thread.
-    ///
-    /// @return The active [Transaction]; never `null`.
-    /// @throws IllegalStateException If no transaction is active on the current thread.
-    private Transaction<E> currentTransaction() {
-        var ret = local.get();
-        if (ret == null) throw new IllegalStateException("No active transaction.");
-        return ret;
+        return transaction().id();
     }
 
     @Generated
