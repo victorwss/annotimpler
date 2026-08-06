@@ -3,6 +3,8 @@ package ninja.test.javahacker.typeser;
 import ninja.javahacker.typeser.TypeRef;
 import ninja.test.ForTests;
 
+import java.lang.annotation.Annotation;
+
 import module java.base;
 import module org.junit.jupiter.api;
 
@@ -93,6 +95,213 @@ public class TypeserTest {
                     Assertions.assertEquals(typeVar, TypeRef.wrap(typeVar).type());
                     Assertions.assertEquals(typeVar, roundTrip(typeVar));
                 }));
+    }
+
+    // ── Tests: malformed/malicious `Type` implementations ────────────────────
+    //
+    // These types can never come from real reflection, but nothing stops a hand-written or
+    // maliciously-crafted `ParameterizedType`/`WildcardType`/`GenericArrayType`/`TypeVariable`
+    // implementation from violating their documented contracts (e.g. returning `null` where an
+    // array or component is expected, or forming a cycle). `TypeRef` must not misbehave (crash
+    // with a raw `NullPointerException`/`StackOverflowError`, corrupt state, hang, etc.) when fed
+    // such implementations; it must fail predictably with `IllegalArgumentException`.
+
+    private static final class LinkedParameterizedType implements ParameterizedType {
+        private Type raw;
+        private Type[] args = new Type[0];
+        private Type owner;
+
+        @Override
+        public Type[] getActualTypeArguments() {
+            return args;
+        }
+
+        @Override
+        public Type getRawType() {
+            return raw;
+        }
+
+        @Override
+        public Type getOwnerType() {
+            return owner;
+        }
+    }
+
+    private static final class SelfComponentArrayType implements GenericArrayType {
+        @Override
+        public Type getGenericComponentType() {
+            return this;
+        }
+    }
+
+    private abstract static class AbstractFakeTypeVariable implements TypeVariable<GenericDeclaration> {
+        @Override
+        public Type[] getBounds() {
+            return new Type[0];
+        }
+
+        @Override
+        public String getName() {
+            return "T";
+        }
+
+        @Override
+        public AnnotatedType[] getAnnotatedBounds() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+            return null;
+        }
+
+        @Override
+        public Annotation[] getAnnotations() {
+            return new Annotation[0];
+        }
+
+        @Override
+        public Annotation[] getDeclaredAnnotations() {
+            return new Annotation[0];
+        }
+    }
+
+    private static final class ForeignGenericDeclaration implements GenericDeclaration {
+        @Override
+        public TypeVariable<?>[] getTypeParameters() {
+            return new TypeVariable<?>[0];
+        }
+
+        @Override
+        public Annotation[] getAnnotations() {
+            return new Annotation[0];
+        }
+
+        @Override
+        public Annotation[] getDeclaredAnnotations() {
+            return new Annotation[0];
+        }
+
+        @Override
+        public <T extends Annotation> T getAnnotation(Class<T> annotationClass) {
+            return null;
+        }
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testMalformedTypes() {
+        var pf = "[testMalformedTypes] ";
+
+        var nullArgsArray = new LinkedParameterizedType();
+        nullArgsArray.raw = List.class;
+        nullArgsArray.args = null;
+
+        var nullArgsElement = new LinkedParameterizedType();
+        nullArgsElement.raw = List.class;
+        nullArgsElement.args = new Type[] {String.class, null};
+
+        var nullRawType = new LinkedParameterizedType();
+        nullRawType.raw = null;
+
+        var selfRawType = new LinkedParameterizedType();
+        selfRawType.raw = selfRawType;
+
+        var mutualA = new LinkedParameterizedType();
+        var mutualB = new LinkedParameterizedType();
+        mutualA.raw = List.class;
+        mutualA.args = new Type[] {mutualB};
+        mutualB.raw = mutualA;
+
+        WildcardType nullUpperBounds = new WildcardType() {
+            @Override
+            public Type[] getUpperBounds() {
+                return null;
+            }
+
+            @Override
+            public Type[] getLowerBounds() {
+                return new Type[0];
+            }
+        };
+
+        WildcardType nullLowerBoundsElement = new WildcardType() {
+            @Override
+            public Type[] getUpperBounds() {
+                return new Type[] {Object.class};
+            }
+
+            @Override
+            public Type[] getLowerBounds() {
+                return new Type[] {null};
+            }
+        };
+
+        GenericArrayType nullComponent = () -> null;
+        var selfComponent = new SelfComponentArrayType();
+
+        var nullDeclaration = new AbstractFakeTypeVariable() {
+            @Override
+            public GenericDeclaration getGenericDeclaration() {
+                return null;
+            }
+        };
+
+        var foreignDeclaration = new AbstractFakeTypeVariable() {
+            @Override
+            public GenericDeclaration getGenericDeclaration() {
+                return new ForeignGenericDeclaration();
+            }
+        };
+
+        return Stream.of(
+                DynamicTest.dynamicTest(
+                        pf + "parameterized type with null type-argument array",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(nullArgsArray))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "parameterized type with a null type argument",
+                        () -> ForTests.testNull("type", () -> TypeRef.wrap(nullArgsElement))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "parameterized type with null raw type",
+                        () -> ForTests.testNull("type", () -> TypeRef.wrap(nullRawType))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "parameterized type whose raw type is itself",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(selfRawType))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "two parameterized types cyclically referencing each other",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(mutualA))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "wildcard type with null upper-bounds array",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(nullUpperBounds))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "wildcard type with a null lower bound",
+                        () -> ForTests.testNull("type", () -> TypeRef.wrap(nullLowerBoundsElement))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "generic array type with null component",
+                        () -> ForTests.testNull("type", () -> TypeRef.wrap(nullComponent))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "generic array type whose component is itself",
+                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(selfComponent))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "type variable with null generic declaration",
+                        () -> ForTests.testNull("declaration", () -> TypeRef.wrap(nullDeclaration))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "type variable declared by a foreign GenericDeclaration",
+                        () -> Assertions.assertThrows(
+                                UnsupportedOperationException.class,
+                                () -> TypeRef.wrap(foreignDeclaration)
+                        )
+                )
+        );
     }
 
     // ── Tests: @NonNull violations → IllegalArgumentException ───────────────

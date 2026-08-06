@@ -27,18 +27,29 @@ sealed interface SerializableType extends Serializable permits
     /// Converts a supported `Type` into its serializable surrogate form.
     /// @param type The type to be serialized into a surrogate form.
     /// @return The surrogate form. Never `null`.
-    /// @throws IllegalArgumentException If `type` is `null`.
+    /// @throws IllegalArgumentException If `type` is `null`, or if `type` is part of a cyclic type graph
+    ///         (i.e. `type` directly or indirectly refers back to itself through some combination of
+    ///         raw types, type arguments, owner types, array component types or wildcard bounds).
+    ///         This can only happen with a hand-written or maliciously-crafted `Type` implementation,
+    ///         never with a `Type` obtained through the reflection API.
     @NonNull
     public static SerializableType from(@NonNull Type type) {
-        checkNotNull(type); // Check recognized by lombok.
-        return switch (type) {
-            case Class<?> c -> ClassSer.create(c);
-            case ParameterizedType p -> ParameterizedTypeSer.create(p);
-            case WildcardType w -> WildcardTypeSer.create(w);
-            case GenericArrayType g -> GenericArrayTypeSer.create(g);
-            case TypeVariable<?> v -> TypeVariableSer.create(v);
-            default -> UnknownTypeSer.create(type);
-        };
+        var visiting = TypeCycleGuard.VISITING.get();
+        if (!visiting.add(type)) {
+            throw new IllegalArgumentException("Cyclic type graph detected involving " + type + ".");
+        }
+        try {
+            return switch (type) {
+                case Class<?> c -> ClassSer.create(c);
+                case ParameterizedType p -> ParameterizedTypeSer.create(p);
+                case WildcardType w -> WildcardTypeSer.create(w);
+                case GenericArrayType g -> GenericArrayTypeSer.create(g);
+                case TypeVariable<?> v -> TypeVariableSer.create(v);
+                default -> UnknownTypeSer.create(type);
+            };
+        } finally {
+            visiting.remove(type);
+        }
     }
 
     public record ClassSer<E>(@NonNull Class<E> clazz) implements SerializableType {
@@ -95,12 +106,18 @@ sealed interface SerializableType extends Serializable permits
         /// Creates a surrogate for a `ParameterizedType`.
         /// @param p The `ParameterizedType` to be serialized into a surrogate form.
         /// @return The surrogate form. Never `null`.
-        /// @throws IllegalArgumentException If `p` is `null`.
+        /// @throws IllegalArgumentException If `p` is `null`, or if `p.getActualTypeArguments()` returns `null`
+        ///         (which never happens with a `ParameterizedType` obtained through the reflection API,
+        ///         only with a hand-written or maliciously-crafted implementation).
         public static ParameterizedTypeSer create(@NonNull ParameterizedType p) {
             checkNotNull(p); // Check recognized by lombok.
+            var typeArguments = p.getActualTypeArguments();
+            if (typeArguments == null) {
+                throw new IllegalArgumentException(p + ".getActualTypeArguments() returned null.");
+            }
             return new ParameterizedTypeSer(
                     from(p.getRawType()),
-                    Arrays.stream(p.getActualTypeArguments()).map(SerializableType::from).toArray(SerializableType[]::new),
+                    Arrays.stream(typeArguments).map(SerializableType::from).toArray(SerializableType[]::new),
                     p.getOwnerType() == null ? null : from(p.getOwnerType())
             );
         }
@@ -132,12 +149,22 @@ sealed interface SerializableType extends Serializable permits
         /// Creates a surrogate for a `WildcardType`.
         /// @param w The `WildcardType` to be serialized into a surrogate form.
         /// @return The surrogate form. Never `null`.
-        /// @throws IllegalArgumentException If `w` is `null`.
+        /// @throws IllegalArgumentException If `w` is `null`, or if `w.getUpperBounds()` or `w.getLowerBounds()`
+        ///         returns `null` (which never happens with a `WildcardType` obtained through the reflection API,
+        ///         only with a hand-written or maliciously-crafted implementation).
         public static WildcardTypeSer create(@NonNull WildcardType w) {
             checkNotNull(w); // Check recognized by lombok.
+            var upperBounds = w.getUpperBounds();
+            var lowerBounds = w.getLowerBounds();
+            if (upperBounds == null) {
+                throw new IllegalArgumentException(w + ".getUpperBounds() returned null.");
+            }
+            if (lowerBounds == null) {
+                throw new IllegalArgumentException(w + ".getLowerBounds() returned null.");
+            }
             return new WildcardTypeSer(
-                    Arrays.stream(w.getUpperBounds()).map(SerializableType::from).toArray(SerializableType[]::new),
-                    Arrays.stream(w.getLowerBounds()).map(SerializableType::from).toArray(SerializableType[]::new)
+                    Arrays.stream(upperBounds).map(SerializableType::from).toArray(SerializableType[]::new),
+                    Arrays.stream(lowerBounds).map(SerializableType::from).toArray(SerializableType[]::new)
             );
         }
     }
@@ -213,7 +240,7 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public Type toType() {
-            throw new UnsupportedOperationException("Not implemented yet.");
+            throw new UnsupportedOperationException("Unknown type.");
         }
 
         /// Creates a placeholder surrogate for a `Type` that is none of [Class], [ParameterizedType], [WildcardType],
