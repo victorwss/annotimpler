@@ -1,11 +1,11 @@
 package ninja.javahacker.annotimpler.jpa;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import jakarta.persistence.Parameter;
+import java.util.Date;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
 import lombok.experimental.PackagePrivate;
-import jakarta.persistence.Parameter;
-import java.util.Date;
 
 import module jakarta.persistence;
 import module java.base;
@@ -26,50 +26,59 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         this.delegate = query;
     }
 
+    /// {@inheritDoc}
     @Override
     public X getSingleResultOrNull() {
         return delegate.getSingleResultOrNull();
     }
 
+    /// {@inheritDoc}
     @Override
     public List<X> getResultList() {
         return delegate.getResultList();
     }
 
+    /// {@inheritDoc}
     @Override
     public Stream<X> getResultStream() {
         return delegate.getResultStream();
     }
 
+    /// {@inheritDoc}
     @Override
     public X getSingleResult() {
         return delegate.getSingleResult();
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setMaxResults(int maxResults) {
         delegate.setMaxResults(maxResults);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setFirstResult(int startPosition) {
         delegate.setFirstResult(startPosition);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setHint(String hintName, Object value) {
         delegate.setHint(hintName, value);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public <T> SpecialTypedQuery<X> setParameter(Parameter<T> param, T value) {
         delegate.setParameter(param, value);
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(Parameter<Calendar> param, Calendar value, TemporalType temporalType) {
@@ -77,6 +86,7 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(Parameter<Date> param, Date value, TemporalType temporalType) {
@@ -84,12 +94,14 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setParameter(String name, Object value) {
         delegate.setParameter(name, value);
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(String name, Calendar value, TemporalType temporalType) {
@@ -97,6 +109,7 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(String name, Date value, TemporalType temporalType) {
@@ -104,12 +117,14 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setParameter(int position, Object value) {
         delegate.setParameter(position, value);
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(int position, Calendar value, TemporalType temporalType) {
@@ -117,6 +132,7 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Deprecated
     @Override
     public SpecialTypedQuery<X> setParameter(int position, Date value, TemporalType temporalType) {
@@ -124,30 +140,35 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setFlushMode(FlushModeType flushMode) {
         delegate.setFlushMode(flushMode);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setLockMode(LockModeType lockMode) {
         delegate.setLockMode(lockMode);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setTimeout(Integer timeout) {
         delegate.setTimeout(timeout);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setCacheStoreMode(CacheStoreMode mode) {
         delegate.setCacheStoreMode(mode);
         return this;
     }
 
+    /// {@inheritDoc}
     @Override
     public SpecialTypedQuery<X> setCacheRetrieveMode(CacheRetrieveMode mode) {
         delegate.setCacheRetrieveMode(mode);

@@ -48,16 +48,19 @@ final class SpecialEntityManager implements ExtendedEntityManager {
         this.wrapped = emf.createEntityManager();
     }
 
+    /// {@inheritDoc}
     @Override
     public void remove(Object obj) {
         if (obj != null && !isNew(obj)) wrapped.remove(obj);
     }
 
+    /// {@inheritDoc}
     @Override
     public <T extends Object> ExtendedTypedQuery<T> createQuery(CriteriaQuery<T> criteriaQuery) {
         return ExtendedTypedQuery.wrap(wrapped.createQuery(criteriaQuery));
     }
 
+    /// {@inheritDoc}
     @Override
     @SuppressFBWarnings(
             value = "SQL_INJECTION_JPA",
@@ -67,11 +70,13 @@ final class SpecialEntityManager implements ExtendedEntityManager {
         return ExtendedTypedQuery.wrap(wrapped.createQuery(qlString, resultClass));
     }
 
+    /// {@inheritDoc}
     @Override
     public <T extends Object> ExtendedTypedQuery<T> createNamedQuery(String name, Class<T> resultClass) {
         return ExtendedTypedQuery.wrap(wrapped.createNamedQuery(name, resultClass));
     }
 
+    /// {@inheritDoc}
     @Override
     public Connection getConnection() {
         return adapter.getConnection(wrapped);
@@ -129,9 +134,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
                 if (!parent.adapter.shouldTryToReconnect(e)) throw e;
                 parent.recreateEntityManager();
                 wrapped.begin();
-                //Database.getListener().renewedConnection(parent.persistenceUnitName);
             }
-            //Database.getListener().startedTransaction(parent.persistenceUnitName);
         }
     }
 

@@ -1,20 +1,19 @@
 package ninja.javahacker.annotimpler.jpa;
 
-import module jakarta.persistence;
-import module java.base;
 import jakarta.persistence.Parameter;
 import java.util.Date;
 import lombok.NonNull;
 
-/**
- * Extends the {@link TypedQuery} interface adding several useful methods.
- * @param <X> The generic type of the {@link TypedQuery}.
- * @author Victor Williams Stafusa da Silva
- */
+import module jakarta.persistence;
+import module java.base;
+
+/// Extends the [TypedQuery] interface adding several useful methods.
+/// @param <X> The generic type of the [TypedQuery].
+/// @author Victor Williams Stafusa da Silva
 public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
 
-    /// Gets a single line as a result and wraps it inside an [Optional]. If there is no result, an empty [Optional]
-    /// is returned instead.
+    /// Gets a single line as a result and wraps it inside an [Optional].
+    /// If there is no result, an empty [Optional] is returned instead.
     /// @return An [Optional] containing the result or an empty [Optional] if there is no result.
     public default Optional<X> getOptionalResult() {
         try {
