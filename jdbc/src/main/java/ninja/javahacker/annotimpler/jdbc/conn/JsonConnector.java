@@ -40,7 +40,7 @@ public final class JsonConnector implements Connector {
     private static final Map<String, Class<? extends Connector>> STD_REGISTERED_CLASSES;
 
     /// The lock for messing with [#REGISTERED_CLASSES].
-    private static final ReentrantLock LOCK = new ReentrantLock();
+    private static final Object LOCK = new Object();
 
     /// The wrapped [Connector].
     @Delegate(types = Connector.class)
@@ -97,15 +97,12 @@ public final class JsonConnector implements Connector {
             if (key == null) throw new UnsupportedOperationException();
         }
 
-        try {
-            LOCK.lock();
+        synchronized (LOCK) {
             for (var k : classes) {
                 var key = k.getAnnotation(ConnectorJsonKey.class);
                 var kv = key.value();
                 REGISTERED_CLASSES.put(kv, k);
             }
-        } finally {
-            LOCK.unlock();
         }
     }
 
@@ -113,12 +110,9 @@ public final class JsonConnector implements Connector {
     ///
     /// Any classes previously added via [#register(Class[])] are removed.
     public static void resetRegister() {
-        try {
-            LOCK.lock();
+        synchronized (LOCK) {
             REGISTERED_CLASSES.clear();
             REGISTERED_CLASSES.putAll(STD_REGISTERED_CLASSES);
-        } finally {
-            LOCK.unlock();
         }
     }
 
@@ -129,11 +123,8 @@ public final class JsonConnector implements Connector {
     ///         or an empty optional if no class is registered under that key.
     /// @throws IllegalArgumentException If `key` is `null`.
     public static Optional<Class<? extends Connector>> find(@NonNull String key) {
-        try {
-            LOCK.lock();
+        synchronized (LOCK) {
             return Optional.ofNullable(REGISTERED_CLASSES.get(key));
-        } finally {
-            LOCK.unlock();
         }
     }
 

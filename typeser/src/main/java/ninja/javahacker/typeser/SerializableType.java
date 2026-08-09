@@ -14,6 +14,31 @@ sealed interface SerializableType extends Serializable permits
         SerializableType.GenericArrayTypeSer, SerializableType.TypeVariableSer, SerializableType.UnknownTypeSer
 {
 
+    /// Tracks, per thread, the `Type` instances whose surrogate is currently being built by an
+    /// in-progress, still-unfinished call to [#from(Type)] on that same thread.
+    ///
+    /// Identity (not [Object#equals(Object)]) is used to recognize a previously-seen `Type`, since
+    /// a malicious implementation could otherwise define `equals` in a way that defeats the
+    /// cycle check (or that itself misbehaves, e.g. by recursing back into the very type graph
+    /// being serialized).
+    ///
+    /// This state should not be considered public, despite the `public` modifier. But, since [SerializableType]
+    /// itself is not public, hence this field isn't either. This should be considered in future refactorings
+    /// if someone considers making [SerializableType] public (though unlikely).
+    public static final ThreadLocal<Set<Type>> VISITING = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
+
+    /// Threshold where we should give up serializing a too-deeply nested type.
+    /// Specially useful when the nested type is maliciously crafted to be infinitely deep.
+    public static int TOO_LARGE_TYPE = 256;
+
+    /// Tracks, per thread, the number of `Type` instances being visited in order to build an
+    /// in-progress, still-unfinished root `Type` from a call to [#from(Type)] on that same thread.
+    ///
+    /// This state should not be considered public, despite the `public` modifier. But, since [SerializableType]
+    /// itself is not public, hence this field isn't either. This should be considered in future refactorings
+    /// if someone considers making [SerializableType] public (though unlikely).
+    public static final ThreadLocal<Integer> VISIT_COUNT = ThreadLocal.withInitial(() -> 0);
+
     /// Reconstructs the original `Type`.
     /// @return The original `Type`.
     /// @throw UnsupportedOperationException If this represents a type that can't be reconstructed.
@@ -34,10 +59,15 @@ sealed interface SerializableType extends Serializable permits
     ///         never with a `Type` obtained through the reflection API.
     @NonNull
     public static SerializableType from(@NonNull Type type) {
-        var visiting = TypeCycleGuard.VISITING.get();
+        var visiting = VISITING.get();
         if (!visiting.add(type)) {
             throw new IllegalArgumentException("Cyclic type graph detected involving " + type + ".");
         }
+        var howMany = VISIT_COUNT.get();
+        if (howMany > TOO_LARGE_TYPE) {
+            throw new IllegalArgumentException("Too deeply nested type graph detected involving " + type + ".");
+        }
+        VISIT_COUNT.set(howMany + 1);
         try {
             return switch (type) {
                 case Class<?> c -> ClassSer.create(c);
@@ -49,6 +79,9 @@ sealed interface SerializableType extends Serializable permits
             };
         } finally {
             visiting.remove(type);
+            if (visiting.isEmpty()) {
+                VISIT_COUNT.set(0);
+            }
         }
     }
 

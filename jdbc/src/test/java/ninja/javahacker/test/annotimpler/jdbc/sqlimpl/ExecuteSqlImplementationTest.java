@@ -45,7 +45,7 @@ public class ExecuteSqlImplementationTest {
 
         @ExecuteSql(acceptsZero = true, acceptsMulti = true)
         @Sql("INSERT INTO t VALUES (:id, :label, :amount)")
-        void insertVoidBoxed(int id, String label, int amount);
+        Void insertVoidBoxed(int id, String label, int amount);
 
         @ExecuteSql(acceptsZero = true, acceptsMulti = true)
         @Sql("INSERT INTO t VALUES (:id, :label, :amount)")
