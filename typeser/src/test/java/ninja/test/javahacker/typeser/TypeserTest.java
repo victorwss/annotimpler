@@ -1,9 +1,9 @@
 package ninja.test.javahacker.typeser;
 
+import java.lang.annotation.Annotation;
 import ninja.javahacker.typeser.TypeRef;
 import ninja.test.ForTests;
-
-import java.lang.annotation.Annotation;
+import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module org.junit.jupiter.api;
@@ -106,6 +106,28 @@ public class TypeserTest {
     // with a raw `NullPointerException`/`StackOverflowError`, corrupt state, hang, etc.) when fed
     // such implementations; it must fail predictably with `IllegalArgumentException`.
 
+    /// Asserts that `exec` throws an exception of the given `type` whose message contains `expectedSubstring`.
+    ///
+    /// Checking the message (not just the exception type) matters here because several completely different
+    /// malformed-type scenarios (a `null` sub-component, a cyclic type graph, an oversized type graph, and so
+    /// on) all surface as the very same {@link IllegalArgumentException} class. Without pinning down the
+    /// message, a test for one scenario (say, a cycle) could pass for the wrong reason (say, because the
+    /// "too deeply nested" check tripped instead), silently letting a regression slip through.
+    /// @param <T> The expected exception type.
+    /// @param type The expected exception type.
+    /// @param expectedSubstring A substring that must be present in the thrown exception's message.
+    /// @param exec The code expected to throw.
+    /// @return The thrown exception, in case further assertions are needed.
+    private static <T extends Throwable> T assertThrowsContaining(Class<T> type, String expectedSubstring, Executable exec) {
+        var ex = Assertions.assertThrows(type, exec);
+        Assertions.assertNotNull(ex.getMessage(), () -> "Expected a non-null message on " + ex);
+        Assertions.assertTrue(
+                ex.getMessage().contains(expectedSubstring),
+                () -> "Expected message to contain \"" + expectedSubstring + "\" but was \"" + ex.getMessage() + "\""
+        );
+        return ex;
+    }
+
     private static final class LinkedParameterizedType implements ParameterizedType {
         private Type raw;
         private Type[] args = new Type[0];
@@ -188,10 +210,92 @@ public class TypeserTest {
         }
     }
 
+    // ── Tests: DoS protection against oversized/maliciously-exploding type graphs ────────────
+
+    /// Builds a chain of {@code depth} distinct (non-cyclic!) {@link ParameterizedType}s linked through
+    /// {@link ParameterizedType#getOwnerType()}, where each link is a brand new object. Since every object is
+    /// distinct, this never triggers the cycle detector, yet a sufficiently long chain represents an unboundedly
+    /// deep type graph, exactly like a maliciously-crafted {@code getOwnerType()} that keeps fabricating new
+    /// owner instances instead of reflecting a real enclosing type.
+    private static LinkedParameterizedType deepOwnerChain(int depth) {
+        LinkedParameterizedType previous = null;
+        for (int i = 0; i < depth; i++) {
+            var current = new LinkedParameterizedType();
+            current.raw = List.class;
+            current.owner = previous;
+            previous = current;
+        }
+        return previous;
+    }
+
+    /// Builds a single {@link ParameterizedType} with {@code width} distinct type arguments, each of which is
+    /// itself a small but distinct {@link ParameterizedType}. This represents a maliciously wide (as opposed to
+    /// deep) type graph, exactly like a {@code getActualTypeArguments()} fabricating hundreds of forged
+    /// sub-types instead of reflecting real type arguments.
+    private static LinkedParameterizedType wideTypeArguments(int width) {
+        var top = new LinkedParameterizedType();
+        top.raw = List.class;
+        var args = new Type[width];
+        for (int i = 0; i < width; i++) {
+            var leaf = new LinkedParameterizedType();
+            leaf.raw = Object.class;
+            args[i] = leaf;
+        }
+        top.args = args;
+        return top;
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testTooLargeType() {
+        var pf = "[testTooLargeType] ";
+        return Stream.of(
+                DynamicTest.dynamicTest(
+                        pf + "moderately deep but legitimate-sized owner chain succeeds",
+                        () -> Assertions.assertDoesNotThrow(() -> TypeRef.wrap(deepOwnerChain(30)))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "moderately wide but legitimate-sized type-argument list succeeds",
+                        () -> Assertions.assertDoesNotThrow(() -> TypeRef.wrap(wideTypeArguments(30)))
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "unboundedly deep owner-type chain is rejected",
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                "Too deeply nested type graph detected involving",
+                                () -> TypeRef.wrap(deepOwnerChain(10_000))
+                        )
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "excessively wide type-argument list is rejected",
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                "Too deeply nested type graph detected involving",
+                                () -> TypeRef.wrap(wideTypeArguments(10_000))
+                        )
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "the type graph size limit is tracked per call, not accumulated across calls",
+                        () -> {
+                            // Trigger the size limit a few times in a row...
+                            for (int i = 0; i < 5; i++) {
+                                assertThrowsContaining(
+                                        IllegalArgumentException.class,
+                                        "Too deeply nested type graph detected involving",
+                                        () -> TypeRef.wrap(deepOwnerChain(10_000))
+                                );
+                            }
+                            // ...and then confirm that ordinary, legitimately-sized types still serialize fine
+                            // afterwards, proving that no leftover state from the rejected oversized attempts
+                            // is leaking into (and permanently poisoning) later, unrelated calls.
+                            Assertions.assertDoesNotThrow(() -> TypeRef.wrap(deepOwnerChain(10)));
+                            Assertions.assertEquals(String.class, TypeRef.wrap(String.class).type());
+                        }
+                )
+        );
+    }
+
     @TestFactory
     public Stream<DynamicTest> testMalformedTypes() {
-        var pf = "[testMalformedTypes] ";
-
         var nullArgsArray = new LinkedParameterizedType();
         nullArgsArray.raw = List.class;
         nullArgsArray.args = null;
@@ -253,10 +357,15 @@ public class TypeserTest {
             }
         };
 
+        var pf = "[testMalformedTypes] ";
         return Stream.of(
                 DynamicTest.dynamicTest(
                         pf + "parameterized type with null type-argument array",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(nullArgsArray))
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                ".getActualTypeArguments() returned null.",
+                                () -> TypeRef.wrap(nullArgsArray)
+                        )
                 ),
                 DynamicTest.dynamicTest(
                         pf + "parameterized type with a null type argument",
@@ -268,15 +377,27 @@ public class TypeserTest {
                 ),
                 DynamicTest.dynamicTest(
                         pf + "parameterized type whose raw type is itself",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(selfRawType))
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                "Cyclic type graph detected involving",
+                                () -> TypeRef.wrap(selfRawType)
+                        )
                 ),
                 DynamicTest.dynamicTest(
                         pf + "two parameterized types cyclically referencing each other",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(mutualA))
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                "Cyclic type graph detected involving",
+                                () -> TypeRef.wrap(mutualA)
+                        )
                 ),
                 DynamicTest.dynamicTest(
                         pf + "wildcard type with null upper-bounds array",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(nullUpperBounds))
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                ".getUpperBounds() returned null.",
+                                () -> TypeRef.wrap(nullUpperBounds)
+                        )
                 ),
                 DynamicTest.dynamicTest(
                         pf + "wildcard type with a null lower bound",
@@ -288,7 +409,11 @@ public class TypeserTest {
                 ),
                 DynamicTest.dynamicTest(
                         pf + "generic array type whose component is itself",
-                        () -> Assertions.assertThrows(IllegalArgumentException.class, () -> TypeRef.wrap(selfComponent))
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                "Cyclic type graph detected involving",
+                                () -> TypeRef.wrap(selfComponent)
+                        )
                 ),
                 DynamicTest.dynamicTest(
                         pf + "type variable with null generic declaration",
@@ -296,8 +421,9 @@ public class TypeserTest {
                 ),
                 DynamicTest.dynamicTest(
                         pf + "type variable declared by a foreign GenericDeclaration",
-                        () -> Assertions.assertThrows(
+                        () -> assertThrowsContaining(
                                 UnsupportedOperationException.class,
+                                "Unsupported GenericDeclaration:",
                                 () -> TypeRef.wrap(foreignDeclaration)
                         )
                 )

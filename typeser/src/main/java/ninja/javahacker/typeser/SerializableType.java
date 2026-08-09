@@ -63,12 +63,12 @@ sealed interface SerializableType extends Serializable permits
         if (!visiting.add(type)) {
             throw new IllegalArgumentException("Cyclic type graph detected involving " + type + ".");
         }
-        var howMany = VISIT_COUNT.get();
-        if (howMany > TOO_LARGE_TYPE) {
-            throw new IllegalArgumentException("Too deeply nested type graph detected involving " + type + ".");
-        }
-        VISIT_COUNT.set(howMany + 1);
         try {
+            var howMany = VISIT_COUNT.get();
+            if (howMany > TOO_LARGE_TYPE) {
+                throw new IllegalArgumentException("Too deeply nested type graph detected involving " + type + ".");
+            }
+            VISIT_COUNT.set(howMany + 1);
             return switch (type) {
                 case Class<?> c -> ClassSer.create(c);
                 case ParameterizedType p -> ParameterizedTypeSer.create(p);
