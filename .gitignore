@@ -7,5 +7,8 @@
 /sql/build
 /jdbc/build
 /jpa/build
+/hibernate/build
+/eclipselink/build
+/openjpa/build
 .gradle
 .maven-repo

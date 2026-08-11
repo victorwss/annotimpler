@@ -26,7 +26,9 @@ def doclint = true
 def versionApiguardian = "1.1.2"
 def versionAsm         = "9.10.1"
 def versionCheckstyle  = "13.7.0"
+def versionEclipselink = "5.0.1"
 def versionFindSecBugs = "1.14.0"
+def versionHibernate   = "7.4.5.Final"
 def versionJackson     = "3.2.0"
 def versionJacksonAnn  = "2.22"
 def versionJaCoCo      = "0.8.15"
@@ -37,9 +39,11 @@ def versionJakartaInj  = "2.0.1"
 def versionJakartaInt  = "2.2.0"
 def versionJakartaJpa  = "3.2.0"
 def versionJakartaJta  = "2.0.1"
+def versionJBossLog    = "3.6.3.Final"
 def versionJcip        = "1.0-1"
 def versionJunit       = "6.1.1"
 def versionLombok      = "1.18.47"
+def versionOpenJpa     = "4.1.1"
 def versionPmd         = "7.26.0"
 def versionSbContrib   = "7.7.4"
 def versionSpotBugs    = "4.10.2"
@@ -901,5 +905,134 @@ project(":jpa") {
         dependsOn(":convert:jar")
         dependsOn(":core:jar")
         dependsOn(":sql:jar")
+    }
+}
+
+project(":hibernate") {
+    def moduleName = "ninja.javahacker.jpasimpletransactions.hibernate"
+    description = "JPA Simple Transactions for Hibernate"
+
+    jar {
+        archiveBaseName = "jpa-simple-transactions-hibernate"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":jpa"))
+
+        // Hibernate.
+        api("org.hibernate.orm:hibernate-core:" + versionHibernate)
+
+        // JBoss Logging.
+        api("org.jboss.logging:jboss-logging:" + versionJBossLog)
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
+        dependsOn(":sql:delombok")
+        dependsOn(":sql:compileJava")
+        dependsOn(":jpa:delombok")
+        dependsOn(":jpa:compileJava")
+        dependsOn(":hibernate:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
+        dependsOn(":convert:jar")
+        dependsOn(":core:jar")
+        dependsOn(":sql:jar")
+        dependsOn(":jpa:jar")
+    }
+}
+
+project(":eclipselink") {
+    def moduleName = "ninja.javahacker.jpasimpletransactions.eclipselink"
+    description = "JPA Simple Transactions for Eclipselink"
+
+    jar {
+        archiveBaseName = "jpa-simple-transactions-eclipselink"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":jpa"))
+
+        // EclipseLink.
+        api("org.eclipse.persistence:org.eclipse.persistence.jpa:" + versionEclipselink)
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
+        dependsOn(":sql:delombok")
+        dependsOn(":sql:compileJava")
+        dependsOn(":jpa:delombok")
+        dependsOn(":jpa:compileJava")
+        dependsOn(":eclipselink:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
+        dependsOn(":convert:jar")
+        dependsOn(":core:jar")
+        dependsOn(":sql:jar")
+        dependsOn(":jpa:jar")
+    }
+}
+
+project(":openjpa") {
+    def moduleName = "ninja.javahacker.jpasimpletransactions.openjpa"
+    description = "JPA Simple Transactions for OpenJPA"
+
+    jar {
+        archiveBaseName = "jpa-simple-transactions-openjpa"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":jpa"))
+
+        // OpenJPA.
+        api("org.apache.openjpa:openjpa:" + versionOpenJpa)
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":datetime:delombok")
+        dependsOn(":datetime:compileJava")
+        dependsOn(":convert:delombok")
+        dependsOn(":convert:compileJava")
+        dependsOn(":core:delombok")
+        dependsOn(":core:compileJava")
+        dependsOn(":sql:delombok")
+        dependsOn(":sql:compileJava")
+        dependsOn(":jpa:delombok")
+        dependsOn(":jpa:compileJava")
+        dependsOn(":openjpa:delombok")
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+        dependsOn(":datetime:jar")
+        dependsOn(":convert:jar")
+        dependsOn(":core:jar")
+        dependsOn(":sql:jar")
+        dependsOn(":jpa:jar")
     }
 }
