@@ -5,7 +5,7 @@ import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
 import module java.sql;
-import ninja.javahacker.annotimpler.sql.Transactor;
+import module ninja.javahacker.annotimpler.sql;
 
 /// Holds the active database connection and its unique identifier for one transaction.
 ///

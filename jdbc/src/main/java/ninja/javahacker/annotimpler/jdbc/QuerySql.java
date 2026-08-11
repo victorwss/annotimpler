@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.jdbc;
 
-import ninja.javahacker.annotimpler.jdbc.sqlimpl.QuerySqlImplementation;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import module java.base;
+import module ninja.javahacker.annotimpler.jdbc;
 import module ninja.javahacker.annotimpler.sql;
 
 /// Marks a method as a `SELECT` query that maps results to Java types.

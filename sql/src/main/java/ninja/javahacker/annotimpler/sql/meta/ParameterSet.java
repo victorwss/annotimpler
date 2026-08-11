@@ -19,7 +19,10 @@ import module ninja.javahacker.annotimpler.magicfactory;
 ///
 /// @see ParameterReceiver
 /// @see ParsedSqlSupplier#find
-@SuppressFBWarnings({"EI_EXPOSE_REP", "EI_EXPOSE_REP2"}) // Wraps a Method intentionally, but SpotBugs don't like that.
+@SuppressFBWarnings(
+        value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+        justification = "Wraps a Method intentionally, but SpotBugs don't like that."
+)
 public final class ParameterSet {
 
     /// The wrapped method being executed.
