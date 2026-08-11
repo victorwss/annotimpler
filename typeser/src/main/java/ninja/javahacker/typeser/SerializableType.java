@@ -1,6 +1,7 @@
 package ninja.javahacker.typeser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
@@ -104,6 +105,10 @@ sealed interface SerializableType extends Serializable permits
         }
     }
 
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP",
+            justification = "SerializableType is not public the arrays are always copied in the toType() method."
+    )
     public record ParameterizedTypeSer(@NonNull SerializableType raw, @NonNull SerializableType[] args, @Nullable SerializableType owner)
             implements SerializableType
     {
@@ -156,6 +161,10 @@ sealed interface SerializableType extends Serializable permits
         }
     }
 
+    @SuppressFBWarnings(
+            value = "EI_EXPOSE_REP",
+            justification = "SerializableType is not public the arrays are always copied in the toType() method."
+    )
     public record WildcardTypeSer(@NonNull SerializableType[] upper, @NonNull SerializableType[] lower) implements SerializableType {
 
         /// {@inheritDoc}
@@ -189,12 +198,8 @@ sealed interface SerializableType extends Serializable permits
             checkNotNull(w); // Check recognized by lombok.
             var upperBounds = w.getUpperBounds();
             var lowerBounds = w.getLowerBounds();
-            if (upperBounds == null) {
-                throw new IllegalArgumentException(w + ".getUpperBounds() returned null.");
-            }
-            if (lowerBounds == null) {
-                throw new IllegalArgumentException(w + ".getLowerBounds() returned null.");
-            }
+            if (upperBounds == null) throw new IllegalArgumentException(w + ".getUpperBounds() returned null.");
+            if (lowerBounds == null) throw new IllegalArgumentException(w + ".getLowerBounds() returned null.");
             return new WildcardTypeSer(
                     Arrays.stream(upperBounds).map(SerializableType::from).toArray(SerializableType[]::new),
                     Arrays.stream(lowerBounds).map(SerializableType::from).toArray(SerializableType[]::new)

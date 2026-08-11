@@ -1,11 +1,9 @@
 package ninja.javahacker.annotimpler.jdbc;
 
-import ninja.javahacker.annotimpler.jdbc.JdbcTransaction;
 import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
-import ninja.javahacker.annotimpler.sql.Transactor;
 
 /// Factory that creates [Connection] instances and serves as the entry point for
 /// implementing annotated SQL interfaces.
