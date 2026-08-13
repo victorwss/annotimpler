@@ -35,13 +35,51 @@ public class TypeserTest {
     // ── Round-trip helper (tests TypeRef.write + TypeRef.read) ───────────────
 
     private static Type roundTrip(Type type) throws Exception {
+        return readFromBytes(writeToBytes(type));
+    }
+
+    private static byte[] writeToBytes(Type type) throws Exception {
         var baos = new ByteArrayOutputStream();
         try (var oos = new ObjectOutputStream(baos)) {
             TypeRef.write(oos, type);
         }
-        try (var ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+        return baos.toByteArray();
+    }
+
+    private static Type readFromBytes(byte[] content) throws Exception {
+        try (var ois = new ObjectInputStream(new ByteArrayInputStream(content))) {
             return TypeRef.read(ois);
         }
+    }
+
+    private static byte[] replaceAsciiOnce(byte[] source, String before, String after) {
+        Assertions.assertEquals(before.length(), after.length(), "Replacement strings must have same length.");
+        var from = before.getBytes(StandardCharsets.UTF_8);
+        var to = after.getBytes(StandardCharsets.UTF_8);
+        var out = source.clone();
+        int hits = 0;
+        for (int i = 0; i <= out.length - from.length; i++) {
+            boolean match = true;
+            for (int j = 0; j < from.length; j++) {
+                if (out[i + j] != from[j]) {
+                    match = false;
+                    break;
+                }
+            }
+            if (match) {
+                System.arraycopy(to, 0, out, i, to.length);
+                hits++;
+                i += from.length - 1;
+            }
+        }
+        Assertions.assertEquals(1, hits, "Expected exactly one serialized occurrence of \"" + before + "\".");
+        return out;
+    }
+
+    private static Type roundTrip(Type type, String before, String after) throws Exception {
+        var bytes = writeToBytes(type);
+        var changed = replaceAsciiOnce(bytes, before, after);
+        return readFromBytes(changed);
     }
 
     // ── Tests: serialisation round-trip ─────────────────────────────────────
@@ -77,6 +115,11 @@ public class TypeserTest {
 
     private static final class GenericConstructor {
         private <C> GenericConstructor(C arg) {
+        }
+    }
+
+    private static final class AltGenericCtor0000 {
+        private AltGenericCtor0000() {
         }
     }
 
@@ -210,6 +253,13 @@ public class TypeserTest {
         }
     }
 
+    private static final class UnsupportedType implements Type {
+        @Override
+        public String toString() {
+            return "UnsupportedType";
+        }
+    }
+
     // ── Tests: DoS protection against oversized/maliciously-exploding type graphs ────────────
 
     /// Builds a chain of {@code depth} distinct (non-cyclic!) {@link ParameterizedType}s linked through
@@ -340,6 +390,18 @@ public class TypeserTest {
             }
         };
 
+        WildcardType nullLowerBoundsArray = new WildcardType() {
+            @Override
+            public Type[] getUpperBounds() {
+                return new Type[] {Object.class};
+            }
+
+            @Override
+            public Type[] getLowerBounds() {
+                return null;
+            }
+        };
+
         GenericArrayType nullComponent = () -> null;
         var selfComponent = new SelfComponentArrayType();
 
@@ -356,6 +418,20 @@ public class TypeserTest {
                 return new ForeignGenericDeclaration();
             }
         };
+
+        var missingTypeVariable = new AbstractFakeTypeVariable() {
+            @Override
+            public GenericDeclaration getGenericDeclaration() {
+                return List.class;
+            }
+
+            @Override
+            public String getName() {
+                return "THIS_NAME_DOES_NOT_EXIST";
+            }
+        };
+
+        var unknownType = new UnsupportedType();
 
         var pf = "[testMalformedTypes] ";
         return Stream.of(
@@ -400,6 +476,14 @@ public class TypeserTest {
                         )
                 ),
                 DynamicTest.dynamicTest(
+                        pf + "wildcard type with null lower-bounds array",
+                        () -> assertThrowsContaining(
+                                IllegalArgumentException.class,
+                                ".getLowerBounds() returned null.",
+                                () -> TypeRef.wrap(nullLowerBoundsArray)
+                        )
+                ),
+                DynamicTest.dynamicTest(
                         pf + "wildcard type with a null lower bound",
                         () -> ForTests.testNull("type", () -> TypeRef.wrap(nullLowerBoundsElement))
                 ),
@@ -426,6 +510,56 @@ public class TypeserTest {
                                 "Unsupported GenericDeclaration:",
                                 () -> TypeRef.wrap(foreignDeclaration)
                         )
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "type variable whose name is missing in declaration",
+                        () -> assertThrowsContaining(
+                                IllegalStateException.class,
+                                "Type variable \"THIS_NAME_DOES_NOT_EXIST\" not found in",
+                                () -> roundTrip(missingTypeVariable)
+                        )
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "unknown type implementation is preserved before serialization",
+                        () -> Assertions.assertSame(unknownType, TypeRef.wrap(unknownType).type())
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "unknown type implementation cannot be reconstructed after serialization",
+                        () -> assertThrowsContaining(
+                                UnsupportedOperationException.class,
+                                "Unknown type.",
+                                () -> roundTrip(unknownType)
+                        )
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "stale method declaration in serialized stream",
+                        () -> {
+                            var methodVar = Stream.of(TypeserTest.class.getDeclaredMethods())
+                                    .filter(m -> m.getName().equals("genericMethod"))
+                                    .findFirst()
+                                    .orElseThrow()
+                                    .getTypeParameters()[0];
+                            assertThrowsContaining(
+                                    IllegalStateException.class,
+                                    "Method \"missingMethod\" not found in",
+                                    () -> roundTrip(methodVar, "genericMethod", "missingMethod")
+                            );
+                        }
+                ),
+                DynamicTest.dynamicTest(
+                        pf + "stale constructor declaration in serialized stream",
+                        () -> {
+                            var constructorVar = GenericConstructor.class.getDeclaredConstructors()[0].getTypeParameters()[0];
+                            assertThrowsContaining(
+                                    IllegalStateException.class,
+                                    "Constructor not found in class ninja.test.javahacker.typeser.TypeserTest$AltGenericCtor0000.",
+                                    () -> roundTrip(
+                                            constructorVar,
+                                            "GenericConstructor",
+                                            "AltGenericCtor0000"
+                                    )
+                            );
+                        }
                 )
         );
     }
@@ -445,4 +579,3 @@ public class TypeserTest {
         );
     }
 }
-

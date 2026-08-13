@@ -183,4 +183,22 @@ public class NameDictionaryTest {
             )
         );
     }
+
+    @TestFactory
+    @SuppressWarnings("ObjectEqualsNull")
+    public Stream<DynamicTest> testEqualsHashCodeToString() {
+        var a = new NameDictionary();
+        var b = new NameDictionary();
+        var g1 = NameDictionary.global();
+        var g2 = NameDictionary.global();
+        return Stream.of(
+                n("equals-reflexive", () -> Assertions.assertTrue(a.equals(a))),
+                n("equals-different-instance", () -> Assertions.assertFalse(a.equals(b))),
+                n("equals-global-singleton", () -> Assertions.assertTrue(g1.equals(g2))),
+                n("equals-null", () -> Assertions.assertFalse(a.equals(null))),
+                n("equals-unrelated", () -> Assertions.assertFalse(a.equals("x"))),
+                n("hashCode-identity", () -> Assertions.assertEquals(System.identityHashCode(a), a.hashCode())),
+                n("toString", () -> Assertions.assertEquals("NameDictionary", a.toString()))
+        );
+    }
 }

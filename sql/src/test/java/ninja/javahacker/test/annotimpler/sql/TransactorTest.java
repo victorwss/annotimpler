@@ -168,6 +168,7 @@ public class TransactorTest {
             Assertions.assertEquals(42, a);
             tc.assertConnected();
             tc.assertSameConnection(t.transaction().unwrap());
+            tc.assertSameConnection(t.resource());
             Assertions.assertEquals("1", t.transactionId());
             return "foo";
         };
@@ -371,6 +372,7 @@ public class TransactorTest {
 
         Assertions.assertAll(
                 () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transaction(), "No active transaction."),
+                () -> Assertions.assertThrows(IllegalStateException.class, () -> t.resource(), "No active transaction."),
                 () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
         );
     }
@@ -392,6 +394,7 @@ public class TransactorTest {
         Runnable check = () -> {
             Assertions.assertAll(
                     () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transaction(), "No active transaction."),
+                    () -> Assertions.assertThrows(IllegalStateException.class, () -> t.resource(), "No active transaction."),
                     () -> Assertions.assertThrows(IllegalStateException.class, () -> t.transactionId(), "No active transaction.")
             );
             called[0]++;

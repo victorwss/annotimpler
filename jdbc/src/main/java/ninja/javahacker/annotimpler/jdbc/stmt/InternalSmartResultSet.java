@@ -55,8 +55,10 @@ final class InternalSmartResultSet implements SmartResultSet {
     /// @param factory The converter factory used to convert column values to target Java types.
     /// @param localizer The locale used for case-insensitive column name matching.
     /// @throws SQLException If a database access error occurs while reading metadata.
-    /// @throws IllegalArgumentException If any argument is `null`.
     public InternalSmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory, @NonNull Locale localizer) throws SQLException {
+        checkNotNull(rs); // Check recognized by lombok.
+        checkNotNull(factory); // Check recognized by lombok.
+        checkNotNull(localizer); // Check recognized by lombok.
         this.rs = rs;
         this.factory = factory;
         this.metaData = rs.getMetaData();

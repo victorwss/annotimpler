@@ -137,6 +137,35 @@ public class CompositeCustomConverterTest {
     }
 
     @Test
+    public void testRecordOfPresentOptional() throws Exception {
+
+        var cvt = new Converter<Optional<Foo>>() {
+            @NonNull
+            @Override
+            public Optional<Optional<Foo>> from(@NonNull String in) throws ConvertionException {
+                Assertions.assertEquals("xxx", in);
+                return Optional.of(Optional.of(new Foo()));
+            }
+        };
+
+        var cvtf = new StdConverterFactory() {
+            @NonNull
+            @Override
+            public Optional<? extends Converter<? extends Optional<?>>> makeOptional(@NonNull ParameterizedType p) throws UnavailableConverterException {
+                Assertions.assertEquals(Optional.class, p.getRawType());
+                Assertions.assertEquals(Foo.class, p.getActualTypeArguments()[0]);
+                return Optional.of(cvt);
+            }
+        };
+
+        var out = cvtf.getOf(Bar2.class).from("xxx");
+        Assertions.assertAll(
+                () -> Assertions.assertTrue(out.isPresent()),
+                () -> Assertions.assertTrue(out.get().f().isPresent())
+        );
+    }
+
+    @Test
     public void testRecordOfEmptyArray1() throws Exception {
 
         var cvt = new Converter<Foo[]>() {

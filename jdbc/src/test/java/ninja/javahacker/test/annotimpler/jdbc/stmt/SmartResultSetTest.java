@@ -1188,6 +1188,7 @@ public class SmartResultSetTest {
         var ns = (String[]) null;
         var nf = (Function<String, String>) null;
         var rs = ControlledMock.mock(ResultSet.class).getMock();
+        var someMap = Map.<String, Object>of("X", 1);
 
         record Foo(int x) {
         }
@@ -1199,6 +1200,7 @@ public class SmartResultSetTest {
                 DynamicTest.dynamicTest("[testNulls] constructor(3)-3"                       , () -> ForTests.testNull("localizer"  , () -> SmartResultSet.wrap(rs, ConverterFactory.std(), null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByColumnNumber(int...)"           , () -> ForTests.testNull("fields"     , () -> mock0().getMapByColumnNumbers((int[]) null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByLabels(String...)"              , () -> ForTests.testNull("fields"     , () -> mock0().getMapByLabels((String[]) null))),
+                DynamicTest.dynamicTest("[testNulls] indexOf(String)"                        , () -> ForTests.testNull("columnLabel", () -> mock0().indexOf(null))),
                 DynamicTest.dynamicTest("[testNulls] getTypedValue(int, Class)-2"            , () -> ForTests.testNull("target"     , () -> mock0().getTypedValue(1, null))),
                 DynamicTest.dynamicTest("[testNulls] getTypedValue(String, Class)-1"         , () -> ForTests.testNull("columnLabel", () -> mock0().getTypedValue(null, String.class))),
                 DynamicTest.dynamicTest("[testNulls] getTypedValue(String, Class)-2"         , () -> ForTests.testNull("target"     , () -> mock0().getTypedValue("x", null))),
@@ -1210,6 +1212,9 @@ public class SmartResultSetTest {
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, int...)-1"             , () -> ForTests.testNull("k"          , () -> mock0().getRecord(null, 1))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, String...)-1"          , () -> ForTests.testNull("k"          , () -> mock0().getRecord(null, "x"))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function)-1"           , () -> ForTests.testNull("k"          , () -> mock0().getRecord(null, x -> x))),
+                DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, Map)-1"      , () -> ForTests.testNull("k"          , () -> mock0().getRecord(null, x -> x, someMap))),
+                DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, Map)-2"      , () -> ForTests.testNull("remapper"   , () -> mock0().getRecord(Foo.class, null, someMap))),
+                DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, Map)-3"      , () -> ForTests.testNull("map"        , () -> mock0().getRecord(Foo.class, x -> x, (Map<String, Object>) null))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, int...)-2"             , () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, ni))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, String...)-2"          , () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, ns))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function)-2"           , () -> ForTests.testNull("remapper"   , () -> mock0().getRecord(Foo.class, nf))),
@@ -1218,9 +1223,29 @@ public class SmartResultSetTest {
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, int...)-2"   , () -> ForTests.testNull("remapper"   , () -> mock0().getRecord(Foo.class, nf, 1))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, String...)-2", () -> ForTests.testNull("remapper"   , () -> mock0().getRecord(Foo.class, nf, "x"))),
                 DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, int...)-3"   , () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, x -> x, ni))),
-                DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, String...)-3", () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, x -> x, ns)))
+                DynamicTest.dynamicTest("[testNulls] getRecord(Class, Function, String...)-3", () -> ForTests.testNull("fields"     , () -> mock0().getRecord(Foo.class, x -> x, ns))),
+                DynamicTest.dynamicTest("[testNulls] defaultRemapper(Class)"                 , () -> ForTests.testNull("k"          , () -> mock0().defaultRemapper(null)))
         );
     }
+
+    /*@TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testNullsReflection() throws Exception {
+        var mdForCtor = makeMetaData(false, SIMPLE);
+        var rsForCtor = ControlledMock.mock(ResultSet.class);
+        rsForCtor.setHandler((i, m, a) -> {
+            if (m.getName().equals("getMetaData")) return mdForCtor.getMock();
+            throw new AssertionError(m);
+        });
+        var ctor = Class.forName("ninja.javahacker.annotimpler.jdbc.stmt.InternalSmartResultSet")
+                .getDeclaredConstructor(ResultSet.class, ConverterFactory.class, Locale.class);
+        ctor.setAccessible(true);
+        return Stream.of(
+                DynamicTest.dynamicTest("[testNullsReflection] InternalSmartResultSet ctor rs"       , () -> ForTests.testNullReflective("rs"       , () -> ctor.newInstance(null, ConverterFactory.std(), Locale.ROOT))),
+                DynamicTest.dynamicTest("[testNullsReflection] InternalSmartResultSet ctor factory"  , () -> ForTests.testNullReflective("factory"  , () -> ctor.newInstance(rsForCtor.getMock(), null, Locale.ROOT))),
+                DynamicTest.dynamicTest("[testNullsReflection] InternalSmartResultSet ctor localizer", () -> ForTests.testNullReflective("localizer", () -> ctor.newInstance(rsForCtor.getMock(), ConverterFactory.std(), null)))
+        );
+    }*/
 
     @Test
     public void testToString() {

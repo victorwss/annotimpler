@@ -100,7 +100,10 @@ public record HibernateConnectionFactory(
         if (!mappings.isEmpty()) out.put("hibernate.id.new_generator_mappings", mappings);
 
         if (multipleLinesCommands) {
-            out.put("hibernate.hbm2ddl.import_files_sql_extractor", "org.hibernate.tool.schema.internal.script.MultiLineSqlScriptExtractor");
+            out.put(
+                    "hibernate.hbm2ddl.import_files_sql_extractor",
+                    "org.hibernate.tool.schema.internal.script.MultiLineSqlScriptExtractor"
+            );
         }
 
         out.putAll(extras);

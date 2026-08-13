@@ -32,6 +32,12 @@ public class ResourceSqlFactoryTest {
         throw new AssertionError();
     }
 
+    // Tests explicit fromClass path (non-default branch in ResourceSqlFactory).
+    @SqlFromResource(value = "/ninja/javahacker/test/rsc/lorem-utf-8.txt", fromClass = ResourceSqlFactoryTest.class)
+    private static void withSql4() {
+        throw new AssertionError();
+    }
+
     // Tests for 404.
     @SqlFromResource(value = "/ninja/javahacker/test/rsc/does-not-exist.txt")
     private static void withSqlX1() {
@@ -51,7 +57,7 @@ public class ResourceSqlFactoryTest {
     @TestFactory
     public Stream<DynamicTest> testResourceSql() throws Exception {
         var pf = "[testResourceSql] ";
-        var a = Stream.of("withSql1", "withSql2")
+        var a = Stream.of("withSql1", "withSql2", "withSql4")
                 .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_UTF_8, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));
         var b = Stream.of("withSql3")
                 .map(m -> DynamicTest.dynamicTest(pf + m, () -> Assertions.assertEquals(LOREM_ISO_88591, ResourceSqlFactory.INSTANCE.prepare(mtd(m)).get())));

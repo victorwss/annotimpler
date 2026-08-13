@@ -50,6 +50,10 @@ public class MethodsSimpleTest {
             throw new AssertionError();
         }
 
+        public boolean notEquals(Object other) {
+            throw new AssertionError();
+        }
+
         @Override
         public String toString() {
             throw new AssertionError();
@@ -536,6 +540,31 @@ public class MethodsSimpleTest {
             n(pf + "getReturnType-Field", () -> ForTests.testNull("field", () -> Methods.getReturnType((Field) null))),
             n(pf + "paramMap-Exectuable", () -> ForTests.testNull("what", () -> Methods.paramMap(null, 5, 12))),
             n(pf + "paramMap-NPE", () -> ForTests.testNull("args", () -> Methods.paramMap(cloneCrazy, (Object[]) null)))
+        );
+    }
+
+    @TestFactory
+    public Stream<DynamicTest> testMethodId() throws Exception {
+        var m = Sample.class.getMethod("equals", Object.class);
+        var mutable = new ArrayList<Class<?>>(List.of(Object.class));
+        var idFromMethod = new Methods.MethodId(m);
+        var idFromParts = new Methods.MethodId("equals", mutable);
+        mutable.clear();
+        return Stream.of(
+                n("methodId-from-method-name", () -> Assertions.assertEquals("equals", idFromMethod.name())),
+                n("methodId-from-method-params", () -> Assertions.assertEquals(List.of(Object.class), idFromMethod.params())),
+                n("methodId-from-parts-defensive-copy", () -> Assertions.assertEquals(List.of(Object.class), idFromParts.params())),
+                n("methodId-from-parts-equals-method", () -> Assertions.assertEquals(idFromMethod, idFromParts))
+        );
+    }
+
+    @TestFactory
+    @SuppressWarnings("null")
+    public Stream<DynamicTest> testMethodIdNulls() {
+        return Stream.of(
+                n("[testMethodIdNulls] name", () -> ForTests.testNull("name", () -> new Methods.MethodId(null, List.of()))),
+                n("[testMethodIdNulls] params", () -> ForTests.testNull("params", () -> new Methods.MethodId("x", null))),
+                n("[testMethodIdNulls] method", () -> ForTests.testNull("m", () -> new Methods.MethodId((Method) null)))
         );
     }
 

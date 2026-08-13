@@ -79,6 +79,7 @@ public final class Methods {
         /// @param m The given [Method] to get an id.
         /// @throws IllegalArgumentException If `m` is `null`.
         public MethodId(@NonNull Method m) {
+            List.of(m); // Force lombok to add the null-check before the constructor call.
             this(m.getName(), Stream.of(m.getParameterTypes()).toList());
         }
     }

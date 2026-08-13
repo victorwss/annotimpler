@@ -411,4 +411,22 @@ public class MagicFactoryTest {
             }
         }
     }
+
+    @TestFactory
+    @SuppressWarnings("ObjectEqualsNull")
+    public Stream<DynamicTest> testEqualsHashCodeToString() throws Exception {
+        var a1 = MagicFactory.of(Example1.class);
+        var a2 = MagicFactory.of(Example1.class);
+        var b = MagicFactory.of(Example2.class);
+        return Stream.of(
+                n("MagicFactory-equals-same-class", () -> Assertions.assertTrue(a1.equals(a2))),
+                n("MagicFactory-equals-symmetric", () -> Assertions.assertTrue(a2.equals(a1))),
+                n("MagicFactory-equals-reflexive", () -> Assertions.assertTrue(a1.equals(a1))),
+                n("MagicFactory-equals-different-class", () -> Assertions.assertFalse(a1.equals(b))),
+                n("MagicFactory-equals-null", () -> Assertions.assertFalse(a1.equals(null))),
+                n("MagicFactory-equals-unrelated", () -> Assertions.assertFalse(a1.equals("x"))),
+                n("MagicFactory-hashCode-same-class", () -> Assertions.assertEquals(a1.hashCode(), a2.hashCode())),
+                n("MagicFactory-toString", () -> Assertions.assertEquals(TypeName.of(Example1.class), a1.toString()))
+        );
+    }
 }
