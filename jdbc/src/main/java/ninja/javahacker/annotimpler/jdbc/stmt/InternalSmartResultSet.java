@@ -70,7 +70,7 @@ final class InternalSmartResultSet implements SmartResultSet {
     @NonNull
     @Override
     public String toString() {
-        return this.getClass().getSimpleName() + "[" + rs + "]";
+        return SmartResultSet.class.getSimpleName() + "[" + rs + "]";
     }
 
     /// Builds and caches, from a [ResultSetMetaData], the mapping between (case-insensitive,
