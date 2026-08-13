@@ -1,56 +1,49 @@
 package ninja.javahacker.annotimpler.jpa;
 
-/**
- * Specifies the strategy used for automatic schema generation or validation.
- * <p>Used to set the property {@code jakarta.persistence.schema-generation.database.action}.</p>
- * <p>The {@code jakarta.persistence.schema-generation.database.action} property is used to specify the action taken
- * by the persistence provider when an application is deployed.</p>
- * @see <a href="https://jakarta.ee/learn/docs/jakartaee-tutorial/current/persist/persistence-intro/persistence-intro.html#_database_schema_creation">Database Schema Creation</a>
- * @author Victor Williams Stafusa da Silva
- */
+/// Specifies the strategy used for automatic schema generation or validation.
+///
+/// Used to set the property `jakarta.persistence.schema-generation.database.action`.
+///
+/// The `jakarta.persistence.schema-generation.database.action` property is used to specify the action taken
+/// by the persistence provider when an application is deployed.
+/// @see <a href=
+/// "https://jakarta.ee/learn/docs/jakartaee-tutorial/current/persist/persistence-intro/persistence-intro.html#_database_schema_creation">
+///     Database Schema Creation</a>
+/// @author Victor Williams Stafusa da Silva
 public enum SchemaGenerationAction {
 
-    /**
-     * Defines that the strategy for schema generation or validation is left unspecified. If the property is not set,
-     * the persistence provider will not create or drop any database artifacts.
-     */
+    /// Defines that the strategy for schema generation or validation is left unspecified. If the property is not set,
+    /// the persistence provider will not create or drop any database artifacts.
     UNSPECIFIED(""),
 
-    /**
-     * Defines that the strategy for schema generation or validation is that no schema creation or deletion will take place.
-     */
+    /// Defines that the strategy for schema generation or validation is that no schema creation or deletion will take place.
     NONE("none"),
 
-    /**
-     * Defines that the strategy for schema generation or validation is that any artifacts in the database will be deleted
-     * on application deployment.
-     */
+    /// Defines that the strategy for schema generation or validation is that any artifacts in the database will be deleted
+    /// on application deployment.
     DROP("drop"),
 
-    /**
-     * Defines that the strategy for schema generation or validation is that the provider will create the database artifacts
-     * on application deployment. The artifacts will remain unchanged after application redeployment.
-     */
+    /// Defines that the strategy for schema generation or validation is that the provider will create the database artifacts
+    /// on application deployment. The artifacts will remain unchanged after application redeployment.
     CREATE("create"),
 
-    /**
-     * Defines that the strategy for schema generation or validation is that any artifacts in the database will be deleted,
-     * and the provider will create the database artifacts on deployment.
-     */
+    /// Defines that the strategy for schema generation or validation is that any artifacts in the database will be deleted,
+    /// and the provider will create the database artifacts on deployment.
     DROP_AND_CREATE("drop-and-create");
 
+    /// The code representing this strategy, as used by the corresponding JPA provider property.
     private final String code;
 
+    /// Creates a `SchemaGenerationAction` with the given code.
+    /// @param code The code representing this strategy.
     private SchemaGenerationAction(String code) {
         this.code = code;
     }
 
-    /**
-     * Returns {@code ""}, {@code "none"}, {@code "drop"}, {@code "create"} or {@code "drop-and-create"}
-     * depending on which elements of the enum {@code this} is.
-     * @return {@code ""}, {@code "none"}, {@code "drop"}, {@code "create"} or {@code "drop-and-create"}
-     *     depending on which elements of the enum {@code this} is.
-     */
+    /// Returns `""`, `"none"`, `"drop"`, `"create"` or `"drop-and-create"`
+    /// depending on which elements of the enum `this` is.
+    /// @return `""`, `"none"`, `"drop"`, `"create"` or `"drop-and-create"`
+    ///     depending on which elements of the enum `this` is.
     public String getCode() {
         return code;
     }

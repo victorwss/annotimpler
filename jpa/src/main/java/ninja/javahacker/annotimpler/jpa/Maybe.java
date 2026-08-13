@@ -82,6 +82,12 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     @PackagePrivate
     final record MaybeSuccess<T>(@NonNull T entry) implements Maybe<T> {
 
+        /// Creates a `MaybeSuccess` with the given success entry.
+        /// @param entry The object representing a success.
+        /// @throws IllegalArgumentException If `entry` is `null`.
+        public MaybeSuccess {}
+
+        /// {@inheritDoc}
         @Override
         public Optional<T> success() {
             return Optional.of(entry);
@@ -95,6 +101,12 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     @PackagePrivate
     final record MaybeFailure<T>(@NonNull Throwable oops) implements Maybe<T> {
 
+        /// Creates a `MaybeFailure` with the given error.
+        /// @param oops The failure.
+        /// @throws IllegalArgumentException If `oops` is `null`.
+        public MaybeFailure {}
+
+        /// {@inheritDoc}
         @Override
         public Optional<Throwable> failure() {
             return Optional.of(oops);

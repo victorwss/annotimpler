@@ -2,66 +2,53 @@ package ninja.javahacker.annotimpler.jpa;
 
 import java.util.Locale;
 
-/**
- * An enum that defines the values true, false, or unspecified.
- * @author Victor Williams Stafusa da Silva
- */
+/// An enum that defines the values true, false, or unspecified.
+/// @author Victor Williams Stafusa da Silva
 public enum OptionalBoolean {
 
-    /**
-     * Used to represent that some setting was left undefined with neither {@link #TRUE} nor {@link #FALSE} being specified as its value.
-     */
+    /// Used to represent that some setting was left undefined with neither [#TRUE] nor [#FALSE] being specified as its value.
     UNSPECIFIED,
 
-    /**
-     * Used to represent that some setting was defined as being false.
-     */
+    /// Used to represent that some setting was defined as being false.
     FALSE,
 
-    /**
-     * Used to represent that some setting was defined as being true.
-     */
+    /// Used to represent that some setting was defined as being true.
     TRUE;
 
+    /// The lowercase textual representation of this enum constant.
     private final String asString;
+    /// The code representing this enum constant for provider properties.
     private final String code;
 
+    /// Creates an `OptionalBoolean` instance, deriving its `asString` and `code` from the enum constant's name.
     private OptionalBoolean() {
         this.asString = name().toLowerCase(Locale.ROOT);
         this.code = ordinal() == 0 ? "" : asString;
     }
 
-    /**
-     * Returns {@code "unspecified"}, {@code "true"} or {@code "false"} depending on which elements of the enum {@code this} is.
-     * @return {@code "unspecified"}, {@code "true"} or {@code "false"}.
-     */
+    /// Returns `"unspecified"`, `"true"` or `"false"` depending on which elements of the enum `this` is.
+    /// @return `"unspecified"`, `"true"` or `"false"`.
     @Override
     public String toString() {
         return asString;
     }
 
-    /**
-     * Returns {@code ""}, {@code "true"} or {@code "false"} depending on which elements of the enum {@code this} is.
-     * @return {@code ""}, {@code "true"} or {@code "false"}.
-     */
+    /// Returns `""`, `"true"` or `"false"` depending on which elements of the enum `this` is.
+    /// @return `""`, `"true"` or `"false"`.
     public String getCode() {
         return code;
     }
 
-    /**
-     * Converts a {@code boolean} to either {@link #TRUE} or {@link #FALSE}. Never returns {@link #UNSPECIFIED}.
-     * @param b The value to be convert.
-     * @return The converted value.
-     */
+    /// Converts a `boolean` to either [#TRUE] or [#FALSE]. Never returns [#UNSPECIFIED].
+    /// @param b The value to be convert.
+    /// @return The converted value.
     public static OptionalBoolean from(boolean b) {
         return b ? TRUE : FALSE;
     }
 
-    /**
-     * Converts a {@link Boolean} to either {@link #TRUE} or {@link #FALSE} or even {@link #UNSPECIFIED} if converting from {@code null}.
-     * @param b The value to be convert.
-     * @return The converted value.
-     */
+    /// Converts a [Boolean] to either [#TRUE] or [#FALSE] or even [#UNSPECIFIED] if converting from `null`.
+    /// @param b The value to be convert.
+    /// @return The converted value.
     public static OptionalBoolean from(Boolean b) {
         return b == null ? UNSPECIFIED : b ? TRUE : FALSE;
     }

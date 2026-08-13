@@ -15,22 +15,32 @@ import module java.base;
 @PackagePrivate
 final class SpecialEntityManager implements ExtendedEntityManager {
 
+    /// The wrapped entity manager, replaced on reconnection.
     @Getter
     @Delegate(types = EntityManager.class, excludes = DoNotDelegateEntityManager.class)
     private EntityManager wrapped;
 
+    /// Predicate that decides whether a `RuntimeException` thrown on transaction begin should trigger a reconnection attempt.
     @NonNull
     private final Predicate<RuntimeException> reconnect;
 
+    /// The JPA persistence-unit name used to (re)create the wrapped entity manager.
     @NonNull
     private final String persistenceUnitName;
 
+    /// Supplier used to (re)create the wrapped [EntityManager].
     @NonNull
     private final Supplier<EntityManager> emf;
 
+    /// The cached [SpecialEntityTransaction], if any was already created for the current wrapped entity manager.
     @NonNull
     private Optional<SpecialEntityTransaction> trans;
 
+    /// Creates a `SpecialEntityManager` delegating to a managed [EntityManager] created from the given supplier.
+    /// @param reconnect A predicate that tells whether a transaction begin failure should trigger a reconnection attempt.
+    /// @param persistenceUnitName The JPA persistence-unit name.
+    /// @param emf Supplier used to (re)create the wrapped [EntityManager].
+    /// @throws IllegalArgumentException If any argument is `null`.
     public SpecialEntityManager(
             @NonNull Predicate<RuntimeException> reconnect,
             @NonNull String persistenceUnitName,
@@ -76,6 +86,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
         return ExtendedTypedQuery.wrap(wrapped.createNamedQuery(name, resultClass));
     }
 
+    /// {@inheritDoc}
     @Override
     @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public EntityTransaction getTransaction() {
@@ -96,30 +107,56 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
     /// Exists only to suppress lombok's delegation on a few methods.
     private static interface DoNotDelegateEntityManager {
+
+        /// Don't care.
+        /// @param obj Don't care.
         public void remove(Object obj);
 
+        /// Don't care.
+        /// @param <T> Don't care.
+        /// @param cq Don't care.
+        /// @return Don't care.
         public <T extends Object> TypedQuery<T> createQuery(CriteriaQuery<T> cq);
 
+        /// Don't care.
+        /// @param <T> Don't care.
+        /// @param string Don't care.
+        /// @param type Don't care.
+        /// @return Don't care.
         public <T extends Object> TypedQuery<T> createQuery(String string, Class<T> type);
 
+        /// Don't care.
+        /// @param <T> Don't care.
+        /// @param string Don't care.
+        /// @param type Don't care.
+        /// @return Don't care.
         public <T extends Object> TypedQuery<T> createNamedQuery(String string, Class<T> type);
 
+        /// Don't care.
+        /// @return Don't care.
         public EntityTransaction getTransaction();
     }
 
     /// [EntityTransaction] implementation that tries to reconnect at the [#begin()] method.
     private static class SpecialEntityTransaction implements EntityTransaction {
 
+        /// The wrapped transaction, delegated to for every operation except [#begin()].
         @Delegate(types = EntityTransaction.class, excludes = DoNotDelegateEntityTransaction.class)
         private final EntityTransaction wrapped;
 
+        /// The entity manager that owns this transaction, used to trigger reconnection attempts.
         private final SpecialEntityManager parent;
 
+        /// Creates a `SpecialEntityTransaction` wrapping the given transaction on behalf of the given entity manager.
+        /// @param parent The entity manager that owns this transaction.
+        /// @param wrapped The transaction to delegate to.
+        /// @throws IllegalArgumentException If either argument is `null`.
         public SpecialEntityTransaction(@NonNull SpecialEntityManager parent, @NonNull EntityTransaction wrapped) {
             this.parent = parent;
             this.wrapped = wrapped;
         }
 
+        /// {@inheritDoc}
         @Override
         public void begin() {
             try {
@@ -134,6 +171,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
     /// Exists only to suppress lombok's delegation on a few methods.
     private static interface DoNotDelegateEntityTransaction {
+        /// Don't care.
         public void begin();
     }
 }

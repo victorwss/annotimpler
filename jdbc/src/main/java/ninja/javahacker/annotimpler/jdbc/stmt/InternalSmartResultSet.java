@@ -1,6 +1,5 @@
 package ninja.javahacker.annotimpler.jdbc.stmt;
 
-import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
@@ -172,11 +171,13 @@ final class InternalSmartResultSet implements SmartResultSet {
         }
     }
 
+    /// {@inheritDoc}
     @Override
     public int indexOf(@NonNull String columnLabel) throws SQLException {
         return mappings.indexOf(columnLabel);
     }
 
+    /// {@inheritDoc}
     @Override
     public Optional<String> labelOf(int columnIndex) throws SQLException {
         return mappings.labelOf(columnIndex);
@@ -194,6 +195,7 @@ final class InternalSmartResultSet implements SmartResultSet {
         }
     }
 
+    /// {@inheritDoc}
     @NonNull
     @Override
     public <R extends Record> R getRecord(
@@ -215,10 +217,7 @@ final class InternalSmartResultSet implements SmartResultSet {
         }
     }
 
-    // Builds a remapper that converts column keys (stored uppercase by [ColumnMapping] using [#localizer])
-    // back to the exact record field names, enabling case-insensitive column-to-field matching.
-    // The same locale used by [ColumnMapping] is applied here so that locale-specific uppercasing
-    // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
+    /// {@inheritDoc}
     @NonNull
     @Override
     public <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {

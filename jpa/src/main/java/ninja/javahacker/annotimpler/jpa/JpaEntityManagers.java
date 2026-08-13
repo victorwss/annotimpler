@@ -1,10 +1,10 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import java.lang.reflect.Proxy;
+import java.util.function.Predicate;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
-import java.lang.reflect.Proxy;
-import java.util.function.Predicate;
 
 import module jakarta.persistence;
 import module java.base;
@@ -13,6 +13,9 @@ import module java.base;
 @PackagePrivate
 final class JpaEntityManagers {
 
+    /// Sole private constructor to prevent instantiation of this utility class.
+    /// @throws AssertionError Always, since this class should never be instantiated.
+    @Generated
     private JpaEntityManagers() {
         throw new AssertionError();
     }
@@ -51,6 +54,12 @@ final class JpaEntityManagers {
         );
     }
 
+    /// Creates an [ExtendedEntityManager] backed by a managed [EntityManager] for the given persistence unit and properties.
+    /// @param reconnect A predicate that tells whether a transaction begin failure should trigger a reconnection attempt.
+    /// @param persistenceUnitName The JPA persistence-unit name.
+    /// @param props The properties used to create the [EntityManager].
+    /// @return An [ExtendedEntityManager] wrapping a freshly created managed [EntityManager].
+    /// @throws IllegalArgumentException If any argument is `null`.
     @NonNull
     public static ExtendedEntityManager createExtended(
             @NonNull Predicate<RuntimeException> reconnect,

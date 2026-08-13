@@ -10,14 +10,14 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// As a functional interface, any lambda or method reference that produces a [Connection]
 /// can be used directly as a `ConnectionFactory`. The most common source is one of the
-/// concrete [Connector] implementations:
+/// concrete [ninja.javahacker.annotimpler.jdbc.conn.Connector] implementations:
 ///
 /// ```java
 /// ConnectionFactory factory = MySqlConnector.std().withDatabase("mydb").withAuth("username", "password");
 /// Connection newConnection = factory.get();
 /// ```
 ///
-/// Connections produced by most [Connector]s implementations
+/// Connections produced by most [ninja.javahacker.annotimpler.jdbc.conn.Connector]s implementations
 /// have [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled.
 @FunctionalInterface
 public interface ConnectionFactory extends Transactor.TransactionFactory<Connection> {

@@ -352,6 +352,12 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param descending Whether the field is sorted by descending order or not.
     public static record By(@NonNull String field, boolean descending) {
 
+        /// Creates a `By` with the given field name and sort direction.
+        /// @param field The name of the field within the `order by` statement.
+        /// @param descending Whether the field is sorted by descending order or not.
+        /// @throws IllegalArgumentException If `field` is `null`.
+        public By {}
+
         /// Creates an instance descending-ordered by the given field name.
         /// @param field The name of the field within the `order by` statement.
         /// @return An instance descending-ordered by the given field name.

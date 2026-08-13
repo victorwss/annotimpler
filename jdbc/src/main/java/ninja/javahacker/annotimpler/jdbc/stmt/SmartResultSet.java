@@ -25,12 +25,30 @@ import module ninja.javahacker.annotimpler.convert;
 @SuppressFBWarnings("EI_EXPOSE_REP2")
 public interface SmartResultSet extends ResultSet {
 
+    /// Returns the JDBC type code ([Types]) of the column at `columnIndex`.
+    ///
+    /// @param columnIndex The 1-based column index to look up.
+    /// @return The JDBC type code of the column, as defined by [Types].
+    /// @throws SQLException If a database access error occurs.
     public default int getColumnType(int columnIndex) throws SQLException {
         return getMetaData().getColumnType(columnIndex);
     }
 
+    /// Returns the 1-based column index for the column named `columnLabel` (case-insensitive).
+    ///
+    /// @param columnLabel The case-insensitive column label to look up.
+    /// @return The 1-based column index.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `columnLabel` is `null` or there is no such column.
     public int indexOf(@NonNull String columnLabel) throws SQLException;
 
+    /// Returns the upper-cased label of the column at `columnIndex`, if it has a usable one.
+    ///
+    /// @param columnIndex The 1-based column index to look up.
+    /// @return The upper-cased column label, or [Optional#empty()] if the column was
+    ///         null-named, empty-named or a duplicate of another column's label.
+    /// @throws SQLException If a database access error occurs.
+    /// @throws IllegalArgumentException If `columnIndex` is out of range.
     public Optional<String> labelOf(int columnIndex) throws SQLException;
 
     /// Creates a [SmartResultSet] wrapping the given [ResultSet] using the standard
@@ -310,6 +328,16 @@ public interface SmartResultSet extends ResultSet {
         return getRecord(k, remapper, allFields());
     }
 
+    /// Maps the given column-name-to-value `map` to a record of type `R`, applying `remapper`
+    /// to translate upper-cased column names to record component names before matching.
+    ///
+    /// @param <R> The record type.
+    /// @param k The class of the record type.
+    /// @param remapper A function that translates an upper-cased column name to the matching record component name.
+    /// @param map The column-name-to-value map to convert, keyed by upper-cased column label.
+    /// @return A new instance of `R` populated from `map`.
+    /// @throws SQLException If a database access error occurs or the map cannot be mapped.
+    /// @throws IllegalArgumentException If `k`, `remapper` or `map` is `null`.
     @NonNull
     public <R extends Record> R getRecord(
             @NonNull Class<R> k,
@@ -361,10 +389,14 @@ public interface SmartResultSet extends ResultSet {
         return getRecord(k, remapper, map);
     }
 
-    // Builds a remapper that converts column keys (stored uppercase by [ColumnMapping] using [#localizer])
-    // back to the exact record field names, enabling case-insensitive column-to-field matching.
-    // The same locale used by [ColumnMapping] is applied here so that locale-specific uppercasing
-    // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
+    /// Builds a remapper that converts column keys (stored uppercase by an internal column
+    /// mapping, using the wrapper's configured locale) back to the exact record field names,
+    /// enabling case-insensitive column-to-field matching.
+    ///
+    /// @param <R> The record type.
+    /// @param k The class of the record type to build a remapper for.
+    /// @return A function that translates an upper-cased column name to the matching record component name.
+    /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
     public <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k);
 

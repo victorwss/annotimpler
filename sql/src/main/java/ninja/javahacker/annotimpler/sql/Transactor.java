@@ -32,9 +32,13 @@ import module ninja.javahacker.annotimpler.magicfactory;
 ///
 /// To get the transaction data, use the [#transaction()] method:
 ///
+/// ```java
+/// var tx = transactor.transaction();
+/// var resource = tx.unwrap(); // or transactor.resource()
+/// ```
 ///
 /// @param <E> The type of the underlying resource wrapped by each [Transaction].
-/// Typically a JDBC `Connection` or a JPA `EntityManager`.
+///            Typically a JDBC `Connection` or a JPA `EntityManager`.
 public final class Transactor<E> {
 
     /// The object (possibly a lambda or method reference) that begins new [Transaction]s.
@@ -217,6 +221,12 @@ public final class Transactor<E> {
         return ret;
     }
 
+    /// Returns the underlying resource of the transaction currently active on this thread.
+    ///
+    /// @return The active transaction's wrapped resource (e.g. a JDBC `Connection` or a JPA
+    ///         `EntityManager`); never `null`.
+    /// @throws IllegalStateException If no transaction is active on the current thread.
+    @NonNull
     public E resource() {
         return transaction().unwrap();
     }
