@@ -74,6 +74,7 @@ public interface Connector extends ConnectionFactory {
     ///
     /// @return A new and open database connection; never `null`.
     /// @throws SQLException If a database access error occurs or the connection URL is invalid.
+    @NonNull
     @Override
     public default Connection get() throws SQLException {
         return asUrl().get();

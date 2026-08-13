@@ -29,6 +29,7 @@ public enum DateConverter implements Converter<Date> {
         ///
         /// @return The converted [Date], wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<Date> work() throws ConvertionException;
     }
 

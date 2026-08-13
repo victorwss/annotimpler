@@ -21,6 +21,7 @@ public enum StringSqlFactory implements SqlFactory {
     /// @return A [SqlSupplier] that supplies the inline SQL string.
     /// @throws UnsupportedOperationException If `m` has no [Sql] annotation.
     /// @throws IllegalArgumentException If `m` is `null`.
+    @NonNull
     @Override
     public SqlSupplier prepare(@NonNull Method m) {
         var anno = m.getAnnotation(Sql.class);

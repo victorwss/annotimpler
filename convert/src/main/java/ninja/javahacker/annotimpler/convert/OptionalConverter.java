@@ -297,6 +297,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "OptionalConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";

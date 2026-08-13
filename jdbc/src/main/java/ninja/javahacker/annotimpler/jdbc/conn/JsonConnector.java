@@ -43,6 +43,7 @@ public final class JsonConnector implements Connector {
     private static final Object LOCK = new Object();
 
     /// The wrapped [Connector].
+    @NonNull
     @Delegate(types = Connector.class)
     private final Connector delegate;
 
@@ -77,6 +78,7 @@ public final class JsonConnector implements Connector {
     /// Returns the wrapped connector.
     ///
     /// @return The wrapped delegate connector; never `null`.
+    @NonNull
     public Connector getDelegate() {
         return delegate;
     }
@@ -122,6 +124,7 @@ public final class JsonConnector implements Connector {
     /// @return An [Optional] containing the registered class for `key`,
     ///         or an empty optional if no class is registered under that key.
     /// @throws IllegalArgumentException If `key` is `null`.
+    @NonNull
     public static Optional<Class<? extends Connector>> find(@NonNull String key) {
         synchronized (LOCK) {
             return Optional.ofNullable(REGISTERED_CLASSES.get(key));
@@ -138,6 +141,7 @@ public final class JsonConnector implements Connector {
         }
 
         /// {@inheritDoc}
+        @NonNull
         @Override
         public JsonConnector deserialize(@NonNull JsonParser jp, @NonNull DeserializationContext ctxt) {
             checkNotNull(jp); // Check recognized by lombok.

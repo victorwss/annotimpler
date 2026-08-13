@@ -26,6 +26,7 @@ public enum SupplierSqlFactory implements SqlFactory {
     /// @throws BadImplementationException If the supplier class cannot be instantiated.
     /// @throws UnsupportedOperationException If `m` has no [SqlFromClass] annotation.
     /// @throws IllegalArgumentException If `m` is `null`.
+    @NonNull
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromClass.class);

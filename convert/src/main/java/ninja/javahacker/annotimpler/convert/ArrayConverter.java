@@ -101,7 +101,8 @@ public final class ArrayConverter<E> implements Converter<E[]> {
 
     @NonNull
     @SuppressWarnings("unchecked")
-    private Optional<E[]> wrap(InternalWork<E> e) throws ConvertionException {
+    private Optional<E[]> wrap(@NonNull InternalWork<E> e) throws ConvertionException {
+        checkNotNull(e); // Check recognized by lombok.
         var e2 = (Optional<Object>) e.rework(arrayClass);
         var array = e2.map(c -> {
             var ret = java.lang.reflect.Array.newInstance(baseClass, 1);
@@ -305,6 +306,7 @@ public final class ArrayConverter<E> implements Converter<E[]> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "ArrayConverter[baseType=" + baseClass.getName() + ", cvt=" + cvt.toString() + "]";

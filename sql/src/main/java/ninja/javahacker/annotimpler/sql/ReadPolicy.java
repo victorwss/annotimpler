@@ -62,12 +62,13 @@ public enum ReadPolicy {
 
         /// The behaviour of some [ReadPolicy] instance. Creates some implementation of a [SqlSupplier].
         /// @param <E> The type of the input data consumed by `impl`.
-        /// @param impl The reader that extracts the SQL string from `inputData`.
-        /// @param inputData The data passed to the reader (e.g., an annotation instance).
+        /// @param impl The reader that extracts the SQL string from `inputData`; must not be `null`.
+        /// @param inputData The data passed to the reader (e.g., an annotation instance); must not be `null`.
         /// @return A [SqlSupplier] that delivers the SQL string according to this policy; never `null`.
         /// @throws BadImplementationException If this policy reads eagerly and the source cannot be read.
         /// @throws IllegalArgumentException If `impl` or `inputData` is `null`.
-        public <E> SqlSupplier apply(StringExtractor<E> impl, E in) throws BadImplementationException;
+        @NonNull
+        public <E> SqlSupplier apply(@NonNull StringExtractor<E> impl, @NonNull E inputData) throws BadImplementationException;
     }
 
     /// A reader that extracts a SQL string from an input of type `E`.
@@ -78,12 +79,14 @@ public enum ReadPolicy {
 
         /// Reads and returns the SQL string from the given input.
         ///
-        /// @param in The input to read from.
-        /// @return The SQL string.
+        /// @param in The input to read from; must not be `null`.
+        /// @return The SQL string; never `null`.
         /// @throws IOException If an I/O error occurs while reading.
         /// @throws CharsetSpec.BadCharsetSpecException If the content cannot be decoded with the
         ///         configured character set.
-        public String read(E in) throws IOException, CharsetSpec.BadCharsetSpecException;
+        /// @throws IllegalArgumentException If `in` is `null`.
+        @NonNull
+        public String read(@NonNull E in) throws IOException, CharsetSpec.BadCharsetSpecException;
     }
 
     /// Applies this read policy to produce a [SqlSupplier] for the given reader and input data.

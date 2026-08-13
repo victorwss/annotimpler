@@ -35,6 +35,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         ///
         /// @return The converted value, wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<T> work() throws ConvertionException;
     }
 
@@ -158,6 +159,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
         }
     }
 
+    @NonNull
     private Optional<E> from(@NonNull String in, @NonNull Class<?> inType) throws ConvertionException {
         checkNotNull(in); // Check recognized by lombok.
         checkNotNull(inType); // Check recognized by lombok.
@@ -220,6 +222,7 @@ public final class EnumConverter<E extends Enum<E>> implements Converter<E> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "EnumConverter[" + enumClass.getName() + "]";

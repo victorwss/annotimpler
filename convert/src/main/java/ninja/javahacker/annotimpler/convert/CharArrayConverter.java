@@ -27,6 +27,7 @@ public enum CharArrayConverter implements Converter<char[]> {
         ///
         /// @return The converted `char[]`, wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<char[]> work() throws ConvertionException;
     }
 

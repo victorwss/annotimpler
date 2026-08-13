@@ -61,6 +61,7 @@ public record OracleConnector(
     /// @param rac The optional RAC flag to override the default; if absent, the default RAC setting is used.
     /// @return A new `OracleConnector` with the applied overrides.
     /// @throws IllegalArgumentException If `host`, `port`, `user`, `password`, `database`, or `rac` is `null`.
+    @NonNull
     @JsonCreator
     public static OracleConnector create(
             @NonNull Optional<String> host,

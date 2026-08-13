@@ -14,6 +14,7 @@ import module java.base;
 public final class WrapperClass {
 
     /// Map primitive classes to their wrappers.
+    @NonNull
     private static final Map<Class<?>, Class<?>> WRAPPERS = Map.of(
             boolean.class, Boolean.class,
             byte.class, Byte.class,
@@ -27,6 +28,7 @@ public final class WrapperClass {
     );
 
     /// Map wrapper classes to their primitives.
+    @NonNull
     private static final Map<Class<?>, Class<?>> PRIMITIVES =
             WRAPPERS.entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jdbc.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
@@ -46,9 +47,10 @@ public enum GenerateSqlImplementation implements Implementation {
 
         /// Executes the implementation receiving an object containg the connection, query, converters and locale.
         /// @param work Speciefies the connection, SQL, converters and locale useful for the work represented by this instance.
-        /// @return Whatever is the result of the query SQL execution in the database.
+        /// @return Whatever is the result of the query SQL execution in the database, or `null` if there is no result.
         /// @throws SQLException If the database produces some failure.
         /// @throws IllegalArgumentException If `work` is `null`.
+        @Nullable
         public Object operate(@NonNull SqlWorker work) throws SQLException;
     }
 
@@ -127,6 +129,7 @@ public enum GenerateSqlImplementation implements Implementation {
         return new CallContext<>() {
 
             /// {@inheritDoc}
+            @Nullable
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var query = supplier.get();

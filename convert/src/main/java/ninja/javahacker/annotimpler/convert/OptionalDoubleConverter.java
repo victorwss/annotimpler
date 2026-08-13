@@ -30,6 +30,7 @@ public enum OptionalDoubleConverter implements Converter<OptionalDouble> {
         ///
         /// @return The converted [OptionalDouble], wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<OptionalDouble> work() throws ConvertionException;
     }
 

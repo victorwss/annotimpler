@@ -29,6 +29,7 @@ public enum SqlTimestampConverter implements Converter<Timestamp> {
         ///
         /// @return The converted [Timestamp], wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<Timestamp> work() throws ConvertionException;
     }
 

@@ -25,6 +25,7 @@ public enum ResourceSqlFactory implements SqlFactory {
     /// @throws BadImplementationException If the resource cannot be found or read.
     /// @throws UnsupportedOperationException If `m` has no [SqlFromResource] annotation.
     /// @throws IllegalArgumentException If `m` is `null`.
+    @NonNull
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromResource.class);
@@ -33,6 +34,7 @@ public enum ResourceSqlFactory implements SqlFactory {
         return ReadPolicy.ON_STARTUP.prepare(ResourceSqlFactory::read, r);
     }
 
+    @NonNull
     private static String read(@NonNull Resource res) throws IOException {
         checkNotNull(res); // Check recognized by lombok.
         var anno = res.anno();
@@ -45,7 +47,7 @@ public enum ResourceSqlFactory implements SqlFactory {
         }
     }
 
-    private static record Resource(SqlFromResource anno, Method m) {}
+    private static record Resource(@NonNull SqlFromResource anno, @NonNull Method m) {}
 
     @Generated
     private static void checkNotNull(Object obj) {

@@ -298,6 +298,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "ListConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";

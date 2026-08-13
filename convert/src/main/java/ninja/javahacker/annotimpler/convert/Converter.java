@@ -87,6 +87,7 @@ public interface Converter<E> {
                 || (t instanceof GenericArrayType ga && isInvariant(ga.getGenericComponentType()));
     }
 
+    @NonNull
     private static Stream<Type> getAllInterfaces(@NonNull Type t) {
         checkNotNull(t); // Check recognized by lombok.
         assertExtendable(t);

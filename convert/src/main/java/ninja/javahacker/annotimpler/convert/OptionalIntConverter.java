@@ -30,6 +30,7 @@ public enum OptionalIntConverter implements Converter<OptionalInt> {
         ///
         /// @return The converted [OptionalInt], wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<OptionalInt> work() throws ConvertionException;
     }
 

@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jdbc.sqlimpl;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
@@ -93,6 +94,7 @@ public enum ExecuteSqlImplementation implements Implementation {
         return new CallContext<>() {
 
             /// {@inheritDoc}
+            @Nullable
             @Override
             public Object execute(@NonNull E instance, @NonNull Object... a) throws SQLException, ParameterReceiver.IllegalValueException {
                 var params = parset.withValues(a);

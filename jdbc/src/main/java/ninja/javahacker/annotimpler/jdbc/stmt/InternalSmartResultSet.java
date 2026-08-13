@@ -178,6 +178,7 @@ final class InternalSmartResultSet implements SmartResultSet {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public Optional<String> labelOf(int columnIndex) throws SQLException {
         return mappings.labelOf(columnIndex);

@@ -28,6 +28,7 @@ public interface ParsedSqlSupplier {
     /// @return The parsed SQL query; never `null`.
     /// @throws SQLException If the SQL string cannot be obtained or is malformed
     ///         (in strict mode).
+    @NonNull
     public ParsedQuery get() throws SQLException;
 
     /// Scans `pset.getMethod()` for an SQL annotation and returns a [ParsedSqlSupplier] for it.

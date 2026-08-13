@@ -56,6 +56,7 @@ public record Db2Connector(
     /// @param database The optional database name to override the default; if absent, the default database name is used.
     /// @return A new `Db2Connector` with the applied overrides.
     /// @throws IllegalArgumentException If `host`, `port`, `user`, `password`, or `database` is `null`.
+    @NonNull
     @JsonCreator
     public static Db2Connector create(
             @NonNull Optional<String> host,

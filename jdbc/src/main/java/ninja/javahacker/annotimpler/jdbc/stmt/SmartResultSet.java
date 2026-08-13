@@ -49,15 +49,17 @@ public interface SmartResultSet extends ResultSet {
     ///         null-named, empty-named or a duplicate of another column's label.
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `columnIndex` is out of range.
+    @NonNull
     public Optional<String> labelOf(int columnIndex) throws SQLException;
 
     /// Creates a [SmartResultSet] wrapping the given [ResultSet] using the standard
     /// converter factory and the root locale.
     ///
     /// @param rs The [ResultSet] to wrap.
-    /// @return The crated [SmartResultSet].
+    /// @return The created [SmartResultSet].
     /// @throws SQLException If a database access error occurs while reading metadata.
     /// @throws IllegalArgumentException If `rs` is `null`.
+    @NonNull
     public static SmartResultSet wrap(@NonNull ResultSet rs) throws SQLException {
         return new InternalSmartResultSet(rs, ConverterFactory.std(), Locale.ROOT);
     }
@@ -68,9 +70,10 @@ public interface SmartResultSet extends ResultSet {
     /// @param rs The [ResultSet] to wrap.
     /// @param factory The converter factory used to convert column values to target Java types.
     /// @param localizer The locale used for case-insensitive column name matching.
-    /// @return The crated [SmartResultSet].
+    /// @return The created [SmartResultSet].
     /// @throws SQLException If a database access error occurs while reading metadata.
     /// @throws IllegalArgumentException If any argument is `null`.
+    @NonNull
     public static SmartResultSet wrap(
             @NonNull ResultSet rs,
             @NonNull ConverterFactory factory,

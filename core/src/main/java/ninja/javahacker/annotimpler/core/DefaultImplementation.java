@@ -95,11 +95,13 @@ public final class DefaultImplementation {
     /// @param iface The interface whose proxies this context will serve; must not be `null`.
     /// @return A [CallContext] implementing [Object#toString].
     /// @throws IllegalArgumentException If `iface` is `null`.
+    @NonNull
     @SuppressWarnings("Convert2Lambda") // Lombok won't insert code to handle @NonNull inside a lambda, but an anonymous class is ok.
     public static <E> CallContext<E> forToString(@NonNull Class<E> iface) {
         return new CallContext<>() {
 
             /// {@inheritDoc}
+            @NonNull
             @Override
             public String execute(@NonNull E instance, @NonNull Object... args) {
                 if (args.length != 0) throw new IllegalArgumentException(BAD_ARITY);
@@ -115,6 +117,7 @@ public final class DefaultImplementation {
     ///
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#equals].
+    @NonNull
     public static <E> CallContext<E> forEquals() {
         return DefaultImplementation::equalsImpl;
     }
@@ -123,6 +126,7 @@ public final class DefaultImplementation {
     ///
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#hashCode].
+    @NonNull
     public static <E> CallContext<E> forHashCode() {
         return DefaultImplementation::hashCodeImpl;
     }
@@ -131,6 +135,7 @@ public final class DefaultImplementation {
     ///
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#clone].
+    @NonNull
     public static <E> CallContext<E> forClone() {
         return DefaultImplementation::cloneImpl;
     }
@@ -139,6 +144,7 @@ public final class DefaultImplementation {
     ///
     /// @param <E> The interface type.
     /// @return A [CallContext] implementing [Object#finalize].
+    @NonNull
     public static <E> CallContext<E> forFinalize() {
         return DefaultImplementation::finalizeImpl;
     }

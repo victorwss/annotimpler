@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.sql;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.lang.reflect.Proxy;
 import lombok.NonNull;
@@ -42,14 +43,17 @@ import module ninja.javahacker.annotimpler.magicfactory;
 public final class Transactor<E> {
 
     /// The object (possibly a lambda or method reference) that begins new [Transaction]s.
+    @NonNull
     private final TransactionFactory<E> factory;
 
     /// Stores the current transaction, if open.
     /// This is thread-local, since different threads can't and shouldn't share a transaction.
+    @NonNull
     @SuppressFBWarnings("PMB_INSTANCE_BASED_THREAD_LOCAL") // We really intentionally want a ThreadLocal per instance.
     private final ThreadLocal<Transaction<E>> local = new ThreadLocal<>();
 
     /// The object (likely a lambda or method reference) that produces new transaction IDs.
+    @NonNull
     private final Supplier<String> generateIds;
 
     /// Creates a new `Transactor` backed by the given transaction factory and ID generator.
@@ -70,8 +74,9 @@ public final class Transactor<E> {
 
         /// Returns a value, potentially throwing any throwable.
         ///
-        /// @return The supplied value.
+        /// @return The supplied value, or `null`.
         /// @throws Throwable If any error occurs.
+        @Nullable
         @SuppressFBWarnings("THROWS_METHOD_THROWS_CLAUSE_THROWABLE") // The only purpose of this is exactly the throws Throwable.
         public E get() throws Throwable;
     }
@@ -128,9 +133,11 @@ public final class Transactor<E> {
         /// @return The newly-begun [Transaction]; never `null`.
         /// @throws Exception If a failure occurs while beginning the transaction.
         /// @throws IllegalArgumentException If `id` is `null`.
+        @NonNull
         public Transaction<E> begin(@NonNull String id) throws Exception;
     }
 
+    @NonNull
     private <T> XSupplier<T> operate(@NonNull XSupplier<T> operation) {
         checkNotNull(operation); // Check recognized by lombok.
         return () -> {
@@ -157,6 +164,7 @@ public final class Transactor<E> {
         };
     }
 
+    @Nullable
     @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE") // It is intentional here.
     private static <A> A unwrap(@NonNull XSupplier<A> input) throws Throwable {
         checkNotNull(input); // Check recognized by lombok.
@@ -185,6 +193,7 @@ public final class Transactor<E> {
     /// @return A transactional proxy implementing the same interfaces as `impl`; never `null`.
     /// @throws IllegalArgumentException If `impl` is already a transactional proxy (i.e.,
     ///         already implements [Marker]) or if `impl` is `null`.
+    @NonNull
     @SuppressWarnings("unchecked")
     public <E, F extends E> E transact(@NonNull F impl) {
         if (impl instanceof Marker) throw new IllegalArgumentException("Can't doubly transact an object.");
@@ -215,6 +224,7 @@ public final class Transactor<E> {
     ///
     /// @return The active [Transaction]; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
+    @NonNull
     public Transaction<E> transaction() {
         var ret = local.get();
         if (ret == null) throw new IllegalStateException("No active transaction.");
@@ -235,6 +245,7 @@ public final class Transactor<E> {
     ///
     /// @return The active transaction id; never `null`.
     /// @throws IllegalStateException If no transaction is active on the current thread.
+    @NonNull
     public String transactionId() {
         return transaction().id();
     }

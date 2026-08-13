@@ -30,6 +30,7 @@ public enum SqlTimeConverter implements Converter<Time> {
         ///
         /// @return The converted [Time], wrapped in [Optional], or empty if there is no value to convert.
         /// @throws ConvertionException If the conversion fails.
+        @NonNull
         public Optional<Time> work() throws ConvertionException;
     }
 

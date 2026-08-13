@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.core;
 
+import lombok.NonNull;
+
 import module java.base;
 
 /// A typed key for use with [PropertyBag].
@@ -22,5 +24,6 @@ public interface KeyProperty<V> extends Serializable {
     /// them on [PropertyBag#get].
     ///
     /// @return The class of `V`; must not be `null`.
+    @NonNull
     public Class<V> valueType();
 }

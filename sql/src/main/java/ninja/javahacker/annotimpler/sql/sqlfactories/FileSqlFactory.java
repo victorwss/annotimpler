@@ -23,6 +23,7 @@ public enum FileSqlFactory implements SqlFactory {
     /// @throws BadImplementationException If the file cannot be found (for eager read policies).
     /// @throws UnsupportedOperationException If `m` has no [SqlFromFile] annotation.
     /// @throws IllegalArgumentException If `m` is `null`.
+    @NonNull
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromFile.class);
@@ -30,6 +31,7 @@ public enum FileSqlFactory implements SqlFactory {
         return anno.policy().prepare(FileSqlFactory::read, anno);
     }
 
+    @NonNull
     private static String read(@NonNull SqlFromFile anno) throws IOException {
         checkNotNull(anno); // Check recognized by lombok.
         var value = anno.value();

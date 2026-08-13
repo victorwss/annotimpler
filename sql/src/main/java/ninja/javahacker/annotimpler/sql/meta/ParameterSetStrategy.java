@@ -42,6 +42,7 @@ final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     @SuppressWarnings("ReturnOfCollectionOrArrayField") // Known to always be immutable.
     public List<String> paramNames() {
@@ -49,6 +50,7 @@ final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public ParameterReceiver.Acceptor2 handle(@Nullable Object value) throws ParameterReceiver.IllegalValueException {
         return h.handle(value);

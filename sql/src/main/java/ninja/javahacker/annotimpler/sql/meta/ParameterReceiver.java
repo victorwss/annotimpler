@@ -80,6 +80,7 @@ public interface ParameterReceiver {
         /// @param value The argument value to bind; may be `null`.
         /// @return An [Acceptor2] holding the bound parameter values; never `null`.
         /// @throws IllegalValueException If `value` is incompatible with the expected parameter type.
+        @NonNull
         public Acceptor2 handle(@Nullable Object value) throws IllegalValueException;
     }
 
@@ -93,6 +94,7 @@ public interface ParameterReceiver {
         /// Returns the ordered list of SQL parameter names managed by this acceptor.
         ///
         /// @return An unmodifiable list of parameter names in declaration order; never `null`.
+        @NonNull
         public List<String> paramNames();
     }
 
@@ -119,6 +121,7 @@ public interface ParameterReceiver {
     /// @throws BadImplementationException If the method parameters cannot be mapped
     ///         to a valid SQL parameter-binding strategy.
     /// @throws IllegalArgumentException If `method` is `null`.
+    @NonNull
     public static Acceptor1 forMethod(@NonNull Method method) throws BadImplementationException {
         return ParameterSetStrategy.makeStrategy(method);
     }

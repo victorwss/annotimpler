@@ -1,5 +1,6 @@
 package ninja.javahacker.typeser;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import lombok.NonNull;
 
 import module java.base;
@@ -27,6 +28,7 @@ public final class TypeRef implements Serializable {
     /// original instance instead of a merely-equal reconstructed surrogate, which both preserves
     /// reference identity and avoids the always-throwing reconstruction of unrecognized `Type`
     /// implementations that {@link SerializableType} cannot rebuild from scratch.
+    @Nullable
     private final transient Type original;
 
     /// Creates a new wrapper for `type`.

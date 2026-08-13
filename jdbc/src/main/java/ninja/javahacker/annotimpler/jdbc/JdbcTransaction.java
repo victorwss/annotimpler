@@ -42,6 +42,7 @@ record JdbcTransaction(@NonNull Connection connection, @NonNull String id) imple
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public Connection unwrap() {
         return connection;

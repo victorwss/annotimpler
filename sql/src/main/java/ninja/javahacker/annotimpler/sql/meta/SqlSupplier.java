@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.sql.meta;
 
+import lombok.NonNull;
+
 import module java.sql;
 
 /// A supplier of SQL strings that may throw [SQLException].
@@ -17,5 +19,6 @@ public interface SqlSupplier {
     ///
     /// @return The SQL string; never `null`.
     /// @throws SQLException If the SQL string cannot be obtained.
+    @NonNull
     public String get() throws SQLException;
 }

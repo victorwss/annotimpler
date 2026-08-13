@@ -75,6 +75,7 @@ interface NamedParameterStatementHandler<T> {
     /// @return The handler able to bind values of type `k`; never `null`.
     /// @throws UnsupportedOperationException If no handler is registered for `k`.
     /// @throws IllegalArgumentException If `k` is `null`.
+    @NonNull
     @SuppressWarnings("unchecked")
     public static <K> NamedParameterStatementHandler<K> forClass(@NonNull Class<K> k) {
         checkNotNull(k); // Check recognized by lombok.

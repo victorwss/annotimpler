@@ -22,6 +22,7 @@ import module ninja.javahacker.annotimpler.jdbc;
 final class InternalNamedParameterStatement implements NamedParameterStatement {
 
     /// The wrapped [PreparedStatement] that does the real job.
+    @NonNull
     @Delegate(types = PreparedStatement.class)
     private final PreparedStatement statement;
 

@@ -26,6 +26,7 @@ public enum UrlSqlFactory implements SqlFactory {
     /// @throws BadImplementationException If the URL is invalid or unreachable (for eager read policies).
     /// @throws UnsupportedOperationException If `m` has no [SqlFromUrl] annotation.
     /// @throws IllegalArgumentException If `m` is `null`.
+    @NonNull
     @Override
     public SqlSupplier prepare(@NonNull Method m) throws BadImplementationException {
         var anno = m.getAnnotation(SqlFromUrl.class);
@@ -33,6 +34,7 @@ public enum UrlSqlFactory implements SqlFactory {
         return anno.policy().prepare(UrlSqlFactory::download, anno);
     }
 
+    @NonNull
     private static String download(@NonNull SqlFromUrl anno) throws IOException {
         checkNotNull(anno); // Check recognized by lombok.
         var key = "charset=";

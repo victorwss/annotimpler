@@ -298,6 +298,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "SetConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";

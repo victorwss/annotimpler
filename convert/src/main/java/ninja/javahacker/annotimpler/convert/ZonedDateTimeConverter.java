@@ -27,18 +27,21 @@ public enum ZonedDateTimeConverter implements Converter<ZonedDateTime> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public Optional<ZonedDateTime> from(@NonNull LocalDate in) {
         return Optional.of(in.atStartOfDay(ZoneOffset.UTC));
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public Optional<ZonedDateTime> from(@NonNull LocalDateTime in) {
         return Optional.of(in.atZone(ZoneOffset.UTC));
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public Optional<ZonedDateTime> from(@NonNull OffsetDateTime in) {
         return Optional.of(in.toZonedDateTime());

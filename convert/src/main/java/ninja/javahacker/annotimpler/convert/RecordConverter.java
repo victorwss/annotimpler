@@ -21,6 +21,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
 
     /// Tracks, per-thread, the `(factory, class)` pairs whose [RecordConverter] construction is currently
     /// in progress, so that recursive record definitions can be detected and rejected.
+    @NonNull
     private static final ThreadLocal<Set<OngoingCreation>> ONGOING = new ThreadLocal<>();
 
     /// The record class `R` that this converter produces.
@@ -44,7 +45,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     ///
     /// @param a The converter factory being used.
     /// @param b The record class being constructed.
-    private static record OngoingCreation(ConverterFactory a, Class<?> b) {
+    private static record OngoingCreation(@NonNull ConverterFactory a, @NonNull Class<?> b) {
     }
 
     /// A single conversion operation that produces the intermediate value later passed to `factory.create(...)`.
@@ -344,6 +345,7 @@ public final class RecordConverter<R extends Record> implements Converter<R> {
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public String toString() {
         return "RecordConverter[recordClass=" + recordClass.getName() + ", cvt=" + cvt.toString() + "]";

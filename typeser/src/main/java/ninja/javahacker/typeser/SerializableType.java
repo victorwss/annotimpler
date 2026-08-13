@@ -26,6 +26,7 @@ sealed interface SerializableType extends Serializable permits
     /// This state should not be considered public, despite the `public` modifier. But, since [SerializableType]
     /// itself is not public, hence this field isn't either. This should be considered in future refactorings
     /// if someone considers making [SerializableType] public (though unlikely).
+    @NonNull
     public static final ThreadLocal<Set<Type>> VISITING = ThreadLocal.withInitial(() -> Collections.newSetFromMap(new IdentityHashMap<>()));
 
     /// Threshold where we should give up serializing a too-deeply nested type.
@@ -38,6 +39,7 @@ sealed interface SerializableType extends Serializable permits
     /// This state should not be considered public, despite the `public` modifier. But, since [SerializableType]
     /// itself is not public, hence this field isn't either. This should be considered in future refactorings
     /// if someone considers making [SerializableType] public (though unlikely).
+    @NonNull
     public static final ThreadLocal<Integer> VISIT_COUNT = ThreadLocal.withInitial(() -> 0);
 
     /// Reconstructs the original `Type`.
@@ -89,6 +91,7 @@ sealed interface SerializableType extends Serializable permits
     public record ClassSer<E>(@NonNull Class<E> clazz) implements SerializableType {
 
         /// {@inheritDoc}
+        @NonNull
         @Override
         public Class<E> toType() {
             return clazz;
@@ -99,6 +102,7 @@ sealed interface SerializableType extends Serializable permits
         /// @param clazz The `Class` to be serialized into a surrogate form.
         /// @return The surrogate form. Never `null`.
         /// @throws IllegalArgumentException If `clazz` is `null`.
+        @NonNull
         public static <E> ClassSer<E> create(@NonNull Class<E> clazz) {
             checkNotNull(clazz); // Check recognized by lombok.
             return new ClassSer<>(clazz);
@@ -147,6 +151,7 @@ sealed interface SerializableType extends Serializable permits
         /// @throws IllegalArgumentException If `p` is `null`, or if `p.getActualTypeArguments()` returns `null`
         ///         (which never happens with a `ParameterizedType` obtained through the reflection API,
         ///         only with a hand-written or maliciously-crafted implementation).
+        @NonNull
         public static ParameterizedTypeSer create(@NonNull ParameterizedType p) {
             checkNotNull(p); // Check recognized by lombok.
             var typeArguments = p.getActualTypeArguments();
@@ -194,6 +199,7 @@ sealed interface SerializableType extends Serializable permits
         /// @throws IllegalArgumentException If `w` is `null`, or if `w.getUpperBounds()` or `w.getLowerBounds()`
         ///         returns `null` (which never happens with a `WildcardType` obtained through the reflection API,
         ///         only with a hand-written or maliciously-crafted implementation).
+        @NonNull
         public static WildcardTypeSer create(@NonNull WildcardType w) {
             checkNotNull(w); // Check recognized by lombok.
             var upperBounds = w.getUpperBounds();
@@ -228,6 +234,7 @@ sealed interface SerializableType extends Serializable permits
         /// @param g The `GenericArrayType` to be serialized into a surrogate form.
         /// @return The surrogate form. Never `null`.
         /// @throws IllegalArgumentException If `g` is `null`.
+        @NonNull
         public static GenericArrayTypeSer create(@NonNull GenericArrayType g) {
             checkNotNull(g); // Check recognized by lombok.
             return new GenericArrayTypeSer(from(g.getGenericComponentType()));
@@ -264,6 +271,7 @@ sealed interface SerializableType extends Serializable permits
         /// @throws IllegalArgumentException If `v` is `null`.
         /// @throws UnsupportedOperationException If the [GenericDeclaration] of `v` is not a [Class],
         ///         [java.lang.reflect.Method] or [java.lang.reflect.Constructor].
+        @NonNull
         public static <D extends GenericDeclaration> TypeVariableSer<D> create(@NonNull TypeVariable<D> v) {
             checkNotNull(v); // Check recognized by lombok.
             return new TypeVariableSer<>(GenericDeclarationSer.from(v.getGenericDeclaration()), v.getName());
@@ -286,6 +294,7 @@ sealed interface SerializableType extends Serializable permits
         /// @param t The unsupported type. Kept only for the `@NonNull` check; its identity is otherwise discarded.
         /// @return The surrogate form. Never `null`.
         /// @throws IllegalArgumentException If `t` is `null`.
+        @NonNull
         public static UnknownTypeSer create(@NonNull Type t) {
             checkNotNull(t); // Check recognized by lombok.
             return new UnknownTypeSer();

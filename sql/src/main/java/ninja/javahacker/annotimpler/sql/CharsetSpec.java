@@ -97,6 +97,7 @@ public interface CharsetSpec {
     /// Returns the [Charset] represented by this spec.
     ///
     /// @return The charset; never `null`.
+    @NonNull
     public Charset get();
 
     /// Thrown when a [CharsetSpec] implementation cannot be instantiated.

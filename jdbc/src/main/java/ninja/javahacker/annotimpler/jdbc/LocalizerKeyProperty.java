@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.jdbc;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
@@ -21,6 +22,7 @@ public enum LocalizerKeyProperty implements KeyProperty<Locale> {
     /// Returns `Locale.class`, the value type associated with this key.
     ///
     /// @return `Locale.class`; never `null`.
+    @NonNull
     @Override
     public Class<Locale> valueType() {
         return Locale.class;

@@ -44,8 +44,10 @@ import lombok.NonNull;
 public interface StdConverterFactory extends ConverterFactory {
 
     /// The singleton standard converter factory pre-populated with all built-in converters.
+    @NonNull
     public static final StdConverterFactory INSTANCE = start();
 
+    @NonNull
     private static StdConverterFactory start() {
         Map<Class<?>, Converter<?>> map = Map.ofEntries(
                 Map.entry(boolean.class, BooleanConverter.PRIMITIVE),

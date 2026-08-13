@@ -35,6 +35,7 @@ public interface ConnectionFactory extends Transactor.TransactionFactory<Connect
     /// @return The newly-begun transaction; never `null`.
     /// @throws SQLException If a database access error occurs while opening the connection.
     /// @throws IllegalArgumentException If `id` is `null`.
+    @NonNull
     @Override
     public default Transactor.Transaction<Connection> begin(@NonNull String id) throws SQLException {
         return new JdbcTransaction(get(), id);
