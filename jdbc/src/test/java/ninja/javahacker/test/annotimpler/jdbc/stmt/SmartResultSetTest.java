@@ -178,7 +178,7 @@ public class SmartResultSetTest {
             if (m.getName().equals("getMetaData")) return md.getMock();
             throw new AssertionError(m);
         });
-        SmartResultSet s = new SmartResultSet(rs.getMock(), ConverterFactory.std(), Locale.ROOT);
+        SmartResultSet s = SmartResultSet.wrap(rs.getMock(), ConverterFactory.std(), Locale.ROOT);
         Assertions.assertSame(md.getMock(), s.getMetaData());
     }
 
@@ -196,7 +196,7 @@ public class SmartResultSetTest {
 
             return implFor(m, a);
         });
-        SmartResultSet s = new SmartResultSet(rs.getMock());
+        SmartResultSet s = SmartResultSet.wrap(rs.getMock());
         var ps = new Object[mt.getParameterCount()];
         for (var i = 0; i < ps.length; i++) {
             ps[i] = STUFF.get(mt.getParameterTypes()[i]).get(i + 1);
@@ -230,7 +230,7 @@ public class SmartResultSetTest {
             if (n.equals("wasNull")) return false;
             throw new AssertionError(m + "-" + Arrays.asList(a));
         });
-        SmartResultSet s = new SmartResultSet(rs.getMock(), factory, loc);
+        SmartResultSet s = SmartResultSet.wrap(rs.getMock(), factory, loc);
         Assertions.assertSame(md.getMock(), s.getMetaData());
         return s;
     }
@@ -242,7 +242,7 @@ public class SmartResultSetTest {
             if (m.getName().equals("getMetaData")) return md.getMock();
             throw new AssertionError(m);
         });
-        return new SmartResultSet(rs.getMock());
+        return SmartResultSet.wrap(rs.getMock());
     }
 
     @Test
@@ -253,7 +253,7 @@ public class SmartResultSetTest {
             if (m.getName().equals("getMetaData")) throw sqle1;
             throw new AssertionError(m);
         });
-        var sqle2 = Assertions.assertThrows(SQLException.class, () -> new SmartResultSet(rs.getMock()));
+        var sqle2 = Assertions.assertThrows(SQLException.class, () -> SmartResultSet.wrap(rs.getMock()));
         Assertions.assertSame(sqle1, sqle2);
     }
 
@@ -336,7 +336,7 @@ public class SmartResultSetTest {
             if ("getMetaData".equals(m.getName())) return mdMock.getMock();
             return rsHandler.invoke(px, m, a);
         });
-        return new SmartResultSet(rsMock.getMock(), ConverterFactory.std(), Locale.ROOT);
+        return SmartResultSet.wrap(rsMock.getMock(), ConverterFactory.std(), Locale.ROOT);
     }
 
     @TestFactory
@@ -799,7 +799,7 @@ public class SmartResultSetTest {
             if ("getMetaData".equals(m.getName())) return mdMock.getMock();
             return rsHandler.invoke(px, m, a);
         });
-        return new SmartResultSet(rsMock.getMock(), factory, Locale.ROOT);
+        return SmartResultSet.wrap(rsMock.getMock(), factory, Locale.ROOT);
     }
 
     // Handles getString(1) returning a known raw value to use as pivot in conversion tests.
@@ -963,7 +963,7 @@ public class SmartResultSetTest {
             if ("getString".equals(m.getName())) return (int) a[0] == 1 ? "hello" : "world";
             throw new AssertionError(m.getName());
         });
-        return new SmartResultSet(rsMock.getMock(), factory, Locale.ROOT);
+        return SmartResultSet.wrap(rsMock.getMock(), factory, Locale.ROOT);
     }
 
     // Creates a ConverterFactory whose mapToRecord captures the received map and returns 'result'.
@@ -1193,10 +1193,10 @@ public class SmartResultSetTest {
         }
 
         return Stream.of(
-                DynamicTest.dynamicTest("[testNulls] constructor(ResultSet)"                 , () -> ForTests.testNull("rs"         , () -> new SmartResultSet(null))),
-                DynamicTest.dynamicTest("[testNulls] constructor(3)-1"                       , () -> ForTests.testNull("rs"         , () -> new SmartResultSet(null, ConverterFactory.std(), Locale.ROOT))),
-                DynamicTest.dynamicTest("[testNulls] constructor(3)-2"                       , () -> ForTests.testNull("factory"    , () -> new SmartResultSet(rs, null, Locale.ROOT))),
-                DynamicTest.dynamicTest("[testNulls] constructor(3)-3"                       , () -> ForTests.testNull("localizer"  , () -> new SmartResultSet(rs, ConverterFactory.std(), null))),
+                DynamicTest.dynamicTest("[testNulls] constructor(ResultSet)"                 , () -> ForTests.testNull("rs"         , () -> SmartResultSet.wrap(null))),
+                DynamicTest.dynamicTest("[testNulls] constructor(3)-1"                       , () -> ForTests.testNull("rs"         , () -> SmartResultSet.wrap(null, ConverterFactory.std(), Locale.ROOT))),
+                DynamicTest.dynamicTest("[testNulls] constructor(3)-2"                       , () -> ForTests.testNull("factory"    , () -> SmartResultSet.wrap(rs, null, Locale.ROOT))),
+                DynamicTest.dynamicTest("[testNulls] constructor(3)-3"                       , () -> ForTests.testNull("localizer"  , () -> SmartResultSet.wrap(rs, ConverterFactory.std(), null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByColumnNumber(int...)"           , () -> ForTests.testNull("fields"     , () -> mock0().getMapByColumnNumbers((int[]) null))),
                 DynamicTest.dynamicTest("[testNulls] getMapByLabels(String...)"              , () -> ForTests.testNull("fields"     , () -> mock0().getMapByLabels((String[]) null))),
                 DynamicTest.dynamicTest("[testNulls] getTypedValue(int, Class)-2"            , () -> ForTests.testNull("target"     , () -> mock0().getTypedValue(1, null))),
@@ -1240,8 +1240,8 @@ public class SmartResultSetTest {
         });
         var mock2 = rs2.getMock();
         Assertions.assertAll(
-                () -> Assertions.assertEquals("SmartResultSet[123-test-123]", new SmartResultSet(mock1).toString()),
-                () -> Assertions.assertEquals("SmartResultSet[567-test-567]", new SmartResultSet(mock2).toString())
+                () -> Assertions.assertEquals("SmartResultSet[123-test-123]", SmartResultSet.wrap(mock1).toString()),
+                () -> Assertions.assertEquals("SmartResultSet[567-test-567]", SmartResultSet.wrap(mock2).toString())
         );
     }
 }

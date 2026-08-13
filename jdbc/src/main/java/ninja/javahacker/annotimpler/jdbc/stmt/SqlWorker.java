@@ -93,7 +93,7 @@ public final class SqlWorker {
 
         try (var ps = open()) {
             ppq.accept(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
+            try (var rs = SmartResultSet.wrap(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getRecord(k, fields));
             }
@@ -106,7 +106,7 @@ public final class SqlWorker {
 
         try (var ps = open()) {
             ppq.accept(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
+            try (var rs = SmartResultSet.wrap(ps.executeQuery(), factory, localizer)) {
                 if (!rs.next()) return Optional.empty();
                 return Optional.of(rs.getTypedValue(field, k));
             }
@@ -159,7 +159,7 @@ public final class SqlWorker {
         try (var ps = open()) {
             List<R> t = new ArrayList<>(10);
             ppq.accept(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
+            try (var rs = SmartResultSet.wrap(ps.executeQuery(), factory, localizer)) {
                 while (rs.next()) {
                     t.add(rs.getRecord(k, fields));
                 }
@@ -174,7 +174,7 @@ public final class SqlWorker {
 
         try (var ps = open()) {
             ppq.accept(ps);
-            try (var rs = new SmartResultSet(ps.executeQuery(), factory, localizer)) {
+            try (var rs = SmartResultSet.wrap(ps.executeQuery(), factory, localizer)) {
                 List<R> t = new ArrayList<>(10);
                 while (rs.next()) {
                     t.add(rs.getTypedValue(field, k));

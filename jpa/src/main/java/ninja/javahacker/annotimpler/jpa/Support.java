@@ -1,4 +1,4 @@
-package ninja.javahacker.annotimpler.openjpa;
+package ninja.javahacker.annotimpler.jpa;
 
 import java.util.Locale;
 

@@ -3,21 +3,21 @@ package ninja.javahacker.annotimpler.jdbc;
 import lombok.NonNull;
 
 import module java.base;
+import module java.sql;
 import module ninja.javahacker.annotimpler.sql;
 
-/// Factory that creates [Connection] instances and serves as the entry point for
-/// implementing annotated SQL interfaces.
+/// Factory that creates [Connection] instances.
 ///
 /// As a functional interface, any lambda or method reference that produces a [Connection]
 /// can be used directly as a `ConnectionFactory`. The most common source is one of the
-/// concrete [ninja.javahacker.annotimpler.jdbc.conn.Connector] implementations:
+/// concrete [Connector] implementations:
 ///
 /// ```java
-/// ConnectionFactory factory = MySqlConnector.std().withDatabase("mydb").withAuth("u", "p");
-/// MyDao dao = factory.create(MyDao.class);
+/// ConnectionFactory factory = MySqlConnector.std().withDatabase("mydb").withAuth("username", "password");
+/// Connection newConnection = factory.get();
 /// ```
 ///
-/// Connections produced by [ninja.javahacker.annotimpler.jdbc.conn.UrlConnector#get()]
+/// Connections produced by most [Connector]s implementations
 /// have [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled.
 @FunctionalInterface
 public interface ConnectionFactory extends Transactor.TransactionFactory<Connection> {
@@ -28,31 +28,6 @@ public interface ConnectionFactory extends Transactor.TransactionFactory<Connect
     /// @throws SQLException If a database access error occurs.
     @NonNull
     public Connection get() throws SQLException;
-
-    /// Creates an annotation-driven implementation of the given interface, using this factory
-    /// as the connection source and [ConverterFactory#std()] as the type converter.
-    ///
-    /// The properties given are [ConnectionFactoryKeyProperty] valued with `this`,
-    /// [ConverterFactoryKeyProperty] valued with the standard [ConverterFactory] and [LocalizerKeyProperty] valued with the root locale.
-    ///
-    /// @param <E> The interface type to implement.
-    /// @param iface The interface class to implement.
-    /// @return A proxy instance implementing `iface`; never `null`.
-    /// @throws BadImplementationException If any annotated method on `iface` is malformed or if the implementation doesn't accept the
-    ///         default properties.
-    /// @throws IllegalArgumentException If `iface` is `null`.
-    @NonNull
-    public default <E> E create(@NonNull Class<E> iface) throws BadImplementationException {
-        var bag = PropertyBag.root()
-                .add(ConnectionFactoryKeyProperty.INSTANCE, this)
-                .add(ConverterFactoryKeyProperty.INSTANCE, ConverterFactory.std())
-                .add(LocalizerKeyProperty.INSTANCE, Locale.ROOT);
-        try {
-            return AnnotationsImplementor.implement(iface, bag);
-        } catch (PropertyBag.PropertyNotFoundException e) {
-            throw new BadImplementationException("The implementation refused the default properties.", e, iface);
-        }
-    }
 
     /// Begins a new [JdbcTransaction] wrapping a freshly-opened [Connection] from [#get()].
     ///

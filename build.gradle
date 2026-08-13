@@ -908,7 +908,7 @@ project(":jpa") {
     }
 }
 
-project(":hibernate") {
+/*project(":hibernate") {
     def moduleName = "ninja.javahacker.jpasimpletransactions.hibernate"
     description = "JPA Simple Transactions for Hibernate"
 
@@ -1035,4 +1035,4 @@ project(":openjpa") {
         dependsOn(":sql:jar")
         dependsOn(":jpa:jar")
     }
-}
+}*/

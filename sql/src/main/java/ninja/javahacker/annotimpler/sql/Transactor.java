@@ -25,10 +25,13 @@ import module ninja.javahacker.annotimpler.magicfactory;
 /// Use [#transact(Object)] to obtain a transactional proxy for any object:
 ///
 /// ```java
-/// MyDao dao = factory.create(MyDao.class);
+/// MyDao dao = ...
 /// MyDao txDao = transactor.transact(dao);
 /// txDao.insertFoo(...); // runs inside a transaction
 /// ```
+///
+/// To get the transaction data, use the [#transaction()] method:
+///
 ///
 /// @param <E> The type of the underlying resource wrapped by each [Transaction].
 /// Typically a JDBC `Connection` or a JPA `EntityManager`.
@@ -212,6 +215,10 @@ public final class Transactor<E> {
         var ret = local.get();
         if (ret == null) throw new IllegalStateException("No active transaction.");
         return ret;
+    }
+
+    public E resource() {
+        return transaction().unwrap();
     }
 
     /// Returns the transaction id of the transaction currently active on this thread.

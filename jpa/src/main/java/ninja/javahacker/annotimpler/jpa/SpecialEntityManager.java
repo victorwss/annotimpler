@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.jpa;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import java.util.function.Predicate;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.experimental.Delegate;
@@ -8,7 +9,6 @@ import lombok.experimental.PackagePrivate;
 
 import module jakarta.persistence;
 import module java.base;
-import module java.sql;
 
 /// Implementation of the [ExtendedEntityManager] interface that delegates to some other [EntityManager].
 /// @author Victor Williams Stafusa da Silva
@@ -20,24 +20,24 @@ final class SpecialEntityManager implements ExtendedEntityManager {
     private EntityManager wrapped;
 
     @NonNull
-    private final ProviderAdapter adapter;
+    private final Predicate<RuntimeException> reconnect;
 
     @NonNull
     private final String persistenceUnitName;
 
     @NonNull
-    private final EntityManagerFactory emf;
+    private final Supplier<EntityManager> emf;
 
     @NonNull
     private Optional<SpecialEntityTransaction> trans;
 
     public SpecialEntityManager(
-            @NonNull ProviderAdapter adapter,
+            @NonNull Predicate<RuntimeException> reconnect,
             @NonNull String persistenceUnitName,
-            @NonNull EntityManagerFactory emf)
+            @NonNull Supplier<EntityManager> emf)
     {
         this.persistenceUnitName = persistenceUnitName;
-        this.adapter = adapter;
+        this.reconnect = reconnect;
         this.trans = Optional.empty();
         this.emf = emf;
         recreateEntityManager();
@@ -45,7 +45,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
     private void recreateEntityManager() {
         if (this.wrapped != null) this.wrapped.close();
-        this.wrapped = emf.createEntityManager();
+        this.wrapped = emf.get();
     }
 
     /// {@inheritDoc}
@@ -74,12 +74,6 @@ final class SpecialEntityManager implements ExtendedEntityManager {
     @Override
     public <T extends Object> ExtendedTypedQuery<T> createNamedQuery(String name, Class<T> resultClass) {
         return ExtendedTypedQuery.wrap(wrapped.createNamedQuery(name, resultClass));
-    }
-
-    /// {@inheritDoc}
-    @Override
-    public Connection getConnection() {
-        return adapter.getConnection(wrapped);
     }
 
     @Override
@@ -131,7 +125,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
             try {
                 wrapped.begin();
             } catch (RuntimeException e) {
-                if (!parent.adapter.shouldTryToReconnect(e)) throw e;
+                if (!parent.reconnect.test(e)) throw e;
                 parent.recreateEntityManager();
                 wrapped.begin();
             }

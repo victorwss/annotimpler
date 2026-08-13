@@ -9,8 +9,10 @@ import module ninja.javahacker.annotimpler.jdbc;
 /// Base interface for JDBC connection factories that expose a URL and optional authentication
 /// credentials.
 ///
-/// Connections produced by [#get()] have
-/// [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled.
+/// Connections produced by [#get()] in general are expected to have
+/// [Connection#TRANSACTION_SERIALIZABLE SERIALIZABLE] isolation and autocommit disabled,
+/// except if a specific implementation choose to do otherwise.
+///
 /// All connector implementations are immutable — every `withXxx` method returns a new
 /// instance rather than mutating the receiver.
 ///

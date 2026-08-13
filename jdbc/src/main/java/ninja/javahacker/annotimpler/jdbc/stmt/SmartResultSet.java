@@ -3,7 +3,6 @@ package ninja.javahacker.annotimpler.jdbc.stmt;
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
-import lombok.experimental.Delegate;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.convert;
@@ -24,38 +23,25 @@ import module ninja.javahacker.annotimpler.convert;
 /// Column name comparisons are always case-insensitive and locale-aware; the [Locale]
 /// passed to the constructor governs locale-specific uppercasing (e.g. Turkish dotted-I).
 @SuppressFBWarnings("EI_EXPOSE_REP2")
-public final class SmartResultSet implements ResultSet {
+public interface SmartResultSet extends ResultSet {
 
-    /// The converter factory used to convert column values to target Java types.
-    @NonNull
-    private final ConverterFactory factory;
+    public default int getColumnType(int columnIndex) throws SQLException {
+        return getMetaData().getColumnType(columnIndex);
+    }
 
-    /// The wrapped [ResultSet] to decorate.
-    @NonNull
-    @Delegate(types = ResultSet.class)
-    private final ResultSet rs;
+    public int indexOf(@NonNull String columnLabel) throws SQLException;
 
-    /// The metada from the result set, used to retrieve metadata from columns.
-    @NonNull
-    private final ResultSetMetaData metaData;
-
-    /// Caches data for each column.
-    @NonNull
-    private final ColumnMapping mappings;
-
-    /// The locale used for case-insensitive column name matching.
-    @NonNull
-    private final Locale localizer;
+    public Optional<String> labelOf(int columnIndex) throws SQLException;
 
     /// Creates a [SmartResultSet] wrapping the given [ResultSet] using the standard
     /// converter factory and the root locale.
     ///
     /// @param rs The [ResultSet] to wrap.
+    /// @return The crated [SmartResultSet].
     /// @throws SQLException If a database access error occurs while reading metadata.
     /// @throws IllegalArgumentException If `rs` is `null`.
-    public SmartResultSet(@NonNull ResultSet rs) throws SQLException {
-        List.of(rs); // Force lombok do the check before the constructor call.
-        this(rs, ConverterFactory.std(), Locale.ROOT);
+    public static SmartResultSet wrap(@NonNull ResultSet rs) throws SQLException {
+        return new InternalSmartResultSet(rs, ConverterFactory.std(), Locale.ROOT);
     }
 
     /// Creates a [SmartResultSet] wrapping the given [ResultSet] with the specified
@@ -64,126 +50,21 @@ public final class SmartResultSet implements ResultSet {
     /// @param rs The [ResultSet] to wrap.
     /// @param factory The converter factory used to convert column values to target Java types.
     /// @param localizer The locale used for case-insensitive column name matching.
+    /// @return The crated [SmartResultSet].
     /// @throws SQLException If a database access error occurs while reading metadata.
     /// @throws IllegalArgumentException If any argument is `null`.
-    public SmartResultSet(@NonNull ResultSet rs, @NonNull ConverterFactory factory, @NonNull Locale localizer) throws SQLException {
-        this.rs = rs;
-        this.factory = factory;
-        this.metaData = rs.getMetaData();
-        this.localizer = localizer;
-        this.mappings = new ColumnMapping(metaData, localizer);
-    }
-
-    /// Returns a brief string identifying this wrapper and the underlying result set.
-    ///
-    /// @return A string of the form `SmartResultSet[<underlying>]`.
-    @NonNull
-    @Override
-    public String toString() {
-        return this.getClass().getSimpleName() + "[" + rs + "]";
+    public static SmartResultSet wrap(
+            @NonNull ResultSet rs,
+            @NonNull ConverterFactory factory,
+            @NonNull Locale localizer)
+            throws SQLException
+    {
+        return new InternalSmartResultSet(rs, factory, localizer);
     }
 
     @NonNull
     private int[] allFields() throws SQLException {
-        return IntStream.rangeClosed(1, metaData.getColumnCount()).toArray();
-    }
-
-    /// Builds and caches, from a [ResultSetMetaData], the mapping between (case-insensitive,
-    /// locale-uppercased) column labels and their 1-based column indices.
-    private static final class ColumnMapping {
-        /// The upper-cased column label for each 1-based column index (0-based here), or
-        /// [Optional#empty()] if the column was null-named, empty-named or duplicated.
-        @NonNull
-        private final List<Optional<String>> columnNames;
-
-        /// Maps each distinct upper-cased column label to its 1-based column index.
-        @NonNull
-        private final Map<String, Integer> columnIndexes;
-
-        /// The locale used to upper-case column labels for case-insensitive comparisons.
-        @NonNull
-        private final Locale localizer;
-
-        /// Creates a [ColumnMapping] by reading all column labels from `rsmd`.
-        ///
-        /// @param rsmd The result set metadata to read column labels from; must not be `null`.
-        /// @param localizer The locale used to upper-case column labels; must not be `null`.
-        /// @throws SQLException If a database access error occurs while reading metadata.
-        /// @throws IllegalArgumentException If `rsmd` or `localizer` is `null`.
-        public ColumnMapping(@NonNull ResultSetMetaData rsmd, @NonNull Locale localizer) throws SQLException {
-            checkNotNull(rsmd); // Check recognized by lombok.
-            checkNotNull(localizer); // Check recognized by lombok.
-
-            var count = rsmd.getColumnCount();
-            var keys = new ArrayList<Optional<String>>(count);
-            var idx = new HashMap<String, Integer>(count);
-
-            for (int i = 1; i <= count; i++) {
-                var columnName = rsmd.getColumnLabel(i);
-
-                // A null column label should never happen in sane JDBC implementations, but we defend against it anyway.
-                if (columnName == null) columnName = "";
-
-                // Column names that are duplicated or that vary only by capitalization should not happen either.
-                // Use localizer due to the Turkish/Azerbaijani dotted vs dotless I problem (e.g. "i".toUpperCase(TURKISH) = "İ").
-                columnName = columnName.toUpperCase(localizer);
-
-                /* Should never fail in sane JDBC implementations, which should not contain columns that are:
-                   a) Null-named;
-                   b) Empty-named;
-                   c) Duplicated;
-                   d) Varying only by capitalization;
-                   e) Varying in name only due to the use of Turkish/Azerbaijani dotted vs dotless I.
-                   When it fails due to any of those things happening, the field is simply ommited.
-                */
-                if (columnName.isEmpty() || idx.containsKey(columnName)) {
-                    keys.add(Optional.empty());
-                } else {
-                    idx.put(columnName, i);
-                    keys.add(Optional.of(columnName));
-                }
-            }
-
-            this.columnNames = List.copyOf(keys);
-            this.columnIndexes = Map.copyOf(idx);
-            this.localizer = localizer;
-        }
-
-        /// Returns the total number of columns known by this mapping.
-        ///
-        /// @return The column count.
-        public int getColumnCount() {
-            return columnNames.size();
-        }
-
-        /// Returns the 1-based column index for the column named `columnName` (case-insensitive).
-        ///
-        /// @param columnName The column label to look up; must not be `null`.
-        /// @return The 1-based column index.
-        /// @throws IllegalArgumentException If `columnName` is `null` or there is no such column.
-        public int indexOf(@NonNull String columnName) {
-            checkNotNull(columnName); // Check recognized by lombok.
-            var name = columnName.toUpperCase(localizer);
-            var v = columnIndexes.get(name);
-            if (v == null) {
-                throw new IllegalArgumentException("There is no column \"" + columnName + "\".");
-            }
-            return v;
-        }
-
-        /// Returns the upper-cased label of the column at `columnIndex`, if it has a usable one.
-        ///
-        /// @param columnIndex The 1-based column index to look up.
-        /// @return The upper-cased column label, or [Optional#empty()] if the column was
-        ///         null-named, empty-named or a duplicate of another column's label.
-        /// @throws IllegalArgumentException If `columnIndex` is out of range.
-        @NonNull
-        public Optional<String> valueOf(int columnIndex) {
-            if (columnIndex < 1 || columnIndex > getColumnCount()) {
-                throw new IllegalArgumentException("There is no column " + columnIndex + ".");
-            }
-            return columnNames.get(columnIndex - 1);
-        }
+        return IntStream.rangeClosed(1, getMetaData().getColumnCount()).toArray();
     }
 
     /// Returns an unmodifiable map of all columns in the current row, keyed by upper-cased column label.
@@ -193,7 +74,7 @@ public final class SmartResultSet implements ResultSet {
     /// @return An unmodifiable map from upper-cased column label to its typed value.
     /// @throws SQLException If a database access error occurs.
     @NonNull
-    public Map<String, Object> getMap() throws SQLException {
+    public default Map<String, Object> getMap() throws SQLException {
         return getMapByColumnNumbers(allFields());
     }
 
@@ -208,11 +89,11 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If any index is out of range.
     @NonNull
-    public Map<String, Object> getMapByColumnNumbers(@NonNull int... fields) throws SQLException {
+    public default Map<String, Object> getMapByColumnNumbers(@NonNull int... fields) throws SQLException {
         var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
-            var columnName = mappings.valueOf(i);
+            var columnName = labelOf(i);
             if (columnName.isEmpty() || row.containsKey(columnName.get())) continue;
             var value = getTypedValue(i);
             row.put(columnName.get(), value);
@@ -229,13 +110,13 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If any element of `fields` is `null` or not found.
     @NonNull
-    public Map<String, Object> getMapByLabels(@NonNull String... fields) throws SQLException {
+    public default Map<String, Object> getMapByLabels(@NonNull String... fields) throws SQLException {
         var row = new HashMap<String, Object>(fields.length);
 
         for (var i : fields) {
             if (i == null) throw new IllegalArgumentException("Null-named columns are not allowed.");
-            var columnIndex = mappings.indexOf(i);
-            var columnNameOpt = mappings.valueOf(columnIndex); // Not necessarily equals to i, since it is not case-sensitive.
+            var columnIndex = indexOf(i);
+            var columnNameOpt = labelOf(columnIndex); // Not necessarily equals to i, since it is not case-sensitive.
             var columnName = columnNameOpt.orElseThrow(AssertionError::new);
             if (row.containsKey(columnName)) continue;
             var value = getTypedValue(i);
@@ -256,7 +137,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or conversion fails.
     /// @throws IllegalArgumentException If `target` is `null`.
     @Nullable
-    public <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws SQLException {
+    public default <E> E getTypedValue(int columnIndex, @NonNull Class<E> target) throws SQLException {
         return getTypedValueOpt(columnIndex, target).orElse(null);
     }
 
@@ -273,7 +154,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws IllegalArgumentException If `columnLabel` or `target` is `null`, or the label is
     ///                                  not found.
     @Nullable
-    public <E> E getTypedValue(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
+    public default <E> E getTypedValue(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
         return getTypedValueOpt(columnLabel, target).orElse(null);
     }
 
@@ -295,8 +176,8 @@ public final class SmartResultSet implements ResultSet {
     @SuppressWarnings({
         "checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad", "PMD.LawOfDemeter", "PMD.CyclomaticComplexity"
     })
-    public Object getTypedValue(int columnIndex) throws SQLException {
-        var columnType = metaData.getColumnType(columnIndex);
+    public default Object getTypedValue(int columnIndex) throws SQLException {
+        var columnType = getColumnType(columnIndex);
         return switch (columnType) {
             case Types.REF_CURSOR -> throw new UnsupportedOperationException();
             case Types.NULL -> null;
@@ -341,8 +222,8 @@ public final class SmartResultSet implements ResultSet {
     /// @throws IllegalArgumentException If `columnLabel` is `null` or not found in the result set.
     @Nullable
     @SuppressWarnings({"checkstyle:MethodParamPad", "checkstyle:ParamPad", "checkstyle:ParenPad"})
-    public Object getTypedValue(@NonNull String columnLabel) throws SQLException {
-        var idx = this.mappings.indexOf(columnLabel);
+    public default Object getTypedValue(@NonNull String columnLabel) throws SQLException {
+        var idx = indexOf(columnLabel);
         return getTypedValue(idx);
     }
 
@@ -357,14 +238,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or conversion fails.
     /// @throws IllegalArgumentException If `target` is `null`.
     @NonNull
-    public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException {
-        try {
-            var raw = getTypedValue(columnIndex);
-            return factory.getOf(target).fromObj(raw);
-        } catch (ConvertionException | UnavailableConverterException e) {
-            throw new SQLException(e);
-        }
-    }
+    public <E> Optional<E> getTypedValueOpt(int columnIndex, @NonNull Class<E> target) throws SQLException;
 
     /// Reads the value at the column identified by `columnLabel` (case-insensitive), converts it
     /// to type `E`, and wraps the result in an [Optional].
@@ -378,8 +252,8 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or conversion fails.
     /// @throws IllegalArgumentException If `columnLabel` or `target` is `null`, or the label is not found.
     @NonNull
-    public <E> Optional<E> getTypedValueOpt(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
-        var idx = this.mappings.indexOf(columnLabel);
+    public default <E> Optional<E> getTypedValueOpt(@NonNull String columnLabel, @NonNull Class<E> target) throws SQLException {
+        var idx = indexOf(columnLabel);
         return getTypedValueOpt(idx, target);
     }
 
@@ -392,7 +266,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
-    public <R extends Record> R getRecord(@NonNull Class<R> k) throws SQLException {
+    public default <R extends Record> R getRecord(@NonNull Class<R> k) throws SQLException {
         return getRecord(k, defaultRemapper(k), allFields());
     }
 
@@ -405,7 +279,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` is `null`.
     @NonNull
-    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
+    public default <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull int... fields) throws SQLException {
         return getRecord(k, defaultRemapper(k), fields);
     }
 
@@ -418,7 +292,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` is `null`, or any label is `null` or not found.
     @NonNull
-    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull String... fields) throws SQLException {
+    public default <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull String... fields) throws SQLException {
         return getRecord(k, defaultRemapper(k), fields);
     }
 
@@ -432,32 +306,16 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` or `remapper` is `null`.
     @NonNull
-    public <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull Function<String, String> remapper) throws SQLException {
+    public default <R extends Record> R getRecord(@NonNull Class<R> k, @NonNull Function<String, String> remapper) throws SQLException {
         return getRecord(k, remapper, allFields());
     }
 
     @NonNull
-    private <R extends Record> R getRecord(
+    public <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,
             @NonNull Map<String, Object> map)
-            throws SQLException
-    {
-        checkNotNull(k); // Check recognized by lombok.
-        checkNotNull(remapper); // Check recognized by lombok.
-        checkNotNull(map); // Check recognized by lombok.
-        try {
-            var remappedMap = map.entrySet().stream()
-                    .collect(Collectors.toUnmodifiableMap(e -> remapper.apply(e.getKey()), Map.Entry::getValue));
-            return factory.mapToRecord(remappedMap, k);
-        } catch (ConvertionException
-                | MagicFactory.CreationException
-                | MagicFactory.CreatorSelectionException
-                | UnavailableConverterException e)
-        {
-            throw new SQLException(e);
-        }
-    }
+            throws SQLException;
 
     /// Maps the specified columns (by 1-based index) of the current row to a record of type `R`,
     /// applying `remapper` to translate upper-cased column names to record component names.
@@ -470,7 +328,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` or `remapper` is `null`.
     @NonNull
-    public <R extends Record> R getRecord(
+    public default <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,
             @NonNull int... fields)
@@ -493,7 +351,7 @@ public final class SmartResultSet implements ResultSet {
     /// @throws SQLException If a database access error occurs or the row cannot be mapped.
     /// @throws IllegalArgumentException If `k` or `remapper` is `null`, or any label is `null` or not found.
     @NonNull
-    public <R extends Record> R getRecord(
+    public default <R extends Record> R getRecord(
             @NonNull Class<R> k,
             @NonNull Function<String, String> remapper,
             @NonNull String... fields)
@@ -508,23 +366,10 @@ public final class SmartResultSet implements ResultSet {
     // The same locale used by [ColumnMapping] is applied here so that locale-specific uppercasing
     // (e.g., Turkish dotted 'İ' vs dotless 'I') is handled consistently on both sides.
     @NonNull
-    private <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k) {
-        checkNotNull(k); // Check recognized by lombok.
-        var components = k.getRecordComponents();
-        var mapping = new HashMap<String, String>(components.length);
-        for (var rc : components) {
-            mapping.put(rc.getName().toUpperCase(localizer), rc.getName());
-        }
-        return key -> mapping.getOrDefault(key, key);
-    }
+    public <R extends Record> Function<String, String> defaultRemapper(@NonNull Class<R> k);
 
     @Nullable
     private <E> E nully(@Nullable E r) throws SQLException {
         return wasNull() ? null : r;
-    }
-
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
     }
 }

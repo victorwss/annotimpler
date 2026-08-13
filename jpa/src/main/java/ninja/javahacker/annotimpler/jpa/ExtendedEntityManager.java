@@ -343,7 +343,9 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
 
     /// Obtains the [Connection] used by this [EntityManager].
     /// @return The [Connection] used by this [EntityManager].
-    public Connection getConnection();
+    public default Connection getConnection() {
+        return this.unwrap(Connection.class);
+    }
 
     /// Describe one of the fields within the ordering of an `order by` statement in JPQL queries.
     /// @param field The name of the field within the `order by` statement.
