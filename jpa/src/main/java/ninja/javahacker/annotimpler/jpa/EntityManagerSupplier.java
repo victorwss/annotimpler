@@ -22,6 +22,7 @@ public interface EntityManagerSupplier extends Transactor.TransactionFactory<Ext
     /// @param id The unique string identifier assigned to the new transaction.
     /// @return The newly-begun transaction; never `null`.
     /// @throws IllegalArgumentException If `id` is `null`.
+    @NonNull
     @Override
     public default Transactor.Transaction<ExtendedEntityManager> begin(@NonNull String id) {
         return new JpaTransaction(get(), id);

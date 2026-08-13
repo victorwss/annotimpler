@@ -1,6 +1,7 @@
 package ninja.javahacker.annotimpler.jpa;
 
 import java.util.Locale;
+import lombok.NonNull;
 
 /// Enum for the values of the Open JPA property `openjpa.RuntimeUnenhancedClasses`.
 /// @author Victor Williams Stafusa da Silva
@@ -20,8 +21,11 @@ public enum Support {
     WARN;
 
     /// The lowercase textual representation of this enum constant.
+    @NonNull
     private final String asString;
+
     /// The code representing this enum constant for the `openjpa.RuntimeUnenhancedClasses` property.
+    @NonNull
     private final String code;
 
     /// Creates a `Support` instance, deriving its `asString` and `code` from the enum constant's name.
@@ -33,6 +37,7 @@ public enum Support {
     /// Returns `"unspecified"`, `"supported"`, `"unsupported"` or `"warn"`,
     /// depending on which elements of the enum `this` is.
     /// @return `"unspecified"`, `"supported"`, `"unsupported"` or `"warn"`.
+    @NonNull
     @Override
     public String toString() {
         return asString;
@@ -41,6 +46,7 @@ public enum Support {
     /// Returns `""`, `"supported"`, `"unsupported"` or `"warn"`,
     /// depending on which elements of the enum `this` is.
     /// @return `""`, `"supported"`, `"unsupported"` or `"warn"`.
+    @NonNull
     public String getCode() {
         return code;
     }

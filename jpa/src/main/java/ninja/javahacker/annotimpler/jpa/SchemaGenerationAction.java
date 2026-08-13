@@ -1,5 +1,7 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import lombok.NonNull;
+
 /// Specifies the strategy used for automatic schema generation or validation.
 ///
 /// Used to set the property `jakarta.persistence.schema-generation.database.action`.
@@ -32,11 +34,13 @@ public enum SchemaGenerationAction {
     DROP_AND_CREATE("drop-and-create");
 
     /// The code representing this strategy, as used by the corresponding JPA provider property.
+    @NonNull
     private final String code;
 
     /// Creates a `SchemaGenerationAction` with the given code.
-    /// @param code The code representing this strategy.
-    private SchemaGenerationAction(String code) {
+    /// @param code The code representing this strategy; must not be `null`.
+    /// @throws IllegalArgumentException If `code` is `null`.
+    private SchemaGenerationAction(@NonNull String code) {
         this.code = code;
     }
 
@@ -44,6 +48,7 @@ public enum SchemaGenerationAction {
     /// depending on which elements of the enum `this` is.
     /// @return `""`, `"none"`, `"drop"`, `"create"` or `"drop-and-create"`
     ///     depending on which elements of the enum `this` is.
+    @NonNull
     public String getCode() {
         return code;
     }

@@ -56,6 +56,7 @@ public class SchemaGenerationSource {
 
     /// Defines that the strategy for schema generation is undefined.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationSource unspecified() {
         return new SchemaGenerationSource("", "");
     }
@@ -63,6 +64,7 @@ public class SchemaGenerationSource {
     /// Defines that the strategy for schema generation is to use the object/relational metadata
     /// in the application to create or delete the database artifacts.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationSource metadata() {
         return new SchemaGenerationSource("metadata", "");
     }
@@ -73,6 +75,7 @@ public class SchemaGenerationSource {
     ///     For example, `"META-INF/sql/some-script.sql"`.
     /// @return An object representing the strategy detailed above.
     /// @throws IllegalArgumentException If the `script` is `null`.
+    @NonNull
     public static SchemaGenerationSource script(@NonNull String scriptPath) {
         return new SchemaGenerationSource("script", scriptPath);
     }
@@ -83,6 +86,7 @@ public class SchemaGenerationSource {
     ///     For example, `"META-INF/sql/some-script.sql"`.
     /// @return An object representing the strategy detailed above.
     /// @throws IllegalArgumentException If the `script` is `null`.
+    @NonNull
     public static SchemaGenerationSource metadataThenScript(@NonNull String scriptPath) {
         return new SchemaGenerationSource("metadata-then-script", scriptPath);
     }
@@ -93,6 +97,7 @@ public class SchemaGenerationSource {
     ///     For example, `"META-INF/sql/some-script.sql"`.
     /// @return An object representing the strategy detailed above.
     /// @throws IllegalArgumentException If the `script` is `null`.
+    @NonNull
     public static SchemaGenerationSource scriptThenMetadata(@NonNull String scriptPath) {
         return new SchemaGenerationSource("script-then-metadata", scriptPath);
     }

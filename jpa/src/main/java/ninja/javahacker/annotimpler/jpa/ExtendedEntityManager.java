@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import jakarta.persistence.metamodel.Attribute;
 import lombok.NonNull;
 
@@ -28,6 +29,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @throws PersistenceException if the entity is not associated.
     ///     with an open persistence context or cannot be loaded from the
     ///     database.
+    @NonNull
     @Override
     public default <T> Class<? extends T> getClass(@NonNull T entity) throws IllegalArgumentException, PersistenceException {
         return getEntityManagerFactory().getPersistenceUnitUtil().getClass(entity);
@@ -35,20 +37,22 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
 
     /// {@inheritDoc}
     /// @param entity {@inheritDoc}
-    /// @return {@inheritDoc}
+    /// @return {@inheritDoc}, or `null` if the given entity has no identifier assigned yet.
     /// @throws IllegalArgumentException if the object is found not
     ///     to be an entity.
     @Override
+    @Nullable
     public default Object getIdentifier(@NonNull Object entity) throws IllegalArgumentException {
         return getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(entity);
     }
 
     /// {@inheritDoc}
     /// @param entity {@inheritDoc}
-    /// @return {@inheritDoc}
+    /// @return {@inheritDoc}, or `null` if the given entity has no version attribute.
     /// @throws IllegalArgumentException If the object is found not
     ///     to be an entity or is `null`.
     @Override
+    @Nullable
     public default Object getVersion(@NonNull Object entity) throws IllegalArgumentException {
         return getEntityManagerFactory().getPersistenceUnitUtil().getVersion(entity);
     }
@@ -148,6 +152,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param entity The entity to save.
     /// @return The saved instance.
     /// @throws IllegalArgumentException If the argument is `null`.
+    @NonNull
     @SuppressWarnings("PMD.CompareObjectsWithEquals")
     public default <T> T save(@NonNull T entity) throws IllegalArgumentException {
         if (!isNew(entity)) {
@@ -171,6 +176,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param em The [EntityManager] to unwrap.
     /// @return The undecorated [EntityManager] or `em` as is if not recognized as decorated.
     /// @throws IllegalArgumentException If `em` is `null`.
+    @NonNull
     @SuppressWarnings("checkstyle:javadocmethod") // Checkstyle complains about AssertionError.
     public static EntityManager unwrap(@NonNull EntityManager em) throws IllegalArgumentException {
         var r = em instanceof SpecialEntityManager special ? special.getWrapped() : em;
@@ -181,10 +187,12 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// Find by primary key. Search for an entity of the specified class and primary key.
     /// If the entity instance is contained in the persistence context, it is returned from there wrapped into an [Optional].
     /// @param <T> The type of the entity class.
-    /// @param entityClass The entity class.
-    /// @param primaryKey The primary key.
+    /// @param entityClass The entity class; must not be `null`.
+    /// @param primaryKey The primary key; must not be `null`.
     /// @return An [Optional] containing the found entity instance or an empty one if the entity does not exist.
-    public default <T> Optional<T> findOptional(Class<T> entityClass, Object primaryKey) {
+    /// @throws IllegalArgumentException If either argument is `null`.
+    @NonNull
+    public default <T> Optional<T> findOptional(@NonNull Class<T> entityClass, @NonNull Object primaryKey) {
         return Optional.ofNullable(find(entityClass, primaryKey));
     }
 
@@ -201,19 +209,23 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// - The [LockTimeoutException] will be thrown if the database locking failure causes only statement-level rollback.
     ///
     /// @param <T> The type of the entity class.
-    /// @param entityClass The entity class.
-    /// @param primaryKey The primary key.
-    /// @param lockMode The lock mode.
+    /// @param entityClass The entity class; must not be `null`.
+    /// @param primaryKey The primary key; must not be `null`.
+    /// @param lockMode The lock mode; must not be `null`.
     /// @return An [Optional] containing the found entity instance or an empty one if the entity does not exist.
     /// @throws IllegalArgumentException If the first argument does not denote an entity type or the second argument is not a valid type for
-    ///     that entity's primary key or is `null`.
+    ///     that entity's primary key or is `null`, or if any argument is `null`.
     /// @throws TransactionRequiredException If there is no transaction and a lock mode other than NONE is specified or if invoked on an
     ///     entity manager which has not been joined to the current transaction and a lock mode other than NONE is specified.
     /// @throws OptimisticLockException If the optimistic version check fails.
     /// @throws PessimisticLockException If pessimistic locking fails and the transaction is rolled back.
     /// @throws LockTimeoutException If pessimistic locking fails and only the statement is rolled back.
     /// @throws PersistenceException If an unsupported lock call is made.
-    public default <T> Optional<T> findOptional(Class<T> entityClass, Object primaryKey, LockModeType lockMode)
+    @NonNull
+    public default <T> Optional<T> findOptional(
+            @NonNull Class<T> entityClass,
+            @NonNull Object primaryKey,
+            @NonNull LockModeType lockMode)
             throws IllegalArgumentException, TransactionRequiredException, OptimisticLockException,
             PessimisticLockException, LockTimeoutException, PersistenceException
     {
@@ -224,11 +236,17 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// If the entity instance is contained in the persistence context, it is returned from there wrapped into an [Optional].
     /// If a vendor-specific property or hint is not recognized, it is silently ignored.
     /// @param <T> The type of the entity class.
-    /// @param entityClass The entity class.
-    /// @param primaryKey The primary key.
-    /// @param properties Standard and vendor-specific properties and hints.
+    /// @param entityClass The entity class; must not be `null`.
+    /// @param primaryKey The primary key; must not be `null`.
+    /// @param properties Standard and vendor-specific properties and hints; must not be `null`.
     /// @return An [Optional] containing the found entity instance or an empty one if the entity does not exist.
-    public default <T> Optional<T> findOptional(Class<T> entityClass, Object primaryKey, Map<String, Object> properties) {
+    /// @throws IllegalArgumentException If any argument is `null`.
+    @NonNull
+    public default <T> Optional<T> findOptional(
+            @NonNull Class<T> entityClass,
+            @NonNull Object primaryKey,
+            @NonNull Map<String, Object> properties)
+    {
         return Optional.ofNullable(find(entityClass, primaryKey, properties));
     }
 
@@ -249,24 +267,25 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// Portable applications should not rely on the standard timeout hint.
     /// Depending on the database in use and the locking mechanisms used by the provider, the hint may or may not be observed.
     /// @param <T> The type of the entity class.
-    /// @param entityClass The entity class.
-    /// @param primaryKey The primary key.
-    /// @param lockMode The lock mode.
-    /// @param properties Standard and vendor-specific properties and hints.
+    /// @param entityClass The entity class; must not be `null`.
+    /// @param primaryKey The primary key; must not be `null`.
+    /// @param lockMode The lock mode; must not be `null`.
+    /// @param properties Standard and vendor-specific properties and hints; must not be `null`.
     /// @return An [Optional] containing the found entity instance or an empty one if the entity does not exist.
     /// @throws IllegalArgumentException If the first argument does not denote an entity type or the second argument is not a valid type for
-    ///     that entity's primary key or is `null`.
+    ///     that entity's primary key or is `null`, or if any argument is `null`.
     /// @throws TransactionRequiredException If there is no transaction and a lock mode other than NONE is specified or if invoked on an
     ///     entity manager which has not been joined to the current transaction and a lock mode other than NONE is specified.
     /// @throws OptimisticLockException If the optimistic version check fails.
     /// @throws PessimisticLockException If pessimistic locking fails and the transaction is rolled back.
     /// @throws LockTimeoutException If pessimistic locking fails and only the statement is rolled back.
     /// @throws PersistenceException If an unsupported lock call is made.
+    @NonNull
     public default <T> Optional<T> findOptional(
-            Class<T> entityClass,
-            Object primaryKey,
-            LockModeType lockMode,
-            Map<String, Object> properties)
+            @NonNull Class<T> entityClass,
+            @NonNull Object primaryKey,
+            @NonNull LockModeType lockMode,
+            @NonNull Map<String, Object> properties)
             throws IllegalArgumentException, TransactionRequiredException, OptimisticLockException,
             PessimisticLockException, LockTimeoutException, PersistenceException
     {
@@ -280,15 +299,18 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @throws IllegalArgumentException If a query has not been
     ///     defined with the given name or if the query string is
     ///     found to be invalid or if the query result is found to
-    ///     not be assignable to the specified type.
+    ///     not be assignable to the specified type, or if either argument is `null`.
+    @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createNamedQuery(String qlString, Class<T> resultClass) throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createNamedQuery(@NonNull String qlString, @NonNull Class<T> resultClass)
+            throws IllegalArgumentException;
 
     /// Create a query selecting all the entities typed as `resultClass` ordered by the `orders` criterions.
     /// @param <T> The type of the entity to be queried.
     /// @param resultClass The entity type of the result.
     /// @param orders Ordering criteria for the results.
     /// @return `this`.
+    @NonNull
     public default <T> ExtendedTypedQuery<T> createQuery(@NonNull Class<T> resultClass, @NonNull By... orders) {
         return this.createQuery(resultClass, Collections.emptyMap(), orders);
     }
@@ -297,9 +319,10 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param cq {@inheritDoc}
     /// @return {@inheritDoc}
     /// @throws IllegalArgumentException if the criteria query is
-    ///     found to be invalid.
+    ///     found to be invalid or is `null`.
+    @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createQuery(CriteriaQuery<T> cq) throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createQuery(@NonNull CriteriaQuery<T> cq) throws IllegalArgumentException;
 
     /// {@inheritDoc}
     /// @param qlString {@inheritDoc}
@@ -307,9 +330,11 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @return {@inheritDoc}
     /// @throws IllegalArgumentException if the query string is
     ///     found to be invalid or if the query result is
-    ///     found to not be assignable to the specified type.
+    ///     found to not be assignable to the specified type, or if either argument is `null`.
+    @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createQuery(String qlString, Class<T> resultClass) throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createQuery(@NonNull String qlString, @NonNull Class<T> resultClass)
+            throws IllegalArgumentException;
 
     /// Create a query selecting all the entities typed as `resultClass`, where their fields match the ones
     /// given in the `where` map and ordered by the `orders` criteria.
@@ -318,6 +343,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param where A map relating fields to their expected values.
     /// @param orders Ordering criteria for the results.
     /// @return `this`.
+    @NonNull
     public default <T> ExtendedTypedQuery<T> createQuery(
             @NonNull Class<T> resultClass,
             @NonNull Map<String, Object> where,
@@ -343,6 +369,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
 
     /// Obtains the [Connection] used by this [EntityManager].
     /// @return The [Connection] used by this [EntityManager].
+    @NonNull
     public default Connection getConnection() {
         return this.unwrap(Connection.class);
     }
@@ -361,6 +388,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
         /// Creates an instance descending-ordered by the given field name.
         /// @param field The name of the field within the `order by` statement.
         /// @return An instance descending-ordered by the given field name.
+        @NonNull
         public static By desc(@NonNull String field) {
             return new By(field, true);
         }
@@ -368,6 +396,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
         /// Creates an instance ascending-ordered by the given field name.
         /// @param field The name of the field within the `order by` statement.
         /// @return An instance ascending-ordered by the given field name.
+        @NonNull
         public static By asc(@NonNull String field) {
             return new By(field, false);
         }

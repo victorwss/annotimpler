@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import jakarta.persistence.Parameter;
 import java.util.Date;
 import lombok.NonNull;
@@ -15,6 +16,7 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     /// Gets a single line as a result and wraps it inside an [Optional].
     /// If there is no result, an empty [Optional] is returned instead.
     /// @return An [Optional] containing the result or an empty [Optional] if there is no result.
+    @NonNull
     public default Optional<X> getOptionalResult() {
         try {
             return Optional.of(getSingleResult());
@@ -29,85 +31,110 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     /// @param query The [TypedQuery] that should be decorated as an [ExtendedTypedQuery].
     /// @return An [ExtendedTypedQuery] corresponding to a decorator of the given [TypedQuery].
     /// @throws IllegalArgumentException If `query` is `null`.
+    @NonNull
     public static <X> ExtendedTypedQuery<X> wrap(@NonNull TypedQuery<X> query) throws IllegalArgumentException {
         return query instanceof ExtendedTypedQuery<X> q ? q : new SpecialTypedQuery<>(query);
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public ExtendedTypedQuery<X> setMaxResults(int maxResults) throws IllegalArgumentException;
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public ExtendedTypedQuery<X> setFirstResult(int startPosition) throws IllegalArgumentException;
 
     /// {@inheritDoc}
+    @NonNull
     @Override
-    public ExtendedTypedQuery<X> setHint(String hintName, Object value) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setHint(@NonNull String hintName, @NonNull Object value) throws IllegalArgumentException;
 
     /// {@inheritDoc}
+    @NonNull
     @Override
-    public <T extends Object> ExtendedTypedQuery<X> setParameter(Parameter<T> param, T value) throws IllegalArgumentException;
-
-    /// {@inheritDoc}
-    @Deprecated
-    @Override
-    public ExtendedTypedQuery<X> setParameter(
-            Parameter<Calendar> param,
-            Calendar value,
-            TemporalType temporalType)
+    public <T extends Object> ExtendedTypedQuery<X> setParameter(@NonNull Parameter<T> param, @Nullable T value)
             throws IllegalArgumentException;
 
     /// {@inheritDoc}
     @Deprecated
+    @NonNull
     @Override
-    public ExtendedTypedQuery<X> setParameter(Parameter<Date> param, Date value, TemporalType temporalType) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setParameter(
+            @NonNull Parameter<Calendar> param,
+            @Nullable Calendar value,
+            @NonNull TemporalType temporalType)
+            throws IllegalArgumentException;
+
+    /// {@inheritDoc}
+    @Deprecated
+    @NonNull
+    @Override
+    public ExtendedTypedQuery<X> setParameter(
+            @NonNull Parameter<Date> param,
+            @Nullable Date value,
+            @NonNull TemporalType temporalType)
+            throws IllegalArgumentException;
+
+    /// {@inheritDoc}
+    @NonNull
+    @Override
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Object value) throws IllegalArgumentException;
+
+    /// {@inheritDoc}
+    @Deprecated
+    @NonNull
+    @Override
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Calendar value, @NonNull TemporalType temporalType)
+            throws IllegalArgumentException;
+
+    /// {@inheritDoc}
+    @Deprecated
+    @NonNull
+    @Override
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Date value, @NonNull TemporalType temporalType)
+            throws IllegalArgumentException;
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setParameter(String name, Object value) throws IllegalArgumentException;
+    @NonNull
+    public ExtendedTypedQuery<X> setParameter(int position, @Nullable Object value) throws IllegalArgumentException;
 
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public ExtendedTypedQuery<X> setParameter(String name, Calendar value, TemporalType temporalType) throws IllegalArgumentException;
+    @NonNull
+    public ExtendedTypedQuery<X> setParameter(int position, @Nullable Calendar value, @NonNull TemporalType temporalType);
 
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public ExtendedTypedQuery<X> setParameter(String name, Date value, TemporalType temporalType) throws IllegalArgumentException;
+    @NonNull
+    public ExtendedTypedQuery<X> setParameter(int position, @Nullable Date value, @NonNull TemporalType temporalType);
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setParameter(int position, Object value) throws IllegalArgumentException;
-
-    /// {@inheritDoc}
-    @Deprecated
-    @Override
-    public ExtendedTypedQuery<X> setParameter(int position, Calendar value, TemporalType temporalType);
-
-    /// {@inheritDoc}
-    @Deprecated
-    @Override
-    public ExtendedTypedQuery<X> setParameter(int position, Date value, TemporalType temporalType);
+    @NonNull
+    public ExtendedTypedQuery<X> setFlushMode(@NonNull FlushModeType flushMode);
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setFlushMode(FlushModeType flushMode);
+    @NonNull
+    public ExtendedTypedQuery<X> setLockMode(@NonNull LockModeType lockMode) throws IllegalArgumentException;
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setLockMode(LockModeType lockMode) throws IllegalArgumentException;
+    @NonNull
+    public ExtendedTypedQuery<X> setCacheRetrieveMode(@NonNull CacheRetrieveMode mode);
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setCacheRetrieveMode(CacheRetrieveMode mode);
+    @NonNull
+    public ExtendedTypedQuery<X> setCacheStoreMode(@NonNull CacheStoreMode mode);
 
     /// {@inheritDoc}
     @Override
-    public ExtendedTypedQuery<X> setCacheStoreMode(CacheStoreMode mode);
-
-    /// {@inheritDoc}
-    @Override
-    public ExtendedTypedQuery<X> setTimeout(Integer timeout);
+    @NonNull
+    public ExtendedTypedQuery<X> setTimeout(@Nullable Integer timeout);
 }

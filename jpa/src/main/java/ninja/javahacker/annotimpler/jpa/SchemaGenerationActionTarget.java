@@ -62,12 +62,14 @@ public final class SchemaGenerationActionTarget {
 
     /// Defines that the production of scripts for table creation and droppings is left unspecified.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationActionTarget unspecified() {
         return new SchemaGenerationActionTarget("", "", "");
     }
 
     /// Defines that no production of scripts for table creation and dropping should happen.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationActionTarget none() {
         return new SchemaGenerationActionTarget("none", "", "");
     }
@@ -76,6 +78,7 @@ public final class SchemaGenerationActionTarget {
     /// @param dropScript The location where the script to drop tables relative to the root of the persistence unit should be stored.
     ///     For example, `"META-INF/sql/some-create-script.sql"`.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationActionTarget drop(@NonNull String dropScript) {
         return new SchemaGenerationActionTarget("drop", "", dropScript);
     }
@@ -84,6 +87,7 @@ public final class SchemaGenerationActionTarget {
     /// @param createScript The location where the script to create tables relative to the root of the persistence unit should be stored.
     ///     For example, `"META-INF/sql/some-drop-script.sql"`.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationActionTarget create(@NonNull String createScript) {
         return new SchemaGenerationActionTarget("create", createScript, "");
     }
@@ -94,6 +98,7 @@ public final class SchemaGenerationActionTarget {
     /// @param createScript The location where the script to create tables relative to the root of the persistence unit should be stored.
     ///     For example, `"META-INF/sql/some-drop-script.sql"`.
     /// @return An object representing the strategy detailed above.
+    @NonNull
     public static SchemaGenerationActionTarget dropAndCreate(@NonNull String createScript, @NonNull String dropScript) {
         return new SchemaGenerationActionTarget("drop-and-create", createScript, dropScript);
     }

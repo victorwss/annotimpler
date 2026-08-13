@@ -18,6 +18,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
 
     /// Returns an [Optional] containing the failure or empty if it wasn't a failure.
     /// @return An [Optional] containing the failure or empty if it wasn't a failure.
+    @NonNull
     public default Optional<Throwable> failure() {
         return Optional.empty();
     }
@@ -27,12 +28,14 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @param oops The error producing the failure.
     /// @return An instance of the `Maybe` representing a failure containing the given entry.
     /// @throws IllegalArgumentException If `oops` is `null`.
+    @NonNull
     public static <T> Maybe<T> failure(@NonNull Throwable oops) {
         return new MaybeFailure<>(oops);
     }
 
     /// Returns an [Optional] containing the resulting success or empty if it wasn't a success.
     /// @return An [Optional] containing the resulting success or empty if it wasn't a success.
+    @NonNull
     public default Optional<T> success() {
         return Optional.empty();
     }
@@ -42,12 +45,14 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @param entry The success instance.
     /// @return An instance of the `Maybe` representing a success containing the given entry.
     /// @throws IllegalArgumentException If `entry` is `null`.
+    @NonNull
     public static <T> Maybe<T> success(@NonNull T entry) {
         return new MaybeSuccess<>(entry);
     }
 
     /// Returns the content, be it a success instance or an error.
     /// @return The content, whatever it is.
+    @NonNull
     public default Object content() {
         return isSuccess() ? success().get() : failure().get();
     }
@@ -56,6 +61,8 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @param <T> The given `Supplier`'s type.
     /// @param inner The given `Supplier`'s to be wrapped.
     /// @return The given `Supplier` wrapped into a `Supplier` that produces a `Maybe` instance.
+    /// @throws IllegalArgumentException If `inner` is `null`.
+    @NonNull
     @SuppressWarnings("PMD.AvoidCatchingThrowable")
     public static <T> Supplier<Maybe<T>> wrap(@NonNull Supplier<T> inner) {
         return () -> {
@@ -71,6 +78,8 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @param <T> The type of the inner `Maybe`.
     /// @param tooDeep The two-layered `Maybe` to be flatten out.
     /// @return A `Maybe` instance with only one layer.
+    /// @throws IllegalArgumentException If `tooDeep` is `null`.
+    @NonNull
     public static <T> Maybe<T> flatten(@NonNull Maybe<Maybe<T>> tooDeep) {
         return !tooDeep.isSuccess() ? failure(tooDeep.failure().get()) : tooDeep.success().get();
     }
@@ -88,6 +97,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
         public MaybeSuccess {}
 
         /// {@inheritDoc}
+        @NonNull
         @Override
         public Optional<T> success() {
             return Optional.of(entry);
@@ -107,6 +117,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
         public MaybeFailure {}
 
         /// {@inheritDoc}
+        @NonNull
         @Override
         public Optional<Throwable> failure() {
             return Optional.of(oops);

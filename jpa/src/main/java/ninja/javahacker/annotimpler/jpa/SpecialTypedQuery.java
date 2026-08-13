@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import jakarta.persistence.Parameter;
 import java.util.Date;
@@ -21,10 +22,11 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
     /// The wrapped typed query, delegated to for the methods listed in [DelegatedParts].
     @Delegate(types = DelegatedParts.class)
+    @NonNull
     private final TypedQuery<X> delegate;
 
     /// Creates a `SpecialTypedQuery` wrapping the given typed query.
-    /// @param query The typed query to delegate to.
+    /// @param query The typed query to delegate to; must not be `null`.
     /// @throws IllegalArgumentException If `query` is `null`.
     public SpecialTypedQuery(@NonNull TypedQuery<X> query) {
         this.delegate = query;
@@ -32,30 +34,35 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
     /// {@inheritDoc}
     @Override
+    @Nullable
     public X getSingleResultOrNull() {
         return delegate.getSingleResultOrNull();
     }
 
     /// {@inheritDoc}
     @Override
+    @NonNull
     public List<X> getResultList() {
         return delegate.getResultList();
     }
 
     /// {@inheritDoc}
     @Override
+    @NonNull
     public Stream<X> getResultStream() {
         return delegate.getResultStream();
     }
 
     /// {@inheritDoc}
     @Override
+    @NonNull
     public X getSingleResult() {
         return delegate.getSingleResult();
     }
 
     /// {@inheritDoc}
     @Override
+    @NonNull
     public SpecialTypedQuery<X> setMaxResults(int maxResults) {
         delegate.setMaxResults(maxResults);
         return this;
@@ -63,6 +70,7 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
     /// {@inheritDoc}
     @Override
+    @NonNull
     public SpecialTypedQuery<X> setFirstResult(int startPosition) {
         delegate.setFirstResult(startPosition);
         return this;
@@ -70,14 +78,16 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setHint(String hintName, Object value) {
+    @NonNull
+    public SpecialTypedQuery<X> setHint(@NonNull String hintName, @NonNull Object value) {
         delegate.setHint(hintName, value);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public <T> SpecialTypedQuery<X> setParameter(Parameter<T> param, T value) {
+    @NonNull
+    public <T> SpecialTypedQuery<X> setParameter(@NonNull Parameter<T> param, @Nullable T value) {
         delegate.setParameter(param, value);
         return this;
     }
@@ -85,7 +95,12 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(Parameter<Calendar> param, Calendar value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(
+            @NonNull Parameter<Calendar> param,
+            @Nullable Calendar value,
+            @NonNull TemporalType temporalType)
+    {
         delegate.setParameter(param, value, temporalType);
         return this;
     }
@@ -93,14 +108,20 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(Parameter<Date> param, Date value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(
+            @NonNull Parameter<Date> param,
+            @Nullable Date value,
+            @NonNull TemporalType temporalType)
+    {
         delegate.setParameter(param, value, temporalType);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setParameter(String name, Object value) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(@NonNull String name, @Nullable Object value) {
         delegate.setParameter(name, value);
         return this;
     }
@@ -108,7 +129,8 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(String name, Calendar value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(@NonNull String name, @Nullable Calendar value, @NonNull TemporalType temporalType) {
         delegate.setParameter(name, value, temporalType);
         return this;
     }
@@ -116,14 +138,16 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(String name, Date value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(@NonNull String name, @Nullable Date value, @NonNull TemporalType temporalType) {
         delegate.setParameter(name, value, temporalType);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setParameter(int position, Object value) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(int position, @Nullable Object value) {
         delegate.setParameter(position, value);
         return this;
     }
@@ -131,7 +155,8 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(int position, Calendar value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(int position, @Nullable Calendar value, @NonNull TemporalType temporalType) {
         delegate.setParameter(position, value, temporalType);
         return this;
     }
@@ -139,42 +164,48 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
     /// {@inheritDoc}
     @Deprecated
     @Override
-    public SpecialTypedQuery<X> setParameter(int position, Date value, TemporalType temporalType) {
+    @NonNull
+    public SpecialTypedQuery<X> setParameter(int position, @Nullable Date value, @NonNull TemporalType temporalType) {
         delegate.setParameter(position, value, temporalType);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setFlushMode(FlushModeType flushMode) {
+    @NonNull
+    public SpecialTypedQuery<X> setFlushMode(@NonNull FlushModeType flushMode) {
         delegate.setFlushMode(flushMode);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setLockMode(LockModeType lockMode) {
+    @NonNull
+    public SpecialTypedQuery<X> setLockMode(@NonNull LockModeType lockMode) {
         delegate.setLockMode(lockMode);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setTimeout(Integer timeout) {
+    @NonNull
+    public SpecialTypedQuery<X> setTimeout(@Nullable Integer timeout) {
         delegate.setTimeout(timeout);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setCacheStoreMode(CacheStoreMode mode) {
+    @NonNull
+    public SpecialTypedQuery<X> setCacheStoreMode(@NonNull CacheStoreMode mode) {
         delegate.setCacheStoreMode(mode);
         return this;
     }
 
     /// {@inheritDoc}
     @Override
-    public SpecialTypedQuery<X> setCacheRetrieveMode(CacheRetrieveMode mode) {
+    @NonNull
+    public SpecialTypedQuery<X> setCacheRetrieveMode(@NonNull CacheRetrieveMode mode) {
         delegate.setCacheRetrieveMode(mode);
         return this;
     }
@@ -196,39 +227,47 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
         /// Don't care.
         /// @return Don't care.
+        @Nullable
         public Integer getTimeout();
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public CacheStoreMode getCacheStoreMode();
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public CacheRetrieveMode getCacheRetrieveMode();
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public Map<String, Object> getHints();
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public Set<Parameter<?>> getParameters();
 
         /// Don't care.
         /// @param name Don't care.
         /// @return Don't care.
-        public Parameter<?> getParameter(String name);
+        @NonNull
+        public Parameter<?> getParameter(@NonNull String name);
 
         /// Don't care.
         /// @param <T> Don't care.
         /// @param name Don't care.
         /// @param type Don't care.
         /// @return Don't care.
-        public <T> Parameter<T> getParameter(String name, Class<T> type);
+        @NonNull
+        public <T> Parameter<T> getParameter(@NonNull String name, @NonNull Class<T> type);
 
         /// Don't care.
         /// @param position Don't care.
         /// @return Don't care.
+        @NonNull
         public Parameter<?> getParameter(int position);
 
         /// Don't care.
@@ -236,41 +275,48 @@ class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
         /// @param position Don't care.
         /// @param type Don't care.
         /// @return Don't care.
-        public <T> Parameter<T> getParameter(int position, Class<T> type);
+        @NonNull
+        public <T> Parameter<T> getParameter(int position, @NonNull Class<T> type);
 
         /// Don't care.
         /// @param param Don't care.
         /// @return Don't care.
-        public boolean isBound(Parameter<?> param);
+        public boolean isBound(@NonNull Parameter<?> param);
 
         /// Don't care.
         /// @param <T> Don't care.
         /// @param param Don't care.
         /// @return Don't care.
-        public <T> T getParameterValue(Parameter<T> param);
+        @Nullable
+        public <T> T getParameterValue(@NonNull Parameter<T> param);
 
         /// Don't care.
         /// @param name Don't care.
         /// @return Don't care.
-        public Object getParameterValue(String name);
+        @Nullable
+        public Object getParameterValue(@NonNull String name);
 
         /// Don't care.
         /// @param position Don't care.
         /// @return Don't care.
+        @Nullable
         public Object getParameterValue(int position);
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public FlushModeType getFlushMode();
 
         /// Don't care.
         /// @return Don't care.
+        @Nullable
         public LockModeType getLockMode();
 
         /// Don't care.
         /// @param <X> Don't care.
         /// @param type Don't care.
         /// @return Don't care.
-        public <X> X unwrap(Class<X> type);
+        @NonNull
+        public <X> X unwrap(@NonNull Class<X> type);
     }
 }

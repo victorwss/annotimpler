@@ -1,5 +1,6 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import java.util.function.Predicate;
 import lombok.Getter;
@@ -18,6 +19,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
     /// The wrapped entity manager, replaced on reconnection.
     @Getter
     @Delegate(types = EntityManager.class, excludes = DoNotDelegateEntityManager.class)
+    @NonNull
     private EntityManager wrapped;
 
     /// Predicate that decides whether a `RuntimeException` thrown on transaction begin should trigger a reconnection attempt.
@@ -60,13 +62,14 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
     /// {@inheritDoc}
     @Override
-    public void remove(Object obj) {
+    public void remove(@Nullable Object obj) {
         if (obj != null && !isNew(obj)) wrapped.remove(obj);
     }
 
     /// {@inheritDoc}
     @Override
-    public <T extends Object> ExtendedTypedQuery<T> createQuery(CriteriaQuery<T> criteriaQuery) {
+    @NonNull
+    public <T extends Object> ExtendedTypedQuery<T> createQuery(@NonNull CriteriaQuery<T> criteriaQuery) {
         return ExtendedTypedQuery.wrap(wrapped.createQuery(criteriaQuery));
     }
 
@@ -76,19 +79,22 @@ final class SpecialEntityManager implements ExtendedEntityManager {
             value = "SQL_INJECTION_JPA",
             justification = "False alarm, we're just delegating it untouched."
     )
-    public <T extends Object> ExtendedTypedQuery<T> createQuery(String qlString, Class<T> resultClass) {
+    @NonNull
+    public <T extends Object> ExtendedTypedQuery<T> createQuery(@NonNull String qlString, @NonNull Class<T> resultClass) {
         return ExtendedTypedQuery.wrap(wrapped.createQuery(qlString, resultClass));
     }
 
     /// {@inheritDoc}
     @Override
-    public <T extends Object> ExtendedTypedQuery<T> createNamedQuery(String name, Class<T> resultClass) {
+    @NonNull
+    public <T extends Object> ExtendedTypedQuery<T> createNamedQuery(@NonNull String name, @NonNull Class<T> resultClass) {
         return ExtendedTypedQuery.wrap(wrapped.createNamedQuery(name, resultClass));
     }
 
     /// {@inheritDoc}
     @Override
     @SuppressWarnings("PMD.CompareObjectsWithEquals")
+    @NonNull
     public EntityTransaction getTransaction() {
         var inner = wrapped.getTransaction(); // Relays exceptions.
         if (inner == null) throw new IllegalStateException(); // Should never happen with a sane wrapped EntityManager.
@@ -110,30 +116,34 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
         /// Don't care.
         /// @param obj Don't care.
-        public void remove(Object obj);
+        public void remove(@Nullable Object obj);
 
         /// Don't care.
         /// @param <T> Don't care.
         /// @param cq Don't care.
         /// @return Don't care.
-        public <T extends Object> TypedQuery<T> createQuery(CriteriaQuery<T> cq);
+        @NonNull
+        public <T extends Object> TypedQuery<T> createQuery(@NonNull CriteriaQuery<T> cq);
 
         /// Don't care.
         /// @param <T> Don't care.
         /// @param string Don't care.
         /// @param type Don't care.
         /// @return Don't care.
-        public <T extends Object> TypedQuery<T> createQuery(String string, Class<T> type);
+        @NonNull
+        public <T extends Object> TypedQuery<T> createQuery(@NonNull String string, @NonNull Class<T> type);
 
         /// Don't care.
         /// @param <T> Don't care.
         /// @param string Don't care.
         /// @param type Don't care.
         /// @return Don't care.
-        public <T extends Object> TypedQuery<T> createNamedQuery(String string, Class<T> type);
+        @NonNull
+        public <T extends Object> TypedQuery<T> createNamedQuery(@NonNull String string, @NonNull Class<T> type);
 
         /// Don't care.
         /// @return Don't care.
+        @NonNull
         public EntityTransaction getTransaction();
     }
 
@@ -142,9 +152,11 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
         /// The wrapped transaction, delegated to for every operation except [#begin()].
         @Delegate(types = EntityTransaction.class, excludes = DoNotDelegateEntityTransaction.class)
+        @NonNull
         private final EntityTransaction wrapped;
 
         /// The entity manager that owns this transaction, used to trigger reconnection attempts.
+        @NonNull
         private final SpecialEntityManager parent;
 
         /// Creates a `SpecialEntityTransaction` wrapping the given transaction on behalf of the given entity manager.

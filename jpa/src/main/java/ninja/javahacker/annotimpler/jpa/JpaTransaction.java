@@ -43,6 +43,7 @@ record JpaTransaction(@NonNull ExtendedEntityManager manager, @NonNull String id
     }
 
     /// {@inheritDoc}
+    @NonNull
     @Override
     public ExtendedEntityManager unwrap() {
         return manager;
