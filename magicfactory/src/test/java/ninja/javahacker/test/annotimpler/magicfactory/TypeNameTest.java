@@ -79,7 +79,7 @@ public class TypeNameTest {
     @TestFactory
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")
     public Stream<DynamicTest> testTypeNames() {
-        return TYPES.stream().map(t -> n("[testTypeNames] " + t, () -> Assertions.assertEquals(TYPE_MAP.get(t), TypeName.of(t))));
+        return TYPES.stream().map(t -> n("[testTypeNames] " + t, () -> Assertions.assertEquals(TYPE_MAP.get(t), TypeName.nameOf(t))));
     }
 
     private static final class Integer {}
@@ -94,7 +94,7 @@ public class TypeNameTest {
                 () -> {
                     var name = conflict.contains(t) ? ((Class<?>) t).getName() : TYPE_MAP.get(t);
                     if (name.startsWith("Map<")) name = "Map<List<String>, Set<java.lang.Integer>>";
-                    Assertions.assertEquals(name, TypeName.of(t, conflict));
+                    Assertions.assertEquals(name, TypeName.nameOf(t, conflict));
                 }
         ));
     }
@@ -128,12 +128,12 @@ public class TypeNameTest {
         var u1 = Set.of(x1.getClass(), x2.getClass());
         var u2 = Set.of(y1.getClass(), y2.getClass());
 
-        var a = n("Anonymous without conflict"       , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass())));
-        var b = n("Lambda without conflict"          , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass())));
-        var c = n("Anonymous with unrelated conflict", () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass(), s)));
-        var d = n("Lambda with unrelated conflict"   , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass(), s)));
-        var e = n("Anonymous with direct conflict"   , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.of(x1.getClass(), u1)));
-        var f = n("Lambda with direct conflict"      , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.of(y1.getClass(), u2)));
+        var a = n("Anonymous without conflict"       , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.nameOf(x1.getClass())));
+        var b = n("Lambda without conflict"          , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.nameOf(y1.getClass())));
+        var c = n("Anonymous with unrelated conflict", () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.nameOf(x1.getClass(), s)));
+        var d = n("Lambda with unrelated conflict"   , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.nameOf(y1.getClass(), s)));
+        var e = n("Anonymous with direct conflict"   , () -> Assertions.assertEquals(x1.getClass().getName(), TypeName.nameOf(x1.getClass(), u1)));
+        var f = n("Lambda with direct conflict"      , () -> Assertions.assertEquals(y1.getClass().getName(), TypeName.nameOf(y1.getClass(), u2)));
         return List.of(a, b, c, d, e, f);
     }
 
@@ -141,9 +141,9 @@ public class TypeNameTest {
     @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() {
         return Stream.of(
-                DynamicTest.dynamicTest("TypeName.of(1) - what", () -> ForTests.testNull("what", () -> TypeName.of(null))),
-                DynamicTest.dynamicTest("TypeName.of(2) - what", () -> ForTests.testNull("what", () -> TypeName.of(null, Set.<Class<?>>of()))),
-                DynamicTest.dynamicTest("TypeName.of(2) - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.of(Float.class, null))),
+                DynamicTest.dynamicTest("TypeName.of(1) - what", () -> ForTests.testNull("what", () -> TypeName.nameOf(null))),
+                DynamicTest.dynamicTest("TypeName.of(2) - what", () -> ForTests.testNull("what", () -> TypeName.nameOf(null, Set.<Class<?>>of()))),
+                DynamicTest.dynamicTest("TypeName.of(2) - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.nameOf(Float.class, null))),
                 DynamicTest.dynamicTest("TypeName.formatType - type", () -> ForTests.testNull("type", () -> TypeName.formatType(null, Set.<Class<?>>of(), new StringBuilder(1)))),
                 DynamicTest.dynamicTest("TypeName.formatType - fullNameNeeded", () -> ForTests.testNull("fullNameNeeded", () -> TypeName.formatType(Float.class, null, new StringBuilder(1)))),
                 DynamicTest.dynamicTest("TypeName.formatType - sb", () -> ForTests.testNull("sb", () -> TypeName.formatType(Float.class, Set.<Class<?>>of(), null)))

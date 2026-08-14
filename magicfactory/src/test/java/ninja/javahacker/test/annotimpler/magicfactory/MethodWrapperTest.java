@@ -63,9 +63,9 @@ public class MethodWrapperTest {
     @DisplayName("testConstructorWrapper")
     public Stream<DynamicTest> testConstructorWrapper() throws Exception {
         var c = Something.class.getConstructor(int.class);
-        var w = MethodWrapper.of(c);
-        var w2 = MethodWrapper.of(c);
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w = MethodWrapper.wrap(c);
+        var w2 = MethodWrapper.wrap(c);
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(1, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -118,9 +118,9 @@ public class MethodWrapperTest {
     @DisplayName("testStaticMethodWrapper")
     public Stream<DynamicTest> testStaticMethodWrapper() throws Exception {
         var c = Something.class.getMethod("foo", int.class, int.class);
-        var w = MethodWrapper.of(c);
-        var w2 = MethodWrapper.of(c);
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w = MethodWrapper.wrap(c);
+        var w2 = MethodWrapper.wrap(c);
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(2, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -181,9 +181,9 @@ public class MethodWrapperTest {
     public Stream<DynamicTest> testInstanceMethodWrapper() throws Exception {
         var ins = new Something(6);
         var c = Something.class.getMethod("bar", int.class, double.class, String.class);
-        var w = MethodWrapper.of(c);
-        var w2 = MethodWrapper.of(c);
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w = MethodWrapper.wrap(c);
+        var w2 = MethodWrapper.wrap(c);
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(3, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -254,7 +254,7 @@ public class MethodWrapperTest {
         var c = Something.class.getField("x");
         var w = MethodWrapper.getter(c);
         var w2 = MethodWrapper.getter(c);
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -303,7 +303,7 @@ public class MethodWrapperTest {
         var c = Something.class.getField("XXX");
         var w = MethodWrapper.getter(c);
         var w2 = MethodWrapper.getter(c);
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -349,7 +349,7 @@ public class MethodWrapperTest {
     public Stream<DynamicTest> testValueWrapper() throws Exception {
         var w = MethodWrapper.value("alohomora");
         var w2 = MethodWrapper.value("alohomora");
-        var w3 = MethodWrapper.of(SomethingElse.class.getConstructor());
+        var w3 = MethodWrapper.wrap(SomethingElse.class.getConstructor());
         return Stream.of(
             n("a", () -> Assertions.assertEquals(0, w.arity())),
             n("b", () -> Assertions.assertEquals(false, w.isAbstract())),
@@ -393,9 +393,9 @@ public class MethodWrapperTest {
     @DisplayName("testNulls")
     public Stream<DynamicTest> testNulls() throws Exception {
         return Stream.of(
-            n("method", () -> ForTests.testNull("what", () -> MethodWrapper.of((Method) null))),
-            n("constructor", () -> ForTests.testNull("what", () -> MethodWrapper.of((Constructor<?>) null))),
-            n("executable", () -> ForTests.testNull("what", () -> MethodWrapper.of((java.lang.reflect.Executable) null))),
+            n("method", () -> ForTests.testNull("what", () -> MethodWrapper.wrap((Method) null))),
+            n("constructor", () -> ForTests.testNull("what", () -> MethodWrapper.wrap((Constructor<?>) null))),
+            n("executable", () -> ForTests.testNull("what", () -> MethodWrapper.wrap((java.lang.reflect.Executable) null))),
             n("getter", () -> ForTests.testNull("what", () -> MethodWrapper.getter(null))),
             n("value", () -> ForTests.testNull("what", () -> MethodWrapper.value(null)))
         );

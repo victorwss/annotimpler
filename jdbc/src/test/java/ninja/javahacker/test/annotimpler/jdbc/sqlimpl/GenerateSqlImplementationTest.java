@@ -88,6 +88,7 @@ public class GenerateSqlImplementationTest {
 
         @GenerateSql
         @Sql("INSERT INTO g (label) VALUES (:label)")
+        @SuppressWarnings("FinalizeDeclaration")
         public void finalize();
 
         @GenerateSql

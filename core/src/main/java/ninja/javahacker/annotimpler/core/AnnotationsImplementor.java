@@ -90,7 +90,7 @@ public final class AnnotationsImplementor {
         }
 
         if (!m.isDefault()) {
-            var msg = MethodWrapper.of(m).toStringUp() + " lacks annotation-defined implementation.";
+            var msg = MethodWrapper.wrap(m).toStringUp() + " lacks annotation-defined implementation.";
             throw new BadImplementationException(msg, m.getDeclaringClass());
         }
         return (@NonNull E instance, @NonNull Object... args) -> {

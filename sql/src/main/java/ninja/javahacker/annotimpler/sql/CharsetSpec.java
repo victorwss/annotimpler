@@ -124,6 +124,7 @@ public interface CharsetSpec {
         @Deprecated
         @SuppressWarnings({"all", "removal"})
         protected final void finalize() {
+            // Do nothing.
         }
     }
 

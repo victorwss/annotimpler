@@ -275,7 +275,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     /// @return A new `SimpleMethodWrapper`; never `null`.
     @NonNull
     @SuppressWarnings("unchecked")
-    public static <E> SimpleMethodWrapper<E, Method> of(@NonNull Method what) {
+    public static <E> SimpleMethodWrapper<E, Method> wrap(@NonNull Method what) {
         checkNotNull(what);
         var params = List.of(what.getParameters());
         var types = List.of(what.getGenericParameterTypes());

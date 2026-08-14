@@ -119,8 +119,8 @@ public final class MagicFactory<E> {
 
         // Find constructors, methods and fields annotated with @Creator.
         var s = Stream.<MethodWrapper<E, ?>>empty();
-        s = Stream.concat(s, Stream.of(constructors).map(MethodWrapper::<E>of));
-        s = Stream.concat(s, Stream.of(methods).map(MethodWrapper::of));
+        s = Stream.concat(s, Stream.of(constructors).map(MethodWrapper::<E>wrap));
+        s = Stream.concat(s, Stream.of(methods).map(MethodWrapper::wrap));
         s = Stream.concat(s, Stream.of(fields).map(MethodWrapper::getter));
         var annotated = s.filter(x -> x.isAnnotationPresent(Creator.class)).distinct().toList();
 
@@ -144,7 +144,7 @@ public final class MagicFactory<E> {
 
         // For records e beans, normally there is only one canonical constructor.
         if (constructors.length == 1) {
-            return checkOk(MethodWrapper.<E>of(constructors[0])).eraseU();
+            return checkOk(MethodWrapper.<E>wrap(constructors[0])).eraseU();
         }
 
         // If there are multiple constructors, try to find the canonical.
@@ -155,7 +155,7 @@ public final class MagicFactory<E> {
                         .map(RecordComponent::getType)
                         .toArray(Class<?>[]::new);
                 var ctor = klass.getDeclaredConstructor(componentTypes);
-                return checkOk(MethodWrapper.of(ctor)).eraseU();
+                return checkOk(MethodWrapper.wrap(ctor)).eraseU();
             } catch (NoSuchMethodException e) {
                 throw new CreatorSelectionException("Failed to determine canonical constructor for record.", e, klass);
             }
@@ -163,7 +163,7 @@ public final class MagicFactory<E> {
 
         // Try the default no-arg constructor.
         try {
-            var wrap = MethodWrapper.of(klass.getDeclaredConstructor());
+            var wrap = MethodWrapper.wrap(klass.getDeclaredConstructor());
             return checkOk(wrap).eraseU();
         } catch (NoSuchMethodException e) {
             var msg = "Failed to determine how to create an instance of " + klass.getSimpleName() + ".";
@@ -248,7 +248,7 @@ public final class MagicFactory<E> {
     /// {@inheritDoc}
     @Override
     public String toString() {
-        return TypeName.of(klass);
+        return TypeName.nameOf(klass);
     }
 
     /// Thrown when [MagicFactory#of(Class)] cannot determine a unique, valid creator for the

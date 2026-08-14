@@ -381,12 +381,12 @@ public class TransactorTest {
         public Object clone() throws CloneNotSupportedException;
 
         @Deprecated
-        @SuppressWarnings({"removal", "FinalizeNotProtected", "FinalizeDeclaration"})
+        @SuppressWarnings({"all", "removal"})
         public void finalize();
     }
 
     @TestFactory
-    @SuppressWarnings("FinalizeCalledExplicitly")
+    @SuppressWarnings({"FinalizeCalledExplicitly", "IncompatibleEquals"})
     public Stream<DynamicTest> testNoTransactionForToStringEqualsHashCodeFinalizeClone() {
         var t = new Transactor<Connection>(BAD_FACTORY, BAD_GEN);
 
@@ -423,7 +423,7 @@ public class TransactorTest {
 
             //@Override
             @Deprecated
-            @SuppressWarnings({"FinalizeDeclaration", "override", "removal", "FinalizeDoesntCallSuperFinalize"})
+            @SuppressWarnings({"all", "removal"})
             public void finalize() {
                 check.run();
             }

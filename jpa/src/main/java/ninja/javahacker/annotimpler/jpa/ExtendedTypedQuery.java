@@ -11,6 +11,10 @@ import module java.base;
 /// Extends the [TypedQuery] interface adding several useful methods.
 /// @param <X> The generic type of the [TypedQuery].
 /// @author Victor Williams Stafusa da Silva
+@SuppressWarnings({
+    "PMD.ReplaceJavaUtilCalendar", // Calendar is only used in deprecated methods that are deprecated precisely because they use Calendar.
+    "PMD.ReplaceJavaUtilDate" // Date is only used in deprecated methods that are deprecated precisely because they use Date.
+})
 public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
 
     /// Gets a single line as a result and wraps it inside an [Optional].

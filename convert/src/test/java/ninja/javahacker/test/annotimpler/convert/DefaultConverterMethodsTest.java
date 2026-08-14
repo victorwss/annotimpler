@@ -92,7 +92,7 @@ public class DefaultConverterMethodsTest {
 
     @TestFactory
     public Stream<DynamicNode> testStdGetType() throws Exception {
-        return TestTypes.CVT_TYPES.stream().map(t -> DynamicTest.dynamicTest("[testStdGetType] " + TypeName.of(t), () -> {
+        return TestTypes.CVT_TYPES.stream().map(t -> DynamicTest.dynamicTest("[testStdGetType] " + TypeName.nameOf(t), () -> {
             var cvt = ConverterFactory.std().get(t);
             Assertions.assertEquals(t, cvt.getType());
         }));
@@ -155,7 +155,7 @@ public class DefaultConverterMethodsTest {
                 .flatMap(m -> Stream.of(m.getParameters()))
                 .map(Parameter::getParameterizedType)
                 .toList();
-        return ints.stream().map(i -> DynamicTest.dynamicTest("[testDefaultGetType] " + TypeName.of(typs.get(i)), () -> {
+        return ints.stream().map(i -> DynamicTest.dynamicTest("[testDefaultGetType] " + TypeName.nameOf(typs.get(i)), () -> {
             var cvt = cvts.get(i);
             Assertions.assertEquals(typs.get(i), cvt.getType());
         }));

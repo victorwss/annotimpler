@@ -105,6 +105,7 @@ public class QuerySqlImplementationTest {
 
         @QuerySql
         @Sql("SELECT 1")
+        @SuppressWarnings("FinalizeDeclaration")
         public void finalize();
 
         @QuerySql

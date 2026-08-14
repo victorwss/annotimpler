@@ -22,7 +22,8 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.Generated;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.TypeName;
+
+import module ninja.javahacker.annotimpler.magicfactory;
 
 /// A [Converter] that wraps an element [Converter] and produces `Set<E>`.
 ///
@@ -301,7 +302,7 @@ public final class SetConverter<E> implements Converter<Set<E>> {
     @NonNull
     @Override
     public String toString() {
-        return "SetConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";
+        return "SetConverter[baseType=" + TypeName.nameOf(baseType) + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

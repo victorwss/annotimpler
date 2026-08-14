@@ -12,9 +12,9 @@ import module java.base;
 /// consistent API for invocation, type inspection, and annotation lookup.
 ///
 /// Instances are created via the static factory methods:
-/// - [#of(Method)] — Wraps a static or instance method.
-/// - [#of(Constructor)] — Wraps a constructor.
-/// - [#of(Executable)] — Dispatches to the appropriate overload.
+/// - [#wrap(Method)] — Wraps a static or instance method.
+/// - [#wrap(Constructor)] — Wraps a constructor.
+/// - [#wrap(Executable)] — Dispatches to the appropriate overload.
 /// - [#getter(Field)] — Wraps a field as a zero-argument getter.
 /// - [#value(Object)] — Wraps a constant value as a no-arg "method".
 ///
@@ -190,8 +190,8 @@ public interface MethodWrapper<E, U> {
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     @SuppressWarnings("unchecked")
-    public static <E> MethodWrapper<E, Method> of(@NonNull Method what) {
-        return SimpleMethodWrapper.of(what);
+    public static <E> MethodWrapper<E, Method> wrap(@NonNull Method what) {
+        return SimpleMethodWrapper.wrap(what);
     }
 
     /// Creates a wrapper for the given [Constructor].
@@ -201,12 +201,12 @@ public interface MethodWrapper<E, U> {
     /// @return A new `MethodWrapper`; never `null`.
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
-    public static <E> MethodWrapper<E, Constructor<E>> of(@NonNull Constructor<E> what) {
+    public static <E> MethodWrapper<E, Constructor<E>> wrap(@NonNull Constructor<E> what) {
         return SimpleMethodWrapper.of(what);
     }
 
-    /// Creates a wrapper for the given [Executable], dispatching to [#of(Method)] or
-    /// [#of(Constructor)] as appropriate.
+    /// Creates a wrapper for the given [Executable], dispatching to [#wrap(Method)] or
+    /// [#wrap(Constructor)] as appropriate.
     ///
     /// @param <E> The return type.
     /// @param what The executable to wrap; must not be `null`.
@@ -216,9 +216,9 @@ public interface MethodWrapper<E, U> {
     @Generated
     @SuppressWarnings("unchecked")
     @SuppressFBWarnings("ITC_INHERITANCE_TYPE_CHECKING")
-    public static <E> MethodWrapper<E, ?> of(@NonNull Executable what) {
-        if (what instanceof Method m) return MethodWrapper.<E>of(m);
-        if (what instanceof Constructor<?> c) return of((Constructor<E>) c);
+    public static <E> MethodWrapper<E, ?> wrap(@NonNull Executable what) {
+        if (what instanceof Method m) return MethodWrapper.<E>wrap(m);
+        if (what instanceof Constructor<?> c) return wrap((Constructor<E>) c);
         throw new AssertionError();
     }
 

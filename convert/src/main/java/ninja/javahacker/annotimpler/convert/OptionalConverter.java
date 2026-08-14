@@ -21,7 +21,8 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.Generated;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.TypeName;
+
+import module ninja.javahacker.annotimpler.magicfactory;
 
 /// A [Converter] that wraps an element [Converter] and produces `Optional<E>`.
 ///
@@ -300,7 +301,7 @@ public final class OptionalConverter<E> implements Converter<Optional<E>> {
     @NonNull
     @Override
     public String toString() {
-        return "OptionalConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";
+        return "OptionalConverter[baseType=" + TypeName.nameOf(baseType) + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

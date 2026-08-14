@@ -31,7 +31,7 @@ public class ConvertionException extends Exception {
     /// @throws IllegalArgumentException If `in` or `out` is `null`.
     public ConvertionException(@NonNull Class<?> in, @NonNull Type out) {
         List.of(in, out); // Force lombok to put the null-checks before the constructor call.
-        this("Can't read value as $$$.".replace("$$$", TypeName.of(out)), in, out);
+        this("Can't read value as $$$.".replace("$$$", TypeName.nameOf(out)), in, out);
     }
 
     /// Constructs a [ConvertionException] with the given message, source type, and target type.
@@ -55,7 +55,7 @@ public class ConvertionException extends Exception {
     /// @throws IllegalArgumentException If `cause`, `in` or `out` is `null`.
     public ConvertionException(@NonNull Throwable cause, @NonNull Class<?> in, @NonNull Type out) {
         List.of(cause, in, out); // Force lombok to put the null-checks before the constructor call.
-        this("Can't read value as $$$.".replace("$$$", TypeName.of(out)), cause, in, out);
+        this("Can't read value as $$$.".replace("$$$", TypeName.nameOf(out)), cause, in, out);
     }
 
     /// Constructs a [ConvertionException] with the given message, cause, source type, and target type.

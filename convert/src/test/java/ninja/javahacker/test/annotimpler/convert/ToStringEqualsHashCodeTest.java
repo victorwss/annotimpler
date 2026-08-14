@@ -189,7 +189,7 @@ public class ToStringEqualsHashCodeTest {
                 .map(s -> DynamicTest.dynamicTest(
                         "[testListConverterToString] " + s.getClass().getSimpleName(),
                         () -> Assertions.assertEquals(
-                                "ListConverter[baseType=" + TypeName.of(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
+                                "ListConverter[baseType=" + TypeName.nameOf(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
                                 s.toString()
                         )
                 ));
@@ -206,7 +206,7 @@ public class ToStringEqualsHashCodeTest {
                 .map(s -> DynamicTest.dynamicTest(
                         "[testCollectionConverterToString] " + s.getClass().getSimpleName(),
                         () -> Assertions.assertEquals(
-                                "CollectionConverter[baseType=" + TypeName.of(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
+                                "CollectionConverter[baseType=" + TypeName.nameOf(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
                                 s.toString()
                         )
                 ));
@@ -223,7 +223,7 @@ public class ToStringEqualsHashCodeTest {
                 .map(s -> DynamicTest.dynamicTest(
                         "[testSetConverterToString] " + s.getClass().getSimpleName(),
                         () -> Assertions.assertEquals(
-                                "SetConverter[baseType=" + TypeName.of(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
+                                "SetConverter[baseType=" + TypeName.nameOf(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
                                 s.toString()
                         )
                 ));
@@ -240,7 +240,7 @@ public class ToStringEqualsHashCodeTest {
                 .map(s -> DynamicTest.dynamicTest(
                         "[testOptionalConverterToString] " + s.getClass().getSimpleName(),
                         () -> Assertions.assertEquals(
-                                "OptionalConverter[baseType=" + TypeName.of(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
+                                "OptionalConverter[baseType=" + TypeName.nameOf(s.getType()) + ", cvt=" + (s == a ? i1 : i2) + "]",
                                 s.toString()
                         )
                 ));

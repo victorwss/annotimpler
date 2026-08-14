@@ -23,7 +23,7 @@ public class BadBlankAndNullConverterTest {
         for (var k1 : TestTypes.CVT_CLASSES) {
             for (var k2 : TestTypes.others(k1)) {
                 var nd1 = DynamicTest.dynamicTest(
-                        "Converter for " + TypeName.of(k2) + " from " + base.getSimpleName() + " as null.",
+                        "Converter for " + TypeName.nameOf(k2) + " from " + base.getSimpleName() + " as null.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             ForTests.testNull("in", () -> m.receive(cvt));
@@ -158,7 +158,7 @@ public class BadBlankAndNullConverterTest {
             for (var k2 : TestTypes.others(k1)) {
                 var z = Optional.ofNullable(nully(k2));
                 var nd1 = DynamicTest.dynamicTest(
-                        "[testFromOkNull fromObj] Converter for " + TypeName.of(k2) + " from Object null.",
+                        "[testFromOkNull fromObj] Converter for " + TypeName.nameOf(k2) + " from Object null.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(z, cvt.fromObj(null));
@@ -166,7 +166,7 @@ public class BadBlankAndNullConverterTest {
                 );
                 nodes1.add(nd1);
                 var nd2 = DynamicTest.dynamicTest(
-                        "[testFromOkNull fromNull] Converter for " + TypeName.of(k2) + " fromNull.",
+                        "[testFromOkNull fromNull] Converter for " + TypeName.nameOf(k2) + " fromNull.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(z, cvt.fromNull());
@@ -193,12 +193,12 @@ public class BadBlankAndNullConverterTest {
             for (var k2 : TestTypes.others(k1)) {
                 if (k2 == byte[].class || k2 == char[].class) continue;
                 var nd1 = DynamicTest.dynamicTest(
-                        "[testFromBadJunkString] Converter for " + TypeName.of(k2) + " with bad String.",
+                        "[testFromBadJunkString] Converter for " + TypeName.nameOf(k2) + " with bad String.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
                             Assertions.assertAll(
-                                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ex.getMessage()),
+                                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ex.getMessage()),
                                     () -> Assertions.assertEquals(String.class, ex.getIn()),
                                     () -> Assertions.assertEquals(k2, ex.getOut())
                             );
@@ -218,7 +218,7 @@ public class BadBlankAndNullConverterTest {
         for (var k1 : TestTypes.CVT_CLASSES) {
             for (var k2 : TestTypes.others(k1)) {
                 var nd1 = DynamicTest.dynamicTest(
-                        "[testFromBadJunkObject] Converter for " + TypeName.of(k2) + " with bad Object.",
+                        "[testFromBadJunkObject] Converter for " + TypeName.nameOf(k2) + " with bad Object.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             var ex = Assertions.assertThrows(ConvertionException.class, () -> m.receive(cvt));
@@ -244,7 +244,7 @@ public class BadBlankAndNullConverterTest {
         for (var k1 : all) {
             for (var k2 : TestTypes.others(k1)) {
                 var nd1 = DynamicTest.dynamicTest(
-                        "[testFromEmpty] Converter for " + TypeName.of(k2) + " with empty String.",
+                        "[testFromEmpty] Converter for " + TypeName.nameOf(k2) + " with empty String.",
                         () -> {
                             var cvt = ConverterFactory.std().get(k2);
                             TestTypes.compare(Optional.ofNullable(empty(k2)), m.receive(cvt));
@@ -341,7 +341,7 @@ public class BadBlankAndNullConverterTest {
         }
         if (n == 2) {
             Assertions.assertAll(
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ce.getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ce.getIn()),
                     () -> Assertions.assertEquals(k2, ce.getOut()),
 
@@ -350,12 +350,12 @@ public class BadBlankAndNullConverterTest {
             );
         } else if (n == 3 && k1 != k2) {
             Assertions.assertAll(
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ce.getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ce.getIn()),
                     () -> Assertions.assertEquals(k2, ce.getOut()),
 
                     () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k1) + ".", ce.getCause().getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
                     () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
 
@@ -364,7 +364,7 @@ public class BadBlankAndNullConverterTest {
             );
         } else if (n == 3) {
             Assertions.assertAll(
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ce.getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ce.getIn()),
                     () -> Assertions.assertEquals(k2, ce.getOut()),
 
@@ -378,12 +378,12 @@ public class BadBlankAndNullConverterTest {
             );
         } else if (n == 4 && k2 == TestTypes.R4Color.class) {
             Assertions.assertAll(
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ce.getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ce.getIn()),
                     () -> Assertions.assertEquals(k2, ce.getOut()),
 
                     () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(TestTypes.Color.class) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(TestTypes.Color.class) + ".", ce.getCause().getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
                     () -> Assertions.assertEquals(TestTypes.Color.class, ((ConvertionException) ce.getCause()).getOut()),
 
@@ -397,12 +397,12 @@ public class BadBlankAndNullConverterTest {
             );
         } else if (n == 4) {
             Assertions.assertAll(
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k2) + ".", ce.getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k2) + ".", ce.getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ce.getIn()),
                     () -> Assertions.assertEquals(k2, ce.getOut()),
 
                     () -> Assertions.assertEquals(ConvertionException.class, ce.getCause().getClass()),
-                    () -> Assertions.assertEquals("Can't read value as " + TypeName.of(k1) + ".", ce.getCause().getMessage()),
+                    () -> Assertions.assertEquals("Can't read value as " + TypeName.nameOf(k1) + ".", ce.getCause().getMessage()),
                     () -> Assertions.assertEquals(k3.base(), ((ConvertionException) ce.getCause()).getIn()),
                     () -> Assertions.assertEquals(k1, ((ConvertionException) ce.getCause()).getOut()),
 
@@ -439,7 +439,7 @@ public class BadBlankAndNullConverterTest {
                 for (var k3 : m) {
                     if (k3.base() == SQLXML.class && noSqlxml.contains(k1)) continue;
                     var nd2 = DynamicTest.dynamicTest(
-                            "[testFromBadLob] Converter for " + TypeName.of(k2) + " with " + k3.name() + ".",
+                            "[testFromBadLob] Converter for " + TypeName.nameOf(k2) + " with " + k3.name() + ".",
                             () -> {
                                 var cvt = ConverterFactory.std().get(k2);
                                 var ce = Assertions.assertThrows(ConvertionException.class, () -> k3.spec().receive(cvt));
@@ -448,7 +448,7 @@ public class BadBlankAndNullConverterTest {
                     );
                     nodes2.add(nd2);
                 }
-                nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + TypeName.of(k2) + ".", nodes2));
+                nodes1.add(DynamicContainer.dynamicContainer("Test convertions for " + TypeName.nameOf(k2) + ".", nodes2));
             }
         }
         return nodes1;

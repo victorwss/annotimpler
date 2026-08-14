@@ -210,6 +210,7 @@ public final class JsonConnector implements Connector {
         @Deprecated
         @SuppressWarnings({"all", "removal"})
         protected final void finalize() {
+            // Do nothing.
         }
     }
 

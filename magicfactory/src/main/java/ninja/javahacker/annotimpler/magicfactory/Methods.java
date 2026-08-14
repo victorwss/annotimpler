@@ -40,7 +40,7 @@ public final class Methods {
     @NonNull
     public static final MethodId CLONE = new MethodId("clone", List.of());
 
-    /// The [Object#finalize()] method id.
+    /// The `Object#finalize()` method id.
     @NonNull
     public static final MethodId FINALIZE = new MethodId("finalize", List.of());
 
@@ -298,7 +298,7 @@ public final class Methods {
     ///         list is incompatible with the executable's signature.
     @NonNull
     public static Map<String, Object> paramMap(@NonNull Executable what, @NonNull Object... args) {
-        return MethodWrapper.of(what).paramMap(args);
+        return MethodWrapper.wrap(what).paramMap(args);
     }
 
     /// Returns the generic return type of the given [Method] or [Constructor].

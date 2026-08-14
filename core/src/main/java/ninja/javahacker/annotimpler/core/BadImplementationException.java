@@ -67,5 +67,6 @@ public class BadImplementationException extends Exception {
     @Deprecated
     @SuppressWarnings({"all", "removal"})
     protected final void finalize() {
+        // Do nothing.
     }
 }

@@ -22,7 +22,8 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.Generated;
 import lombok.NonNull;
-import ninja.javahacker.annotimpler.magicfactory.TypeName;
+
+import module ninja.javahacker.annotimpler.magicfactory;
 
 /// A [Converter] that wraps an element [Converter] and produces `List<E>`.
 ///
@@ -301,7 +302,7 @@ public final class ListConverter<E> implements Converter<List<E>> {
     @NonNull
     @Override
     public String toString() {
-        return "ListConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";
+        return "ListConverter[baseType=" + TypeName.nameOf(baseType) + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

@@ -148,7 +148,7 @@ public final class TypeName {
     /// @return The formatted type string; never `null`.
     /// @throws IllegalArgumentException If `what` or `fullNameNeeded` is `null`.
     @NonNull
-    public static String of(@NonNull Type what, @NonNull Set<? extends Class<?>> fullNameNeeded) {
+    public static String nameOf(@NonNull Type what, @NonNull Set<? extends Class<?>> fullNameNeeded) {
         var sb = new StringBuilder(50);
         formatType(what, fullNameNeeded, sb);
         return sb.toString();
@@ -162,8 +162,8 @@ public final class TypeName {
     /// @return The formatted type string; never `null`.
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
-    public static String of(@NonNull Type what) {
-        return of(what, Set.of());
+    public static String nameOf(@NonNull Type what) {
+        return nameOf(what, Set.of());
     }
 
     @Generated

@@ -129,7 +129,7 @@ public class HeavyConverterTestSupport {
 
     @SuppressWarnings({"element-type-mismatch", "AssertEqualsBetweenInconvertibleTypes"})
     private static List<Executable> checkExceptionIn(ConvertionException ce, ExceptionType support, Type inputType, Type target, Object in) {
-        var e1a = "Can't read value as " + TypeName.of(target) + ".";
+        var e1a = "Can't read value as " + TypeName.nameOf(target) + ".";
         var e2 = "Unsupported " + name(inputType) + ".";
         var e3 = "Unsupported Type: " + inputType.getTypeName() + ".";
         var errStr = Map.of(ExceptionType.CONVERTION, e1a, ExceptionType.UNSUPPORTED_VALUE, e2, ExceptionType.UNSUPPORTED_TYPE, e3).get(support);
@@ -167,7 +167,7 @@ public class HeavyConverterTestSupport {
             return parts;
         }
 
-        if (n != 2 && n != 3) throw new AssertionError(n + " - " + TypeName.of(targetClass));
+        if (n != 2 && n != 3) throw new AssertionError(n + " - " + TypeName.nameOf(targetClass));
 
         var isDerived = TEMPORAL_BACK.containsKey(target);
         if (isDerived) {
@@ -197,7 +197,7 @@ public class HeavyConverterTestSupport {
             return parts;
         }
 
-        if (n != 2) throw new AssertionError(n + " - " + TypeName.of(targetClass));
+        if (n != 2) throw new AssertionError(n + " - " + TypeName.nameOf(targetClass));
 
         if (NUMERIC.contains(targetClass)) {
             var ex = inputType == String.class ? NumberFormatException.class : ArithmeticException.class;
@@ -215,7 +215,7 @@ public class HeavyConverterTestSupport {
     }
 
     private static String name(Type t) {
-        return TypeName.of(t, Set.of(java.sql.Date.class, java.util.Date.class));
+        return TypeName.nameOf(t, Set.of(java.sql.Date.class, java.util.Date.class));
     }
 
     @SuppressWarnings("AssertEqualsBetweenInconvertibleTypes")

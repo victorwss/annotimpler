@@ -303,7 +303,7 @@ public final class CollectionConverter<E> implements Converter<Collection<E>> {
     @NonNull
     @Override
     public String toString() {
-        return "CollectionConverter[baseType=" + TypeName.of(baseType) + ", cvt=" + cvt.toString() + "]";
+        return "CollectionConverter[baseType=" + TypeName.nameOf(baseType) + ", cvt=" + cvt.toString() + "]";
     }
 
     @Generated

@@ -102,6 +102,7 @@ public class ExecuteSqlImplementationTest {
 
         @ExecuteSql
         @Sql("UPDATE t SET amount = 1")
+        @SuppressWarnings("FinalizeDeclaration")
         public void finalize();
 
         @ExecuteSql

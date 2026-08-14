@@ -27,7 +27,7 @@ final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
 
     /// The ordered list of SQL parameter names managed by this acceptor.
     @NonNull
-    private final List<String> paramNames;
+    private final List<String> params;
 
     /// Creates a new instance wrapping the given delegate and parameter names.
     ///
@@ -38,15 +38,14 @@ final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
         checkNotNull(h); // Check recognized by lombok.
         checkNotNull(paramNames); // Check recognized by lombok.
         this.h = h;
-        this.paramNames = paramNames;
+        this.params = List.copyOf(paramNames);
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    @SuppressWarnings("ReturnOfCollectionOrArrayField") // Known to always be immutable.
     public List<String> paramNames() {
-        return paramNames;
+        return List.copyOf(params);
     }
 
     /// {@inheritDoc}
@@ -181,7 +180,7 @@ final class ParameterSetStrategy implements ParameterReceiver.NamedAcceptor1 {
             if (!pred.test(value)) throw new ParameterReceiver.IllegalValueException();
             var value2 = WrapperClass.wrap(k).cast(value);
             return (@NonNull ParameterReceiver ps) -> {
-                checkNotNull(ps); // Would be for Lombok. But Lombok don't look into lambdas.
+                checkNotNull(ps); // Would be for supressing Lombok inserting null check. However, Lombok don't look into lambdas anyway.
                 if (value2 == null) {
                     ps.receiveNull(name, k);
                 } else {

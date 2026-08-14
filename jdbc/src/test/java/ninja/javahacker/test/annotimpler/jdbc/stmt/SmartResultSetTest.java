@@ -215,7 +215,7 @@ public class SmartResultSetTest {
     public Stream<DynamicTest> testDelegateMethods() throws Exception {
         return Stream.of(ResultSet.class.getMethods())
                 .filter(mt -> !"getMetaData".equals(mt.getName()))
-                .map(mt -> DynamicTest.dynamicTest("[testDelegateMethods] " + MethodWrapper.of(mt).toString(), () -> testDelegateMethod(mt)));
+                .map(mt -> DynamicTest.dynamicTest("[testDelegateMethods] " + MethodWrapper.wrap(mt).toString(), () -> testDelegateMethod(mt)));
     }
 
     private SmartResultSet makeMock(List<TypeData> types, ConverterFactory factory, Locale loc) throws Exception {
@@ -825,7 +825,11 @@ public class SmartResultSetTest {
             ConverterFactory factory = type -> {
                 Assertions.assertEquals(String.class, type);
                 return new Converter<String>() {
-                    @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.of("CONVERTED"); }
+                    @Override
+                    public Optional<String> fromObj(Object in) {
+                        capturedRaw[0] = in;
+                        return Optional.of("CONVERTED");
+                    }
                 };
             };
             var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
@@ -837,7 +841,11 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "returns Optional.empty when converter is empty", () -> {
             var capturedRaw = new Object[1];
             ConverterFactory factory = type -> new Converter<String>() {
-                @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.empty(); }
+                @Override
+                public Optional<String> fromObj(Object in) {
+                    capturedRaw[0] = in;
+                    return Optional.empty();
+                }
             };
             var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
             Assertions.assertEquals(Optional.empty(), srs.getTypedValueOpt(1, String.class));
@@ -848,7 +856,10 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "wraps ConvertionException in SQLException", () -> {
             var ce = new ConvertionException("test error", String.class, String.class);
             ConverterFactory factory = type -> new Converter<String>() {
-                @Override public Optional<String> fromObj(Object in) throws ConvertionException { throw ce; }
+                @Override
+                public Optional<String> fromObj(Object in) throws ConvertionException {
+                    throw ce;
+                }
             };
             var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
             var sqle = Assertions.assertThrows(SQLException.class, () -> srs.getTypedValueOpt(1, String.class));
@@ -859,7 +870,9 @@ public class SmartResultSetTest {
         // Note: getTypedValue(int) is still called first, so the RS handler must handle getString.
         tests.add(DynamicTest.dynamicTest(pf + "wraps UnavailableConverterException in SQLException", () -> {
             var uce = UnavailableConverterException.noConverterFor(String.class);
-            ConverterFactory factory = type -> { throw uce; };
+            ConverterFactory factory = type -> {
+                throw uce;
+            };
             var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
             var sqle = Assertions.assertThrows(SQLException.class, () -> srs.getTypedValueOpt(1, String.class));
             Assertions.assertSame(uce, sqle.getCause());
@@ -869,7 +882,11 @@ public class SmartResultSetTest {
         tests.add(DynamicTest.dynamicTest(pf + "passes null to fromObj when column type is NULL", () -> {
             var capturedRaw = new Object[]{"NOT_NULL_SENTINEL"};
             ConverterFactory factory = type -> new Converter<String>() {
-                @Override public Optional<String> fromObj(Object in) { capturedRaw[0] = in; return Optional.empty(); }
+                @Override
+                public Optional<String> fromObj(Object in) {
+                    capturedRaw[0] = in;
+                    return Optional.empty();
+                }
             };
             var srs = makeConvMock(Types.NULL, factory, (px, m, a) -> { throw new AssertionError(m.getName()); });
             srs.getTypedValueOpt(1, String.class);
@@ -886,7 +903,10 @@ public class SmartResultSetTest {
             // value present → returned directly (Optional unwrapped)
             DynamicTest.dynamicTest(pf + "returns value when converter has value", () -> {
                 ConverterFactory factory = type -> new Converter<String>() {
-                    @Override public Optional<String> fromObj(Object in) { return Optional.of("CONVERTED"); }
+                    @Override
+                    public Optional<String> fromObj(Object in) {
+                        return Optional.of("CONVERTED");
+                    }
                 };
                 var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
                 Assertions.assertEquals("CONVERTED", srs.getTypedValue(1, String.class));
@@ -894,7 +914,10 @@ public class SmartResultSetTest {
             // value absent → null (Optional.empty().orElse(null))
             DynamicTest.dynamicTest(pf + "returns null when converter returns empty Optional", () -> {
                 ConverterFactory factory = type -> new Converter<String>() {
-                    @Override public Optional<String> fromObj(Object in) { return Optional.empty(); }
+                    @Override
+                    public Optional<String> fromObj(Object in) {
+                        return Optional.empty();
+                    }
                 };
                 var srs = makeConvMock(Types.VARCHAR, factory, SIMPLE_VARCHAR_HANDLER);
                 Assertions.assertNull(srs.getTypedValue(1, String.class));
@@ -906,10 +929,16 @@ public class SmartResultSetTest {
     public Stream<DynamicTest> testGetTypedValueByLabel() throws Exception {
         var pf = "[testGetTypedValueByLabel] ";
         ConverterFactory presentFactory = type -> new Converter<String>() {
-            @Override public Optional<String> fromObj(Object in) { return Optional.of("CONVERTED"); }
+            @Override
+            public Optional<String> fromObj(Object in) {
+                return Optional.of("CONVERTED");
+            }
         };
         ConverterFactory emptyFactory = type -> new Converter<String>() {
-            @Override public Optional<String> fromObj(Object in) { return Optional.empty(); }
+            @Override
+            public Optional<String> fromObj(Object in) {
+                return Optional.empty();
+            }
         };
         return Stream.of(
             // getTypedValueOpt(String, Class): column found — resolves label to index then runs pipeline
@@ -975,6 +1004,7 @@ public class SmartResultSetTest {
             public Converter<?> get(Type t) throws UnavailableConverterException {
                 throw UnavailableConverterException.noConverterFor(t);
             }
+
             @Override
             public <T extends Record> T mapToRecord(Map<String, ?> map, Class<T> k) {
                 capturedMap[0] = map;
