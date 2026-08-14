@@ -4,7 +4,6 @@ import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
-import module jakarta.persistence;
 import module ninja.javahacker.annotimpler.sql;
 
 /// Holds the active [ExtendedEntityManager] and its unique identifier for one transaction.
@@ -26,19 +25,19 @@ record JpaTransaction(@NonNull ExtendedEntityManager manager, @NonNull String id
 
     /// {@inheritDoc}
     @Override
-    public void commit() throws SQLException {
+    public void commit() {
         manager.getTransaction().commit();
     }
 
     /// {@inheritDoc}
     @Override
-    public void rollback() throws SQLException {
+    public void rollback() {
         manager.getTransaction().rollback();
     }
 
     /// {@inheritDoc}
     @Override
-    public void close() throws SQLException {
+    public void close() {
         manager.close();
     }
 

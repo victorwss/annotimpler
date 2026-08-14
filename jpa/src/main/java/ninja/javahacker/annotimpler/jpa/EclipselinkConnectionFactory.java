@@ -1,8 +1,8 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
-import module jakarta.persistence;
 import module java.base;
 
 /// Immutable [EntityManagerSupplier] configured for EclipseLink.
@@ -12,6 +12,10 @@ import module java.base;
 /// @param user Database user.
 /// @param password Database password.
 /// @param extras Extra provider properties merged last.
+@SuppressFBWarnings(
+        value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+        justification = "We ensure that the extras are always immutable."
+)
 public record EclipselinkConnectionFactory(
         @NonNull String persistenceUnitName,
         @NonNull String url,
@@ -30,7 +34,9 @@ public record EclipselinkConnectionFactory(
     /// @param password Database password.
     /// @param extras Extra provider properties merged last.
     /// @throws IllegalArgumentException If any argument is `null`.
-    public EclipselinkConnectionFactory {}
+    public EclipselinkConnectionFactory {
+        extras = Map.copyOf(extras);
+    }
 
     /// Returns a `EclipselinkConnectionFactory` with all fields left unspecified.
     /// @return A `EclipselinkConnectionFactory` with all fields left unspecified.
@@ -92,6 +98,6 @@ public record EclipselinkConnectionFactory(
     /// @throws IllegalArgumentException If `extras` is `null`.
     @NonNull
     public EclipselinkConnectionFactory withExtras(@NonNull Map<String, String> extras) {
-        return new EclipselinkConnectionFactory(persistenceUnitName, url, user, password, Map.copyOf(extras));
+        return new EclipselinkConnectionFactory(persistenceUnitName, url, user, password, extras);
     }
 }

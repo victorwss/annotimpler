@@ -240,7 +240,7 @@ public final class MagicFactory<E> {
 
     /// {@inheritDoc}
     @Override
-    @SuppressWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
     public boolean equals(@Nullable Object other) {
         return other instanceof MagicFactory<?> mf && this.klass == mf.klass;
     }

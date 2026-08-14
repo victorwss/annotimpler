@@ -1,6 +1,7 @@
 package ninja.javahacker.typeser;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
@@ -9,6 +10,10 @@ import module java.base;
 ///
 /// Instances convert the supplied `Type` to an internal serializable surrogate so
 /// the type can be written to and read from an object stream.
+@SuppressFBWarnings(
+        value = {"NFF_NON_FUNCTIONAL_FIELD", "OBJECT_DESERIALIZATION", "SE_TRANSIENT_FIELD_NOT_RESTORED"},
+        justification = "Those fields are not set on purpose. The proxy field is used instead only on sreialization."
+)
 public final class TypeRef implements Serializable {
 
     @Serial
@@ -47,6 +52,11 @@ public final class TypeRef implements Serializable {
     /// from the internal surrogate.
     ///
     /// @return the wrapped type; never `null`.
+    /// @throws UnsupportedOperationException If this represents a type that can't be reconstructed.
+    ///         This never happens when the type only contains combinations of [Class], [ParameterizedType], [WildcardType],
+    ///         [GenericArrayType] and [TypeVariable].
+    ///         Hence, it is not expected to happen with any real-case type data, only with ill-defined, corrupted, malformed or maliciously
+    ///         constructed types.
     @NonNull
     public Type type() {
         return original != null ? original : proxy.toType();

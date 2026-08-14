@@ -17,8 +17,13 @@ import module java.base;
         value = "RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT",
         justification = "Several 'return this;' to preserve the return type as SpecialTypedQuery<X>"
 )
+@SuppressWarnings({
+    "PMD.TooManyMethods", // Unavoidable in order to change the return type of many inherited methods.
+    "PMD.ReplaceJavaUtilCalendar", // Calendar is only used in deprecated methods that are deprecated precisely because they use Calendar.
+    "PMD.ReplaceJavaUtilDate" // Date is only used in deprecated methods that are deprecated precisely because they use Date.
+})
 @PackagePrivate
-class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
+final class SpecialTypedQuery<X> implements ExtendedTypedQuery<X> {
 
     /// The wrapped typed query, delegated to for the methods listed in [DelegatedParts].
     @Delegate(types = DelegatedParts.class)

@@ -38,19 +38,17 @@ public interface SmartResultSet extends ResultSet {
     ///
     /// @param columnLabel The case-insensitive column label to look up.
     /// @return The 1-based column index.
-    /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `columnLabel` is `null` or there is no such column.
-    public int indexOf(@NonNull String columnLabel) throws SQLException;
+    public int indexOf(@NonNull String columnLabel);
 
     /// Returns the upper-cased label of the column at `columnIndex`, if it has a usable one.
     ///
     /// @param columnIndex The 1-based column index to look up.
     /// @return The upper-cased column label, or [Optional#empty()] if the column was
     ///         null-named, empty-named or a duplicate of another column's label.
-    /// @throws SQLException If a database access error occurs.
     /// @throws IllegalArgumentException If `columnIndex` is out of range.
     @NonNull
-    public Optional<String> labelOf(int columnIndex) throws SQLException;
+    public Optional<String> labelOf(int columnIndex);
 
     /// Creates a [SmartResultSet] wrapping the given [ResultSet] using the standard
     /// converter factory and the root locale.

@@ -32,30 +32,29 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     /// @return An [ExtendedTypedQuery] corresponding to a decorator of the given [TypedQuery].
     /// @throws IllegalArgumentException If `query` is `null`.
     @NonNull
-    public static <X> ExtendedTypedQuery<X> wrap(@NonNull TypedQuery<X> query) throws IllegalArgumentException {
+    public static <X> ExtendedTypedQuery<X> wrap(@NonNull TypedQuery<X> query) {
         return query instanceof ExtendedTypedQuery<X> q ? q : new SpecialTypedQuery<>(query);
     }
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    public ExtendedTypedQuery<X> setMaxResults(int maxResults) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setMaxResults(int maxResults);
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    public ExtendedTypedQuery<X> setFirstResult(int startPosition) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setFirstResult(int startPosition);
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    public ExtendedTypedQuery<X> setHint(@NonNull String hintName, @NonNull Object value) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setHint(@NonNull String hintName, @NonNull Object value);
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    public <T extends Object> ExtendedTypedQuery<X> setParameter(@NonNull Parameter<T> param, @Nullable T value)
-            throws IllegalArgumentException;
+    public <T extends Object> ExtendedTypedQuery<X> setParameter(@NonNull Parameter<T> param, @Nullable T value);
 
     /// {@inheritDoc}
     @Deprecated
@@ -64,8 +63,7 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     public ExtendedTypedQuery<X> setParameter(
             @NonNull Parameter<Calendar> param,
             @Nullable Calendar value,
-            @NonNull TemporalType temporalType)
-            throws IllegalArgumentException;
+            @NonNull TemporalType temporalType);
 
     /// {@inheritDoc}
     @Deprecated
@@ -74,32 +72,29 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     public ExtendedTypedQuery<X> setParameter(
             @NonNull Parameter<Date> param,
             @Nullable Date value,
-            @NonNull TemporalType temporalType)
-            throws IllegalArgumentException;
+            @NonNull TemporalType temporalType);
 
     /// {@inheritDoc}
     @NonNull
     @Override
-    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Object value) throws IllegalArgumentException;
-
-    /// {@inheritDoc}
-    @Deprecated
-    @NonNull
-    @Override
-    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Calendar value, @NonNull TemporalType temporalType)
-            throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Object value);
 
     /// {@inheritDoc}
     @Deprecated
     @NonNull
     @Override
-    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Date value, @NonNull TemporalType temporalType)
-            throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Calendar value, @NonNull TemporalType temporalType);
+
+    /// {@inheritDoc}
+    @Deprecated
+    @NonNull
+    @Override
+    public ExtendedTypedQuery<X> setParameter(@NonNull String name, @Nullable Date value, @NonNull TemporalType temporalType);
 
     /// {@inheritDoc}
     @Override
     @NonNull
-    public ExtendedTypedQuery<X> setParameter(int position, @Nullable Object value) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setParameter(int position, @Nullable Object value);
 
     /// {@inheritDoc}
     @Deprecated
@@ -121,7 +116,7 @@ public interface ExtendedTypedQuery<X> extends TypedQuery<X> {
     /// {@inheritDoc}
     @Override
     @NonNull
-    public ExtendedTypedQuery<X> setLockMode(@NonNull LockModeType lockMode) throws IllegalArgumentException;
+    public ExtendedTypedQuery<X> setLockMode(@NonNull LockModeType lockMode);
 
     /// {@inheritDoc}
     @Override

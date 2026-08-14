@@ -21,6 +21,7 @@ final class JpaEntityManagers {
     }
 
     @NonNull
+    @SuppressWarnings("PMD.UseTryWithResources") // Won't be of any help if we do that here.
     private static EntityManager createManaged(@NonNull String persistenceUnitName, @NonNull Map<String, String> props) {
         checkNotNull(persistenceUnitName); // Check recognized by lombok.
         checkNotNull(props); // Check recognized by lombok.

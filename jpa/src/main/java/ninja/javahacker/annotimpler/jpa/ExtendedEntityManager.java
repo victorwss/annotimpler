@@ -10,14 +10,17 @@ import module java.sql;
 
 /// Extends the [EntityManager] interface adding several useful methods into it.
 /// @author Victor Williams Stafusa da Silva
-public interface ExtendedEntityManager extends EntityManager, AutoCloseable, PersistenceUnitUtil {
+@SuppressWarnings({
+    "PMD.TooManyMethods", // Unavoidable in order to change the return type of inherited methods and provide default implementations.
+})
+public interface ExtendedEntityManager extends EntityManager, PersistenceUnitUtil {
 
     /// Tells if the given object already have a defined identity or not.
     /// @param entity Instance whose load state is a new entity.
     /// @return `true` if the given object is new, `false` if it isn't.
     /// @throws IllegalArgumentException If the object is found not
     ///     to be an entity or is `null`.
-    public default boolean isNew(@NonNull Object entity) throws IllegalArgumentException {
+    public default boolean isNew(@NonNull Object entity) {
         return getIdentifier(entity) == null;
     }
 
@@ -31,7 +34,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     database.
     @NonNull
     @Override
-    public default <T> Class<? extends T> getClass(@NonNull T entity) throws IllegalArgumentException, PersistenceException {
+    public default <T> Class<? extends T> getClass(@NonNull T entity) {
         return getEntityManagerFactory().getPersistenceUnitUtil().getClass(entity);
     }
 
@@ -42,7 +45,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     to be an entity.
     @Override
     @Nullable
-    public default Object getIdentifier(@NonNull Object entity) throws IllegalArgumentException {
+    public default Object getIdentifier(@NonNull Object entity) {
         return getEntityManagerFactory().getPersistenceUnitUtil().getIdentifier(entity);
     }
 
@@ -53,7 +56,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     to be an entity or is `null`.
     @Override
     @Nullable
-    public default Object getVersion(@NonNull Object entity) throws IllegalArgumentException {
+    public default Object getVersion(@NonNull Object entity) {
         return getEntityManagerFactory().getPersistenceUnitUtil().getVersion(entity);
     }
 
@@ -62,7 +65,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @return {@inheritDoc}
     /// @throws IllegalArgumentException If the argument is `null`.
     @Override
-    public default boolean isLoaded(@NonNull Object entity) throws IllegalArgumentException {
+    public default boolean isLoaded(@NonNull Object entity) {
         return getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(entity);
     }
 
@@ -73,7 +76,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @return {@inheritDoc}
     /// @throws IllegalArgumentException If either argument is `null`.
     @Override
-    public default <E> boolean isLoaded(@NonNull E entity, @NonNull Attribute<? super E, ?> attribute) throws IllegalArgumentException {
+    public default <E> boolean isLoaded(@NonNull E entity, @NonNull Attribute<? super E, ?> attribute) {
         return getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(entity, attribute);
     }
 
@@ -83,7 +86,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @return {@inheritDoc}
     /// @throws IllegalArgumentException If either argument is `null`.
     @Override
-    public default boolean isLoaded(@NonNull Object entity, @NonNull String attributeName) throws IllegalArgumentException {
+    public default boolean isLoaded(@NonNull Object entity, @NonNull String attributeName) {
         return getEntityManagerFactory().getPersistenceUnitUtil().isLoaded(entity, attributeName);
     }
 
@@ -94,14 +97,12 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @throws IllegalArgumentException if the given object is not an
     ///     instance of an entity class belonging to the persistence unit
     ///     or if the given class is not an entity class belonging to the
-    ///     persistence unit.
+    ///     persistence unit or if any parameter is `null`.
     /// @throws PersistenceException if the entity is not associated
     ///     with an open persistence context or cannot be loaded from the
     ///     database.
     @Override
-    public default boolean isInstance(@NonNull Object entity, @NonNull Class<?> entityClass)
-            throws IllegalArgumentException, PersistenceException
-    {
+    public default boolean isInstance(@NonNull Object entity, @NonNull Class<?> entityClass) {
         return getEntityManagerFactory().getPersistenceUnitUtil().isInstance(entity, entityClass);
     }
 
@@ -110,26 +111,25 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param entity {@inheritDoc}
     /// @param attribute {@inheritDoc}
     /// @throws IllegalArgumentException if the given object is not an
-    ///     instance of an entity class belonging to the persistence unit.
+    ///     instance of an entity class belonging to the persistence unit
+    ///     or if any parameter is `null`.
     /// @throws PersistenceException if the entity is not associated
     ///     with an open persistence context or cannot be loaded from the
     ///     database.
     @Override
-    public default <E> void load(@NonNull E entity, @NonNull Attribute<? super E, ?> attribute)
-            throws IllegalArgumentException, PersistenceException
-    {
+    public default <E> void load(@NonNull E entity, @NonNull Attribute<? super E, ?> attribute) {
         getEntityManagerFactory().getPersistenceUnitUtil().load(entity, attribute);
     }
 
     /// {@inheritDoc}
     /// @param entity {@inheritDoc}
     /// @throws IllegalArgumentException if the given object is not an
-    ///     instance of an entity class belonging to the persistence unit.
+    ///     instance of an entity class belonging to the persistence unit or is `null`.
     /// @throws PersistenceException if the entity is not associated
     ///     with an open persistence context or cannot be loaded from the
     ///     database.
     @Override
-    public default void load(@NonNull Object entity) throws IllegalArgumentException, PersistenceException {
+    public default void load(@NonNull Object entity) {
         getEntityManagerFactory().getPersistenceUnitUtil().load(entity);
     }
 
@@ -142,7 +142,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     with an open persistence context or cannot be loaded from the
     ///     database.
     @Override
-    public default void load(@NonNull Object entity, @NonNull String attributeName) throws IllegalArgumentException, PersistenceException {
+    public default void load(@NonNull Object entity, @NonNull String attributeName) {
         getEntityManagerFactory().getPersistenceUnitUtil().load(entity, attributeName);
     }
 
@@ -154,7 +154,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @throws IllegalArgumentException If the argument is `null`.
     @NonNull
     @SuppressWarnings("PMD.CompareObjectsWithEquals")
-    public default <T> T save(@NonNull T entity) throws IllegalArgumentException {
+    public default <T> T save(@NonNull T entity) {
         if (!isNew(entity)) {
             T other = merge(entity);
             if (entity != other) refresh(entity);
@@ -178,7 +178,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @throws IllegalArgumentException If `em` is `null`.
     @NonNull
     @SuppressWarnings("checkstyle:javadocmethod") // Checkstyle complains about AssertionError.
-    public static EntityManager unwrap(@NonNull EntityManager em) throws IllegalArgumentException {
+    public static EntityManager unwrap(@NonNull EntityManager em) {
         var r = em instanceof SpecialEntityManager special ? special.getWrapped() : em;
         if (r instanceof SpecialEntityManager) throw new AssertionError();
         return r;
@@ -226,8 +226,6 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
             @NonNull Class<T> entityClass,
             @NonNull Object primaryKey,
             @NonNull LockModeType lockMode)
-            throws IllegalArgumentException, TransactionRequiredException, OptimisticLockException,
-            PessimisticLockException, LockTimeoutException, PersistenceException
     {
         return Optional.ofNullable(find(entityClass, primaryKey, lockMode));
     }
@@ -286,8 +284,6 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
             @NonNull Object primaryKey,
             @NonNull LockModeType lockMode,
             @NonNull Map<String, Object> properties)
-            throws IllegalArgumentException, TransactionRequiredException, OptimisticLockException,
-            PessimisticLockException, LockTimeoutException, PersistenceException
     {
         return Optional.ofNullable(find(entityClass, primaryKey, lockMode, properties));
     }
@@ -302,14 +298,14 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     not be assignable to the specified type, or if either argument is `null`.
     @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createNamedQuery(@NonNull String qlString, @NonNull Class<T> resultClass)
-            throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createNamedQuery(@NonNull String qlString, @NonNull Class<T> resultClass);
 
     /// Create a query selecting all the entities typed as `resultClass` ordered by the `orders` criterions.
     /// @param <T> The type of the entity to be queried.
     /// @param resultClass The entity type of the result.
     /// @param orders Ordering criteria for the results.
     /// @return `this`.
+    /// @throws IllegalArgumentException If any argument is `null` or if `orders` contains `null`.
     @NonNull
     public default <T> ExtendedTypedQuery<T> createQuery(@NonNull Class<T> resultClass, @NonNull By... orders) {
         return this.createQuery(resultClass, Collections.emptyMap(), orders);
@@ -322,7 +318,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     found to be invalid or is `null`.
     @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createQuery(@NonNull CriteriaQuery<T> cq) throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createQuery(@NonNull CriteriaQuery<T> cq);
 
     /// {@inheritDoc}
     /// @param qlString {@inheritDoc}
@@ -333,8 +329,7 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     ///     found to not be assignable to the specified type, or if either argument is `null`.
     @NonNull
     @Override
-    public <T> ExtendedTypedQuery<T> createQuery(@NonNull String qlString, @NonNull Class<T> resultClass)
-            throws IllegalArgumentException;
+    public <T> ExtendedTypedQuery<T> createQuery(@NonNull String qlString, @NonNull Class<T> resultClass);
 
     /// Create a query selecting all the entities typed as `resultClass`, where their fields match the ones
     /// given in the `where` map and ordered by the `orders` criteria.
@@ -343,12 +338,16 @@ public interface ExtendedEntityManager extends EntityManager, AutoCloseable, Per
     /// @param where A map relating fields to their expected values.
     /// @param orders Ordering criteria for the results.
     /// @return `this`.
+    /// @throws IllegalArgumentException If any argument is `null` or if `orders` contains `null`.
     @NonNull
     public default <T> ExtendedTypedQuery<T> createQuery(
             @NonNull Class<T> resultClass,
             @NonNull Map<String, Object> where,
             @NonNull By... orders)
     {
+        for (var ord : orders) {
+            if (ord == null) throw new IllegalArgumentException("Can't use null as ordering criteria.");
+        }
         var jpql = new StringBuilder("SELECT c FROM ").append(resultClass.getName()).append(" c");
         if (!where.isEmpty()) {
             jpql.append(" WHERE ");

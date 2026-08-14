@@ -44,11 +44,11 @@ sealed interface SerializableType extends Serializable permits
 
     /// Reconstructs the original `Type`.
     /// @return The original `Type`.
-    /// @throw UnsupportedOperationException If this represents a type that can't be reconstructed.
-    ///        This never happens when the type only contains combinations of [Class], [ParameterizedType], [WildcardType],
-    ///        [GenericArrayType] and [TypeVariable].
-    ///        Hence, it is not expected to happen with any real-case type data, only with ill-defined, corrupted, malformed or maliciously
-    ///        constructed types.
+    /// @throws UnsupportedOperationException If this represents a type that can't be reconstructed.
+    ///         This never happens when the type only contains combinations of [Class], [ParameterizedType], [WildcardType],
+    ///         [GenericArrayType] and [TypeVariable].
+    ///         Hence, it is not expected to happen with any real-case type data, only with ill-defined, corrupted, malformed or maliciously
+    ///         constructed types.
     @NonNull
     public Type toType();
 

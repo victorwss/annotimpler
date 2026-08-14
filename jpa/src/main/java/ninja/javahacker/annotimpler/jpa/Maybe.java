@@ -29,7 +29,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @return An instance of the `Maybe` representing a failure containing the given entry.
     /// @throws IllegalArgumentException If `oops` is `null`.
     @NonNull
-    public static <T> Maybe<T> failure(@NonNull Throwable oops) {
+    public static <T> Maybe<T> failureAs(@NonNull Throwable oops) {
         return new MaybeFailure<>(oops);
     }
 
@@ -46,7 +46,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @return An instance of the `Maybe` representing a success containing the given entry.
     /// @throws IllegalArgumentException If `entry` is `null`.
     @NonNull
-    public static <T> Maybe<T> success(@NonNull T entry) {
+    public static <T> Maybe<T> successAs(@NonNull T entry) {
         return new MaybeSuccess<>(entry);
     }
 
@@ -67,9 +67,9 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     public static <T> Supplier<Maybe<T>> wrap(@NonNull Supplier<T> inner) {
         return () -> {
             try {
-                return success(inner.get());
+                return successAs(inner.get());
             } catch (Throwable oops) {
-                return failure(oops);
+                return failureAs(oops);
             }
         };
     }
@@ -81,7 +81,7 @@ public sealed interface Maybe<T> permits Maybe.MaybeSuccess, Maybe.MaybeFailure 
     /// @throws IllegalArgumentException If `tooDeep` is `null`.
     @NonNull
     public static <T> Maybe<T> flatten(@NonNull Maybe<Maybe<T>> tooDeep) {
-        return !tooDeep.isSuccess() ? failure(tooDeep.failure().get()) : tooDeep.success().get();
+        return tooDeep.isSuccess() ? tooDeep.success().get() : failureAs(tooDeep.failure().get());
     }
 
     /// Implementation of [Maybe] in case of success.

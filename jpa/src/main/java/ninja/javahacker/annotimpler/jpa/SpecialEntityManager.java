@@ -52,11 +52,11 @@ final class SpecialEntityManager implements ExtendedEntityManager {
         this.reconnect = reconnect;
         this.trans = Optional.empty();
         this.emf = emf;
-        recreateEntityManager();
+        this.wrapped = emf.get();
     }
 
     private void recreateEntityManager() {
-        if (this.wrapped != null) this.wrapped.close();
+        this.wrapped.close();
         this.wrapped = emf.get();
     }
 
@@ -170,6 +170,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
 
         /// {@inheritDoc}
         @Override
+        @SuppressWarnings("PMD.AvoidCatchingGenericException") // Needed for testing an exception fixable by reconnecting.
         public void begin() {
             try {
                 wrapped.begin();
@@ -182,6 +183,7 @@ final class SpecialEntityManager implements ExtendedEntityManager {
     }
 
     /// Exists only to suppress lombok's delegation on a few methods.
+    @SuppressWarnings("PMD.ImplicitFunctionalInterface")
     private static interface DoNotDelegateEntityTransaction {
         /// Don't care.
         public void begin();

@@ -1,9 +1,9 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module jakarta.persistence;
 
 /// Immutable [EntityManagerSupplier] configured for Hibernate-specific settings.
 ///
@@ -20,6 +20,10 @@ import module jakarta.persistence;
 /// @param multipleLinesCommands Whether to use Hibernate's multi-line SQL script extractor.
 /// @param newGeneratorMappings Whether to use Hibernate's new generator mappings.
 /// @param extras Extra provider properties merged last.
+@SuppressFBWarnings(
+        value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+        justification = "We ensure that the extras are always immutable."
+)
 public record HibernateConnectionFactory(
         @NonNull String persistenceUnitName,
         @NonNull String url,
@@ -68,7 +72,9 @@ public record HibernateConnectionFactory(
     /// @param newGeneratorMappings Whether to use Hibernate's new generator mappings.
     /// @param extras Extra provider properties merged last.
     /// @throws IllegalArgumentException If any argument annotated as such is `null`.
-    public HibernateConnectionFactory {}
+    public HibernateConnectionFactory {
+        extras = Map.copyOf(extras);
+    }
 
     /// Returns a `HibernateConnectionFactory` with all fields left unspecified.
     /// @return A `HibernateConnectionFactory` with all fields left unspecified.
@@ -321,7 +327,7 @@ public record HibernateConnectionFactory(
     public HibernateConnectionFactory withExtras(@NonNull Map<String, String> extras) {
         return new HibernateConnectionFactory(
                 persistenceUnitName, url, user, password, schema, dialect, jtaPlatform, showSql, formatSql, useSqlComments,
-                multipleLinesCommands, newGeneratorMappings, Map.copyOf(extras)
+                multipleLinesCommands, newGeneratorMappings, extras
         );
     }
 }

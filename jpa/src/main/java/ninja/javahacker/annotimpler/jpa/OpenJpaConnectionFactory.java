@@ -1,8 +1,8 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
-import module jakarta.persistence;
 import module java.base;
 
 /// Immutable [EntityManagerSupplier] configured for OpenJPA.
@@ -16,6 +16,10 @@ import module java.base;
 /// @param dataCache The value of the property `openjpa.DataCache`.
 /// @param queryCache The value of the property `openjpa.QueryCache`.
 /// @param extras Extra provider properties merged last.
+@SuppressFBWarnings(
+        value = {"EI_EXPOSE_REP", "EI_EXPOSE_REP2"},
+        justification = "We ensure that the extras are always immutable."
+)
 public record OpenJpaConnectionFactory(
         @NonNull String persistenceUnitName,
         @NonNull String url,
@@ -52,7 +56,9 @@ public record OpenJpaConnectionFactory(
     /// @param queryCache The value of the property `openjpa.QueryCache`.
     /// @param extras Extra provider properties merged last.
     /// @throws IllegalArgumentException If any argument is `null`.
-    public OpenJpaConnectionFactory {}
+    public OpenJpaConnectionFactory {
+        extras = Map.copyOf(extras);
+    }
 
     /// Returns an `OpenJpaConnectionFactory` with all fields left unspecified.
     /// @return An `OpenJpaConnectionFactory` with all fields left unspecified.
@@ -208,7 +214,7 @@ public record OpenJpaConnectionFactory(
                 runtimeUnenhancedClasses,
                 dataCache,
                 queryCache,
-                Map.copyOf(extras)
+                extras
         );
     }
 }
