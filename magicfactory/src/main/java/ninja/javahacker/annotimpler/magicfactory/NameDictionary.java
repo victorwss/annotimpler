@@ -14,16 +14,17 @@ import module java.base;
 /// name, `NameDictionary` marks both as requiring fully qualified names. This ensures that
 /// generated human-readable signatures (e.g. for error messages) are unambiguous.
 ///
-/// A process-wide singleton is available via [#global()]. Additional instances can be created
+/// A process-wide root instance is available via [#global()]. Additional instances can be created
 /// with the public constructor if isolation is required.
 ///
 /// ## Thread safety
 ///
-/// The [#global()] singleton and any explicitly constructed instance are **thread-safe**: the
-/// per-class dictionary is built lazily under a `synchronized` lock.
+/// The [#global()] root instance and any explicitly constructed instance are **thread-safe**: the
+/// per-class dictionary is built lazily under a synchronization lock.
+@SuppressFBWarnings("SING_SINGLETON_HAS_NONPRIVATE_CONSTRUCTOR") // This is not a singleton, but SpotBugs thinks that it is.
 public final class NameDictionary {
 
-    /// The default global instance. Can be used as a singleton, although additional instances can be created.
+    /// The default global instance. Can be used as if it were a singleton, although additional instances can be created.
     @NonNull
     private static final NameDictionary GLOBAL_INSTANCE = new NameDictionary();
 
@@ -34,12 +35,6 @@ public final class NameDictionary {
     /// The set of subdictionaries for each class.
     @NonNull
     private final Map<Class<?>, ClassDictionary<?>> map;
-
-    /*
-    /// The set of partial subdictionaries, used for locking without blocking when not needed.
-    @NonNull
-    private final Set<Class<?>> partial;
-    */
 
     /// Creates a new, empty `NameDictionary`. Per-class dictionaries are built lazily on first access.
     public NameDictionary() {
@@ -89,8 +84,7 @@ public final class NameDictionary {
             var b = Stream.of(k.getMethods());
             var c = Stream.of(k.getDeclaredConstructors());
             var d = Stream.of(k.getConstructors());
-            var e = Stream.of(a, b, c, d).flatMap(s -> s);
-            e.forEach(x -> {
+            Stream.of(a, b, c, d).flatMap(s -> s).forEach(x -> {
                 add(Methods.getReturnType(x));
                 addAll(x.getGenericExceptionTypes());
                 addAll(x.getGenericParameterTypes());
@@ -99,8 +93,7 @@ public final class NameDictionary {
 
             var f = Stream.of(k.getDeclaredFields());
             var g = Stream.of(k.getFields());
-            var h = Stream.concat(f, g);
-            h.forEach(x -> {
+            Stream.concat(f, g).forEach(x -> {
                 add(Methods.getReturnType(x));
             });
         }
@@ -314,7 +307,7 @@ public final class NameDictionary {
         return cl.getSimplifiedGenericString(field, withClassName);
     }
 
-    /// Returns the process-wide singleton `NameDictionary`.
+    /// Returns the process-wide root instance in `NameDictionary`.
     ///
     /// @return The global instance; never `null`.
     @NonNull

@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.jdbc;
 import java.util.Locale;
 import lombok.NonNull;
 import lombok.Generated;
+
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.jdbc;

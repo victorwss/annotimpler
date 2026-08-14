@@ -1,6 +1,8 @@
 package ninja.javahacker.annotimpler.jpa;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import lombok.Generated;
 import lombok.NonNull;
 
 import module java.base;
@@ -124,14 +126,14 @@ public record HibernateConnectionFactory(
     }
 
     private static boolean shouldTryToReconnect(@NonNull RuntimeException e) {
-        return isJDBCConnectionException(e.getClass()) && "Unable to acquire JDBC Connection".equals(e.getMessage());
+        return isHibernateConnectionException(e.getClass()) && "Unable to acquire JDBC Connection".equals(e.getMessage());
     }
 
-    private static boolean isJDBCConnectionException(@NonNull Class<?> e) {
+    private static boolean isHibernateConnectionException(@NonNull Class<?> e) {
         if (e == Object.class) return false;
         if ("org.hibernate.exception.JDBCConnectionException".equals(e.getName())) return true;
-        var sup = e.getSuperclass();
-        return isJDBCConnectionException(sup);
+        var sup = castToNotNull(e.getSuperclass());
+        return isHibernateConnectionException(sup);
     }
 
     /// Returns a copy of this connection factory with the persistence-unit name replaced by the given value.
@@ -329,5 +331,12 @@ public record HibernateConnectionFactory(
                 persistenceUnitName, url, user, password, schema, dialect, jtaPlatform, showSql, formatSql, useSqlComments,
                 multipleLinesCommands, newGeneratorMappings, extras
         );
+    }
+
+    @NonNull
+    @Generated
+    private static <E> E castToNotNull(@Nullable E obj) {
+        if (obj == null) throw new AssertionError();
+        return obj;
     }
 }
