@@ -1,5 +1,7 @@
 package ninja.javahacker.typeser;
 
+import edu.umd.cs.findbugs.annotations.Nullable;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
@@ -9,6 +11,9 @@ import module java.base;
 /// Internal serializable surrogate for a `GenericDeclaration` (the [Class], [Method] or
 /// [Constructor] that declares a [TypeVariable]).
 @PackagePrivate
+@SuppressFBWarnings(
+        "EI_EXPOSE_REP" // It is all package private. The exposed types are exported only to TypeVariableSer which is also package private.
+)
 sealed interface GenericDeclarationSer extends Serializable permits
         GenericDeclarationSer.ClassDeclarationSer,
         GenericDeclarationSer.MethodDeclarationSer,
@@ -40,6 +45,19 @@ sealed interface GenericDeclarationSer extends Serializable permits
     public record ClassDeclarationSer<E>(@NonNull Class<E> clazz) implements GenericDeclarationSer {
 
         /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return clazz.hashCode();
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof ClassDeclarationSer<?> cs && clazz.equals(cs.clazz());
+        }
+
+        /// {@inheritDoc}
         @NonNull
         @Override
         public Class<E> toGenericDeclaration() {
@@ -56,11 +74,32 @@ sealed interface GenericDeclarationSer extends Serializable permits
             checkNotNull(clazz); // Check recognized by lombok.
             return new ClassDeclarationSer<>(clazz);
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     public record MethodDeclarationSer(@NonNull Class<?> declaringClass, @NonNull String name, @NonNull Class<?>[] parameterTypes)
             implements GenericDeclarationSer
     {
+
+        /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return Objects.hash(declaringClass, name, Arrays.hashCode(parameterTypes));
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof MethodDeclarationSer ms
+                    && declaringClass.equals(ms.declaringClass())
+                    && name.equals(ms.name())
+                    && Arrays.equals(parameterTypes, ms.parameterTypes());
+        }
 
         /// Reconstructs the original `Method`.
         /// @return The original `Method`.
@@ -84,11 +123,31 @@ sealed interface GenericDeclarationSer extends Serializable permits
             checkNotNull(m); // Check recognized by lombok.
             return new MethodDeclarationSer(m.getDeclaringClass(), m.getName(), m.getParameterTypes());
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     public record ConstructorDeclarationSer(@NonNull Class<?> declaringClass, @NonNull Class<?>[] parameterTypes)
             implements GenericDeclarationSer
     {
+
+        /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return Objects.hash(declaringClass, Arrays.hashCode(parameterTypes));
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof ConstructorDeclarationSer cs
+                    && declaringClass.equals(cs.declaringClass())
+                    && Arrays.equals(parameterTypes, cs.parameterTypes());
+        }
 
         /// Reconstructs the original `Constructor`.
         /// @return The original `Constructor`.
@@ -112,10 +171,10 @@ sealed interface GenericDeclarationSer extends Serializable permits
             checkNotNull(c); // Check recognized by lombok.
             return new ConstructorDeclarationSer(c.getDeclaringClass(), c.getParameterTypes());
         }
-    }
 
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 }

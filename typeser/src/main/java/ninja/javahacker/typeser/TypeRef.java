@@ -62,6 +62,33 @@ public final class TypeRef implements Serializable {
         return original != null ? original : proxy.toType();
     }
 
+    /// Returns a hash code based on the wrapped type.
+    ///
+    /// @return The hash code of the wrapped type.
+    @Override
+    public int hashCode() {
+        return proxy.hashCode();
+    }
+
+    /// Compares this wrapper with another wrapper by comparing their wrapped types.
+    ///
+    /// @param other The object to compare with.
+    /// @return `true` if `other` is a [TypeRef] wrapping an equal type.
+    @Override
+    @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+    public boolean equals(@Nullable Object other) {
+        return other instanceof TypeRef typeRef && proxy.equals(typeRef.proxy);
+    }
+
+    /// Returns the string representation of the wrapped type.
+    ///
+    /// @return The wrapped type's string representation.
+    @Override
+    @NonNull
+    public String toString() {
+        return proxy.toString();
+    }
+
     /// Creates a serializable wrapper for `type`.
     ///
     /// @param type the type to wrap; must not be `null`.

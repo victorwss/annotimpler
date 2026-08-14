@@ -91,6 +91,26 @@ sealed interface SerializableType extends Serializable permits
     public record ClassSer<E>(@NonNull Class<E> clazz) implements SerializableType {
 
         /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return clazz.hashCode();
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof ClassSer<?> cs && clazz.equals(cs.clazz());
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String toString() {
+            return clazz.getTypeName();
+        }
+
+        /// {@inheritDoc}
         @NonNull
         @Override
         public Class<E> toType() {
@@ -107,6 +127,11 @@ sealed interface SerializableType extends Serializable permits
             checkNotNull(clazz); // Check recognized by lombok.
             return new ClassSer<>(clazz);
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     @SuppressFBWarnings(
@@ -116,6 +141,30 @@ sealed interface SerializableType extends Serializable permits
     public record ParameterizedTypeSer(@NonNull SerializableType raw, @NonNull SerializableType[] args, @Nullable SerializableType owner)
             implements SerializableType
     {
+
+        /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return Objects.hash(raw, Arrays.hashCode(args), owner);
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof ParameterizedTypeSer ps
+                    && raw.equals(ps.raw())
+                    && Arrays.equals(args, ps.args())
+                    && Objects.equals(owner, ps.owner());
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String toString() {
+            var rawName = raw instanceof ClassSer<?> cs ? cs.clazz().getTypeName() : raw.toString();
+            return rawName + "<" + Arrays.stream(args).map(SerializableType::toString).collect(Collectors.joining(", ")) + ">";
+        }
 
         /// {@inheritDoc}
         @NonNull
@@ -164,6 +213,11 @@ sealed interface SerializableType extends Serializable permits
                     p.getOwnerType() == null ? null : from(p.getOwnerType())
             );
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     @SuppressFBWarnings(
@@ -171,6 +225,30 @@ sealed interface SerializableType extends Serializable permits
             justification = "SerializableType is not public the arrays are always copied in the toType() method."
     )
     public record WildcardTypeSer(@NonNull SerializableType[] upper, @NonNull SerializableType[] lower) implements SerializableType {
+
+        /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return Objects.hash(Arrays.hashCode(upper), Arrays.hashCode(lower));
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof WildcardTypeSer ws
+                    && Arrays.equals(upper, ws.upper())
+                    && Arrays.equals(lower, ws.lower());
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String toString() {
+            if (lower.length > 0) return "? super " + lower[0];
+            if (upper.length == 0 || upper[0].equals(ClassSer.create(Object.class))) return "?";
+            return "? extends " + upper[0];
+        }
 
         /// {@inheritDoc}
         @NonNull
@@ -203,21 +281,47 @@ sealed interface SerializableType extends Serializable permits
         public static WildcardTypeSer create(@NonNull WildcardType w) {
             checkNotNull(w); // Check recognized by lombok.
             var upperBounds = w.getUpperBounds();
-            var lowerBounds = w.getLowerBounds();
             if (upperBounds == null) throw new IllegalArgumentException(w + ".getUpperBounds() returned null.");
+            var lowerBounds = w.getLowerBounds();
             if (lowerBounds == null) throw new IllegalArgumentException(w + ".getLowerBounds() returned null.");
             return new WildcardTypeSer(
                     Arrays.stream(upperBounds).map(SerializableType::from).toArray(SerializableType[]::new),
                     Arrays.stream(lowerBounds).map(SerializableType::from).toArray(SerializableType[]::new)
             );
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     public record GenericArrayTypeSer(@NonNull SerializableType component) implements SerializableType {
 
         /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return component.hashCode();
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof GenericArrayTypeSer gs && component.equals(gs.component());
+        }
+
+        /// {@inheritDoc}
         @NonNull
         @Override
+        public String toString() {
+            return component + "[]";
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        @SuppressWarnings("Convert2Lambda") // GenericArrayType is not intended to be a lambda.
         public GenericArrayType toType() {
             return new GenericArrayType() {
 
@@ -239,11 +343,38 @@ sealed interface SerializableType extends Serializable permits
             checkNotNull(g); // Check recognized by lombok.
             return new GenericArrayTypeSer(from(g.getGenericComponentType()));
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     public record TypeVariableSer<D extends GenericDeclaration>(@NonNull GenericDeclarationSer declaration, @NonNull String name)
             implements SerializableType
     {
+
+        /// {@inheritDoc}
+        @Override
+        public int hashCode() {
+            return Objects.hash(declaration, name);
+        }
+
+        /// {@inheritDoc}
+        @Override
+        @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+        public boolean equals(@Nullable Object other) {
+            return other instanceof TypeVariableSer<?> tv
+                    && declaration.equals(tv.declaration())
+                    && name.equals(tv.name());
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String toString() {
+            return name;
+        }
 
         /// Reconstructs the original `TypeVariable`.
         ///
@@ -276,9 +407,21 @@ sealed interface SerializableType extends Serializable permits
             checkNotNull(v); // Check recognized by lombok.
             return new TypeVariableSer<>(GenericDeclarationSer.from(v.getGenericDeclaration()), v.getName());
         }
+
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 
     public record UnknownTypeSer() implements SerializableType {
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String toString() {
+            return "UnknownType";
+        }
 
         /// Always fails, since an unrecognized `Type` implementation carries no reconstructable information.
         /// @return Never returns.
@@ -299,10 +442,10 @@ sealed interface SerializableType extends Serializable permits
             checkNotNull(t); // Check recognized by lombok.
             return new UnknownTypeSer();
         }
-    }
 
-    @Generated
-    private static void checkNotNull(Object obj) {
-        if (obj == null) throw new AssertionError();
+        @Generated
+        private static void checkNotNull(Object obj) {
+            if (obj == null) throw new AssertionError();
+        }
     }
 }

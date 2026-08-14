@@ -52,6 +52,16 @@ public class TypeserTest {
         }
     }
 
+    private static TypeRef roundTripRef(Type type) throws Exception {
+        var baos = new ByteArrayOutputStream();
+        try (var oos = new ObjectOutputStream(baos)) {
+            oos.writeObject(TypeRef.wrap(type));
+        }
+        try (var ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
+            return (TypeRef) ois.readObject();
+        }
+    }
+
     private static byte[] replaceAsciiOnce(byte[] source, String before, String after) {
         Assertions.assertEquals(before.length(), after.length(), "Replacement strings must have same length.");
         var from = before.getBytes(StandardCharsets.UTF_8);
@@ -105,6 +115,42 @@ public class TypeserTest {
                     var original = field.getGenericType();
                     Assertions.assertEquals(original, TypeRef.wrap(original).type());
                 }));
+    }
+
+    @Test
+    public void testTypeRefObjectMethods() throws Exception {
+        var stringType = Sample.class.getDeclaredField("someClass").getGenericType();
+        var listType = Sample.class.getDeclaredField("list").getGenericType();
+        var ref = TypeRef.wrap(stringType);
+        var equalRef = TypeRef.wrap(stringType);
+        var deserializedRef = roundTripRef(listType);
+
+        Assertions.assertEquals(ref, equalRef);
+        Assertions.assertEquals(ref.hashCode(), equalRef.hashCode());
+        Assertions.assertNotEquals(ref, TypeRef.wrap(listType));
+        Assertions.assertNotEquals(ref, stringType);
+        Assertions.assertNotEquals(ref, null);
+        Assertions.assertEquals(listType, deserializedRef.type());
+        Assertions.assertEquals(TypeRef.wrap(listType), deserializedRef);
+        Assertions.assertEquals(TypeRef.wrap(listType).hashCode(), deserializedRef.hashCode());
+        Assertions.assertEquals(stringType.toString(), ref.toString());
+        Assertions.assertEquals(listType.toString(), deserializedRef.toString());
+
+        for (var fieldName : List.of("upper", "lower", "any", "genericArray", "nested", "entry", "inner")) {
+            var type = Sample.class.getDeclaredField(fieldName).getGenericType();
+            var original = TypeRef.wrap(type);
+            var copy = roundTripRef(type);
+            Assertions.assertEquals(original, copy, fieldName);
+            Assertions.assertEquals(original.hashCode(), copy.hashCode(), fieldName);
+            Assertions.assertEquals(original.toString(), copy.toString(), fieldName);
+        }
+
+        var typeVariable = List.class.getTypeParameters()[0];
+        var originalVariable = TypeRef.wrap(typeVariable);
+        var copiedVariable = roundTripRef(typeVariable);
+        Assertions.assertEquals(originalVariable, copiedVariable);
+        Assertions.assertEquals(originalVariable.hashCode(), copiedVariable.hashCode());
+        Assertions.assertEquals(originalVariable.toString(), copiedVariable.toString());
     }
 
     // ── Tests: TypeVariable support ───────────────────────────────────────────
