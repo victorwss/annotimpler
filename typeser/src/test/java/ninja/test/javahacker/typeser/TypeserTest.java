@@ -23,10 +23,12 @@ public class TypeserTest {
     private static final class Sample {
         private String someClass;
         private List<String> list;
+        private List<Integer> integerList;
         private List<? extends Number> upper;
         private List<? super Integer> lower;
         private List<?> any;
         private List<String>[] genericArray;
+        private List<Integer>[] integerGenericArray;
         private Map<String, List<Integer>> nested;
         private Map.Entry<String, Integer> entry;
         private Outer<String>.Inner<Integer> inner;
@@ -134,7 +136,9 @@ public class TypeserTest {
         Assertions.assertEquals(TypeRef.wrap(listType), deserializedRef);
         Assertions.assertEquals(TypeRef.wrap(listType).hashCode(), deserializedRef.hashCode());
         Assertions.assertEquals(stringType.toString(), ref.toString());
+        Assertions.assertEquals(stringType.getTypeName(), ref.getTypeName());
         Assertions.assertEquals(listType.toString(), deserializedRef.toString());
+        Assertions.assertEquals(listType.getTypeName(), deserializedRef.getTypeName());
 
         for (var fieldName : List.of("upper", "lower", "any", "genericArray", "nested", "entry", "inner")) {
             var type = Sample.class.getDeclaredField(fieldName).getGenericType();
@@ -143,6 +147,7 @@ public class TypeserTest {
             Assertions.assertEquals(original, copy, fieldName);
             Assertions.assertEquals(original.hashCode(), copy.hashCode(), fieldName);
             Assertions.assertEquals(original.toString(), copy.toString(), fieldName);
+            Assertions.assertEquals(original.getTypeName(), copy.getTypeName(), fieldName);
         }
 
         var typeVariable = List.class.getTypeParameters()[0];
@@ -151,6 +156,93 @@ public class TypeserTest {
         Assertions.assertEquals(originalVariable, copiedVariable);
         Assertions.assertEquals(originalVariable.hashCode(), copiedVariable.hashCode());
         Assertions.assertEquals(originalVariable.toString(), copiedVariable.toString());
+        Assertions.assertEquals(originalVariable.getTypeName(), copiedVariable.getTypeName());
+    }
+
+    @Test
+    public void testTypeRefObjectMethodVariants() throws Exception {
+        var list = TypeRef.wrap(Sample.class.getDeclaredField("list").getGenericType());
+        var integerList = TypeRef.wrap(Sample.class.getDeclaredField("integerList").getGenericType());
+        var upper = TypeRef.wrap(Sample.class.getDeclaredField("upper").getGenericType());
+        var lower = TypeRef.wrap(Sample.class.getDeclaredField("lower").getGenericType());
+        var array = TypeRef.wrap(Sample.class.getDeclaredField("genericArray").getGenericType());
+        var integerArray = TypeRef.wrap(Sample.class.getDeclaredField("integerGenericArray").getGenericType());
+
+        Assertions.assertNotEquals(list, integerList);
+        Assertions.assertNotEquals(upper, lower);
+        Assertions.assertNotEquals(array, integerArray);
+        Assertions.assertNotEquals(list, upper);
+        Assertions.assertNotEquals(upper, array);
+        Assertions.assertNotEquals(array, TypeRef.wrap(String.class));
+
+        var methods = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().startsWith("genericMethod"))
+                .map(m -> m.getTypeParameters()[0])
+                .toList();
+        Assertions.assertNotEquals(TypeRef.wrap(methods.get(0)), TypeRef.wrap(methods.get(1)));
+        var baseMethod = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .filter(m -> m.getParameterCount() == 1)
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        Assertions.assertEquals(TypeRef.wrap(baseMethod), roundTripRef(baseMethod));
+        Assertions.assertEquals(TypeRef.wrap(baseMethod).hashCode(), roundTripRef(baseMethod).hashCode());
+        var overloadedMethod = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .filter(m -> m.getParameterCount() == 2)
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        Assertions.assertNotEquals(TypeRef.wrap(baseMethod), TypeRef.wrap(overloadedMethod));
+
+        var constructors = List.of(
+                Stream.of(GenericConstructor.class.getDeclaredConstructors())
+                        .filter(c -> c.getParameterCount() == 1)
+                        .findFirst()
+                        .orElseThrow()
+                        .getTypeParameters()[0],
+                GenericConstructor2.class.getDeclaredConstructors()[0].getTypeParameters()[0]
+        );
+        Assertions.assertNotEquals(TypeRef.wrap(constructors.get(0)), TypeRef.wrap(constructors.get(1)));
+        Assertions.assertEquals(TypeRef.wrap(constructors.get(0)), roundTripRef(constructors.get(0)));
+        Assertions.assertEquals(TypeRef.wrap(constructors.get(0)).hashCode(), roundTripRef(constructors.get(0)).hashCode());
+        var overloadedConstructor = Stream.of(GenericConstructor.class.getDeclaredConstructors())
+                .filter(c -> c.getParameterCount() == 2)
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        Assertions.assertNotEquals(TypeRef.wrap(constructors.get(0)), TypeRef.wrap(overloadedConstructor));
+
+        var classVariables = List.of(List.class.getTypeParameters()[0], Map.class.getTypeParameters()[0]);
+        Assertions.assertNotEquals(TypeRef.wrap(classVariables.get(0)), TypeRef.wrap(classVariables.get(1)));
+        Assertions.assertEquals(
+                TypeRef.wrap(classVariables.get(0)).hashCode(),
+                TypeRef.wrap(classVariables.get(0)).hashCode()
+        );
+
+        Type emptyWildcard = new WildcardType() {
+            @Override
+            public Type[] getUpperBounds() {
+                return new Type[0];
+            }
+
+            @Override
+            public Type[] getLowerBounds() {
+                return new Type[0];
+            }
+        };
+        var emptyWildcardRef = TypeRef.wrap(emptyWildcard);
+        Assertions.assertEquals("?", emptyWildcardRef.toString());
+        Assertions.assertEquals("?", emptyWildcardRef.getTypeName());
+
+        Type unknown = new Type() {
+        };
+        var unknownRef = TypeRef.wrap(unknown);
+        Assertions.assertEquals(unknownRef, TypeRef.wrap(unknown));
+        Assertions.assertEquals(unknownRef.hashCode(), TypeRef.wrap(unknown).hashCode());
+        Assertions.assertEquals("UnknownType", unknownRef.toString());
+        Assertions.assertEquals("UnknownType", unknownRef.getTypeName());
     }
 
     // ── Tests: TypeVariable support ───────────────────────────────────────────
@@ -159,8 +251,24 @@ public class TypeserTest {
         return arg;
     }
 
+    private static <T> T genericMethod2(T arg) {
+        return arg;
+    }
+
+    private static <T> T genericMethod(T arg, int other) {
+        return arg;
+    }
+
     private static final class GenericConstructor {
         private <C> GenericConstructor(C arg) {
+        }
+
+        private <C> GenericConstructor(C arg, int other) {
+        }
+    }
+
+    private static final class GenericConstructor2 {
+        private <C> GenericConstructor2(C arg) {
         }
     }
 

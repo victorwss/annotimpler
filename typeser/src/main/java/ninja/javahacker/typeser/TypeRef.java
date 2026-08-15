@@ -89,6 +89,14 @@ public final class TypeRef implements Serializable {
         return proxy.toString();
     }
 
+    /// Returns the name of the wrapped type.
+    ///
+    /// @return The wrapped type's name.
+    @NonNull
+    public String getTypeName() {
+        return type().getTypeName();
+    }
+
     /// Creates a serializable wrapper for `type`.
     ///
     /// @param type the type to wrap; must not be `null`.

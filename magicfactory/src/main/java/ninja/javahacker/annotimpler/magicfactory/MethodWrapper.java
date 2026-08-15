@@ -202,7 +202,7 @@ public interface MethodWrapper<E, U> {
     /// @throws IllegalArgumentException If `what` is `null`.
     @NonNull
     public static <E> MethodWrapper<E, Constructor<E>> wrap(@NonNull Constructor<E> what) {
-        return SimpleMethodWrapper.of(what);
+        return SimpleMethodWrapper.wrap(what);
     }
 
     /// Creates a wrapper for the given [Executable], dispatching to [#wrap(Method)] or

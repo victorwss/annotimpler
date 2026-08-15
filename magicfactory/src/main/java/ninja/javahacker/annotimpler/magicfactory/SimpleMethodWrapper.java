@@ -16,6 +16,7 @@ import module java.base;
 /// @param <E> {@inheritDoc}
 /// @param <U> {@inheritDoc}
 @PackagePrivate
+@SuppressWarnings("PMD.TooManyMethods") // Almost all of them are overrides or factory methods that shouldn't be anywhere else.
 final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
 
     /// An empty list of parameters.
@@ -274,7 +275,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     /// @param what The method to wrap; must not be `null`.
     /// @return A new `SimpleMethodWrapper`; never `null`.
     @NonNull
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "PMD.VariableDeclarationUsageDistance"})
     public static <E> SimpleMethodWrapper<E, Method> wrap(@NonNull Method what) {
         checkNotNull(what);
         var params = List.of(what.getParameters());
@@ -301,7 +302,7 @@ final class SimpleMethodWrapper<E, U> implements MethodWrapper<E, U> {
     /// @param what The constructor to wrap; must not be `null`.
     /// @return A new `SimpleMethodWrapper`; never `null`.
     @NonNull
-    public static <E> SimpleMethodWrapper<E, Constructor<E>> of(@NonNull Constructor<E> what) {
+    public static <E> SimpleMethodWrapper<E, Constructor<E>> wrap(@NonNull Constructor<E> what) {
         checkNotNull(what);
         var params = List.of(what.getParameters());
         var types = List.of(what.getGenericParameterTypes());

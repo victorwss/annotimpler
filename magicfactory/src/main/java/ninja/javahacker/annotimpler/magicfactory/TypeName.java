@@ -12,6 +12,12 @@ import module java.base;
 /// context of the same class (as determined by [NameDictionary]).
 ///
 /// This class is not instantiable.
+@SuppressWarnings(
+        // There are many methods here because types have six different forms (Class, ParameterizedType, WildcardType, GenericArrayType,
+        // TypeVariable and unknown type) and each one of them have a different rule encpasulated on a differente method. Factoring out
+        // each of them in their own class would only add complexity with no real benefit.
+        "PMD.TooManyMethods"
+)
 public final class TypeName {
 
     private TypeName() {

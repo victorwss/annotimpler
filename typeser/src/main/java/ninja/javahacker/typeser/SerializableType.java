@@ -52,6 +52,14 @@ sealed interface SerializableType extends Serializable permits
     @NonNull
     public Type toType();
 
+    /// Returns the name of the original type.
+    ///
+    /// @return The original type's name.
+    @NonNull
+    public default String getTypeName() {
+        return toType().getTypeName();
+    }
+
     /// Converts a supported `Type` into its serializable surrogate form.
     /// @param type The type to be serialized into a surrogate form.
     /// @return The surrogate form. Never `null`.
@@ -107,7 +115,7 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public String toString() {
-            return clazz.getTypeName();
+            return clazz.toString();
         }
 
         /// {@inheritDoc}
@@ -162,8 +170,8 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public String toString() {
-            var rawName = raw instanceof ClassSer<?> cs ? cs.clazz().getTypeName() : raw.toString();
-            return rawName + "<" + Arrays.stream(args).map(SerializableType::toString).collect(Collectors.joining(", ")) + ">";
+            var rawName = raw.getTypeName();
+            return rawName + "<" + Arrays.stream(args).map(SerializableType::getTypeName).collect(Collectors.joining(", ")) + ">";
         }
 
         /// {@inheritDoc}
@@ -401,7 +409,7 @@ sealed interface SerializableType extends Serializable permits
         /// @return The surrogate form. Never `null`.
         /// @throws IllegalArgumentException If `v` is `null`.
         /// @throws UnsupportedOperationException If the [GenericDeclaration] of `v` is not a [Class],
-        ///         [java.lang.reflect.Method] or [java.lang.reflect.Constructor].
+        ///         [Method] or [Constructor].
         @NonNull
         public static <D extends GenericDeclaration> TypeVariableSer<D> create(@NonNull TypeVariable<D> v) {
             checkNotNull(v); // Check recognized by lombok.
@@ -420,6 +428,13 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public String toString() {
+            return "UnknownType";
+        }
+
+        /// {@inheritDoc}
+        @NonNull
+        @Override
+        public String getTypeName() {
             return "UnknownType";
         }
 

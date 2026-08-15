@@ -11,7 +11,11 @@ import module ninja.javahacker.annotimpler.sql;
 /// @param manager The open [ExtendedEntityManager] for the current transaction.
 /// @param id The unique string identifier assigned to this transaction.
 @PackagePrivate
-record JpaTransaction(@NonNull ExtendedEntityManager manager, @NonNull String id) implements Transactor.Transaction<ExtendedEntityManager> {
+record JpaTransaction(
+        @NonNull ExtendedEntityManager manager,
+        @NonNull String uniqueId)
+        implements Transactor.Transaction<ExtendedEntityManager>
+{
 
     /// Creates a `JpaTransaction` with the given connection and identifier.
     ///
@@ -19,7 +23,7 @@ record JpaTransaction(@NonNull ExtendedEntityManager manager, @NonNull String id
     /// @param id The unique string identifier assigned to this transaction.
     public JpaTransaction {
         checkNotNull(manager); // Check recognized by lombok.
-        checkNotNull(id); // Check recognized by lombok.
+        checkNotNull(uniqueId); // Check recognized by lombok.
         manager.getTransaction().begin();
     }
 

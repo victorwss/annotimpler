@@ -107,6 +107,13 @@ sealed interface GenericDeclarationSer extends Serializable permits
         ///         exists (anymore) in `declaringClass()`.
         @NonNull
         @Override
+        @SuppressFBWarnings(
+                value = "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS",
+                justification = """
+                                The softned exception happens only in very unrealistic cases dealing with malformed data in a
+                                serialization context and is already handled somewhere else anyway. So, it is not a concern here.
+                                """
+        )
         public Method toGenericDeclaration() {
             try {
                 return declaringClass.getDeclaredMethod(name, parameterTypes);
@@ -155,6 +162,13 @@ sealed interface GenericDeclarationSer extends Serializable permits
         ///         exists (anymore) in `declaringClass()`.
         @NonNull
         @Override
+        @SuppressFBWarnings(
+                value = "EXS_EXCEPTION_SOFTENING_NO_CONSTRAINTS",
+                justification = """
+                                The softned exception happens only in very unrealistic cases dealing with malformed data in a
+                                serialization context and is already handled somewhere else anyway. So, it is not a concern here.
+                                """
+        )
         public Constructor<?> toGenericDeclaration() {
             try {
                 return declaringClass.getDeclaredConstructor(parameterTypes);

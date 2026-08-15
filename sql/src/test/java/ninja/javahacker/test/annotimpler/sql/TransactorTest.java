@@ -24,26 +24,38 @@ public class TransactorTest {
         public Connection get();
 
         @Override
-        public default Transactor.Transaction<Connection> begin(String id) throws SQLException {
+        public default Transactor.Transaction<Connection> begin(String id) {
             return new JdbcTransaction(get(), id);
         }
     }
 
-    record JdbcTransaction(Connection connection, String id) implements Transactor.Transaction<Connection> {
+    record JdbcTransaction(Connection connection, String uniqueId) implements Transactor.Transaction<Connection> {
 
         @Override
-        public void commit() throws SQLException {
-            connection.commit();
+        public void commit() throws Transactor.TransactionException {
+            try {
+                connection.commit();
+            } catch (SQLException e) {
+                throw new Transactor.TransactionException(e);
+            }
         }
 
         @Override
-        public void rollback() throws SQLException {
-            connection.rollback();
+        public void rollback() throws Transactor.TransactionException {
+            try {
+                connection.rollback();
+            } catch (SQLException e) {
+                throw new Transactor.TransactionException(e);
+            }
         }
 
         @Override
-        public void close() throws SQLException {
-            connection.close();
+        public void close() throws Transactor.TransactionException {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new Transactor.TransactionException(e);
+            }
         }
 
         @Override
@@ -151,6 +163,53 @@ public class TransactorTest {
         }
     }
 
+    private static final class FailingTransaction implements Transactor.Transaction<String> {
+        private final Throwable commitFailure;
+        private final Throwable rollbackFailure;
+        private final Throwable closeFailure;
+        private boolean closed;
+
+        private FailingTransaction(Throwable commitFailure, Throwable rollbackFailure, Throwable closeFailure) {
+            this.commitFailure = commitFailure;
+            this.rollbackFailure = rollbackFailure;
+            this.closeFailure = closeFailure;
+        }
+
+        @Override
+        public String uniqueId() {
+            return "failing";
+        }
+
+        @Override
+        public void commit() throws Transactor.TransactionException {
+            throwFailure(commitFailure);
+        }
+
+        @Override
+        public void rollback() throws Transactor.TransactionException {
+            throwFailure(rollbackFailure);
+        }
+
+        @Override
+        public void close() throws Transactor.TransactionException {
+            closed = true;
+            throwFailure(closeFailure);
+        }
+
+        @Override
+        public String unwrap() {
+            return "resource";
+        }
+
+        private static void throwFailure(Throwable failure) throws Transactor.TransactionException {
+            if (failure == null) return;
+            if (failure instanceof Transactor.TransactionException e) throw e;
+            if (failure instanceof RuntimeException e) throw e;
+            if (failure instanceof Error e) throw e;
+            throw new AssertionError(failure);
+        }
+    }
+
     @Test
     public void testTransactOperationWithCommit() throws Exception {
         var tc = new TransactionControl(true);
@@ -214,6 +273,117 @@ public class TransactorTest {
         var out = Assertions.assertThrows(IllegalArgumentException.class, () -> transOper.xxx(42));
         Assertions.assertEquals("blabla", out.getMessage());
         Assertions.assertTrue(tc.finished());
+    }
+
+    @Test
+    public void testBeginTransactionExceptionRethrowsCauseAndCloses() {
+        var cause = new SQLException("begin failed");
+        var transactor = new Transactor<String>(id -> {
+            throw new Transactor.TransactionException(cause);
+        }, () -> "1");
+
+        var operation = transactor.transact((Foo2) a -> "ok");
+        var thrown = Assertions.assertThrows(SQLException.class, () -> operation.xxx(42));
+
+        Assertions.assertSame(cause, thrown);
+    }
+
+    @Test
+    public void testCommitTransactionExceptionRethrowsCauseAndCloses() {
+        var cause = new SQLException("commit failed");
+        var transaction = new FailingTransaction(new Transactor.TransactionException(cause), null, null);
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> "ok");
+
+        var thrown = Assertions.assertThrows(SQLException.class, () -> operation.xxx(42));
+
+        Assertions.assertSame(cause, thrown);
+        Assertions.assertTrue(transaction.closed);
+    }
+
+    @Test
+    public void testRollbackTransactionExceptionRethrowsCauseAndCloses() {
+        var cause = new SQLException("rollback failed");
+        var transaction = new FailingTransaction(null, new Transactor.TransactionException(cause), null);
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> {
+            throw new IllegalStateException("operation failed");
+        });
+
+        var thrown = Assertions.assertThrows(SQLException.class, () -> operation.xxx(42));
+
+        Assertions.assertSame(cause, thrown);
+        Assertions.assertTrue(transaction.closed);
+    }
+
+    @Test
+    public void testCloseTransactionExceptionRethrowsCause() {
+        var cause = new SQLException("close failed");
+        var transaction = new FailingTransaction(null, null, new Transactor.TransactionException(cause));
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> "ok");
+
+        var thrown = Assertions.assertThrows(SQLException.class, () -> operation.xxx(42));
+
+        Assertions.assertSame(cause, thrown);
+        Assertions.assertTrue(transaction.closed);
+    }
+
+    @Test
+    public void testOtherTransactionExceptionsOnBeginPropagateAndClose() {
+        var failure = new IllegalStateException("begin failed");
+
+        var transactor = new Transactor<String>(id -> {
+            throw failure;
+        }, () -> "1");
+
+        var operation = transactor.transact((Foo2) a -> "ok");
+        Assertions.assertSame(failure, Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> operation.xxx(42)
+        ));
+    }
+
+    @Test
+    public void testOtherTransactionExceptionsOnCommitPropagateAndClose() {
+        var failure = new IllegalStateException("commit failed");
+
+        var transaction = new FailingTransaction(failure, null, null);
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> "ok");
+        Assertions.assertSame(failure, Assertions.assertThrows(
+                IllegalStateException.class,
+                () -> operation.xxx(42)
+        ));
+        Assertions.assertTrue(transaction.closed);
+    }
+
+    @Test
+    public void testOtherTransactionExceptionsOnRollbackPropagateAndClose() {
+        var failure = new IllegalArgumentException("rollback failed");
+        var transaction = new FailingTransaction(null, failure, null);
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> {
+            throw new IllegalStateException("operation failed");
+        });
+        Assertions.assertSame(failure, Assertions.assertThrows(
+                IllegalArgumentException.class,
+                () -> operation.xxx(42)
+        ));
+        Assertions.assertTrue(transaction.closed);
+    }
+
+    @Test
+    public void testOtherTransactionExceptionsOnClosePropagateAndClose() {
+        var failure = new UnsupportedOperationException("close failed");
+        var transaction = new FailingTransaction(null, null, failure);
+        var transactor = new Transactor<String>(id -> transaction, () -> "1");
+        var operation = transactor.transact((Foo2) a -> "ok");
+        Assertions.assertSame(failure, Assertions.assertThrows(
+                UnsupportedOperationException.class,
+                () -> operation.xxx(42)
+        ));
+        Assertions.assertTrue(transaction.closed);
     }
 
     @Test

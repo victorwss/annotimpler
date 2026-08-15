@@ -33,11 +33,15 @@ public interface ConnectionFactory extends Transactor.TransactionFactory<Connect
     ///
     /// @param id The unique string identifier assigned to the new transaction.
     /// @return The newly-begun transaction; never `null`.
-    /// @throws SQLException If a database access error occurs while opening the connection.
+    /// @throws Transactor.TransactionException If a database access error occurs while opening the connection.
     /// @throws IllegalArgumentException If `id` is `null`.
     @NonNull
     @Override
-    public default Transactor.Transaction<Connection> begin(@NonNull String id) throws SQLException {
-        return new JdbcTransaction(get(), id);
+    public default Transactor.Transaction<Connection> begin(@NonNull String id) throws Transactor.TransactionException {
+        try {
+            return new JdbcTransaction(get(), id);
+        } catch (SQLException e) {
+            throw new Transactor.TransactionException(e);
+        }
     }
 }

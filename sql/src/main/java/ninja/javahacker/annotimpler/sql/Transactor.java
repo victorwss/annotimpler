@@ -81,6 +81,42 @@ public final class Transactor<E> {
         public E get() throws Throwable;
     }
 
+    /// Signals that a transaction operation failed.
+    ///
+    /// This checked exception is the common exception type that implementations of
+    /// [Transaction#commit()], [Transaction#rollback()] and [Transaction#close()] must use
+    /// when the underlying persistence mechanism reports a failure.  [Transactor] unwraps it
+    /// and rethrows its cause to the caller of the transactional operation.
+    ///
+    /// @see Transaction
+    public static class TransactionException extends Exception {
+
+        @Serial
+        private static final long serialVersionUID = 1L;
+
+        /// Creates an exception for a failure reported by the underlying transaction resource.
+        ///
+        /// @param cause The original failure; must not be `null`.
+        /// @throws IllegalArgumentException If `cause` is `null`.
+        public TransactionException(@NonNull Throwable cause) {
+            List.of(cause);
+            super(cause);
+        }
+
+        /// Disabled. Should not be used. Does nothing.
+        ///
+        /// This method exists with the sole purpose of fixing SpotBugs' CT_CONSTRUCTOR_THROW
+        /// by disabling the ability to override the `finalize()` method that should not even exist to start with.
+        ///
+        /// @deprecated Finalization was deprecated. This method is intentionally unused, unusable and disabled.
+        @Deprecated
+        @Generated
+        @SuppressWarnings({"all", "removal"})
+        protected final void finalize() {
+            // Do nothing.
+        }
+    }
+
     /// Represents one active top-level transaction, wrapping the underlying resource of type
     /// `E` (e.g. a JDBC `Connection` or a JPA `EntityManager`) together with its unique
     /// transaction ID.
@@ -96,23 +132,23 @@ public final class Transactor<E> {
         ///
         /// @return The transaction id; never `null`.
         @NonNull
-        public String id();
+        public String uniqueId();
 
         /// Commits this transaction, making its changes permanent.
         ///
-        /// @throws Exception If a failure occurs while committing.
-        public void commit() throws Exception;
+        /// @throws TransactionException If a failure occurs while committing.
+        public void commit() throws TransactionException;
 
         /// Rolls back this transaction, discarding its changes.
         ///
-        /// @throws Exception If a failure occurs while rolling back.
-        public void rollback() throws Exception;
+        /// @throws TransactionException If a failure occurs while rolling back.
+        public void rollback() throws TransactionException;
 
         /// Releases the underlying resource held by this transaction.
         ///
-        /// @throws Exception If a failure occurs while closing the underlying resource.
+        /// @throws TransactionException If a failure occurs while closing the underlying resource.
         @Override
-        public void close() throws Exception;
+        public void close() throws TransactionException;
 
         /// Returns the underlying resource wrapped by this transaction.
         ///
@@ -131,10 +167,10 @@ public final class Transactor<E> {
         ///
         /// @param id The unique string identifier assigned to the new transaction.
         /// @return The newly-begun [Transaction]; never `null`.
-        /// @throws Exception If a failure occurs while beginning the transaction.
+        /// @throws TransactionException If a failure occurs while beginning the transaction.
         /// @throws IllegalArgumentException If `id` is `null`.
         @NonNull
-        public Transaction<E> begin(@NonNull String id) throws Exception;
+        public Transaction<E> begin(@NonNull String id) throws TransactionException;
     }
 
     @NonNull
@@ -158,6 +194,8 @@ public final class Transactor<E> {
                         trans.rollback();
                     }
                 }
+            } catch (TransactionException x) {
+                throw x.getCause();
             } finally {
                 local.remove();
             }
@@ -247,7 +285,7 @@ public final class Transactor<E> {
     /// @throws IllegalStateException If no transaction is active on the current thread.
     @NonNull
     public String transactionId() {
-        return transaction().id();
+        return transaction().uniqueId();
     }
 
     @Generated

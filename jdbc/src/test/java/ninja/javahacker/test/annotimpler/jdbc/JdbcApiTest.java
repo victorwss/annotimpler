@@ -65,7 +65,7 @@ public class JdbcApiTest {
         var transaction = factory.begin("tx-1");
 
         Assertions.assertSame(con, transaction.unwrap());
-        Assertions.assertEquals("tx-1", transaction.id());
+        Assertions.assertEquals("tx-1", transaction.uniqueId());
         Assertions.assertEquals(1, opened.get());
 
         transaction.commit();

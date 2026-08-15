@@ -10,9 +10,9 @@ import module ninja.javahacker.annotimpler.sql;
 /// Holds the active database connection and its unique identifier for one transaction.
 ///
 /// @param connection The open database connection for the current transaction.
-/// @param id The unique string identifier assigned to this transaction.
+/// @param uniqueId The unique string identifier assigned to this transaction.
 @PackagePrivate
-record JdbcTransaction(@NonNull Connection connection, @NonNull String id) implements Transactor.Transaction<Connection> {
+record JdbcTransaction(@NonNull Connection connection, @NonNull String uniqueId) implements Transactor.Transaction<Connection> {
 
     /// Creates a `JdbcTransaction` with the given connection and identifier.
     ///
@@ -20,25 +20,37 @@ record JdbcTransaction(@NonNull Connection connection, @NonNull String id) imple
     /// @param id The unique string identifier assigned to this transaction.
     public JdbcTransaction {
         checkNotNull(connection); // Check recognized by lombok.
-        checkNotNull(id); // Check recognized by lombok.
+        checkNotNull(uniqueId); // Check recognized by lombok.
     }
 
     /// {@inheritDoc}
     @Override
-    public void commit() throws SQLException {
-        connection.commit();
+    public void commit() throws Transactor.TransactionException {
+        try {
+            connection.commit();
+        } catch (SQLException e) {
+            throw new Transactor.TransactionException(e);
+        }
     }
 
     /// {@inheritDoc}
     @Override
-    public void rollback() throws SQLException {
-        connection.rollback();
+    public void rollback() throws Transactor.TransactionException {
+        try {
+            connection.rollback();
+        } catch (SQLException e) {
+            throw new Transactor.TransactionException(e);
+        }
     }
 
     /// {@inheritDoc}
     @Override
-    public void close() throws SQLException {
-        connection.close();
+    public void close() throws Transactor.TransactionException {
+        try {
+            connection.close();
+        } catch (SQLException e) {
+            throw new Transactor.TransactionException(e);
+        }
     }
 
     /// {@inheritDoc}
