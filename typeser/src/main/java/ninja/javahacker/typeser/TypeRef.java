@@ -91,10 +91,19 @@ public final class TypeRef implements Serializable {
 
     /// Returns the name of the wrapped type.
     ///
+    /// Always delegates to the internal surrogate's own canonical `getTypeName()`, exactly like [#toString()]
+    /// delegates to the surrogate's own `toString()`, instead of calling `getTypeName()` on the original (or
+    /// reconstructed) `Type` itself. This is deliberate: an arbitrary, hand-written `Type`
+    /// implementation (as opposed to one obtained through the reflection API) offers no guarantee whatsoever
+    /// about what its own `toString()`/`getTypeName()` returns (it could be anything, including something
+    /// nonsensical or misleading), so relying on it would make this method's result depend on how well-behaved
+    /// the wrapped `Type` happens to be. Deriving the name from the surrogate instead keeps it deterministic and
+    /// consistent, whether or not this object has gone through an actual serialization round-trip.
+    ///
     /// @return The wrapped type's name.
     @NonNull
     public String getTypeName() {
-        return type().getTypeName();
+        return proxy.getTypeName();
     }
 
     /// Creates a serializable wrapper for `type`.

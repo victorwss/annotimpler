@@ -1,6 +1,7 @@
 package ninja.test.javahacker.typeser;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Proxy;
 import ninja.javahacker.typeser.TypeRef;
 import ninja.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
@@ -119,6 +120,99 @@ public class TypeserTest {
                 }));
     }
 
+    // ── Tests: toString()/getTypeName() of the reconstructed Type itself ──────
+
+    /// Verifies that, after an actual serialization round-trip, `toString()` and `getTypeName()` invoked directly
+    /// on the reconstructed `Type` (not on the wrapping [TypeRef]) match what the original, genuinely-reflected
+    /// `Type` produces. This exercises the synthetic `ParameterizedType`/`WildcardType`/`GenericArrayType`
+    /// implementations created by `SerializableType.toType()`, since those are the objects whose `toString()`
+    /// would otherwise silently fall back to `Object`'s identity-based default.
+    @TestFactory
+    public Stream<DynamicTest> testReconstructedTypeStringMethods() throws Exception {
+        var pf = "[testReconstructedTypeStringMethods] ";
+        return Stream.of(Sample.class.getDeclaredFields())
+                .map(field -> DynamicTest.dynamicTest(pf + field.getName(), () -> {
+                    var original = field.getGenericType();
+                    var copy = roundTrip(original);
+                    Assertions.assertEquals(original.toString(), copy.toString(), field.getName());
+                    Assertions.assertEquals(original.getTypeName(), copy.getTypeName(), field.getName());
+                }));
+    }
+
+    // ── Tests: equals()/hashCode() of the reconstructed Type itself ───────────
+
+    /// Verifies that, after an actual serialization round-trip, `equals()` and `hashCode()` invoked directly on
+    /// the reconstructed `Type` (not on the wrapping [TypeRef] nor on the internal `SerializableType` surrogate)
+    /// behave consistently with the original, genuinely-reflected `Type`, in both directions.
+    ///
+    /// Checking only `original.equals(copy)` would not be enough: the real JDK `Type` implementations happen to
+    /// compare structurally against any object implementing the right interface, so that direction alone could
+    /// pass even if the reconstructed `Type`'s own `equals()`/`hashCode()` were still the default, identity-based
+    /// ones inherited from `Object` (which was, in fact, a real bug: the synthetic `ParameterizedType`,
+    /// `WildcardType` and `GenericArrayType` returned by `SerializableType.toType()` did not override `equals()`
+    /// nor `hashCode()` at all). Hence both `copy.equals(original)` and matching `hashCode()`s must be checked too.
+    @TestFactory
+    public Stream<DynamicTest> testReconstructedTypeEqualsAndHashCode() throws Exception {
+        var pf = "[testReconstructedTypeEqualsAndHashCode] ";
+        return Stream.of(Sample.class.getDeclaredFields())
+                .map(field -> DynamicTest.dynamicTest(pf + field.getName(), () -> {
+                    var original = field.getGenericType();
+                    var copy = roundTrip(original);
+                    Assertions.assertEquals(original, copy, field.getName());
+                    Assertions.assertEquals(copy, original, field.getName());
+                    Assertions.assertEquals(original.hashCode(), copy.hashCode(), field.getName());
+                }));
+    }
+
+    /// Verifies that two independently-reconstructed copies of the same type are mutually equal (and share a
+    /// hash code) even when neither of them is the original, genuinely-reflected `Type`. This rules out any
+    /// implementation that would only work by accident whenever a genuinely-reflected `Type` happens to be one
+    /// side of the comparison.
+    @TestFactory
+    public Stream<DynamicTest> testReconstructedTypeEqualsBetweenTwoCopies() throws Exception {
+        var pf = "[testReconstructedTypeEqualsBetweenTwoCopies] ";
+        return Stream.of(Sample.class.getDeclaredFields())
+                .map(field -> DynamicTest.dynamicTest(pf + field.getName(), () -> {
+                    var original = field.getGenericType();
+                    var copy1 = roundTrip(original);
+                    var copy2 = roundTrip(original);
+                    Assertions.assertEquals(copy1, copy2, field.getName());
+                    Assertions.assertEquals(copy2, copy1, field.getName());
+                    Assertions.assertEquals(copy1.hashCode(), copy2.hashCode(), field.getName());
+                }));
+    }
+
+    @Test
+    public void testNestedOwnerTypeToString() throws Exception {
+        var inner = Sample.class.getDeclaredField("inner").getGenericType();
+        var copy = roundTrip(inner);
+        Assertions.assertEquals(
+                "ninja.test.javahacker.typeser.TypeserTest$Outer<java.lang.String>$Inner<java.lang.Integer>",
+                inner.toString()
+        );
+        Assertions.assertEquals(inner.toString(), copy.toString());
+        Assertions.assertEquals(inner.getTypeName(), copy.getTypeName());
+    }
+
+    @Test
+    public void testWildcardAndGenericArrayToStringAfterRoundTrip() throws Exception {
+        var upper = Sample.class.getDeclaredField("upper").getGenericType();
+        var lower = Sample.class.getDeclaredField("lower").getGenericType();
+        var any = Sample.class.getDeclaredField("any").getGenericType();
+        var array = Sample.class.getDeclaredField("genericArray").getGenericType();
+
+        Assertions.assertEquals("java.util.List<? extends java.lang.Number>", upper.toString());
+        Assertions.assertEquals("java.util.List<? super java.lang.Integer>", lower.toString());
+        Assertions.assertEquals("java.util.List<?>", any.toString());
+        Assertions.assertEquals("java.util.List<java.lang.String>[]", array.toString());
+
+        for (var type : List.of(upper, lower, any, array)) {
+            var copy = roundTrip(type);
+            Assertions.assertEquals(type.toString(), copy.toString());
+            Assertions.assertEquals(type.getTypeName(), copy.getTypeName());
+        }
+    }
+
     @Test
     public void testTypeRefObjectMethods() throws Exception {
         var stringType = Sample.class.getDeclaredField("someClass").getGenericType();
@@ -139,7 +233,10 @@ public class TypeserTest {
         Assertions.assertEquals(stringType.getTypeName(), ref.getTypeName());
         Assertions.assertEquals(listType.toString(), deserializedRef.toString());
         Assertions.assertEquals(listType.getTypeName(), deserializedRef.getTypeName());
+    }
 
+    @Test
+    public void testTypeRefObjectMethodsForFields() throws Exception {
         for (var fieldName : List.of("upper", "lower", "any", "genericArray", "nested", "entry", "inner")) {
             var type = Sample.class.getDeclaredField(fieldName).getGenericType();
             var original = TypeRef.wrap(type);
@@ -149,7 +246,10 @@ public class TypeserTest {
             Assertions.assertEquals(original.toString(), copy.toString(), fieldName);
             Assertions.assertEquals(original.getTypeName(), copy.getTypeName(), fieldName);
         }
+    }
 
+    @Test
+    public void testTypeRefObjectMethodsForTypeParameters() throws Exception {
         var typeVariable = List.class.getTypeParameters()[0];
         var originalVariable = TypeRef.wrap(typeVariable);
         var copiedVariable = roundTripRef(typeVariable);
@@ -160,7 +260,7 @@ public class TypeserTest {
     }
 
     @Test
-    public void testTypeRefObjectMethodVariants() throws Exception {
+    public void testTypeRefObjectMethodVariantsSimpleCases() throws Exception {
         var list = TypeRef.wrap(Sample.class.getDeclaredField("list").getGenericType());
         var integerList = TypeRef.wrap(Sample.class.getDeclaredField("integerList").getGenericType());
         var upper = TypeRef.wrap(Sample.class.getDeclaredField("upper").getGenericType());
@@ -174,12 +274,19 @@ public class TypeserTest {
         Assertions.assertNotEquals(list, upper);
         Assertions.assertNotEquals(upper, array);
         Assertions.assertNotEquals(array, TypeRef.wrap(String.class));
+    }
 
+    @Test
+    public void testTypeRefObjectMethodVariantsBaseMethods() throws Exception {
         var methods = Stream.of(TypeserTest.class.getDeclaredMethods())
                 .filter(m -> m.getName().startsWith("genericMethod"))
                 .map(m -> m.getTypeParameters()[0])
                 .toList();
         Assertions.assertNotEquals(TypeRef.wrap(methods.get(0)), TypeRef.wrap(methods.get(1)));
+    }
+
+    @Test
+    public void testTypeRefObjectMethodVariantsMethodOverloads() throws Exception {
         var baseMethod = Stream.of(TypeserTest.class.getDeclaredMethods())
                 .filter(m -> m.getName().equals("genericMethod"))
                 .filter(m -> m.getParameterCount() == 1)
@@ -195,7 +302,10 @@ public class TypeserTest {
                 .orElseThrow()
                 .getTypeParameters()[0];
         Assertions.assertNotEquals(TypeRef.wrap(baseMethod), TypeRef.wrap(overloadedMethod));
+    }
 
+    @Test
+    public void testTypeRefObjectMethodVariantsGenericConstructor() throws Exception {
         var constructors = List.of(
                 Stream.of(GenericConstructor.class.getDeclaredConstructors())
                         .filter(c -> c.getParameterCount() == 1)
@@ -213,36 +323,102 @@ public class TypeserTest {
                 .orElseThrow()
                 .getTypeParameters()[0];
         Assertions.assertNotEquals(TypeRef.wrap(constructors.get(0)), TypeRef.wrap(overloadedConstructor));
+    }
 
+    @Test
+    public void testTypeRefObjectMethodVariantsTypeParameters() throws Exception {
         var classVariables = List.of(List.class.getTypeParameters()[0], Map.class.getTypeParameters()[0]);
         Assertions.assertNotEquals(TypeRef.wrap(classVariables.get(0)), TypeRef.wrap(classVariables.get(1)));
         Assertions.assertEquals(
                 TypeRef.wrap(classVariables.get(0)).hashCode(),
                 TypeRef.wrap(classVariables.get(0)).hashCode()
         );
+    }
 
-        Type emptyWildcard = new WildcardType() {
-            @Override
-            public Type[] getUpperBounds() {
-                return new Type[0];
-            }
+    private static final Object NULLY = new Object();
 
-            @Override
-            public Type[] getLowerBounds() {
-                return new Type[0];
-            }
-        };
+    @SuppressWarnings("unchecked")
+    private static <E> E badImplementation(Class<E> iface, Map<String, Object> working) {
+        return (E) Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] { iface }, (i, m, a) -> {
+            var what = working.get(m.getName());
+            if (what == NULLY) return null;
+            if (what != null) return what;
+            throw new AssertionError(m.getName());
+        });
+    }
+
+    @Test
+    public void testMinimalParameterizedType() throws Exception {
+        var emptyParameterized = badImplementation(
+                ParameterizedType.class,
+                Map.of("getActualTypeArguments", new Type[0], "getRawType", List.class, "getOwnerType", NULLY)
+        );
+        var emptyParameterizedRef = TypeRef.wrap(emptyParameterized);
+        Assertions.assertEquals(emptyParameterizedRef, TypeRef.wrap(emptyParameterized));
+        Assertions.assertEquals(emptyParameterizedRef.hashCode(), TypeRef.wrap(emptyParameterized).hashCode());
+        Assertions.assertEquals("java.util.List", emptyParameterizedRef.toString());
+        Assertions.assertEquals("java.util.List", emptyParameterizedRef.getTypeName());
+    }
+
+    @Test
+    public void testMinimalTypeVariable() throws Exception {
+        var method = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .findFirst()
+                .orElseThrow();
+        var emptyVariable = badImplementation(TypeVariable.class, Map.of("getGenericDeclaration", method, "getName", "T"));
+        var emptyVariableRef = TypeRef.wrap(emptyVariable);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(emptyVariableRef, TypeRef.wrap(emptyVariable)),
+                () -> Assertions.assertEquals(emptyVariableRef.hashCode(), TypeRef.wrap(emptyVariable).hashCode()),
+                () -> Assertions.assertEquals("T", emptyVariableRef.toString()),
+                () -> Assertions.assertEquals("T", emptyVariableRef.getTypeName()),
+                () -> Assertions.assertTrue(emptyVariableRef.equals(TypeRef.wrap(emptyVariable))),
+                () -> Assertions.assertTrue(TypeRef.wrap(emptyVariable).equals(emptyVariableRef))
+        );
+    }
+
+    @Test
+    public void testMinimalWildcard() throws Exception {
+        var emptyWildcard = badImplementation(WildcardType.class, Map.of("getUpperBounds", new Type[0], "getLowerBounds", new Type[0]));
         var emptyWildcardRef = TypeRef.wrap(emptyWildcard);
-        Assertions.assertEquals("?", emptyWildcardRef.toString());
-        Assertions.assertEquals("?", emptyWildcardRef.getTypeName());
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(emptyWildcardRef, TypeRef.wrap(emptyWildcard)),
+                () -> Assertions.assertEquals(emptyWildcardRef.hashCode(), TypeRef.wrap(emptyWildcard).hashCode()),
+                () -> Assertions.assertEquals("?", emptyWildcardRef.toString()),
+                () -> Assertions.assertEquals("?", emptyWildcardRef.getTypeName()),
+                () -> Assertions.assertTrue(emptyWildcardRef.equals(TypeRef.wrap(emptyWildcard))),
+                () -> Assertions.assertTrue(TypeRef.wrap(emptyWildcard).equals(emptyWildcardRef))
+        );
+    }
 
-        Type unknown = new Type() {
-        };
-        var unknownRef = TypeRef.wrap(unknown);
-        Assertions.assertEquals(unknownRef, TypeRef.wrap(unknown));
-        Assertions.assertEquals(unknownRef.hashCode(), TypeRef.wrap(unknown).hashCode());
-        Assertions.assertEquals("UnknownType", unknownRef.toString());
-        Assertions.assertEquals("UnknownType", unknownRef.getTypeName());
+    @Test
+    public void testMinimalGenericArray() throws Exception {
+        var componentType = badImplementation(Type.class, Map.of());
+        var emptyGenericArray = badImplementation(GenericArrayType.class, Map.of("getGenericComponentType", componentType));
+        var emptyGenericArrayRef = TypeRef.wrap(emptyGenericArray);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(emptyGenericArrayRef, TypeRef.wrap(emptyGenericArray)),
+                () -> Assertions.assertEquals(emptyGenericArrayRef.hashCode(), TypeRef.wrap(emptyGenericArray).hashCode()),
+                () -> Assertions.assertEquals("UnknownType[]", emptyGenericArrayRef.toString()),
+                () -> Assertions.assertEquals("UnknownType[]", emptyGenericArrayRef.getTypeName()),
+                () -> Assertions.assertTrue(emptyGenericArrayRef.equals(TypeRef.wrap(emptyGenericArray))),
+                () -> Assertions.assertTrue(TypeRef.wrap(emptyGenericArray).equals(emptyGenericArrayRef))
+        );
+    }
+
+    @Test
+    public void testMinimalUnknownType() throws Exception {
+        var emptyUnknown = badImplementation(Type.class, Map.of());
+        var unknownRef = TypeRef.wrap(emptyUnknown);
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(unknownRef, TypeRef.wrap(emptyUnknown)),
+                () -> Assertions.assertEquals(unknownRef.hashCode(), TypeRef.wrap(emptyUnknown).hashCode()),
+                () -> Assertions.assertEquals("UnknownType", unknownRef.toString()),
+                () -> Assertions.assertEquals("UnknownType", unknownRef.getTypeName()),
+                () -> Assertions.assertTrue(unknownRef.equals(TypeRef.wrap(emptyUnknown))),
+                () -> Assertions.assertTrue(TypeRef.wrap(emptyUnknown).equals(unknownRef))
+        );
     }
 
     // ── Tests: TypeVariable support ───────────────────────────────────────────
@@ -366,7 +542,7 @@ public class TypeserTest {
 
         @Override
         public AnnotatedType[] getAnnotatedBounds() {
-            throw new UnsupportedOperationException();
+            throw new AssertionError();
         }
 
         @Override

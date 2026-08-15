@@ -167,11 +167,25 @@ sealed interface SerializableType extends Serializable permits
         }
 
         /// {@inheritDoc}
+        ///
+        /// Mirrors the format produced by the JDK's own `ParameterizedType` implementations: for a type with no
+        /// owner (e.g. a top-level or `static` nested class), this is the raw type's name followed by its
+        /// type arguments between angle brackets (e.g. `"java.util.List<java.lang.String>"`); for a type with an
+        /// owner (e.g. `Outer<String>.Inner<Integer>`), the owner's own textual representation is used instead,
+        /// followed by `"$"`, the raw type's simple name and this type's own arguments
+        /// (e.g. `"Outer<java.lang.String>$Inner<java.lang.Integer>"`).
         @NonNull
         @Override
         public String toString() {
-            var rawName = raw.getTypeName();
-            return rawName + "<" + Arrays.stream(args).map(SerializableType::getTypeName).collect(Collectors.joining(", ")) + ">";
+            var argsStr = args.length == 0
+                    ? ""
+                    : Arrays.stream(args).map(SerializableType::getTypeName).collect(Collectors.joining(", ", "<", ">"));
+            if (owner != null) {
+                var simpleName = raw instanceof ClassSer<?> cs ? cs.clazz().getSimpleName() : raw.getTypeName();
+                return owner.getTypeName() + "$" + simpleName + argsStr;
+            }
+            var rawName = raw instanceof ClassSer<?> cs ? cs.clazz().getName() : raw.getTypeName();
+            return rawName + argsStr;
         }
 
         /// {@inheritDoc}
@@ -198,6 +212,40 @@ sealed interface SerializableType extends Serializable permits
                 @Override
                 public Type getOwnerType() {
                     return owner == null ? null : owner.toType();
+                }
+
+                /// {@inheritDoc}
+                @NonNull
+                @Override
+                public String toString() {
+                    return ParameterizedTypeSer.this.toString();
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `ParameterizedType` implementations' `equals()` contract: two
+                /// `ParameterizedType`s are equal when their owner type, raw type and actual type arguments are
+                /// all equal, regardless of whether they come from this same reconstruction or from an entirely
+                /// different (e.g. genuinely-reflected) `Type` implementation.
+                @Override
+                @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+                public boolean equals(@Nullable Object other) {
+                    return this == other
+                            || other instanceof ParameterizedType pt
+                                    && Objects.equals(getOwnerType(), pt.getOwnerType())
+                                    && Objects.equals(getRawType(), pt.getRawType())
+                                    && Arrays.equals(getActualTypeArguments(), pt.getActualTypeArguments());
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `ParameterizedType` implementations' `hashCode()` contract, so that it
+                /// stays consistent with the {@link #equals(Object)}.
+                @Override
+                public int hashCode() {
+                    return Arrays.hashCode(getActualTypeArguments())
+                            ^ Objects.hashCode(getOwnerType())
+                            ^ Objects.hashCode(getRawType());
                 }
             };
         }
@@ -253,9 +301,9 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public String toString() {
-            if (lower.length > 0) return "? super " + lower[0];
+            if (lower.length > 0) return "? super " + lower[0].getTypeName();
             if (upper.length == 0 || upper[0].equals(ClassSer.create(Object.class))) return "?";
-            return "? extends " + upper[0];
+            return "? extends " + upper[0].getTypeName();
         }
 
         /// {@inheritDoc}
@@ -275,6 +323,37 @@ sealed interface SerializableType extends Serializable permits
                 @Override
                 public Type[] getLowerBounds() {
                     return Arrays.stream(lower).map(SerializableType::toType).toArray(Type[]::new);
+                }
+
+                /// {@inheritDoc}
+                @NonNull
+                @Override
+                public String toString() {
+                    return WildcardTypeSer.this.toString();
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `WildcardType` implementations' `equals()` contract: two `WildcardType`s
+                /// are equal when their upper and lower bounds are all equal, regardless of whether they come
+                /// from this same reconstruction or from an entirely different (e.g. genuinely-reflected) `Type`
+                /// implementation.
+                @Override
+                @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+                public boolean equals(@Nullable Object other) {
+                    return this == other
+                            || other instanceof WildcardType wt
+                                    && Arrays.equals(getUpperBounds(), wt.getUpperBounds())
+                                    && Arrays.equals(getLowerBounds(), wt.getLowerBounds());
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `WildcardType` implementations' `hashCode()` contract, so that it stays
+                /// consistent with the {@link #equals(Object)}.
+                @Override
+                public int hashCode() {
+                    return Arrays.hashCode(getLowerBounds()) ^ Arrays.hashCode(getUpperBounds());
                 }
             };
         }
@@ -323,7 +402,7 @@ sealed interface SerializableType extends Serializable permits
         @NonNull
         @Override
         public String toString() {
-            return component + "[]";
+            return component.getTypeName() + "[]";
         }
 
         /// {@inheritDoc}
@@ -338,6 +417,36 @@ sealed interface SerializableType extends Serializable permits
                 @Override
                 public Type getGenericComponentType() {
                     return component.toType();
+                }
+
+                /// {@inheritDoc}
+                @NonNull
+                @Override
+                public String toString() {
+                    return GenericArrayTypeSer.this.toString();
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `GenericArrayType` implementations' `equals()` contract: two
+                /// `GenericArrayType`s are equal when their component types are equal, regardless of whether they
+                /// come from this same reconstruction or from an entirely different (e.g. genuinely-reflected)
+                /// `Type` implementation.
+                @Override
+                @SuppressFBWarnings("NP_METHOD_PARAMETER_TIGHTENS_ANNOTATION")
+                public boolean equals(@Nullable Object other) {
+                    return this == other
+                            || other instanceof GenericArrayType gat
+                                    && Objects.equals(getGenericComponentType(), gat.getGenericComponentType());
+                }
+
+                /// {@inheritDoc}
+                ///
+                /// Mirrors the JDK's own `GenericArrayType` implementations' `hashCode()` contract, so that it
+                /// stays consistent with the {@link #equals(Object)}.
+                @Override
+                public int hashCode() {
+                    return getGenericComponentType().hashCode();
                 }
             };
         }
