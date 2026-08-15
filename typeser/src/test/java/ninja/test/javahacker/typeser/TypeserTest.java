@@ -33,6 +33,7 @@ public class TypeserTest {
         private Map<String, List<Integer>> nested;
         private Map.Entry<String, Integer> entry;
         private Outer<String>.Inner<Integer> inner;
+        private Outer<Integer>.Inner<Integer> inner2;
     }
 
     // ── Round-trip helper (tests TypeRef.write + TypeRef.read) ───────────────
@@ -63,6 +64,15 @@ public class TypeserTest {
         try (var ois = new ObjectInputStream(new ByteArrayInputStream(baos.toByteArray()))) {
             return (TypeRef) ois.readObject();
         }
+    }
+
+    /// Returns the actual `WildcardType` used as the sole type argument of the `List<...>`-typed `Sample` field
+    /// named `fieldName` (e.g. `"upper"`, `"lower"`, `"any"`). The field's own `getGenericType()` is the
+    /// enclosing `ParameterizedType` (`List<...>`), not the wildcard itself, so the wildcard must be extracted
+    /// from its actual type arguments.
+    private static WildcardType wildcardArgOf(String fieldName) throws Exception {
+        var listType = (ParameterizedType) Sample.class.getDeclaredField(fieldName).getGenericType();
+        return (WildcardType) listType.getActualTypeArguments()[0];
     }
 
     private static byte[] replaceAsciiOnce(byte[] source, String before, String after) {
@@ -354,10 +364,12 @@ public class TypeserTest {
                 Map.of("getActualTypeArguments", new Type[0], "getRawType", List.class, "getOwnerType", NULLY)
         );
         var emptyParameterizedRef = TypeRef.wrap(emptyParameterized);
-        Assertions.assertEquals(emptyParameterizedRef, TypeRef.wrap(emptyParameterized));
-        Assertions.assertEquals(emptyParameterizedRef.hashCode(), TypeRef.wrap(emptyParameterized).hashCode());
-        Assertions.assertEquals("java.util.List", emptyParameterizedRef.toString());
-        Assertions.assertEquals("java.util.List", emptyParameterizedRef.getTypeName());
+        Assertions.assertAll(
+                () -> Assertions.assertEquals(emptyParameterizedRef, TypeRef.wrap(emptyParameterized)),
+                () -> Assertions.assertEquals(emptyParameterizedRef.hashCode(), TypeRef.wrap(emptyParameterized).hashCode()),
+                () -> Assertions.assertEquals("java.util.List", emptyParameterizedRef.toString()),
+                () -> Assertions.assertEquals("java.util.List", emptyParameterizedRef.getTypeName())
+        );
     }
 
     @Test
@@ -435,6 +447,9 @@ public class TypeserTest {
         return arg;
     }
 
+    private static <T, U> void pairMethod(T t, U u) {
+    }
+
     private static final class GenericConstructor {
         private <C> GenericConstructor(C arg) {
         }
@@ -453,6 +468,28 @@ public class TypeserTest {
         }
     }
 
+    /// Two unrelated classes each declaring a method/constructor with the very same name and erased parameter
+    /// types, used to exercise the `declaringClass` mismatch branch of `MethodDeclarationSer.equals(Object)` and
+    /// `ConstructorDeclarationSer.equals(Object)` (i.e. same method/constructor name and parameter types, but a
+    /// different declaring class).
+    private static final class Twin1 {
+        private static <T> T probe(T arg) {
+            return arg;
+        }
+
+        private <T> Twin1(T arg) {
+        }
+    }
+
+    private static final class Twin2 {
+        private static <T> T probe(T arg) {
+            return arg;
+        }
+
+        private <T> Twin2(T arg) {
+        }
+    }
+
     @TestFactory
     public Stream<DynamicTest> testTypeVariable() throws Exception {
         var pf = "[testTypeVariable] ";
@@ -468,6 +505,223 @@ public class TypeserTest {
                     Assertions.assertEquals(typeVar, TypeRef.wrap(typeVar).type());
                     Assertions.assertEquals(typeVar, roundTrip(typeVar));
                 }));
+    }
+
+    /// Exercises every branch of `ClassDeclarationSer.equals(Object)`, `MethodDeclarationSer.equals(Object)`,
+    /// `ConstructorDeclarationSer.equals(Object)` and `TypeVariableSer.equals(Object)` (the internal surrogates for
+    /// `GenericDeclaration` and `TypeVariable`), which are only reachable indirectly through [TypeRef#equals(Object)]
+    /// since those surrogate types are package-private.
+    ///
+    /// In particular this checks: two independently-obtained `TypeVariable`s declared by the very same `Class`
+    /// compare equal (the `instanceof`-true/`clazz.equals`-true branches); type variables declared by a `Class`,
+    /// a `Method` and a `Constructor` are pairwise unequal in both directions (the `instanceof`-false branch of
+    /// each declaration surrogate's `equals`); two unrelated classes each declaring a method/constructor with the
+    /// same name and parameter types compare unequal (the `declaringClass`-mismatch branch); and two type
+    /// variables declared by the very same method but with different names compare unequal (the `name`-mismatch
+    /// branch of `TypeVariableSer.equals`, reached only when the declarations themselves are equal).
+    @Test
+    public void testGenericDeclarationSerEqualsBranches() throws Exception {
+        var classVar = List.class.getTypeParameters()[0];
+        var sameClassVar = List.class.getTypeParameters()[0];
+        var methodVar = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .filter(m -> m.getParameterCount() == 1)
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        var constructorVar = GenericConstructor.class.getDeclaredConstructors()[0].getTypeParameters()[0];
+
+        // instanceof-true, clazz.equals-true: same class declaration, obtained independently.
+        Assertions.assertEquals(TypeRef.wrap(classVar), TypeRef.wrap(sameClassVar));
+
+        // instanceof-false: cross-kind declaration comparisons, in both directions.
+        Assertions.assertNotEquals(TypeRef.wrap(classVar), TypeRef.wrap(methodVar));
+        Assertions.assertNotEquals(TypeRef.wrap(methodVar), TypeRef.wrap(classVar));
+        Assertions.assertNotEquals(TypeRef.wrap(methodVar), TypeRef.wrap(constructorVar));
+        Assertions.assertNotEquals(TypeRef.wrap(constructorVar), TypeRef.wrap(methodVar));
+        Assertions.assertNotEquals(TypeRef.wrap(classVar), TypeRef.wrap(constructorVar));
+        Assertions.assertNotEquals(TypeRef.wrap(constructorVar), TypeRef.wrap(classVar));
+
+        // declaringClass mismatch: same method/constructor name and parameter types, different declaring class.
+        var twin1MethodVar = Stream.of(Twin1.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("probe"))
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        var twin2MethodVar = Stream.of(Twin2.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("probe"))
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        Assertions.assertNotEquals(TypeRef.wrap(twin1MethodVar), TypeRef.wrap(twin2MethodVar));
+
+        var twin1CtorVar = Twin1.class.getDeclaredConstructors()[0].getTypeParameters()[0];
+        var twin2CtorVar = Twin2.class.getDeclaredConstructors()[0].getTypeParameters()[0];
+        Assertions.assertNotEquals(TypeRef.wrap(twin1CtorVar), TypeRef.wrap(twin2CtorVar));
+
+        // name mismatch: two type variables declared by the very same method, hence with equal declarations.
+        var pairMethod = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("pairMethod"))
+                .findFirst()
+                .orElseThrow();
+        Assertions.assertNotEquals(TypeRef.wrap(pairMethod.getTypeParameters()[0]), TypeRef.wrap(pairMethod.getTypeParameters()[1]));
+
+        // name mismatch: same declaring class and (erased) parameter types, different method name.
+        var genericMethod = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod"))
+                .filter(m -> m.getParameterCount() == 1)
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        var genericMethod2 = Stream.of(TypeserTest.class.getDeclaredMethods())
+                .filter(m -> m.getName().equals("genericMethod2"))
+                .findFirst()
+                .orElseThrow()
+                .getTypeParameters()[0];
+        Assertions.assertNotEquals(TypeRef.wrap(genericMethod), TypeRef.wrap(genericMethod2));
+
+        // instanceof-false at the TypeVariableSer level itself: compared against a wholly different surrogate kind.
+        Assertions.assertNotEquals(TypeRef.wrap(classVar), TypeRef.wrap(String.class));
+        Assertions.assertNotEquals(TypeRef.wrap(String.class), TypeRef.wrap(classVar));
+    }
+
+    /// Exercises the remaining branches of `ParameterizedTypeSer.equals(Object)` (the internal surrogate for
+    /// `ParameterizedType`), only reachable indirectly through [TypeRef#equals(Object)]: a raw-type mismatch
+    /// (`raw.equals` false) and every combination of a present/absent/differing owner type (`Objects.equals`
+    /// on `owner`, both null-vs-null, null-vs-non-null in both directions, and non-null-vs-differing-non-null).
+    @Test
+    public void testParameterizedTypeSerEqualsRawAndOwnerBranches() throws Exception {
+        var listParam = badImplementation(
+                ParameterizedType.class,
+                Map.of("getActualTypeArguments", new Type[0], "getRawType", List.class, "getOwnerType", NULLY)
+        );
+        var setParam = badImplementation(
+                ParameterizedType.class,
+                Map.of("getActualTypeArguments", new Type[0], "getRawType", Set.class, "getOwnerType", NULLY)
+        );
+
+        // raw.equals-false: same (empty) args and owner, different raw type.
+        Assertions.assertNotEquals(TypeRef.wrap(listParam), TypeRef.wrap(setParam));
+        Assertions.assertNotEquals(TypeRef.wrap(setParam), TypeRef.wrap(listParam));
+
+        var innerType = (ParameterizedType) Sample.class.getDeclaredField("inner").getGenericType();
+        var innerRaw = innerType.getRawType();
+        var innerArgs = innerType.getActualTypeArguments();
+        var innerOwner = innerType.getOwnerType();
+
+        var withOwner = badImplementation(
+                ParameterizedType.class,
+                Map.of("getActualTypeArguments", innerArgs, "getRawType", innerRaw, "getOwnerType", innerOwner)
+        );
+        var withoutOwner = badImplementation(
+                ParameterizedType.class,
+                Map.of("getActualTypeArguments", innerArgs, "getRawType", innerRaw, "getOwnerType", NULLY)
+        );
+
+        // owner Objects.equals-true: same raw, args and owner (real vs. hand-crafted).
+        Assertions.assertEquals(TypeRef.wrap(withOwner), TypeRef.wrap(innerType));
+
+        // owner Objects.equals-false: null-vs-non-null, in both directions.
+        Assertions.assertNotEquals(TypeRef.wrap(withOwner), TypeRef.wrap(withoutOwner));
+        Assertions.assertNotEquals(TypeRef.wrap(withoutOwner), TypeRef.wrap(withOwner));
+
+        // owner Objects.equals-false: non-null-vs-differing-non-null, same raw and args.
+        var inner2Type = Sample.class.getDeclaredField("inner2").getGenericType();
+        Assertions.assertNotEquals(TypeRef.wrap(innerType), TypeRef.wrap(inner2Type));
+
+        // Same as above, but calling equals() directly on the reconstructed anonymous ParameterizedType (as
+        // opposed to on the wrapping TypeRef), to hit ParameterizedTypeSer's anonymous toType() implementation's
+        // own getRawType() mismatch branch (owner equal-null on both sides, so only raw differs). Uses an actual
+        // serialization round-trip (not TypeRef#type()) since the latter would just return the original, still
+        // same-JVM-alive proxy instead of forcing reconstruction from the surrogate.
+        var listParamCopy = roundTrip(listParam);
+        var setParamCopy = roundTrip(setParam);
+        Assertions.assertNotEquals(listParamCopy, setParamCopy);
+        Assertions.assertNotEquals(setParamCopy, listParamCopy);
+    }
+
+    /// Exercises the remaining branches of `WildcardTypeSer.equals(Object)` (the internal surrogate for
+    /// `WildcardType`), only reachable indirectly through [TypeRef#equals(Object)]: a lower-bound mismatch while
+    /// the upper bounds match (`? extends Object` implicitly, both for an unbounded wildcard and for a
+    /// lower-bounded one), which is otherwise never reached because the upper-bound comparison is checked first
+    /// and short-circuits whenever it already differs; and the `instanceof`-false branch, reached by comparing a
+    /// wildcard against a completely unrelated surrogate kind.
+    @Test
+    public void testWildcardTypeSerEqualsLowerBoundBranch() throws Exception {
+        var any = wildcardArgOf("any");
+        var lower = wildcardArgOf("lower");
+        Assertions.assertNotEquals(TypeRef.wrap(any), TypeRef.wrap(lower));
+        Assertions.assertNotEquals(TypeRef.wrap(lower), TypeRef.wrap(any));
+        Assertions.assertNotEquals(TypeRef.wrap(any), TypeRef.wrap(String.class));
+        Assertions.assertNotEquals(TypeRef.wrap(String.class), TypeRef.wrap(any));
+    }
+
+    /// Exercises the surrogate types that can only ever be reconstructed via a maliciously-crafted `Type`
+    /// implementation: a `ParameterizedType` whose `getRawType()` itself returns another `ParameterizedType`
+    /// (instead of the `Class` that any genuinely-reflected raw type always is). This is what drives `raw` to be
+    /// a `ParameterizedTypeSer` rather than a `ClassSer` in `ParameterizedTypeSer.toString()`, hitting the
+    /// `else` branch of both ternaries there (`raw instanceof ClassSer<?> cs ? ... : raw.getTypeName()`), for
+    /// both the owner-present and owner-absent cases.
+    @Test
+    public void testParameterizedTypeSerToStringWithNonClassRaw() throws Exception {
+        var fakeRaw = new LinkedParameterizedType();
+        fakeRaw.raw = List.class;
+
+        var noOwner = new LinkedParameterizedType();
+        noOwner.raw = fakeRaw;
+        Assertions.assertEquals("java.util.List", TypeRef.wrap(noOwner).toString());
+
+        var withOwner = new LinkedParameterizedType();
+        withOwner.raw = fakeRaw;
+        withOwner.owner = fakeRaw;
+        Assertions.assertEquals("java.util.List$java.util.List", TypeRef.wrap(withOwner).toString());
+    }
+
+    /// Exercises the remaining branches of the anonymous `ParameterizedType`/`WildcardType`/`GenericArrayType`
+    /// implementations produced by `SerializableType.toType()`: `this == other` (reflexivity), the `instanceof`
+    /// false branch (compared against an unrelated object, including `null`), and a field-mismatch false branch
+    /// for each compared component (owner/raw/args for `ParameterizedType`, upper/lower bounds for `WildcardType`,
+    /// component type for `GenericArrayType`). These are only reachable by calling `equals()` directly on the
+    /// reconstructed `Type` itself (as opposed to on the wrapping [TypeRef], which instead exercises the
+    /// record-level `equals()` of the internal surrogate).
+    @Test
+    public void testReconstructedAnonymousTypeEqualsBranches() throws Exception {
+        var listCopy = roundTrip(Sample.class.getDeclaredField("list").getGenericType());
+        var integerListCopy = roundTrip(Sample.class.getDeclaredField("integerList").getGenericType());
+        var entryCopy = roundTrip(Sample.class.getDeclaredField("entry").getGenericType());
+        var innerCopy = roundTrip(Sample.class.getDeclaredField("inner").getGenericType());
+        var inner2Copy = roundTrip(Sample.class.getDeclaredField("inner2").getGenericType());
+        var upperCopy = roundTrip(wildcardArgOf("upper"));
+        var anyCopy = roundTrip(wildcardArgOf("any"));
+        var lowerCopy = roundTrip(wildcardArgOf("lower"));
+        var arrayCopy = roundTrip(Sample.class.getDeclaredField("genericArray").getGenericType());
+        var integerArrayCopy = roundTrip(Sample.class.getDeclaredField("integerGenericArray").getGenericType());
+
+        // ParameterizedType: this == other, instanceof-false, args mismatch, raw mismatch, owner mismatch.
+        Assertions.assertEquals(listCopy, listCopy);
+        Assertions.assertNotEquals(listCopy, "not a type");
+        Assertions.assertFalse(listCopy.equals(null));
+        Assertions.assertNotEquals(listCopy, integerListCopy);
+        Assertions.assertNotEquals(integerListCopy, listCopy);
+        Assertions.assertNotEquals(listCopy, entryCopy);
+        Assertions.assertNotEquals(innerCopy, inner2Copy);
+        Assertions.assertNotEquals(inner2Copy, innerCopy);
+
+        // WildcardType: this == other, instanceof-false, upper mismatch, lower mismatch.
+        Assertions.assertEquals(upperCopy, upperCopy);
+        Assertions.assertNotEquals(upperCopy, "not a type");
+        Assertions.assertFalse(upperCopy.equals(null));
+        Assertions.assertNotEquals(upperCopy, anyCopy);
+        Assertions.assertNotEquals(anyCopy, upperCopy);
+        Assertions.assertNotEquals(anyCopy, lowerCopy);
+        Assertions.assertNotEquals(lowerCopy, anyCopy);
+
+        // GenericArrayType: this == other, instanceof-false, component mismatch.
+        Assertions.assertEquals(arrayCopy, arrayCopy);
+        Assertions.assertNotEquals(arrayCopy, "not a type");
+        Assertions.assertFalse(arrayCopy.equals(null));
+        Assertions.assertNotEquals(arrayCopy, integerArrayCopy);
+        Assertions.assertNotEquals(integerArrayCopy, arrayCopy);
     }
 
     // ── Tests: malformed/malicious `Type` implementations ────────────────────
@@ -507,6 +761,7 @@ public class TypeserTest {
         private Type owner;
 
         @Override
+        @SuppressWarnings("ReturnOfCollectionOrArrayField")
         public Type[] getActualTypeArguments() {
             return args;
         }
@@ -597,6 +852,7 @@ public class TypeserTest {
     /// distinct, this never triggers the cycle detector, yet a sufficiently long chain represents an unboundedly
     /// deep type graph, exactly like a maliciously-crafted {@code getOwnerType()} that keeps fabricating new
     /// owner instances instead of reflecting a real enclosing type.
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     private static LinkedParameterizedType deepOwnerChain(int depth) {
         LinkedParameterizedType previous = null;
         for (int i = 0; i < depth; i++) {
@@ -612,6 +868,7 @@ public class TypeserTest {
     /// itself a small but distinct {@link ParameterizedType}. This represents a maliciously wide (as opposed to
     /// deep) type graph, exactly like a {@code getActualTypeArguments()} fabricating hundreds of forged
     /// sub-types instead of reflecting real type arguments.
+    @SuppressWarnings("AccessingNonPublicFieldOfAnotherObject")
     private static LinkedParameterizedType wideTypeArguments(int width) {
         var top = new LinkedParameterizedType();
         top.raw = List.class;
@@ -626,6 +883,7 @@ public class TypeserTest {
     }
 
     @TestFactory
+    @SuppressWarnings("ThrowableResultIgnored")
     public Stream<DynamicTest> testTooLargeType() {
         var pf = "[testTooLargeType] ";
         return Stream.of(
@@ -675,6 +933,7 @@ public class TypeserTest {
     }
 
     @TestFactory
+    @SuppressWarnings({"ThrowableResultIgnored", "AccessingNonPublicFieldOfAnotherObject"})
     public Stream<DynamicTest> testMalformedTypes() {
         var nullArgsArray = new LinkedParameterizedType();
         nullArgsArray.raw = List.class;
@@ -897,6 +1156,7 @@ public class TypeserTest {
     // ── Tests: @NonNull violations → IllegalArgumentException ───────────────
 
     @TestFactory
+    @SuppressWarnings("null")
     public Stream<DynamicTest> testNulls() throws Exception {
         var pf = "[testNulls] ";
         var out = new ObjectOutputStream(new ByteArrayOutputStream());
