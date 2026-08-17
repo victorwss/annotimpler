@@ -1,8 +1,8 @@
 package ninja.javahacker.annotimpler.jdbc;
 
 import java.util.Locale;
-import lombok.NonNull;
 import lombok.Generated;
+import lombok.NonNull;
 
 import module ninja.javahacker.annotimpler.convert;
 import module ninja.javahacker.annotimpler.core;

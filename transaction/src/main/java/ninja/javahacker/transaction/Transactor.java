@@ -1,4 +1,4 @@
-package ninja.javahacker.annotimpler.sql;
+package ninja.javahacker.transaction;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

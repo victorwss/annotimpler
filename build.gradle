@@ -734,6 +734,35 @@ project(":core") {
     }
 }
 
+project(":transaction") {
+    def moduleName = "ninja.javahacker.transaction"
+    description = "Transactions"
+
+    jar {
+        archiveBaseName = "transaction"
+        inputs.property("moduleName", moduleName)
+    }
+
+    dependencies {
+        api(project(":typeser"))
+        api(project(":magicfactory"))
+    }
+
+    compileJava {
+        dependsOn(":magicfactory:delombok")
+        dependsOn(":magicfactory:compileJava")
+        dependsOn(":transaction:delombok")
+    }
+
+    test {
+        jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
+    }
+
+    delombok {
+        dependsOn(":magicfactory:jar")
+    }
+}
+
 project(":sql") {
     def moduleName = "ninja.javahacker.annotimpler.sql"
     description = "Annotimpler SQL"
@@ -746,6 +775,7 @@ project(":sql") {
     dependencies {
         api(project(":typeser"))
         api(project(":magicfactory"))
+        api(project(":transaction"))
         api(project(":datetime"))
         api(project(":convert"))
         api(project(":core"))
@@ -765,6 +795,8 @@ project(":sql") {
     compileJava {
         dependsOn(":magicfactory:delombok")
         dependsOn(":magicfactory:compileJava")
+        dependsOn(":transaction:delombok")
+        dependsOn(":transaction:compileJava")
         dependsOn(":datetime:delombok")
         dependsOn(":datetime:compileJava")
         dependsOn(":convert:delombok")
@@ -780,6 +812,7 @@ project(":sql") {
 
     delombok {
         dependsOn(":magicfactory:jar")
+        dependsOn(":transaction:jar")
         dependsOn(":datetime:jar")
         dependsOn(":convert:jar")
         dependsOn(":core:jar")

@@ -35,6 +35,7 @@ open module ninja.javahacker.annotimpler.jdbc {
     requires transitive ninja.javahacker.annotimpler.convert;
     requires transitive ninja.javahacker.annotimpler.core;
     requires transitive ninja.javahacker.annotimpler.sql;
+    requires transitive ninja.javahacker.transaction;
     requires ninja.javahacker.datetime;
     requires ninja.javahacker.typeser;
 

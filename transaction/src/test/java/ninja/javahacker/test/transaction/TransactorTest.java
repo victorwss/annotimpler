@@ -1,12 +1,13 @@
-package ninja.javahacker.test.annotimpler.sql;
+package ninja.javahacker.test.transaction;
 
+import java.lang.reflect.Proxy;
 import lombok.experimental.Delegate;
 import org.junit.jupiter.api.function.ThrowingSupplier;
-import ninja.javahacker.test.ControlledMock;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.sql;
+import module java.sql;
+import module ninja.javahacker.transaction;
 import module org.junit.jupiter.api;
 
 public class TransactorTest {
@@ -103,8 +104,7 @@ public class TransactorTest {
         public TransactionControl(boolean shouldCommit) {
             this.shouldCommit = shouldCommit;
             this.state = 0;
-            var md = ControlledMock.mock(Connection.class);
-            md.setHandler((i, m, a) -> {
+            var md = Proxy.newProxyInstance(Thread.currentThread().getContextClassLoader(), new Class<?>[] {Connection.class}, (i, m, a) -> {
                 var n = m.getName();
                 if (n.equals("commit")) {
                     commit();
@@ -120,7 +120,7 @@ public class TransactorTest {
                 }
                 throw new AssertionError(m);
             });
-            this.con = md.getMock();
+            this.con = (Connection) md;
         }
 
         public Connection connect() {
