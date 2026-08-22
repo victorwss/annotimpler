@@ -1,0 +1,53 @@
+// ── Future module templates (not yet active) ─────────────────────────────────
+// These are commented-out project(":name") blocks for JPA-provider modules that
+// are not part of the build yet (their directories don't exist). Kept here as a
+// ready-to-use template for when they get added; copy the relevant block into
+// <module>/build.gradle and adjust as needed once the module directory exists.
+
+/*
+description = "JPA Simple Transactions for Hibernate"
+
+jar {
+    archiveBaseName = "jpa-simple-transactions-hibernate"
+}
+
+dependencies {
+    api(project(":jpa"))
+
+    // Hibernate.
+    api("org.hibernate.orm:hibernate-core:" + versionHibernate)
+
+    // JBoss Logging.
+    api("org.jboss.logging:jboss-logging:" + versionJBossLog)
+}
+*/
+
+/*
+description = "JPA Simple Transactions for Eclipselink"
+
+jar {
+    archiveBaseName = "jpa-simple-transactions-eclipselink"
+}
+
+dependencies {
+    api(project(":jpa"))
+
+    // EclipseLink.
+    api("org.eclipse.persistence:org.eclipse.persistence.jpa:" + versionEclipselink)
+}
+*/
+
+/*
+description = "JPA Simple Transactions for OpenJPA"
+
+jar {
+    archiveBaseName = "jpa-simple-transactions-openjpa"
+}
+
+dependencies {
+    api(project(":jpa"))
+
+    // OpenJPA.
+    api("org.apache.openjpa:openjpa:" + versionOpenJpa)
+}
+*/

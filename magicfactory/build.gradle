@@ -1,0 +1,8 @@
+description = "Annotimpler Magic Factory"
+
+jar {
+    archiveBaseName = "annotimpler.magicfactory"
+}
+
+dependencies {
+}

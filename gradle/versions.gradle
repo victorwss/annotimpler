@@ -1,0 +1,44 @@
+// ── Dependency and tool versions ─────────────────────────────────────────────
+// Centralizes every version number used across the root build script and the
+// per-module build.gradle files. Exposed as project extra properties so that
+// every subproject's own build.gradle can reference them directly by name.
+
+ext {
+    repoVar   = System.getenv("maven.repo.local")
+    localRepo = repoVar == null ? new File("${rootDir}/.maven-repo").absolutePath : repoVar
+    repoUrl   = "file:///${localRepo}".replace("\\", "/")
+
+    versionJavaCompiler = "25"
+    doclint = true
+
+    versionApiguardian = "1.1.2"
+    versionAsm         = "9.10.1"
+    versionCheckstyle  = "13.7.0"
+    versionEclipselink = "5.0.1"
+    versionFindSecBugs = "1.14.0"
+    versionHibernate   = "7.4.5.Final"
+    versionJackson     = "3.2.0"
+    versionJacksonAnn  = "2.22"
+    versionJaCoCo      = "0.8.15"
+    versionJakartaAnno = "3.0.0"
+    versionJakartaCdi  = "4.1.0"
+    versionJakartaEl   = "6.0.1"
+    versionJakartaInj  = "2.0.1"
+    versionJakartaInt  = "2.2.0"
+    versionJakartaJpa  = "3.2.0"
+    versionJakartaJta  = "2.0.1"
+    versionJBossLog    = "3.6.3.Final"
+    versionJcip        = "1.0-1"
+    versionJunit       = "6.1.1"
+    versionLombok      = "1.18.47"
+    versionOpenJpa     = "4.1.1"
+    versionPmd         = "7.26.0"
+    versionSbContrib   = "7.7.4"
+    versionSpotBugs    = "4.10.2"
+    versionSlf4j       = "2.0.18"
+    versionSqlite      = "3.53.2.0"
+    versionH2          = "2.4.240"
+}
+
+println("Using Java " + org.gradle.api.JavaVersion.current() + ".")
+println("Local repo: ${repoUrl}")

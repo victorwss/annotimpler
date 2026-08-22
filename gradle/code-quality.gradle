@@ -1,0 +1,59 @@
+// ── Static analysis: Checkstyle, PMD and SpotBugs ────────────────────────────
+// Applied inside the `subprojects { ... }` block.
+//
+// The SpotBugs plugin's classes (Effort, Confidence, SpotBugsTask) are only on
+// the compile classpath of the script that declares `plugins { id("com.github.spotbugs") }`
+// (the root build.gradle). Scripts applied via `apply from:` don't share that compile
+// classpath for class name resolution, so the root script exposes them here as ext
+// properties (plain Class references, resolved once where the classpath is available).
+
+checkstyleMain {
+    configFile = rootProject.file("${rootDir}/config/checkstyle/main.xml")
+}
+
+checkstyleTest {
+    configFile = rootProject.file("${rootDir}/config/checkstyle/test.xml")
+}
+
+checkstyle {
+    toolVersion = versionCheckstyle
+    configProperties = [
+        "checkstyle.cache.file": "${buildDir}/checkstyle.cache",
+    ]
+    ignoreFailures = true
+    showViolations = true
+}
+
+pmd {
+    ruleSetFiles = files("${rootDir}/config/pmd-ruleset.xml")
+    toolVersion = versionPmd
+    ignoreFailures = true
+    rulesMinimumPriority = 5
+}
+
+spotbugs {
+    toolVersion = versionSpotBugs
+    effort = spotBugsEffort.MAX
+    reportLevel = spotBugsConfidence.valueOf("LOW")
+    omitVisitors = ["WeakExceptionMessaging", "OverlyPermissiveMethod"]
+    ignoreFailures = true
+    excludeFilter = file("$rootDir/config/spotbugs-exclude.xml")
+}
+
+tasks.withType(spotBugsTaskType) {
+    reports {
+        xml.required = true      // needed for aggregateSpotBugsReport
+        html.required = true
+    }
+}
+
+tasks.withType(Checkstyle) {
+    reports {
+        xml.required = true      // needed for aggregateCheckstyleReport
+        html.required = true
+    }
+}
+
+spotbugsTest.enabled = false
+pmdTest.enabled = false
+test.enabled = true

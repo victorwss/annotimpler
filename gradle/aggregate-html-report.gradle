@@ -1,0 +1,25 @@
+// ── HTML report helper ────────────────────────────────────────────────────────
+// Builds a simple but complete single-page HTML table report.
+// Used by aggregatePmdReport, aggregateSpotBugsReport and aggregateCheckstyleReport.
+ext.buildAggregateHtml = { String title, String accentColor, List<String> headers, List rows, String summary ->
+    def escape = { String s -> s?.replace("&", "&amp;")?.replace("<", "&lt;")?.replace(">", "&gt;") ?: "" }
+    def thead = headers.collect { "<th>${it}</th>" }.join("")
+    def tbody = rows.collect { row ->
+        "<tr>${(row as List).collect { cell -> "<td>${escape(cell?.toString())}</td>" }.join("")}</tr>"
+    }.join("\n")
+    """\
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>${title}</title>
+<style>
+body  { font-family: sans-serif; margin: 20px; }
+h1    { color: ${accentColor}; }
+table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+th    { background: ${accentColor}; color: white; padding: 6px 10px; text-align: left; }
+td    { border: 1px solid #ddd; padding: 4px 8px; vertical-align: top; word-break: break-word; }
+tr:nth-child(even) { background: #f9f9f9; }
+</style></head><body>
+<h1>${title}</h1>
+<p>Total: <b>${summary}</b></p>
+${rows.isEmpty() ? "<p>No issues found. \u2713</p>" : "<table><tr>${thead}</tr>\n${tbody}\n</table>"}
+</body></html>"""
+}

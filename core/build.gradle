@@ -1,0 +1,10 @@
+description = "Annotimpler Core"
+
+jar {
+    archiveBaseName = "annotimpler.core"
+}
+
+dependencies {
+    api(project(":typeser"))
+    api(project(":magicfactory"))
+}

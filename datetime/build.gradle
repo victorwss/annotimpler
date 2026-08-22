@@ -1,0 +1,8 @@
+description = "Dates and Times"
+
+jar {
+    archiveBaseName = "annotimpler.datetime"
+}
+
+dependencies {
+}

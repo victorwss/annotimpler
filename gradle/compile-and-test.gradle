@@ -1,0 +1,84 @@
+// ── Java compilation and test execution ──────────────────────────────────────
+// Applied inside the `subprojects { ... }` block.
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.debug = true
+    options.fork = true
+    options.compilerArgs += "-parameters"
+    options.compilerArgs += "-Xlint:all,-processing"
+    options.compilerArgs += ["-Xmaxwarns", "1000"]
+    options.compilerArgs += ["-Xmaxerrs", "1000"]
+    doFirst {
+        options.compilerArgs += [
+            "--module-path", classpath.asPath
+        ]
+        classpath = files()
+        println("Compiler Args for ${name}:")
+        options.compilerArgs.each {
+            println "  ${it}"
+        }
+    }
+}
+
+tasks.withType(Test).configureEach {
+    doFirst {
+        sourceSets.test.java.srcDirs.each { srcDir ->
+            def moduleInfo = new File(srcDir, "module-info.java")
+            if (moduleInfo.exists()) {
+                def matcher = (moduleInfo.text =~ /(?:open\s+)?module\s+([\w.]+)\s*\{/)
+                if (matcher.find()) {
+                    def moduleName = matcher.group(1)
+                    def resDir = sourceSets.test.output.resourcesDir
+                    if (resDir?.exists()) {
+                        jvmArgs "--patch-module=${moduleName}=${resDir.absolutePath}"
+                    }
+                }
+            }
+        }
+        println "JVM args for ${name}:"
+        jvmArgs.each {
+            println "  ${it}"
+        }
+    }
+}
+
+compileJava {
+    dependsOn(delombok)
+    sourceCompatibility = versionJavaCompiler
+    targetCompatibility = versionJavaCompiler
+    if (doclint) {
+        options.compilerArgs += "-Xdoclint:all/protected"
+    } else {
+        options.compilerArgs += "-Xdoclint:none"
+    }
+}
+
+compileTestJava {
+    dependsOn(compileJava)
+    sourceCompatibility = org.gradle.api.JavaVersion.current()
+    targetCompatibility = org.gradle.api.JavaVersion.current()
+    options.compilerArgs += "-Xdoclint:none"
+}
+
+test {
+    useJUnitPlatform()
+    finalizedBy(jacocoTestReport)
+    ignoreFailures = true
+    defaultCharacterEncoding = "UTF-8"
+    testLogging.showStandardStreams = true
+    workingDir = file("${projectDir}/..")
+}
+
+jacoco {
+    toolVersion = versionJaCoCo
+}
+
+jacocoTestReport {
+    //dependsOn(test)
+    reports {
+        xml.required = false
+        csv.required = false
+        html.required = true
+    }
+}

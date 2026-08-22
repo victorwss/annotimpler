@@ -1,0 +1,143 @@
+// ── Aggregate JUnit Test Report ───────────────────────────────────────────────
+tasks.register("aggregateTestReport", TestReport) {
+    group = "verification"
+    description = "Generates an aggregate JUnit HTML report for all subprojects."
+    dependsOn(subprojects.collect { it.tasks.withType(Test) }.flatten())
+    destinationDirectory = file("${buildDir}/reports/allTests")
+    testResults.from(subprojects.collect { it.tasks.withType(Test) }.flatten())
+}
+
+// ── Aggregate JaCoCo Coverage Report ─────────────────────────────────────────
+// Note: the jacoco-report-aggregation plugin is incompatible with Gradle 9 in this
+// project setup, so we use a plain JacocoReport task that combines all .exec files.
+tasks.register("aggregateJacocoReport", JacocoReport) {
+    dependsOn(subprojects.collect { it.tasks.named("test") })
+    group = "verification"
+    description = "Generates an aggregate JaCoCo coverage report for all subprojects."
+    executionData.setFrom(
+        subprojects.collect { sp -> fileTree(sp.buildDir).include("jacoco/*.exec") }
+    )
+    sourceDirectories.setFrom(
+        subprojects.collect { sp -> sp.sourceSets.main.allJava.srcDirs }.flatten().findAll { it.exists() }
+    )
+    classDirectories.setFrom(
+        subprojects.collect { sp -> sp.sourceSets.main.output.classesDirs }.flatten()
+    )
+    reports {
+        html.required = true
+        xml.required  = false
+        csv.required  = false
+        html.outputLocation = layout.buildDirectory.dir("reports/jacoco/aggregate")
+    }
+}
+
+// ── Aggregate PMD Report ──────────────────────────────────────────────────────
+tasks.register("aggregatePmdReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.withType(Pmd) }.flatten())
+    group = "verification"
+    description = "Generates an aggregate PMD HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/pmd/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/pmd/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).file.each { fileNode ->
+                    def path = fileNode.@name.replace(rootDir.absolutePath, "").replace("\\", "/")
+                    fileNode.violation.each { v ->
+                        rows << [sp.name, path, v.@beginline, v.@priority, v.@rule, v.text().trim()]
+                    }
+                }
+            } catch (Exception e) { println "PMD parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "PMD Aggregate Report", "#4a6da7",
+            ["Project", "File", "Line", "P", "Rule", "Message"], rows,
+            "${rows.size()} violation(s)")
+        println "PMD aggregate report: ${outputFile.toURI()}"
+    }
+}
+
+// ── Aggregate SpotBugs Report ─────────────────────────────────────────────────
+tasks.register("aggregateSpotBugsReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.named("spotbugsMain") })
+    group = "verification"
+    description = "Generates an aggregate SpotBugs HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/spotbugs/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/spotbugs/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).BugInstance.each { bug ->
+                    def sourceLine = bug.SourceLine ? bug.SourceLine[0] : null
+                    def msg1 = bug.LongMessage ?: bug.ShortMessage
+                    def msg2 = msg1 ? msg1[0].text().trim() : ""
+                    def className = bug.Class ? bug.Class[0].@classname : ""
+                    def methodName = bug.Method ? bug.Method[0].@name : ""
+                    def sourcePath = sourceLine ? sourceLine.@sourcepath : ""
+                    def start = sourceLine ? sourceLine.@start : ""
+                    rows << [sp.name, bug.@category, bug.@type, bug.@rank, className, methodName, sourcePath, start, msg2]
+                }
+            } catch (Exception e) { println "SpotBugs parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "SpotBugs Aggregate Report",
+            "#a74a4a",
+            ["Project", "Category", "Type", "Rank", "Class", "Method", "File", "Line", "Message"],
+            rows,
+            "${rows.size()} bug(s)"
+        )
+        println "SpotBugs aggregate report: ${outputFile.toURI()}"
+    }
+}
+
+// ── Aggregate Checkstyle Report ───────────────────────────────────────────────
+tasks.register("aggregateCheckstyleReport") {
+    dependsOn(subprojects.collect { sp -> sp.tasks.named("checkstyleMain") })
+    group = "verification"
+    description = "Generates an aggregate Checkstyle HTML report for all subprojects."
+    def outputFile = file("${buildDir}/reports/checkstyle/aggregate.html")
+    outputs.file(outputFile)
+
+    doLast {
+        def rows = []
+        subprojects.each { sp ->
+            def xmlFile = new File(sp.buildDir, "reports/checkstyle/main.xml")
+            if (!xmlFile.exists()) return
+            try {
+                new groovy.xml.XmlParser().parse(xmlFile).file.each { fileNode ->
+                    def path = fileNode.@name.replace(rootDir.absolutePath, "").replace("\\", "/")
+                    fileNode.error.each { e ->
+                        rows << [sp.name, path, e.@line ?: "", e.@severity ?: "", e.@source ?: "", e.text().trim()]
+                    }
+                }
+            } catch (Exception e) { println "Checkstyle parse error for ${sp.name}: ${e.message}" }
+        }
+        outputFile.parentFile.mkdirs()
+        outputFile.text = buildAggregateHtml(
+            "Checkstyle Aggregate Report",
+            "#7a6da7",
+            ["Project", "File", "Line", "Severity", "Source", "Message"],
+            rows,
+            "${rows.size()} violation(s)"
+        )
+        println "Checkstyle aggregate report: ${outputFile.toURI()}"
+    }
+}
+
+// ── aggregateReports convenience task ────────────────────────────────────────
+// Runs all aggregate reports at once. Individual tasks can still be run separately.
+tasks.register("aggregateReports") {
+    group = "verification"
+    description = "Generates all aggregate reports (tests, coverage, PMD, SpotBugs, Checkstyle, Javadoc)."
+    dependsOn("aggregateTestReport", "aggregateJacocoReport", "aggregatePmdReport", "aggregateSpotBugsReport", "aggregateCheckstyleReport", "allJavadoc")
+}

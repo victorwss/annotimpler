@@ -1,0 +1,35 @@
+// ── Common dependencies shared by every subproject ───────────────────────────
+// Applied inside the `subprojects { ... }` block, so `dependencies` here refers
+// to the subproject being configured.
+
+dependencies {
+
+    // JUnit.
+    testImplementation("org.junit.platform:junit-platform-launcher:" + versionJunit)
+    testImplementation("org.junit.jupiter:junit-jupiter-api:"        + versionJunit)
+    testImplementation("org.junit.jupiter:junit-jupiter-params:"     + versionJunit)
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:"     + versionJunit)
+    testImplementation("org.apiguardian:apiguardian-api:" + versionApiguardian)
+
+    // Lombok.
+    annotationProcessor    ("org.projectlombok:lombok:" + versionLombok)
+    compileOnlyApi         ("org.projectlombok:lombok:" + versionLombok)
+    testAnnotationProcessor("org.projectlombok:lombok:" + versionLombok)
+    testCompileOnly        ("org.projectlombok:lombok:" + versionLombok)
+
+    // SLF4J.
+    implementation("org.slf4j:slf4j-api:"    + versionSlf4j)
+    implementation("org.slf4j:slf4j-simple:" + versionSlf4j)
+
+    // SpotBugs + plugins + dependencies.
+    compileOnlyApi ("com.github.stephenc.jcip:jcip-annotations:${versionJcip}")
+    compileOnlyApi ("com.github.spotbugs:spotbugs-annotations:${versionSpotBugs}")
+    spotbugsPlugins("com.h3xstream.findsecbugs:findsecbugs-plugin:${versionFindSecBugs}")
+    spotbugsPlugins("com.mebigfatguy.sb-contrib:sb-contrib:${versionSbContrib}")
+    spotbugs       ("com.github.spotbugs:spotbugs:${versionSpotBugs}")
+    spotbugs       ("org.slf4j:slf4j-api:"    + versionSlf4j)
+    spotbugs       ("org.slf4j:slf4j-simple:" + versionSlf4j)
+    spotbugs       ("org.ow2.asm:asm:${versionAsm}")
+    spotbugs       (configurations.spotbugsPlugins.dependencies)
+    spotbugs       (configurations.apiElements    .dependencies)
+}

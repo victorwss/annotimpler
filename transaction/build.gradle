@@ -1,0 +1,14 @@
+description = "Transactions"
+
+jar {
+    archiveBaseName = "transaction"
+}
+
+dependencies {
+    api(project(":typeser"))
+    api(project(":magicfactory"))
+}
+
+test {
+    jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
+}

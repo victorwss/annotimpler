@@ -1,0 +1,8 @@
+description = "Stream wrappers that enforce a maximum byte/character read limit"
+
+jar {
+    archiveBaseName = "annotimpler.limited"
+}
+
+dependencies {
+}

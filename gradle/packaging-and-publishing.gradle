@@ -1,0 +1,41 @@
+// ── Packaging (jar/sources/javadoc) and publishing ───────────────────────────
+// Applied inside the `subprojects { ... }` block.
+
+jar {
+    dependsOn(compileJava)
+    duplicatesStrategy = "exclude"
+}
+
+task sourcesJar(type: Jar) {
+    from(sourceSets.main.allSource)
+    archiveClassifier = "sources"
+}
+
+task javadocJar(type: Jar) {
+    dependsOn(javadoc)
+    dependsOn(sourcesJar)
+    archiveClassifier = "javadoc"
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from(components.java)
+            artifact(sourcesJar)
+            artifact(javadocJar)
+            pom {
+                developers {
+                    developer {
+                        name = "Victor Williams Stafusa da Silva"
+                        email = "victorwssilva@gmail.com"
+                    }
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            url = repoUrl
+        }
+    }
+}

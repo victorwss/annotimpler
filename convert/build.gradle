@@ -1,0 +1,11 @@
+description = "Annotimpler Converter"
+
+jar {
+    archiveBaseName = "annotimpler.convert"
+}
+
+dependencies {
+    api(project(":typeser"))
+    api(project(":magicfactory"))
+    api(project(":datetime"))
+}

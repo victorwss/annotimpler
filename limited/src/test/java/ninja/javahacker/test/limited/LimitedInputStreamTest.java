@@ -6,7 +6,6 @@ import ninja.javahacker.test.ForTests;
 import module java.base;
 import module org.junit.jupiter.api;
 import module org.junit.jupiter.params;
-import module ninja.javahacker.annotimpler.sql;
 
 @DisplayName("LimitedInputStream Tests")
 @SuppressWarnings({"unused", "NestedAssignment", "ThrowableResultIgnored"})

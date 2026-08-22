@@ -1,0 +1,74 @@
+// ── Unified Javadoc ──────────────────────────────────────────────────────────
+// Generates a single Javadoc tree spanning all modules, using --module-source-path
+// so the module graph is preserved. Source comes from each subproject's
+// prepareJavadocSource output (already @NonNull-stripped per the JDK-8175533 workaround).
+tasks.register("allJavadoc") {
+    dependsOn(subprojects.collect { it.tasks.named("prepareJavadocSource") })
+    group = "documentation"
+    description = "Generates unified Javadoc for all modules."
+    def outputDir    = file("${buildDir}/docs/javadoc")
+    def mergedSrcDir = file("${buildDir}/all-javadoc-src")
+    outputs.dir(outputDir)
+
+    doLast {
+        outputDir.mkdirs()
+        mergedSrcDir.deleteDir()   // start fresh so stale modules don't linger
+        def moduleNames    = []
+        def allModulePaths = new LinkedHashSet<File>()
+
+        subprojects.each { sp ->
+            def srcDir     = new File(sp.buildDir, "src-javadoc")
+            def moduleInfo = new File(srcDir, "module-info.java")
+            if (!moduleInfo.exists()) return
+            def matcher = (moduleInfo.text =~ /(?:open\s+)?module\s+([\w.]+)\s*\{/)
+            if (!matcher.find()) return
+            def moduleName = matcher.group(1)
+            moduleNames << moduleName
+            // Place each module's source under <mergedSrcDir>/<moduleName>/ so that
+            // javadoc --module-source-path <mergedSrcDir> can find them by module name.
+            // A plain java.nio.file copy is used here (instead of project.copy) because this
+            // block runs at task execution time, where Task.project is deprecated since Gradle 9.
+            def moduleDestDir = new File(mergedSrcDir, moduleName)
+            def srcPath  = srcDir.toPath()
+            def destPath = moduleDestDir.toPath()
+            java.nio.file.Files.walk(srcPath).forEach { path ->
+                def targetPath = destPath.resolve(srcPath.relativize(path))
+                if (java.nio.file.Files.isDirectory(path)) {
+                    java.nio.file.Files.createDirectories(targetPath)
+                } else {
+                    java.nio.file.Files.createDirectories(targetPath.getParent())
+                    java.nio.file.Files.copy(path, targetPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
+            try {
+                allModulePaths.addAll(sp.configurations.compileClasspath.files)
+            } catch (Exception ignored) {
+            }
+        }
+
+        def cmd = [org.gradle.internal.jvm.Jvm.current().javadocExecutable.absolutePath]
+        cmd += ["--module-source-path", mergedSrcDir.absolutePath]
+        cmd += ["--module", moduleNames.join(",")]
+        if (!allModulePaths.isEmpty()) {
+            cmd += ["--module-path", allModulePaths*.absolutePath.join(File.pathSeparator)]
+        }
+        cmd += ["-d", outputDir.absolutePath]
+        cmd += ["-encoding", "UTF-8", "-charset", "UTF-8", "-docencoding", "UTF-8"]
+        cmd += ["-doctitle", "Annotimpler API", "-windowtitle", "Annotimpler API"]
+        cmd += ["-header", "<b>Annotimpler</b>"]
+        cmd += ["-html5"]
+        cmd += ["-tag", "apiNote:a:API Note:",
+                "-tag", "implSpec:a:Implementation Requirements:",
+                "-tag", "implNote:a:Implementation Note:"
+                ]
+        cmd += [doclint ? "-Xdoclint:all" : "-Xdoclint:none"]
+        cmd += ["-Xmaxerrs", "1000", "-Xmaxwarns", "1000"]
+
+        def pb = new ProcessBuilder(cmd).redirectErrorStream(true)
+        def process = pb.start()
+        def output = process.inputStream.text
+        def exitCode = process.waitFor()
+        if (output) println output
+        if (exitCode != 0) throw new GradleException("allJavadoc failed (exit ${exitCode})")
+    }
+}

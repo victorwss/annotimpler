@@ -1,0 +1,30 @@
+description = "Annotimpler JDBC"
+
+jar {
+    archiveBaseName = "annotimpler.jdbc"
+}
+
+dependencies {
+    api(project(":typeser"))
+    api(project(":magicfactory"))
+    api(project(":datetime"))
+    api(project(":convert"))
+    api(project(":core"))
+    api(project(":sql"))
+    api(project(":limited"))
+
+    // Jackson.
+    implementation("tools.jackson.core:jackson-core:"     + versionJackson)
+    implementation("tools.jackson.core:jackson-databind:" + versionJackson)
+    implementation("com.fasterxml.jackson.core:jackson-annotations:" + versionJacksonAnn)
+
+    // H2.
+    testImplementation("com.h2database:h2:" + versionH2)
+
+    // SQLite.
+    testImplementation("org.xerial:sqlite-jdbc:" + versionSqlite)
+}
+
+test {
+    jvmArgs += "--enable-native-access=org.xerial.sqlitejdbc"
+}

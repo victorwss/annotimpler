@@ -1,0 +1,28 @@
+// ── Automatic inter-module task ordering ─────────────────────────────────────
+// Applied inside the `subprojects { ... }` block.
+//
+// Every module declares its inter-module dependencies once, in its own
+// build.gradle's `dependencies { api(project(":other")) }` block. Building the
+// module graph requires the *other* module's sources to already be delomboked
+// and compiled (compileJava needs their classes on the module path) and its
+// jar to exist before this module's own delombok step runs (delombok resolves
+// a modulepath from the compile classpath, which needs real jars).
+//
+// Rather than repeating those cross-project task references by hand in every
+// module (which is exactly the kind of drift-prone boilerplate that used to
+// live inline in the root build.gradle), this block inspects the project
+// dependencies actually declared by each subproject and wires the ordering
+// automatically, once and consistently for every module.
+afterEvaluate {
+    def dependedProjectPaths = configurations
+        .collect { it.dependencies.withType(ProjectDependency) }
+        .flatten()
+        .collect { it.path }
+        .unique()
+
+    dependedProjectPaths.each { path ->
+        compileJava.dependsOn("${path}:delombok")
+        compileJava.dependsOn("${path}:compileJava")
+        delombok.dependsOn("${path}:jar")
+    }
+}

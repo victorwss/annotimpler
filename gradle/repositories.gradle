@@ -1,0 +1,35 @@
+// ── Common configuration shared by the root project and every subproject ────
+// Repositories, shared configurations and the placeholder "delombok" task
+// (real behavior is attached to it in subproject-conventions.gradle; the root
+// project itself just needs the task to exist so cross-file references work).
+
+allprojects {
+    configurations {
+        scm
+        doc {
+            transitive = false
+        }
+    }
+
+    repositories {
+        flatDir {
+            dirs("../libs")
+        }
+        maven {
+            url = repoUrl
+        }
+        mavenCentral()
+        gradlePluginPortal()
+        maven {
+            url = "https://maven.cleanroommc.com/"
+        }
+        if ("edge" in versionLombok) {
+            maven {
+                url("https://projectlombok.org/edge-releases")
+            }
+        }
+    }
+
+    task delombok {
+    }
+}

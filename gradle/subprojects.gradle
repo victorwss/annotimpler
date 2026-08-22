@@ -1,0 +1,21 @@
+// ── Common conventions applied to every subproject ───────────────────────────
+// Plugin application plus the shared build logic split across focused files.
+// Each applied file is self-contained and documents a single concern.
+
+subprojects {
+    apply(plugin: "com.github.spotbugs")
+    apply(plugin: "java-library")
+    apply(plugin: "maven-publish")
+    apply(plugin: "checkstyle")
+    apply(plugin: "signing")
+    apply(plugin: "jacoco")
+    apply(plugin: "pmd")
+    apply(plugin: "project-report")
+
+    apply(from: "${rootDir}/gradle/subproject-dependencies.gradle")
+    apply(from: "${rootDir}/gradle/delombok.gradle")
+    apply(from: "${rootDir}/gradle/compile-and-test.gradle")
+    apply(from: "${rootDir}/gradle/code-quality.gradle")
+    apply(from: "${rootDir}/gradle/packaging-and-publishing.gradle")
+    apply(from: "${rootDir}/gradle/project-task-ordering.gradle")
+}

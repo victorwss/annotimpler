@@ -17,7 +17,6 @@ import module ninja.javahacker.annotimpler.sql;
 /// | [ninja.javahacker.annotimpler.jdbc.conn] | JDBC [Connection] factories for common databases. |
 /// | [ninja.javahacker.annotimpler.jdbc.sqlimpl] | Runtime handlers for `@ExecuteSql`, `@GenerateSql`, and `@QuerySql`. |
 /// | [ninja.javahacker.annotimpler.jdbc.stmt] | Named-parameter statements, type-aware result sets, and operation executors. |
-/// | [ninja.javahacker.annotimpler.limited] | Stream wrappers that enforce a maximum byte/character read limit. |
 @SuppressWarnings({
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
@@ -35,11 +34,11 @@ open module ninja.javahacker.annotimpler.jdbc {
     requires transitive ninja.javahacker.annotimpler.convert;
     requires transitive ninja.javahacker.annotimpler.core;
     requires transitive ninja.javahacker.annotimpler.sql;
+    requires transitive ninja.javahacker.annotimpler.limited;
     requires transitive ninja.javahacker.transaction;
     requires ninja.javahacker.datetime;
     requires ninja.javahacker.typeser;
 
-    exports ninja.javahacker.annotimpler.limited;
     exports ninja.javahacker.annotimpler.jdbc;
     exports ninja.javahacker.annotimpler.jdbc.conn;
     exports ninja.javahacker.annotimpler.jdbc.sqlimpl;

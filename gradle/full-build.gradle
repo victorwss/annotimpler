@@ -1,0 +1,9 @@
+// ── fullBuild lifecycle task ──────────────────────────────────────────────────
+// Builds, publishes and generates every aggregate report in one shot.
+// Intended to be run as: gradle clean fullBuild
+// (clean is kept separate to avoid circular dependencies with subproject tasks.)
+tasks.register("fullBuild") {
+    group = "build"
+    description = "Builds all modules, publishes artifacts, and generates all aggregate reports. Run as: gradle clean fullBuild"
+    dependsOn("build", "publish", "aggregateReports")
+}
