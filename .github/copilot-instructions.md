@@ -17,6 +17,14 @@ No Gradle wrapper is checked in — use a system `gradle` install. Java 25 or ne
   Configs live in `config/checkstyle/{main,test}.xml`, `config/pmd-ruleset.xml`, `config/spotbugs-exclude.xml`.
 - `gradle javadoc` (per module) or `gradle allJavadoc` (unified, module-graph-aware Javadoc across all modules) depend on a `delombok`/`prepareJavadocSource` step — don't hand-edit anything under `build/`.
 
+### The empty `/src` file at the repository root
+
+There is a tracked, intentionally **empty regular file** named `src` directly under the repository root (not a directory!). Do not delete it, do not "clean it up",
+and do not confuse it with a real `src/` source directory — there is no such directory at the root, since every module has its own `<module>/src/...` tree instead.
+This file exists purely as a workaround for a NetBeans quirk: NetBeans keeps trying to (re)create a root-level `src` folder as if this were a single, monolithic
+Gradle project, which then confuses NetBeans about the actual multi-module project structure. Having a plain *file* named `src` already occupying that name prevents
+NetBeans from creating the directory. If this file ever goes missing (e.g. accidentally deleted or excluded during a refactor), just recreate it as an empty file.
+
 ## Gradle script layout
 
 Root `build.gradle` auto-includes every top-level directory as a subproject (see `settings.gradle`), except `config`, `libs`, `build`, `test-files`, `gradle`, and dotted dirs.
