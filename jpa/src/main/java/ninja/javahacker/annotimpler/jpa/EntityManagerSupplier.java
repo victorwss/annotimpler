@@ -3,6 +3,7 @@ package ninja.javahacker.annotimpler.jpa;
 import lombok.NonNull;
 
 import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.transaction;
 
 /// Supplies newly-opened [ExtendedEntityManager] instances and begins [JpaTransaction]s from them.
 ///

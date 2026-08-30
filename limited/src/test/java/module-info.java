@@ -2,7 +2,7 @@
     "requires-automatic", "requires-transitive-automatic" // com.github.spotbugs.annotations
 })
 open module ninja.javahacker.test.limited {
-    requires transitive ninja.javahacker.annotimpler.limited;
+    requires transitive ninja.javahacker.limited;
 
     requires transitive org.junit.jupiter.api;
     requires transitive org.junit.jupiter.params;

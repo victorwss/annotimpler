@@ -1,4 +1,4 @@
-description = "Stream wrappers that enforce a maximum byte/character read limit"
+description = "Stream wrappers"
 
 jar {
     archiveBaseName = "annotimpler.limited"

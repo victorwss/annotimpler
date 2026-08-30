@@ -6,7 +6,7 @@ import java.lang.reflect.Proxy;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// Wraps an object's method calls in transactions, ensuring that each top-level call either
 /// commits on success or rolls back on failure.

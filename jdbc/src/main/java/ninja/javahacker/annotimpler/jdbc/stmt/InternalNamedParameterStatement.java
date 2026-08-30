@@ -14,8 +14,7 @@ import lombok.NonNull;
 import lombok.experimental.Delegate;
 import lombok.experimental.PackagePrivate;
 
-import module ninja.javahacker.annotimpler.jdbc;
-import module ninja.javahacker.annotimpler.limited;
+import module ninja.javahacker.limited;
 
 /// Implementation of [NamedParameterStatement] that works as an decorator over a standard [PreparedStatement].
 @PackagePrivate

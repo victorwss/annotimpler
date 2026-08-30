@@ -1,11 +1,11 @@
 package ninja.javahacker.test.limited;
 
-import ninja.javahacker.annotimpler.limited.LimitedInputStream;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
 import module org.junit.jupiter.api;
 import module org.junit.jupiter.params;
+import module ninja.javahacker.limited;
 
 @DisplayName("LimitedInputStream Tests")
 @SuppressWarnings({"unused", "NestedAssignment", "ThrowableResultIgnored"})

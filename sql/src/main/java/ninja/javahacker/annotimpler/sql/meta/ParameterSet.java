@@ -5,7 +5,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.annotimpler.sql;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// Wraps a [Method] together with its compiled parameter-binding strategy.
 ///

@@ -16,4 +16,4 @@
 /// - [NameDictionary] — Caches per-class type-name disambiguation for readable signatures.
 /// - [TypeName] — Formats `java.lang.reflect.Type` values as human-readable strings.
 /// - [WrapperClass] — Maps primitive types to their wrapper counterparts and vice-versa.
-package ninja.javahacker.annotimpler.magicfactory;
+package ninja.javahacker.magicfactory;

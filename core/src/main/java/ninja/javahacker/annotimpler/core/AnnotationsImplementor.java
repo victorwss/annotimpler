@@ -6,7 +6,7 @@ import java.lang.reflect.Proxy;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// Creates proxy implementations of interfaces whose method behaviors are defined by annotations.
 ///

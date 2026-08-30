@@ -4,7 +4,7 @@ import lombok.Generated;
 import lombok.NonNull;
 import lombok.experimental.PackagePrivate;
 
-import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.transaction;
 
 /// Holds the active [ExtendedEntityManager] and its unique identifier for one transaction.
 ///

@@ -4,12 +4,12 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.magicfactory;
 
 /// Singleton [SqlFactory] that delegates SQL retrieval to a user-provided [SqlSupplier] class, as specified
 /// by a [SqlFromClass]-annotated method.
-/// The supplier class is instantiated reflectively via [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
+/// The supplier class is instantiated reflectively via [MagicFactory].
 /// If the supplier's constructor accepts a single `String` argument, the value of [SqlFromClass#key()] is
 /// passed to it; otherwise the no-arg constructor is used.
 @SuppressFBWarnings({"ENMI_ONE_ENUM_VALUE", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})

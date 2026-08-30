@@ -5,7 +5,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module ninja.javahacker.typeser;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// Thrown when a value cannot be converted from its source type to the desired target type.
 ///

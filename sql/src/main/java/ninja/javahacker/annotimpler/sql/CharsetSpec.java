@@ -4,13 +4,13 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// A provider of a [Charset] used to decode raw bytes into a SQL string when loading
 /// SQL from a file, classpath resource, or URL.
 ///
 /// Implementations are typically singleton enums, but are also obtainable via
-/// [ninja.javahacker.annotimpler.magicfactory.MagicFactory]. A set of standard
+/// [MagicFactory]. A set of standard
 /// implementations covering the most common encodings is provided as nested enum types.
 ///
 /// The constants prefixed with `CS_` expose the corresponding [Charset] instances
@@ -147,7 +147,7 @@ public interface CharsetSpec {
     }
 
     /// Instantiates a `CharsetSpec` of the given implementation class using
-    /// [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
+    /// [MagicFactory].
     ///
     /// @param k The `CharsetSpec` implementation class to instantiate.
     /// @return An instance of `k`; never `null`.

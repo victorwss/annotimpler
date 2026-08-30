@@ -5,7 +5,7 @@ import lombok.NonNull;
 import module java.base;
 import module java.sql;
 import module ninja.javahacker.annotimpler.core;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// A supplier of [ParsedQuery] objects that may throw [SQLException].
 ///
@@ -37,7 +37,7 @@ public interface ParsedSqlSupplier {
     /// 1. Collects all annotations on the method whose type is meta-annotated with [SqlSource].
     /// 2. Verifies that exactly one such annotation is present.
     /// 3. Reads the [SqlSource#value] attribute to determine the [SqlFactory] class.
-    /// 4. Instantiates the [SqlFactory] via [ninja.javahacker.annotimpler.magicfactory.MagicFactory].
+    /// 4. Instantiates the [SqlFactory] via [MagicFactory].
     /// 5. Calls [SqlFactory#prepare] to get the underlying [SqlSupplier].
     /// 6. Returns a [ParsedSqlSupplier] that, on each [get] call, retrieves the SQL string,
     ///    parses it into a [ParsedQuery], and — when `strict` is `true` — validates that the

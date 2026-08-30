@@ -1,11 +1,11 @@
-package ninja.javahacker.test.annotimpler.magicfactory;
+package ninja.javahacker.test.magicfactory;
 
 import org.junit.jupiter.api.function.Executable;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
 import module org.junit.jupiter.api;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 public class NameDictionaryTest {
 

@@ -10,7 +10,7 @@ import module ninja.javahacker.annotimpler.sql;
 ///
 /// The method must also carry a SQL-operation annotation provided by the concrete execution module in use.
 /// The supplier class is instantiated reflectively at prepare time via
-/// [ninja.javahacker.annotimpler.magicfactory.MagicFactory]. If the supplier's constructor
+/// [MagicFactory]. If the supplier's constructor
 /// accepts a single `String`, the value of [#key()] is passed to it; otherwise the
 /// no-arg constructor is used.
 ///

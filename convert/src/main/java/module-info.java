@@ -9,7 +9,7 @@ open module ninja.javahacker.annotimpler.convert {
     requires transitive static com.github.spotbugs.annotations;
     requires transitive static lombok;
 
-    requires transitive ninja.javahacker.annotimpler.magicfactory;
+    requires transitive ninja.javahacker.magicfactory;
     requires ninja.javahacker.datetime;
     requires ninja.javahacker.typeser;
 

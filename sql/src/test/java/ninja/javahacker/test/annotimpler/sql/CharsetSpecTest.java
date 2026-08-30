@@ -5,8 +5,8 @@ import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module org.junit.jupiter.api;
-import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.magicfactory;
 
 public class CharsetSpecTest {
 

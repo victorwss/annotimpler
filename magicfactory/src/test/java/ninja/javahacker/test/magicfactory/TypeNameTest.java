@@ -1,11 +1,11 @@
-package ninja.javahacker.test.annotimpler.magicfactory;
+package ninja.javahacker.test.magicfactory;
 
 import ninja.javahacker.test.ForTests;
 import org.junit.jupiter.api.function.Executable;
 
 import module java.base;
 import module org.junit.jupiter.api;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 public class TypeNameTest {
     private static DynamicTest n(String name, Executable ctx) {

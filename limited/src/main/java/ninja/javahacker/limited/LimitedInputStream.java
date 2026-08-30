@@ -1,4 +1,4 @@
-package ninja.javahacker.annotimpler.limited;
+package ninja.javahacker.limited;
 
 import edu.umd.cs.findbugs.annotations.Nullable;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;

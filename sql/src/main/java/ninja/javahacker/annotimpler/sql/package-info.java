@@ -1,7 +1,6 @@
 /// Root package of the Annotimpler SQL module.
 ///
-/// This package contains SQL-source annotations and transaction abstractions that are
-/// technology-agnostic and can be reused by different execution backends.
+/// This package contains SQL-source annotations.
 ///
 /// ## SQL-source annotations
 ///
@@ -13,11 +12,6 @@
 /// - [SqlFromUrl @SqlFromUrl] — HTTP/HTTPS URL.
 /// - [SqlFromClass @SqlFromClass] — custom
 ///   [SqlSupplier] implementation.
-///
-/// ## Entry points
-///
-/// - [Transactor] — wraps an object's method calls in
-///   backend-specific transactions, committing on success and rolling back on failure.
 package ninja.javahacker.annotimpler.sql;
 
 import module ninja.javahacker.annotimpler.sql;

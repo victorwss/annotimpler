@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module java.sql;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// A [Converter] for single-field record types.
 ///

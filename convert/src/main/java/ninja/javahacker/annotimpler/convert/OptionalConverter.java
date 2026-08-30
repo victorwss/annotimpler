@@ -22,7 +22,7 @@ import java.util.Optional;
 import lombok.Generated;
 import lombok.NonNull;
 
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// A [Converter] that wraps an element [Converter] and produces `Optional<E>`.
 ///

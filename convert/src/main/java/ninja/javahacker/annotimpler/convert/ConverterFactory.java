@@ -3,7 +3,7 @@ package ninja.javahacker.annotimpler.convert;
 import lombok.NonNull;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 
 /// A functional interface for obtaining [Converter] instances for arbitrary [Type] values.
 ///

@@ -1,10 +1,10 @@
-package ninja.javahacker.test.annotimpler.magicfactory;
+package ninja.javahacker.test.magicfactory;
 
 import org.junit.jupiter.api.function.Executable;
 import ninja.javahacker.test.ForTests;
 
 import module java.base;
-import module ninja.javahacker.annotimpler.magicfactory;
+import module ninja.javahacker.magicfactory;
 import module org.junit.jupiter.api;
 
 @SuppressWarnings({"AssertEqualsBetweenInconvertibleTypes", "unused"})

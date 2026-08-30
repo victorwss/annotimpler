@@ -8,8 +8,8 @@ import lombok.NonNull;
 import module java.base;
 import module ninja.javahacker.annotimpler.core;
 import module ninja.javahacker.annotimpler.jdbc;
-import module ninja.javahacker.annotimpler.magicfactory;
 import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.magicfactory;
 
 /// [Implementation] that backs DAO methods annotated with [ExecuteSql @ExecuteSql].
 ///

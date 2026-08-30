@@ -4,7 +4,7 @@ import lombok.NonNull;
 
 import module java.base;
 import module java.sql;
-import module ninja.javahacker.annotimpler.sql;
+import module ninja.javahacker.transaction;
 
 /// Factory that creates [Connection] instances.
 ///

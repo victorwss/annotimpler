@@ -1,4 +1,4 @@
-package ninja.javahacker.annotimpler.magicfactory;
+package ninja.javahacker.magicfactory;
 
 import module java.base;
 
