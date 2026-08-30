@@ -4,19 +4,19 @@
 // build.gradle (in its module directory) holds only what is specific to that
 // module: its description, jar name and its inter-module dependencies.
 //
-//   gradle/versions.gradle             - dependency/tool versions (as ext properties)
-//   gradle/repositories.gradle          - repositories shared by every project
-//   gradle/subprojects.gradle           - plugin application + convention wiring for subprojects
-//   gradle/subproject-dependencies.gradle - dependencies common to every subproject
-//   gradle/delombok.gradle              - delombok task + Javadoc source preparation
-//   gradle/compile-and-test.gradle      - javac/test configuration
-//   gradle/code-quality.gradle          - Checkstyle/PMD/SpotBugs configuration
+//   gradle/versions.gradle                 - dependency/tool versions (as ext properties)
+//   gradle/repositories.gradle             - repositories shared by every project
+//   gradle/subprojects.gradle              - plugin application + convention wiring for subprojects
+//   gradle/subproject-dependencies.gradle  - dependencies common to every subproject
+//   gradle/delombok.gradle                 - delombok task + Javadoc source preparation
+//   gradle/compile-and-test.gradle         - javac/test configuration
+//   gradle/code-quality.gradle             - Checkstyle/PMD/SpotBugs configuration
 //   gradle/packaging-and-publishing.gradle - jar/sources/javadoc artifacts + publishing
-//   gradle/project-task-ordering.gradle  - automatic cross-module task ordering
-//   gradle/aggregate-html-report.gradle  - HTML report helper used by aggregate tasks
-//   gradle/aggregate-reports.gradle      - aggregate test/coverage/PMD/SpotBugs/Checkstyle tasks
-//   gradle/all-javadoc.gradle            - unified multi-module Javadoc task
-//   gradle/full-build.gradle             - the "fullBuild" lifecycle task
+//   gradle/project-task-ordering.gradle    - automatic cross-module task ordering
+//   gradle/aggregate-html-report.gradle    - HTML report helper used by aggregate tasks
+//   gradle/aggregate-reports.gradle        - aggregate test/coverage/PMD/SpotBugs/Checkstyle tasks
+//   gradle/all-javadoc.gradle              - unified multi-module Javadoc task
+//   gradle/full-build.gradle               - the "fullBuild" lifecycle task
 plugins {
     id("com.github.spotbugs") version "6.5.8"
     id("java-library")
@@ -32,7 +32,7 @@ plugins {
 
 allprojects {
     group = "ninja.javahacker.annotimpler"
-    version = "1.0.0-2026.07.10"
+    version = "1.0.0-2026.08.30"
 }
 
 // Exposed so gradle/code-quality.gradle (applied as a separate script, without direct
